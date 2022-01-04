@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FAccelerationStructureDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FArgumentBufferDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FPipelineDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDXR.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRootSignatureDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FShaderDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FTextureDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FAccelerationStructure.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FArgumentBuffer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FComputeTask.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FDefaultRenderer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FEnvLight.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FFrameResources.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FFullScreenRender.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FGPUCommandBuffer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FGPUCommandSignature.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FLight.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FMeshBuffer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FPipeline.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FPostProcess.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FPrimitive.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderResource.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderResourceHeap.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderResourceTable.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderTarget.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRHI.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRtxPipeline.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FScene.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FSceneLights.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FSceneTileResource.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FShader.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FShaderBinding.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FShaderParamValue.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FStats.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FTexture.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FUniformBuffer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FVTSystem.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FVTTaskThread.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TAnimSequence.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TAsset.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TAssetFile.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TAssetLibrary.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TCollisionSet.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TConsoleVariable.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TCrc.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TCVars.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TDevice.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TEngine.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TDeviceWin32.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TEngineResources.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TFile.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRenderThread.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TImage.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderHDR.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderPNG.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderTGA.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TINIParser.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TMaterial.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TMaterialInstance.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TMeshBuffer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNode.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeCamera.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeCameraNav.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeEnvironment.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeLight.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeSceneTile.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeSkeletalMesh.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TNodeStaticMesh.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TPath.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TPipeline.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TPlatformUtils.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TRegion.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TResource.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TRtxPipeline.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TScene.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TSceneLoading.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TSceneTileResource.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TShader.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TShaderBinding.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TShape.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TSkeleton.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TStaticMesh.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TTaskThread.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TTexture.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TThread.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TLog.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TInput.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TThreadIO.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TThreadLoading.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TTimer.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\TVTTextureLoader.cpp" />
+    <ClCompile Include="..\..\Sources\Externals\inih\cpp\INIReader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Externals\inih\ini.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FAccelerationStructureDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FArgumentBufferDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FPipelineDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12Conversion.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDXR.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRootSignatureDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FShaderDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FTextureDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\FAccelerationStructure.h" />
+    <ClInclude Include="..\..\Sources\Engine\FArgumentBuffer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FComputeTask.h" />
+    <ClInclude Include="..\..\Sources\Engine\FDefaultRenderer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FEnvLight.h" />
+    <ClInclude Include="..\..\Sources\Engine\FFrameResources.h" />
+    <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h" />
+    <ClInclude Include="..\..\Sources\Engine\FGPUCommandBuffer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FGPUCommandSignature.h" />
+    <ClInclude Include="..\..\Sources\Engine\FLight.h" />
+    <ClInclude Include="..\..\Sources\Engine\FMeshBuffer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FMeshRelevance.h" />
+    <ClInclude Include="..\..\Sources\Engine\FPipeline.h" />
+    <ClInclude Include="..\..\Sources\Engine\FPostProcess.h" />
+    <ClInclude Include="..\..\Sources\Engine\FPrimitive.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderResource.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderResourceHeap.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderResourceTable.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderTarget.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRHI.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRHIConfig.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRtxPipeline.h" />
+    <ClInclude Include="..\..\Sources\Engine\FScene.h" />
+    <ClInclude Include="..\..\Sources\Engine\FSceneLights.h" />
+    <ClInclude Include="..\..\Sources\Engine\FSceneTileResource.h" />
+    <ClInclude Include="..\..\Sources\Engine\FShader.h" />
+    <ClInclude Include="..\..\Sources\Engine\FShaderBinding.h" />
+    <ClInclude Include="..\..\Sources\Engine\FShaderParamValue.h" />
+    <ClInclude Include="..\..\Sources\Engine\FStats.h" />
+    <ClInclude Include="..\..\Sources\Engine\FTexture.h" />
+    <ClInclude Include="..\..\Sources\Engine\FUniformBuffer.h" />
+    <ClInclude Include="..\..\Sources\Engine\FUniformBufferView.h" />
+    <ClInclude Include="..\..\Sources\Engine\FViewport.h" />
+    <ClInclude Include="..\..\Sources\Engine\FVTSystem.h" />
+    <ClInclude Include="..\..\Sources\Engine\FVTTaskThread.h" />
+    <ClInclude Include="..\..\Sources\Engine\IInstrusivePtr.hpp" />
+    <ClInclude Include="..\..\Sources\Engine\IReferenceCounted.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Aabbox3d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\FMatrix.h" />
+    <ClInclude Include="..\..\Sources\Engine\Math\FSHVector.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\FVector.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\half.hpp" />
+    <ClInclude Include="..\..\Sources\Engine\math\Line2d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Line3d.h" />
+    <ClInclude Include="..\..\Sources\Engine\Math\Matrix3x2.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Matrix4.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Plane3d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Quaternion.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Rect.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\SViewFrustum.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Triangle3d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Vector2d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Vector3d.h" />
+    <ClInclude Include="..\..\Sources\Engine\math\Vector4d.h" />
+    <ClInclude Include="..\..\Sources\Engine\stdafx.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAnimSequence.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAsset.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAssetFile.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAssetFileDef.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAssetLibrary.h" />
+    <ClInclude Include="..\..\Sources\Engine\TCollisionSet.h" />
+    <ClInclude Include="..\..\Sources\Engine\TConsoleVariable.h" />
+    <ClInclude Include="..\..\Sources\Engine\TCrc.h" />
+    <ClInclude Include="..\..\Sources\Engine\TDefines.h" />
+    <ClInclude Include="..\..\Sources\Engine\TEngine.h" />
+    <ClInclude Include="..\..\Sources\Engine\TDevice.h" />
+    <ClInclude Include="..\..\Sources\Engine\TDeviceWin32.h" />
+    <ClInclude Include="..\..\Sources\Engine\TEngineDesc.h" />
+    <ClInclude Include="..\..\Sources\Engine\TEngineResources.h" />
+    <ClInclude Include="..\..\Sources\Engine\TFile.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRenderThread.h" />
+    <ClInclude Include="..\..\Sources\Engine\TImage.h" />
+    <ClInclude Include="..\..\Sources\Engine\TINIParser.h" />
+    <ClInclude Include="..\..\Sources\Engine\TMaterial.h" />
+    <ClInclude Include="..\..\Sources\Engine\TMaterialInstance.h" />
+    <ClInclude Include="..\..\Sources\Engine\TMeshBuffer.h" />
+    <ClInclude Include="..\..\Sources\Engine\TMeshBufferSemantic.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNode.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeCamera.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeCameraNav.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeEnvironment.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeLight.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeSceneTile.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeSkeletalMesh.h" />
+    <ClInclude Include="..\..\Sources\Engine\TNodeStaticMesh.h" />
+    <ClInclude Include="..\..\Sources\Engine\TPath.h" />
+    <ClInclude Include="..\..\Sources\Engine\TPipeline.h" />
+    <ClInclude Include="..\..\Sources\Engine\TPlatformHeader.h" />
+    <ClInclude Include="..\..\Sources\Engine\TPlatformUtils.h" />
+    <ClInclude Include="..\..\Sources\Engine\TPtrTypes.h" />
+    <ClInclude Include="..\..\Sources\Engine\TQueue.h" />
+    <ClInclude Include="..\..\Sources\Engine\TRegion.h" />
+    <ClInclude Include="..\..\Sources\Engine\TResource.h" />
+    <ClInclude Include="..\..\Sources\Engine\TRtxPipeline.h" />
+    <ClInclude Include="..\..\Sources\Engine\TScene.h" />
+    <ClInclude Include="..\..\Sources\Engine\TSceneTileResource.h" />
+    <ClInclude Include="..\..\Sources\Engine\TShader.h" />
+    <ClInclude Include="..\..\Sources\Engine\TShaderBinding.h" />
+    <ClInclude Include="..\..\Sources\Engine\TShape.h" />
+    <ClInclude Include="..\..\Sources\Engine\TSkeleton.h" />
+    <ClInclude Include="..\..\Sources\Engine\TStaticMesh.h" />
+    <ClInclude Include="..\..\Sources\Engine\TStringExt.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTaskThread.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTexture.h" />
+    <ClInclude Include="..\..\Sources\Engine\TThread.h" />
+    <ClInclude Include="..\..\Sources\Engine\TStream.h" />
+    <ClInclude Include="..\..\Sources\Engine\TLog.h" />
+    <ClInclude Include="..\..\Sources\Engine\TInput.h" />
+    <ClInclude Include="..\..\Sources\Engine\TInputEventType.h" />
+    <ClInclude Include="..\..\Sources\Engine\TThreadIO.h" />
+    <ClInclude Include="..\..\Sources\Engine\TThreadLoading.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTicker.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTimer.h" />
+    <ClInclude Include="..\..\Sources\Engine\TMath.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypeCull.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypeRenderResource.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypeNode.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypePixelFormat.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypeRenderer.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypes.h" />
+    <ClInclude Include="..\..\Sources\Engine\TTypeScene.h" />
+    <ClInclude Include="..\..\Sources\Engine\TUtils.h" />
+    <ClInclude Include="..\..\Sources\Engine\TVersion.h" />
+    <ClInclude Include="..\..\Sources\Engine\TiX.h" />
+    <ClInclude Include="..\..\Sources\Engine\TVTTextureLoader.h" />
+    <ClInclude Include="..\..\Sources\Externals\inih\cpp\INIReader.h" />
+    <ClInclude Include="..\..\Sources\Externals\inih\ini.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Sources\Engine\Shaders\dx12\FullScreenRS.hlsli" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{35BBC1C9-B035-492D-BED1-E952A99069BC}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>TiX</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;TIX_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\winpixeventruntime.1.0.190604001\Include;..\..\Sources\Externals\libpng1.6.37;..\..\Sources\Externals\zlib-1.2.11;..\..\Sources\Externals\inih;..\..\Sources\Externals\rapidjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\Sources\Externals\winpixeventruntime.1.0.190604001\bin\x64;..\..\Sources\Externals\libpng1.6.37\bin\windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;TIX_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\winpixeventruntime.1.0.190604001\Include;..\..\Sources\Externals\libpng1.6.37;..\..\Sources\Externals\zlib-1.2.11;..\..\Sources\Externals\inih;..\..\Sources\Externals\rapidjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\..\Sources\Externals\winpixeventruntime.1.0.190604001\bin\x64;..\..\Sources\Externals\libpng1.6.37\bin\windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

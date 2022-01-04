@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "container:"
+      name = "02.ResConverter">
+      <FileRef
+         location = "group:../../Samples/02.MeshConverter/ResConverter.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "03.SSSSSample">
+      <FileRef
+         location = "group:../../Samples/03.SSSSSample/SSSSSample.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "04.VirtualTexture">
+      <FileRef
+         location = "group:../../Samples/04.VTTextureBaker/VTTextureBaker.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../Samples/04.VirtualTexture/VirtualTexture.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "TiX2">
+      <FileRef
+         location = "group:TiX2.xcodeproj">
+      </FileRef>
+   </Group>
+</Workspace>

@@ -1,0 +1,806 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Sources\Math">
+      <UniqueIdentifier>{792fa46e-55e2-40af-b511-5e2233b59cbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Common">
+      <UniqueIdentifier>{7be8bd32-5d48-4d9a-b463-25ede946d0fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Scene">
+      <UniqueIdentifier>{bdfc19fb-c18a-4840-b952-2bd5238e2ee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{94feab68-8caf-4eab-b27e-799c2b770157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\inih">
+      <UniqueIdentifier>{94ad5c6f-7896-498c-8d66-124d63c77343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering">
+      <UniqueIdentifier>{ed6d68ff-e9a4-43b2-8e16-c2b01ac70ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\dx12">
+      <UniqueIdentifier>{7eb8b042-f59b-49ac-b2ee-2ace38ea7ead}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\Shaders">
+      <UniqueIdentifier>{ebd6cb83-0241-4e43-b779-9105dd5174dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\Shaders\dx12">
+      <UniqueIdentifier>{960fae7b-e010-4614-9a14-f47eb954c176}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Sources\Engine\stdafx.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TEngine.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TDevice.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TDeviceWin32.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TFile.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TInput.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TTimer.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TLog.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TThread.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderThread.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRHI.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TTaskThread.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FMeshBuffer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FShader.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FTexture.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FFrameResources.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNode.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TScene.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeCamera.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FScene.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeStaticMesh.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TTexture.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TResource.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FPipeline.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TPipeline.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TMeshBuffer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FUniformBuffer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FDefaultRenderer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeCameraNav.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TMaterial.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TMaterialInstance.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FPrimitive.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TINIParser.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TConsoleVariable.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TCVars.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TPath.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderTarget.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FFullScreenRender.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeLight.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FLight.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderResourceHeap.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderResource.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRenderResourceTable.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FSceneLights.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FShaderBinding.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FShaderParamValue.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TCrc.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TShaderBinding.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FPipelineDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRootSignatureDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FShaderDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FTextureDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TShader.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FArgumentBuffer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FArgumentBufferDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FComputeTask.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeEnvironment.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TThreadIO.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TThreadLoading.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FPostProcess.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TAsset.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TAssetLibrary.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TAssetFile.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TSceneLoading.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FVTSystem.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TRegion.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TEngineResources.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FVTTaskThread.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImage.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderTGA.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TVTTextureLoader.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeSceneTile.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TSceneTileResource.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FStats.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FGPUCommandBuffer.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FGPUCommandSignature.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FSceneTileResource.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TCollisionSet.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TShape.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TStaticMesh.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderPNG.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Externals\inih\cpp\INIReader.cpp">
+      <Filter>ThirdParty\inih</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Externals\inih\ini.c">
+      <Filter>ThirdParty\inih</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TPlatformUtils.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FEnvLight.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDXR.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderHDR.cpp">
+      <Filter>Sources\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TSkeleton.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TAnimSequence.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeSkeletalMesh.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FAccelerationStructureDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FAccelerationStructure.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TRtxPipeline.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRtxPipeline.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Sources\Engine\stdafx.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TiX.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TEngine.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TVersion.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TDefines.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Aabbox3d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Line2d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Line3d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Matrix4.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Plane3d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Quaternion.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Rect.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\SViewFrustum.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Triangle3d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Vector2d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Vector3d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\Vector4d.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TDevice.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TDeviceWin32.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TFile.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TInput.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TInputEventType.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TStream.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMath.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TLog.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTimer.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypeCull.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypeNode.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypePixelFormat.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypeRenderer.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypes.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\IReferenceCounted.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\IInstrusivePtr.hpp">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TThread.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderThread.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRHI.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTaskThread.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TQueue.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTicker.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FMeshBuffer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FShader.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FTexture.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FFrameResources.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TUtils.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypeRenderResource.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderResource.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNode.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TScene.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeCamera.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FScene.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FMeshRelevance.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeStaticMesh.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTexture.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\half.hpp">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TResource.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FPipeline.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPipeline.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMeshBuffer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRHIConfig.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FUniformBuffer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FUniformBufferView.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FDefaultRenderer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\FMatrix.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeCameraNav.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMaterial.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMaterialInstance.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FPrimitive.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPtrTypes.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TINIParser.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TConsoleVariable.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPath.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TStringExt.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TEngineDesc.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderTarget.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FViewport.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\math\FVector.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeLight.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FLight.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderResourceHeap.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRenderResourceTable.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FSceneLights.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FShaderBinding.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FShaderParamValue.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TCrc.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TShaderBinding.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FPipelineDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12Conversion.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRootSignatureDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FShaderDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FTextureDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMeshBufferSemantic.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TShader.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FArgumentBuffer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FArgumentBufferDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FComputeTask.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeEnvironment.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TThreadIO.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TThreadLoading.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FPostProcess.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TAsset.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TAssetLibrary.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TAssetFile.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TAssetFileDef.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTypeScene.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FVTSystem.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TRegion.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TEngineResources.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FVTTaskThread.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TImage.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TVTTextureLoader.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeSceneTile.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TSceneTileResource.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FStats.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FGPUCommandBuffer.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FGPUCommandSignature.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FSceneTileResource.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TCollisionSet.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TShape.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TStaticMesh.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Externals\inih\cpp\INIReader.h">
+      <Filter>ThirdParty\inih</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Externals\inih\ini.h">
+      <Filter>ThirdParty\inih</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPlatformUtils.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPlatformHeader.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\Matrix3x2.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FEnvLight.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\FSHVector.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDXR.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TSkeleton.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TAnimSequence.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TNodeSkeletalMesh.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FAccelerationStructureDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FAccelerationStructure.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TRtxPipeline.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRtxPipeline.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenPS.hlsl">
+      <Filter>Sources\Rendering\Shaders\dx12</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenVS.hlsl">
+      <Filter>Sources\Rendering\Shaders\dx12</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Sources\Engine\Shaders\dx12\FullScreenRS.hlsli">
+      <Filter>Sources\Rendering\Shaders\dx12</Filter>
+    </None>
+  </ItemGroup>
+</Project>
