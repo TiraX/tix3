@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30204.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TiX", "TiX.vcxproj", "{35BBC1C9-B035-492D-BED1-E952A99069BC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{30BB5B2B-B233-4386-BAFC-D29AE00CB075}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TiXCooker", "..\..\Tools\TiXCooker\TiXCooker.vcxproj", "{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +19,16 @@ Global
 		{35BBC1C9-B035-492D-BED1-E952A99069BC}.Debug|x64.Build.0 = Debug|x64
 		{35BBC1C9-B035-492D-BED1-E952A99069BC}.Release|x64.ActiveCfg = Release|x64
 		{35BBC1C9-B035-492D-BED1-E952A99069BC}.Release|x64.Build.0 = Release|x64
+		{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D}.Debug|x64.ActiveCfg = Debug|x64
+		{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D}.Debug|x64.Build.0 = Debug|x64
+		{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D}.Release|x64.ActiveCfg = Release|x64
+		{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0C0C8AF9-DC50-4197-ACD1-9D6A885F3E7D} = {30BB5B2B-B233-4386-BAFC-D29AE00CB075}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B59221C-37A6-4579-88DB-87E1DEC6C7F5}
