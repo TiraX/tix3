@@ -11,13 +11,8 @@
 //}
 
 #ifdef TI_PLATFORM_WIN32
-#	ifdef TIX_DEBUG
-#pragma comment (lib, "libpng16_debug.lib")
-#pragma comment (lib, "zlib_debug.lib")
-#	else
 #pragma comment (lib, "libpng16")
 #pragma comment (lib, "zlib")
-#	endif
 #else
 #error("Unknown platform for libpng library.")
 #endif
