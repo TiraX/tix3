@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="MainWin32.cpp" />
+    <ClCompile Include="TCooker.cpp" />
+    <ClCompile Include="ResHelper.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="TCookerAnimSequence.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerMaterial.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerMaterialInstance.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerMeshCluster.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerMesh.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerRtxPipeline.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerScene.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTexture.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TCrc.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TFile.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImage.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderHDR.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TImageLoaderTGA.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TLog.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TPlatformUtils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TThread.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TTimer.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerMultiThreadTask.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerSceneTile.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerSkeleton.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureDXTDecoder.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureAstc.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureDds.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureEnvCubeFilter.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureHdr.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+    <ClCompile Include="TCookerTextureTga.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TCooker.h" />
+    <ClInclude Include="ResHelper.h" />
+    <ClInclude Include="ResSettings.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="TCookerAnimSequence.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerMaterial.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerMaterialInstance.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerMeshCluster.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerMesh.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerScene.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerRtxPipeline.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerTexture.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TCrc.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TFile.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TImage.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TJSON.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TLog.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TPlatformUtils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="TSmallestEncloseSphere.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="TSphere.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TThread.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TTimer.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="dds.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerMultiThreadTask.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerSceneTile.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerSkeleton.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCookerTextureTaskHelper.h">
+      <Filter>AssetCookers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="AssetCookers">
+      <UniqueIdentifier>{f6f15d50-0d2d-4416-ae7e-265fb4dfc690}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{4ef0c4c4-c920-4b76-b8e2-ecb24366e58c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
