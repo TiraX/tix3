@@ -4,16 +4,22 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
-	class TResMaterialHelper
+	class TCookerMaterial : public TCooker
 	{
 	public:
-		TResMaterialHelper();
-		~TResMaterialHelper();
+		TCookerMaterial();
+		virtual ~TCookerMaterial();
 
-		static void LoadMaterial(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Material;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 		void SetShaderName(E_SHADER_STAGE Stage, const TString& Name);
 		void SetBlendMode(E_BLEND_MODE InBlendMode);
@@ -22,8 +28,6 @@ namespace tix
 		void EnableDepthWrite(bool bEnable);
 		void EnableDepthTest(bool bEnable);
 		void EnableTwoSides(bool bEnable);
-
-		void OutputMaterial(TStream& OutStream, TVector<TString>& OutStrings);
 
 	private:
 

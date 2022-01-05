@@ -9,7 +9,7 @@
 
 namespace tix
 {
-	TResSceneTileHelper::TResSceneTileHelper()
+	TCookerSceneTile::TCookerSceneTile()
 		: StaticMeshesTotal(0)
 		, SMSectionsTotal(0)
 		, SMInstancesTotal(0)
@@ -22,17 +22,15 @@ namespace tix
 	{
 	}
 
-	TResSceneTileHelper::~TResSceneTileHelper()
+	TCookerSceneTile::~TCookerSceneTile()
 	{
 	}
 
-	bool TResSceneTileHelper::LoadSceneTile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerSceneTile::Load(const TJSON& Doc)
 	{
-		TResSceneTileHelper Helper;
-
 		// Instances Name
 		TString TileName = Doc["name"].GetString();
-		Helper.LevelName = Doc["level"].GetString();
+		LevelName = Doc["level"].GetString();
 		const int32 StaticMeshCount = Doc["static_mesh_total"].GetInt();
 		const int32 SMInsTotalCount = Doc["sm_instances_total"].GetInt();
 		const int32 SMSectionsCount = Doc["sm_sections_total"].GetInt();
@@ -44,17 +42,17 @@ namespace tix
 		const int32 AnimationTotal = Doc["anims_total"].GetInt();
 		const int32 SKMActorTotal = Doc["skm_actors_total"].GetInt();
 
-		Helper.StaticMeshesTotal = StaticMeshCount;
-		Helper.SMSectionsTotal = SMSectionsCount;
-		Helper.SMInstancesTotal = SMInsTotalCount;
-		Helper.ReflectionCapturesTotal = ReflectionCaptures;
-		Helper.SkeletalMeshTotal = SkeletalMeshTotal;
-		Helper.SkeletonTotal = SkeletonTotal;
-		Helper.AnimationTotal = AnimationTotal;
-		Helper.SKMActorsTotal = SKMActorTotal;
+		this->StaticMeshesTotal = StaticMeshCount;
+		this->SMSectionsTotal = SMSectionsCount;
+		this->SMInstancesTotal = SMInsTotalCount;
+		this->ReflectionCapturesTotal = ReflectionCaptures;
+		this->SkeletalMeshTotal = SkeletalMeshTotal;
+		this->SkeletonTotal = SkeletonTotal;
+		this->AnimationTotal = AnimationTotal;
+		this->SKMActorsTotal = SKMActorTotal;
 
-		Helper.Position = TJSONUtil::JsonArrayToVector2di(Doc["position"]);
-		Helper.BBox = TJSONUtil::JsonArrayToAABBox(Doc["bbox"]);
+		Position = TJSONUtil::JsonArrayToVector2di(Doc["position"]);
+		BBox = TJSONUtil::JsonArrayToAABBox(Doc["bbox"]);
 
 		// reflection captures
 		{
@@ -70,7 +68,7 @@ namespace tix
 				RC.Brightness = JRC["brightness"].GetFloat();
 				RC.Position = TJSONUtil::JsonArrayToVector3df(JRC["position"]);
 
-				Helper.EnvLights.push_back(RC);
+				EnvLights.push_back(RC);
 			}
 		}
 
@@ -86,52 +84,52 @@ namespace tix
 			TJSONNode JAssetSMs = JAssetList["static_meshes"];
 			TJSONNode JAssetSKMs = JAssetList["skeletal_meshes"];
 
-			Helper.AssetTextures.reserve(JAssetTextures.Size());
+			AssetTextures.reserve(JAssetTextures.Size());
 			for (int32 i = 0; i < JAssetTextures.Size(); ++i)
 			{
 				TJSONNode JTexture = JAssetTextures[i];
-				Helper.AssetTextures.push_back(JTexture.GetString());
+				AssetTextures.push_back(JTexture.GetString());
 			}
 
-			Helper.AssetMaterials.reserve(JAssetMaterials.Size());
+			AssetMaterials.reserve(JAssetMaterials.Size());
 			for (int32 i = 0; i < JAssetMaterials.Size(); ++i)
 			{
 				TJSONNode JMaterial = JAssetMaterials[i];
-				Helper.AssetMaterials.push_back(JMaterial.GetString());
+				AssetMaterials.push_back(JMaterial.GetString());
 			}
 
-			Helper.AssetMaterialInstances.reserve(JAssetMaterialInstances.Size());
+			AssetMaterialInstances.reserve(JAssetMaterialInstances.Size());
 			for (int32 i = 0; i < JAssetMaterialInstances.Size(); ++i)
 			{
 				TJSONNode JMI = JAssetMaterialInstances[i];
-				Helper.AssetMaterialInstances.push_back(JMI.GetString());
+				AssetMaterialInstances.push_back(JMI.GetString());
 			}
 
-			Helper.AssetAnims.reserve(JAssetAnims.Size());
+			AssetAnims.reserve(JAssetAnims.Size());
 			for (int32 i = 0; i < JAssetAnims.Size(); ++i)
 			{
 				TJSONNode JAnim = JAssetAnims[i];
-				Helper.AssetAnims.push_back(JAnim.GetString());
+				AssetAnims.push_back(JAnim.GetString());
 			}
 
-			Helper.AssetSkeletons.reserve(JAssetSkeletons.Size());
+			AssetSkeletons.reserve(JAssetSkeletons.Size());
 			for (int32 i = 0; i < JAssetSkeletons.Size(); ++i)
 			{
 				TJSONNode JSkeleton = JAssetSkeletons[i];
-				Helper.AssetSkeletons.push_back(JSkeleton.GetString());
+				AssetSkeletons.push_back(JSkeleton.GetString());
 			}
 
-			Helper.AssetSMs.reserve(JAssetSMs.Size());
+			AssetSMs.reserve(JAssetSMs.Size());
 			for (int32 i = 0; i < JAssetSMs.Size(); ++i)
 			{
 				TJSONNode JSM = JAssetSMs[i];
-				Helper.AssetSMs.push_back(JSM.GetString());
+				AssetSMs.push_back(JSM.GetString());
 			}
-			Helper.AssetSKMs.reserve(JAssetSKMs.Size());
+			AssetSKMs.reserve(JAssetSKMs.Size());
 			for (int32 i = 0; i < JAssetSKMs.Size(); ++i)
 			{
 				TJSONNode JSKM = JAssetSKMs[i];
-				Helper.AssetSKMs.push_back(JSKM.GetString());
+				AssetSKMs.push_back(JSKM.GetString());
 			}
 		}
 
@@ -139,9 +137,9 @@ namespace tix
 		{
 			TJSONNode JSMInstanceObjects = Doc["static_mesh_instances"];
 			TI_ASSERT(JSMInstanceObjects.IsArray());
-			Helper.SMInstances.reserve(SMInsTotalCount);
-			Helper.SMInstanceCount.resize(JSMInstanceObjects.Size());
-			Helper.SMSections.resize(JSMInstanceObjects.Size());
+			SMInstances.reserve(SMInsTotalCount);
+			SMInstanceCount.resize(JSMInstanceObjects.Size());
+			SMSections.resize(JSMInstanceObjects.Size());
 			for (int32 obj = 0; obj < JSMInstanceObjects.Size(); ++obj)
 			{
 				TJSONNode JInstanceObj = JSMInstanceObjects[obj];
@@ -150,9 +148,9 @@ namespace tix
 				TJSONNode JInstances = JInstanceObj["instances"];
 
 				// Make sure InstanceObject has the same order with dependency-mesh
-				TI_ASSERT(JLinkedMesh.GetString() == Helper.AssetSMs[obj]);
-				Helper.SMInstanceCount[obj] = JInstances.Size();
-				Helper.SMSections[obj] = JMeshSections.GetInt();
+				TI_ASSERT(JLinkedMesh.GetString() == AssetSMs[obj]);
+				SMInstanceCount[obj] = JInstances.Size();
+				SMSections[obj] = JMeshSections.GetInt();
 
 				for (int32 ins = 0 ; ins < JInstances.Size(); ++ ins)
 				{
@@ -172,7 +170,7 @@ namespace tix
 					Ins.Scale[0] = JScale[0].GetFloat();
 					Ins.Scale[1] = JScale[1].GetFloat();
 					Ins.Scale[2] = JScale[2].GetFloat();
-					Helper.SMInstances.push_back(Ins);
+					SMInstances.push_back(Ins);
 				}
 			}
 		}
@@ -182,7 +180,7 @@ namespace tix
 		{
 			TJSONNode JSKMActorObjects = Doc["skeletal_mesh_actors"];
 			TI_ASSERT(JSKMActorObjects.IsArray());
-			Helper.SKMActors.reserve(SkeletalMeshTotal);
+			SKMActors.reserve(SkeletalMeshTotal);
 			for (int32 obj = 0; obj < JSKMActorObjects.Size(); ++obj)
 			{
 				TJSONNode JActorObj = JSKMActorObjects[obj];
@@ -190,8 +188,8 @@ namespace tix
 				TJSONNode JLinkedSkeleton = JActorObj["linked_sk"];
 				TJSONNode JSKMActors = JActorObj["actors"];
 
-				const int32 SKMIndex = IndexInArray<TString>(JLinkedMesh.GetString(), Helper.AssetSKMs);
-				const int32 SKIndex = IndexInArray<TString>(JLinkedSkeleton.GetString(), Helper.AssetSkeletons);
+				const int32 SKMIndex = IndexInArray<TString>(JLinkedMesh.GetString(), AssetSKMs);
+				const int32 SKIndex = IndexInArray<TString>(JLinkedSkeleton.GetString(), AssetSkeletons);
 
 				for (int32 actor = 0; actor < JSKMActors.Size(); ++actor)
 				{
@@ -205,7 +203,7 @@ namespace tix
 					TResSKMActor Actor;
 					Actor.SKMIndex = SKMIndex;
 					Actor.SKIndex = SKIndex;
-					Actor.AnimIndex = IndexInArray<TString>(JAnim.GetString(), Helper.AssetAnims);;
+					Actor.AnimIndex = IndexInArray<TString>(JAnim.GetString(), AssetAnims);;
 					Actor.Position[0] = JPosition[0].GetFloat();
 					Actor.Position[1] = JPosition[1].GetFloat();
 					Actor.Position[2] = JPosition[2].GetFloat();
@@ -216,17 +214,19 @@ namespace tix
 					Actor.Scale[0] = JScale[0].GetFloat();
 					Actor.Scale[1] = JScale[1].GetFloat();
 					Actor.Scale[2] = JScale[2].GetFloat();
-					Helper.SKMActors.push_back(Actor);
+					SKMActors.push_back(Actor);
 				}
 			}
 		}
 
-		Helper.OutputTiles(OutStream, OutStrings);
 		return true;
 	}
 	
-	void TResSceneTileHelper::OutputTiles(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerSceneTile::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_SCENETILE;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_SCENETILE;

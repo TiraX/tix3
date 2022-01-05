@@ -7,7 +7,6 @@
 #include "ResHelper.h"
 #include "TCookerMesh.h"
 #include "TMeshBufferSemantic.h"
-#include "TCookerMeshCluster.h"
 #include "TCookerMultiThreadTask.h"
 
 
@@ -45,16 +44,260 @@ namespace tix
 
 	/////////////////////////////////////////////////////////////////
 
-	TResMeshHelper::TResMeshHelper()
+	TCookerMesh::TCookerMesh()
 	{
 	}
 
-	TResMeshHelper::~TResMeshHelper()
+	TCookerMesh::~TCookerMesh()
 	{
 	}
 
-	void TResMeshHelper::OutputMesh(TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerMesh::Load(const TJSON& Doc)
 	{
+		TString Name = Doc["name"].GetString();
+		//int32 Version = Doc["version"].GetInt();
+		int32 TotalVertices = Doc["vertex_count_total"].GetInt();
+		int32 TotalIndices = Doc["index_count_total"].GetInt();
+
+		{
+			// Get ref skeleton if this is a skeletal mesh
+			TJSONNode JSkeleton = Doc["skeleton"];
+			if (!JSkeleton.IsNull())
+			{
+				GetMesh().RefSkeleton = JSkeleton.GetString();
+			}
+		}
+
+		//int32 VCount = Doc["vertex_count_total"].GetInt();
+		//int32 ICount = Doc["index_count_total"].GetInt();
+		//int32 UVCount = Doc["texcoord_count"].GetInt();
+
+		// Load mesh data
+		{
+			TJSONNode JData = Doc["data"];
+			TJSONNode JVsFormat = JData["vs_format"];
+
+			TVector<TString> SFormat;
+			ConvertJArrayToArray(JVsFormat, SFormat);
+
+			TJSONNode JVertices = JData["vertices"];
+			TJSONNode JIndices = JData["indices"];
+			int32 VsFormat = 0;
+			int32 ElementsStride = 0;
+			for (const auto& S : SFormat)
+			{
+				E_VERTEX_STREAM_SEGMENT Segment = GetVertexSegment(S);
+				VsFormat |= Segment;
+				ElementsStride += GetSegmentElements(Segment);
+			}
+			TI_ASSERT(TotalVertices * ElementsStride == JVertices.Size());
+
+			const int32 BytesStride = ElementsStride * sizeof(float);
+			TResMeshDefine& Mesh = GetMesh();
+			Mesh.NumVertices = TotalVertices;
+			Mesh.NumTriangles = (int32)JIndices.Size() / 3;
+			ConvertJArrayToArray(JVertices, Mesh.Vertices);
+			ConvertJArrayToArray(JIndices, Mesh.Indices);
+
+			int32 ElementOffset = 0;
+			{
+				TI_ASSERT((VsFormat & EVSSEG_POSITION) != 0);
+				Mesh.AddSegment(ESSI_POSITION, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 3;
+			}
+			if ((VsFormat & EVSSEG_NORMAL) != 0)
+			{
+				Mesh.AddSegment(ESSI_NORMAL, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 3;
+			}
+			if ((VsFormat & EVSSEG_COLOR) != 0)
+			{
+				Mesh.AddSegment(ESSI_COLOR, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 4;
+			}
+			if ((VsFormat & EVSSEG_TEXCOORD0) != 0)
+			{
+				Mesh.AddSegment(ESSI_TEXCOORD0, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 2;
+			}
+			if ((VsFormat & EVSSEG_TEXCOORD1) != 0)
+			{
+				Mesh.AddSegment(ESSI_TEXCOORD1, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 2;
+			}
+			if ((VsFormat & EVSSEG_TANGENT) != 0)
+			{
+				Mesh.AddSegment(ESSI_TANGENT, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 3;
+			}
+			if ((VsFormat & EVSSEG_BLENDINDEX) != 0)
+			{
+				Mesh.AddSegment(ESSI_BLENDINDEX, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 4;
+			}
+			if ((VsFormat & EVSSEG_BLENDWEIGHT) != 0)
+			{
+				Mesh.AddSegment(ESSI_BLENDWEIGHT, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
+				ElementOffset += 4;
+			}
+			Mesh.SetFaces(&Mesh.Indices[0], (int32)Mesh.Indices.size());
+		}
+
+		// Load mesh sections
+		{
+			TJSONNode JSections = Doc["sections"];
+
+			Mesh.Sections.clear();
+			Mesh.Sections.resize(JSections.Size());
+
+			for (int32 i = 0; i < JSections.Size(); ++i)
+			{
+				TJSONNode JSection = JSections[i];
+				TResMeshSection& Section = Mesh.Sections[i];
+
+				TJSONNode JSectionName = JSection["name"];
+				TJSONNode JMaterial = JSection["material"];
+				TJSONNode JIndexStart= JSection["index_start"];
+				TJSONNode JTriangles = JSection["triangles"];
+				TJSONNode JBoneMap = JSection["bone_map"];
+
+				Section.Name = JSectionName.GetString();
+				Section.ActiveBones.resize(JBoneMap.Size());
+				for (int32 b = 0; b < JBoneMap.Size(); ++b)
+				{
+					Section.ActiveBones[b] = JBoneMap[b].GetInt();
+				}
+
+				if (!JMaterial.IsNull())
+				{
+					TString MaterialName = JMaterial.GetString();
+					Section.LinkedMaterialInstance = MaterialName;
+				}
+
+				Section.IndexStart = JIndexStart.GetInt();
+				Section.Triangles = JTriangles.GetInt();
+			}
+
+			// Generate mesh cluster for this section
+			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
+			{
+				TI_ASSERT(0);
+			}
+		}
+
+		// Load collisions
+		{
+			TJSONNode Collisions = Doc["collisions"];
+
+			TJSONNode ColSpheres = Collisions["sphere"];
+			TJSONNode ColBoxes = Collisions["box"];
+			TJSONNode ColCapsules = Collisions["capsule"];
+			TJSONNode ColConvex = Collisions["convex"];
+
+			Mesh.ColSpheres.resize(ColSpheres.Size());
+			Mesh.ColBoxes.resize(ColBoxes.Size());
+			Mesh.ColCapsules.resize(ColCapsules.Size());
+			Mesh.ColConvexes.resize(ColConvex.Size());
+
+			// Spheres
+			for (int32 i = 0 ; i < ColSpheres.Size(); ++ i)
+			{
+				TJSONNode JSphere = ColSpheres[i];
+				TJSONNode JCenter = JSphere["center"];
+				TJSONNode JRadius = JSphere["radius"];
+
+				Mesh.ColSpheres[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
+				Mesh.ColSpheres[i].Radius = JRadius.GetFloat();
+			}
+
+			// Boxes
+			for (int32 i = 0 ; i < ColBoxes.Size(); ++ i)
+			{
+				TJSONNode JBox = ColBoxes[i];
+				TJSONNode JCenter = JBox["center"];
+				TJSONNode JRotation = JBox["quat"];
+				TJSONNode JX = JBox["x"];
+				TJSONNode JY = JBox["y"];
+				TJSONNode JZ = JBox["z"];
+
+				Mesh.ColBoxes[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
+				Mesh.ColBoxes[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
+				Mesh.ColBoxes[i].Edge.X = JX.GetFloat();
+				Mesh.ColBoxes[i].Edge.Y = JY.GetFloat();
+				Mesh.ColBoxes[i].Edge.Z = JZ.GetFloat();
+			}
+
+			// Capsules
+			for (int32 i = 0 ; i < ColCapsules.Size() ; ++ i)
+			{
+				TJSONNode JCapsule = ColCapsules[i];
+				TJSONNode JCenter = JCapsule["center"];
+				TJSONNode JRotation = JCapsule["quat"];
+				TJSONNode JRadius = JCapsule["radius"];
+				TJSONNode JLength = JCapsule["length"];
+
+				Mesh.ColCapsules[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
+				Mesh.ColCapsules[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
+				Mesh.ColCapsules[i].Radius = JRadius.GetFloat();
+				Mesh.ColCapsules[i].Length = JLength.GetFloat();
+			}
+
+			// Convex
+			for (int32 i = 0; i < ColConvex.Size(); ++i)
+			{
+				TJSONNode JConvex = ColConvex[i];
+				TJSONNode JBBox = JConvex["bbox"];
+				TJSONNode JCookedVB = JConvex["cooked_mesh_vertex_data"];
+				TJSONNode JCookedIB = JConvex["cooked_mesh_index_data"];
+
+				TJSONNode JTrans = JConvex["translation"];
+				TJSONNode JRot = JConvex["rotation"];
+				TJSONNode JScale = JConvex["scale"];
+
+				vector3df Translation = TJSONUtil::JsonArrayToVector3df(JTrans);
+				quaternion Rotation = TJSONUtil::JsonArrayToQuaternion(JRot);
+				vector3df Scale = TJSONUtil::JsonArrayToVector3df(JScale);
+
+				matrix4 Mat;
+				Rotation.getMatrix(Mat);
+				Mat.postScale(Scale);
+				Mat.setTranslation(Translation);
+
+				TI_ASSERT(JCookedVB.Size() % 3 == 0 && JCookedIB.Size() % 3 == 0);
+				TVector<vector3df> VertexData;
+				VertexData.resize(JCookedVB.Size() / 3);
+				for (int32 e = 0 ; e < JCookedVB.Size(); e += 3)
+				{
+					float X = JCookedVB[e + 0].GetFloat();
+					float Y = JCookedVB[e + 1].GetFloat();
+					float Z = JCookedVB[e + 2].GetFloat();
+					vector3df Position = vector3df(X, Y, Z);
+					Mat.transformVect(Position);
+					VertexData[e/3] = Position;
+				}
+				TI_ASSERT(JCookedIB.Size() < 65535);
+				TVector<uint16> IndexData;
+				IndexData.resize(JCookedIB.Size());
+				for (int32 e = 0; e < JCookedIB.Size(); ++e)
+				{
+					uint16 Index = JCookedIB[e].GetInt();
+					TI_ASSERT(Index < (uint32)VertexData.size());
+					IndexData[e] = Index;
+				}
+
+				Mesh.ColConvexes[i].VertexData = VertexData;
+				Mesh.ColConvexes[i].IndexData = IndexData;
+			}
+		}
+
+		return true;
+	}
+
+	void TCookerMesh::SaveTrunk(TChunkFile& OutChunkFile)
+	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_MESH;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_MESH;
@@ -67,7 +310,7 @@ namespace tix
 			TI_ASSERT(Mesh.Segments[ESSI_POSITION].Data != nullptr);
 
 			int32 IndexType = Mesh.NumVertices > 65535 ? EIT_32BIT : EIT_16BIT;
-			if (TResSettings::GlobalSettings.Force32BitIndex)
+			if (TCookerSettings::GlobalSettings.Force32BitIndex)
 			{
 				IndexType = EIT_32BIT;
 			}
@@ -98,7 +341,7 @@ namespace tix
 			TVector<THeaderMeshSection> SMSections;
 			SMSections.resize(MeshHeader.Sections);
 			TVector<uint32> TotalActiveBones;
-			for (int32 s = 0 ; s < MeshHeader.Sections ; ++ s)
+			for (int32 s = 0; s < MeshHeader.Sections; ++s)
 			{
 				SMSections[s].StrId_Name = AddStringToList(OutStrings, Mesh.Sections[s].Name);
 				SMSections[s].StrMaterialInstance = AddStringToList(OutStrings, Mesh.Sections[s].LinkedMaterialInstance);
@@ -111,12 +354,12 @@ namespace tix
 				}
 			}
 
-			if (TResSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
 			{
 				// Remember all clusters
-				MeshHeader.ClusterSize = TResSettings::GlobalSettings.MeshClusterSize;
+				MeshHeader.ClusterSize = TCookerSettings::GlobalSettings.MeshClusterSize;
 				int32 TotalClusters = 0;
-				for (int32 s = 0 ; s < MeshHeader.Sections ; ++ s)
+				for (int32 s = 0; s < MeshHeader.Sections; ++s)
 				{
 					TotalClusters += (int32)Mesh.Sections[s].ClusterIndices.size();
 				}
@@ -251,8 +494,7 @@ namespace tix
 			FillZero4(DataStream);
 
 			// - Indices
-
-			if (TResSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
 			{
 				if (MeshHeader.IndexType == EIT_16BIT)
 				{
@@ -306,7 +548,7 @@ namespace tix
 			FillZero4(DataStream);
 
 			// Export cluster meta data
-			if (TResSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
 			{
 				for (int32 s = 0; s < MeshHeader.Sections; ++s)
 				{
@@ -379,345 +621,5 @@ namespace tix
 		FillZero4(OutStream);
 		OutStream.Put(HeaderStream.GetBuffer(), HeaderStream.GetLength());
 		OutStream.Put(DataStream.GetBuffer(), DataStream.GetLength());
-	}
-
-	class TMeshClusterTask : public TResMTTask
-	{
-	public:
-		TMeshClusterTask(TResMeshDefine * InMesh, const TString& InMeshName, int32 InSection, int32 InSectionIndexStart, int32 InTriangleCount)
-			: MeshSection(InMesh)
-			, MeshName(InMeshName)
-			, Section(InSection)
-			, SectionIndexStart(InSectionIndexStart)
-			, TriangleCount(InTriangleCount)
-		{
-		}
-
-		TResMeshDefine * MeshSection;
-		TString MeshName;
-		int32 Section;
-		int32 SectionIndexStart;
-		int32 TriangleCount;
-
-		virtual void Exec() override
-		{
-			const float* Positions = MeshSection->Segments[ESSI_POSITION].Data;
-			const float* Normals = MeshSection->Segments[ESSI_NORMAL].Data;
-			const int32 StrideInFloat = MeshSection->Segments[ESSI_POSITION].StrideInFloat;
-		
-			// Find mesh vertex index start and end
-			int32 MaxVertexIndex = 0;
-			int32 MinVertexIndex = 999999999;
-			for (int32 i = SectionIndexStart ; i < SectionIndexStart + TriangleCount * 3 ; ++ i)
-			{
-				int32 VertexIndex = MeshSection->Indices[i];
-				if (VertexIndex > MaxVertexIndex)
-					MaxVertexIndex = VertexIndex;
-				if (VertexIndex < MinVertexIndex)
-					MinVertexIndex = VertexIndex;
-			}
-
-			// Copy
-			TVector<vector3df> PosArray, NormalArray;
-			const int32 TotalVertices = MaxVertexIndex - MinVertexIndex + 1;
-			PosArray.resize(TotalVertices);
-			NormalArray.resize(TotalVertices);
-			int32 DataOffset = MinVertexIndex * StrideInFloat;
-			for (int32 v = 0 ; v < TotalVertices; ++ v)
-			{
-				vector3df P(Positions[DataOffset + 0], Positions[DataOffset + 1], Positions[DataOffset + 2]);
-				PosArray[v] = P;
-				vector3df N(Normals[DataOffset + 0], Normals[DataOffset + 1], Normals[DataOffset + 2]);
-				NormalArray[v] = N;
-				DataOffset += StrideInFloat;
-			}
-
-			TVector<vector3di> PrimArray;
-			PrimArray.resize(TriangleCount);
-			for (int32 f = 0; f < (int32)TriangleCount * 3; f += 3)
-			{
-				vector3di F(
-					MeshSection->Indices[f + SectionIndexStart + 0] - MinVertexIndex, 
-					MeshSection->Indices[f + SectionIndexStart + 1] - MinVertexIndex, 
-					MeshSection->Indices[f + SectionIndexStart + 2] - MinVertexIndex
-				);
-				PrimArray[f / 3] = F;
-			}
-
-			//TResMeshCluster(
-			//	const TVector<vector3df>& PosArray,
-			//	const TVector<vector3df>& NormalArray,
-			//	const TVector<vector3di>& PrimsArray,
-			//	const TString& InMeshName,
-			//	int32 InSection,
-			//	int32 InMinVertexIndex
-			//);
-			TResMeshCluster MC(PosArray, NormalArray, PrimArray, MeshName, Section, MinVertexIndex);
-			MC.GenerateCluster(TResSettings::GlobalSettings.MeshClusterSize);
-
-			MeshSection->Sections[Section].ClusterIndices = MC.ClusterIndices;
-			MeshSection->Sections[Section].ClusterBBoxes = MC.ClusterBBoxes;
-			MeshSection->Sections[Section].ClusterCones = MC.ClusterCones;
-		}
-	};
-	bool TResMeshHelper::LoadMeshFile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
-	{
-		TResMeshHelper ResMesh;
-
-		TString Name = Doc["name"].GetString();
-		//int32 Version = Doc["version"].GetInt();
-		int32 TotalVertices = Doc["vertex_count_total"].GetInt();
-		int32 TotalIndices = Doc["index_count_total"].GetInt();
-
-		{
-			// Get ref skeleton if this is a skeletal mesh
-			TJSONNode JSkeleton = Doc["skeleton"];
-			if (!JSkeleton.IsNull())
-			{
-				ResMesh.GetMesh().RefSkeleton = JSkeleton.GetString();
-			}
-		}
-
-		//int32 VCount = Doc["vertex_count_total"].GetInt();
-		//int32 ICount = Doc["index_count_total"].GetInt();
-		//int32 UVCount = Doc["texcoord_count"].GetInt();
-
-		// Load mesh data
-		{
-			TJSONNode JData = Doc["data"];
-			TJSONNode JVsFormat = JData["vs_format"];
-
-			TVector<TString> SFormat;
-			ConvertJArrayToArray(JVsFormat, SFormat);
-
-			TJSONNode JVertices = JData["vertices"];
-			TJSONNode JIndices = JData["indices"];
-			int32 VsFormat = 0;
-			int32 ElementsStride = 0;
-			for (const auto& S : SFormat)
-			{
-				E_VERTEX_STREAM_SEGMENT Segment = GetVertexSegment(S);
-				VsFormat |= Segment;
-				ElementsStride += GetSegmentElements(Segment);
-			}
-			TI_ASSERT(TotalVertices * ElementsStride == JVertices.Size());
-
-			const int32 BytesStride = ElementsStride * sizeof(float);
-			TResMeshDefine& Mesh = ResMesh.GetMesh();
-			Mesh.NumVertices = TotalVertices;
-			Mesh.NumTriangles = (int32)JIndices.Size() / 3;
-			ConvertJArrayToArray(JVertices, Mesh.Vertices);
-			ConvertJArrayToArray(JIndices, Mesh.Indices);
-
-			int32 ElementOffset = 0;
-			{
-				TI_ASSERT((VsFormat & EVSSEG_POSITION) != 0);
-				Mesh.AddSegment(ESSI_POSITION, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 3;
-			}
-			if ((VsFormat & EVSSEG_NORMAL) != 0)
-			{
-				Mesh.AddSegment(ESSI_NORMAL, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 3;
-			}
-			if ((VsFormat & EVSSEG_COLOR) != 0)
-			{
-				Mesh.AddSegment(ESSI_COLOR, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 4;
-			}
-			if ((VsFormat & EVSSEG_TEXCOORD0) != 0)
-			{
-				Mesh.AddSegment(ESSI_TEXCOORD0, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 2;
-			}
-			if ((VsFormat & EVSSEG_TEXCOORD1) != 0)
-			{
-				Mesh.AddSegment(ESSI_TEXCOORD1, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 2;
-			}
-			if ((VsFormat & EVSSEG_TANGENT) != 0)
-			{
-				Mesh.AddSegment(ESSI_TANGENT, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 3;
-			}
-			if ((VsFormat & EVSSEG_BLENDINDEX) != 0)
-			{
-				Mesh.AddSegment(ESSI_BLENDINDEX, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 4;
-			}
-			if ((VsFormat & EVSSEG_BLENDWEIGHT) != 0)
-			{
-				Mesh.AddSegment(ESSI_BLENDWEIGHT, (float*)&Mesh.Vertices[ElementOffset], BytesStride);
-				ElementOffset += 4;
-			}
-			Mesh.SetFaces(&Mesh.Indices[0], (int32)Mesh.Indices.size());
-		}
-
-		// Load mesh sections
-		{
-			TJSONNode JSections = Doc["sections"];
-
-			ResMesh.Mesh.Sections.clear();
-			ResMesh.Mesh.Sections.resize(JSections.Size());
-
-			for (int32 i = 0; i < JSections.Size(); ++i)
-			{
-				TJSONNode JSection = JSections[i];
-				TResMeshSection& Section = ResMesh.Mesh.Sections[i];
-
-				TJSONNode JSectionName = JSection["name"];
-				TJSONNode JMaterial = JSection["material"];
-				TJSONNode JIndexStart= JSection["index_start"];
-				TJSONNode JTriangles = JSection["triangles"];
-				TJSONNode JBoneMap = JSection["bone_map"];
-
-				Section.Name = JSectionName.GetString();
-				Section.ActiveBones.resize(JBoneMap.Size());
-				for (int32 b = 0; b < JBoneMap.Size(); ++b)
-				{
-					Section.ActiveBones[b] = JBoneMap[b].GetInt();
-				}
-
-				if (!JMaterial.IsNull())
-				{
-					TString MaterialName = JMaterial.GetString();
-					Section.LinkedMaterialInstance = MaterialName;
-				}
-
-				Section.IndexStart = JIndexStart.GetInt();
-				Section.Triangles = JTriangles.GetInt();
-			}
-
-			// Generate mesh cluster for this section
-			if (TResSettings::GlobalSettings.MeshClusterSize > 0)
-			{
-				TVector<TMeshClusterTask*> Tasks;
-				TResMeshDefine& Mesh = ResMesh.GetMesh();
-
-				for (int32 i = 0; i < JSections.Size(); ++i)
-				{
-					TJSONNode JSection = JSections[i];
-					int32 IndexStart = JSection["index_start"].GetInt();
-					int32 Triangles = JSection["triangles"].GetInt();
-
-					TI_ASSERT(TResSettings::GlobalSettings.MeshClusterSize % 64 == 0);
-
-					TMeshClusterTask * Task = ti_new TMeshClusterTask(&Mesh, Name, i, IndexStart, Triangles);
-					TResMTTaskExecuter::Get()->AddTask(Task);
-					Tasks.push_back(Task);
-				}
-
-				TResMTTaskExecuter::Get()->StartTasks();
-				TResMTTaskExecuter::Get()->WaitUntilFinished();
-			}
-		}
-
-		// Load collisions
-		{
-			TJSONNode Collisions = Doc["collisions"];
-
-			TJSONNode ColSpheres = Collisions["sphere"];
-			TJSONNode ColBoxes = Collisions["box"];
-			TJSONNode ColCapsules = Collisions["capsule"];
-			TJSONNode ColConvex = Collisions["convex"];
-
-			ResMesh.Mesh.ColSpheres.resize(ColSpheres.Size());
-			ResMesh.Mesh.ColBoxes.resize(ColBoxes.Size());
-			ResMesh.Mesh.ColCapsules.resize(ColCapsules.Size());
-			ResMesh.Mesh.ColConvexes.resize(ColConvex.Size());
-
-			// Spheres
-			for (int32 i = 0 ; i < ColSpheres.Size(); ++ i)
-			{
-				TJSONNode JSphere = ColSpheres[i];
-				TJSONNode JCenter = JSphere["center"];
-				TJSONNode JRadius = JSphere["radius"];
-
-				ResMesh.Mesh.ColSpheres[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				ResMesh.Mesh.ColSpheres[i].Radius = JRadius.GetFloat();
-			}
-
-			// Boxes
-			for (int32 i = 0 ; i < ColBoxes.Size(); ++ i)
-			{
-				TJSONNode JBox = ColBoxes[i];
-				TJSONNode JCenter = JBox["center"];
-				TJSONNode JRotation = JBox["quat"];
-				TJSONNode JX = JBox["x"];
-				TJSONNode JY = JBox["y"];
-				TJSONNode JZ = JBox["z"];
-
-				ResMesh.Mesh.ColBoxes[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				ResMesh.Mesh.ColBoxes[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
-				ResMesh.Mesh.ColBoxes[i].Edge.X = JX.GetFloat();
-				ResMesh.Mesh.ColBoxes[i].Edge.Y = JY.GetFloat();
-				ResMesh.Mesh.ColBoxes[i].Edge.Z = JZ.GetFloat();
-			}
-
-			// Capsules
-			for (int32 i = 0 ; i < ColCapsules.Size() ; ++ i)
-			{
-				TJSONNode JCapsule = ColCapsules[i];
-				TJSONNode JCenter = JCapsule["center"];
-				TJSONNode JRotation = JCapsule["quat"];
-				TJSONNode JRadius = JCapsule["radius"];
-				TJSONNode JLength = JCapsule["length"];
-
-				ResMesh.Mesh.ColCapsules[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				ResMesh.Mesh.ColCapsules[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
-				ResMesh.Mesh.ColCapsules[i].Radius = JRadius.GetFloat();
-				ResMesh.Mesh.ColCapsules[i].Length = JLength.GetFloat();
-			}
-
-			// Convex
-			for (int32 i = 0; i < ColConvex.Size(); ++i)
-			{
-				TJSONNode JConvex = ColConvex[i];
-				TJSONNode JBBox = JConvex["bbox"];
-				TJSONNode JCookedVB = JConvex["cooked_mesh_vertex_data"];
-				TJSONNode JCookedIB = JConvex["cooked_mesh_index_data"];
-
-				TJSONNode JTrans = JConvex["translation"];
-				TJSONNode JRot = JConvex["rotation"];
-				TJSONNode JScale = JConvex["scale"];
-
-				vector3df Translation = TJSONUtil::JsonArrayToVector3df(JTrans);
-				quaternion Rotation = TJSONUtil::JsonArrayToQuaternion(JRot);
-				vector3df Scale = TJSONUtil::JsonArrayToVector3df(JScale);
-
-				matrix4 Mat;
-				Rotation.getMatrix(Mat);
-				Mat.postScale(Scale);
-				Mat.setTranslation(Translation);
-
-				TI_ASSERT(JCookedVB.Size() % 3 == 0 && JCookedIB.Size() % 3 == 0);
-				TVector<vector3df> VertexData;
-				VertexData.resize(JCookedVB.Size() / 3);
-				for (int32 e = 0 ; e < JCookedVB.Size(); e += 3)
-				{
-					float X = JCookedVB[e + 0].GetFloat();
-					float Y = JCookedVB[e + 1].GetFloat();
-					float Z = JCookedVB[e + 2].GetFloat();
-					vector3df Position = vector3df(X, Y, Z);
-					Mat.transformVect(Position);
-					VertexData[e/3] = Position;
-				}
-				TI_ASSERT(JCookedIB.Size() < 65535);
-				TVector<uint16> IndexData;
-				IndexData.resize(JCookedIB.Size());
-				for (int32 e = 0; e < JCookedIB.Size(); ++e)
-				{
-					uint16 Index = JCookedIB[e].GetInt();
-					TI_ASSERT(Index < (uint32)VertexData.size());
-					IndexData[e] = Index;
-				}
-
-				ResMesh.Mesh.ColConvexes[i].VertexData = VertexData;
-				ResMesh.Mesh.ColConvexes[i].IndexData = IndexData;
-			}
-		}
-
-		ResMesh.OutputMesh(OutStream, OutStrings);
-		return true;
 	}
 }

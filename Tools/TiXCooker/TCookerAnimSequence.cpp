@@ -11,51 +11,54 @@ using namespace rapidjson;
 
 namespace tix
 {
-	TResAnimSequenceHelper::TResAnimSequenceHelper()
+	TCookerAnimSequence::TCookerAnimSequence()
 		: TotalFrames(0)
 		, TotalTracks(0)
 	{
 	}
 
-	TResAnimSequenceHelper::~TResAnimSequenceHelper()
+	TCookerAnimSequence::~TCookerAnimSequence()
 	{
 	}
 
-	void TResAnimSequenceHelper::LoadAnimSequence(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerAnimSequence::Load(const TJSON& Doc)
 	{
-		TResAnimSequenceHelper Helper;
 		// Bones
-		Helper.TotalFrames = Doc["total_frames"].GetInt();
-		Helper.SequenceLength = Doc["sequence_length"].GetFloat();
-		TI_ASSERT(Helper.SequenceLength > 0.f);
-		Helper.RateScale = Doc["rate_scale"].GetFloat();
-		TI_ASSERT(Helper.RateScale > 0.f);
-		Helper.TotalTracks = Doc["total_tracks"].GetInt();
-		Helper.RefSkeleton = Doc["ref_skeleton"].GetString();
+		TotalFrames = Doc["total_frames"].GetInt();
+		SequenceLength = Doc["sequence_length"].GetFloat();
+		TI_ASSERT(SequenceLength > 0.f);
+		RateScale = Doc["rate_scale"].GetFloat();
+		TI_ASSERT(RateScale > 0.f);
+		TotalTracks = Doc["total_tracks"].GetInt();
+		RefSkeleton = Doc["ref_skeleton"].GetString();
 
 		TJSONNode JTracks = Doc["tracks"];
-		TI_ASSERT(JTracks.IsArray() && JTracks.Size() == Helper.TotalTracks);
+		TI_ASSERT(JTracks.IsArray() && JTracks.Size() == TotalTracks);
 
-		Helper.Tracks.resize(Helper.TotalTracks);
-		for (int32 t = 0; t < Helper.TotalTracks; t++)
+		Tracks.resize(TotalTracks);
+		for (int32 t = 0; t < TotalTracks; t++)
 		{
 			TJSONNode JTrack = JTracks[t];
-			FTrackInfo& Info = Helper.Tracks[t];
+			FTrackInfo& Info = Tracks[t];
 			Info.RefBoneIndex = JTrack["ref_bone_index"].GetInt();
 
 			ConvertJArrayToArray(JTrack["pos_keys"], Info.PosKeys);
 			ConvertJArrayToArray(JTrack["rot_keys"], Info.RotKeys);
 			ConvertJArrayToArray(JTrack["scale_keys"], Info.ScaleKeys);
 
-			TI_ASSERT(Info.PosKeys.size() == 0 || Info.PosKeys.size() == 3 || Info.PosKeys.size() == Helper.TotalFrames * 3);
-			TI_ASSERT(Info.RotKeys.size() == 0 || Info.RotKeys.size() == 4 || Info.RotKeys.size() == Helper.TotalFrames * 4);
-			TI_ASSERT(Info.ScaleKeys.size() == 0 || Info.ScaleKeys.size() == 3 || Info.ScaleKeys.size() == Helper.TotalFrames * 3);
+			TI_ASSERT(Info.PosKeys.size() == 0 || Info.PosKeys.size() == 3 || Info.PosKeys.size() == TotalFrames * 3);
+			TI_ASSERT(Info.RotKeys.size() == 0 || Info.RotKeys.size() == 4 || Info.RotKeys.size() == TotalFrames * 4);
+			TI_ASSERT(Info.ScaleKeys.size() == 0 || Info.ScaleKeys.size() == 3 || Info.ScaleKeys.size() == TotalFrames * 3);
 		}
-		Helper.OutputAnimSequence(OutStream, OutStrings);
+
+		return true;
 	}
 	
-	void TResAnimSequenceHelper::OutputAnimSequence(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerAnimSequence::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_ANIMATION;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_ANIM;

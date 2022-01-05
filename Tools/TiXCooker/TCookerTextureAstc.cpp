@@ -347,19 +347,19 @@ namespace tix
 		//return Texture;
 	}
 
-	TResTextureDefine* TResTextureHelper::ConvertToAstc(TResTextureDefine* SrcImage)
+	TResTextureDefine* TCookerTexture::ConvertToAstc(TResTextureDefine* SrcImage)
 	{
 		E_PIXEL_FORMAT SrcFormat = SrcImage->ImageSurfaces[0]->GetFormat();
 		E_PIXEL_FORMAT DstFormat = EPF_UNKNOWN;
 		int32 BlockSize = 4;
 
-		switch (TResSettings::GlobalSettings.AstcQuality)
+		switch (TCookerSettings::GlobalSettings.AstcQuality)
 		{
-		case TResSettings::Astc_Quality_High:
+		case TCookerSettings::Astc_Quality_High:
 			DstFormat = EPF_ASTC4x4;
 			BlockSize = 4;
 			break;
-		case TResSettings::Astc_Quality_Mid:
+		case TCookerSettings::Astc_Quality_Mid:
 			DstFormat = EPF_ASTC6x6;
 			BlockSize = 6;
 			break;
@@ -378,7 +378,7 @@ namespace tix
 		}
 		else if (SrcFormat == EPF_RGBA8)
 		{
-			if (SrcImage->TGASourcePixelDepth == 24 && !TResSettings::GlobalSettings.ForceAlphaChannel)
+			if (SrcImage->TGASourcePixelDepth == 24 && !TCookerSettings::GlobalSettings.ForceAlphaChannel)
 			{
 				bHasAlpha = false;
 			}

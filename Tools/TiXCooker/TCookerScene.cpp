@@ -11,23 +11,21 @@ using namespace rapidjson;
 
 namespace tix
 {
-	TResSceneHelper::TResSceneHelper()
+	TCookerScene::TCookerScene()
 		: VTSize(0)
 		, PageSize(0)
 	{
 	}
 
-	TResSceneHelper::~TResSceneHelper()
+	TCookerScene::~TCookerScene()
 	{
 	}
 
-	void TResSceneHelper::LoadScene(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerScene::Load(const TJSON& Doc)
 	{
-		TResSceneHelper Helper;
-
 		// Map Name
 		TJSONNode JMapName = Doc["name"];
-		Helper.MapName = JMapName.GetString();
+		MapName = JMapName.GetString();
 
 		// Load environments. include sun light, fog, etc
 		{
@@ -35,20 +33,20 @@ namespace tix
 
 			// Sun light
 			TJSONNode JSunLight = JEnv["sun_light"];
-			Helper.Environment.SunLight.Direction = TJSONUtil::JsonArrayToVector3df(JSunLight["direction"]);
-			Helper.Environment.SunLight.Color = TJSONUtil::JsonArrayToSColorf(JSunLight["color"]);
-			Helper.Environment.SunLight.Intensity = JSunLight["intensity"].GetFloat();
+			Environment.SunLight.Direction = TJSONUtil::JsonArrayToVector3df(JSunLight["direction"]);
+			Environment.SunLight.Color = TJSONUtil::JsonArrayToSColorf(JSunLight["color"]);
+			Environment.SunLight.Intensity = JSunLight["intensity"].GetFloat();
 
 			// Sky light
 			TJSONNode JSkyLight = JEnv["sky_light"];
-			TJSONUtil::JsonArrayToFloatArray(JSkyLight["irradiance_sh3"], Helper.Environment.SkyLight.SH3_Raw, FSHVectorRGB3::NumTotalFloats);
+			TJSONUtil::JsonArrayToFloatArray(JSkyLight["irradiance_sh3"], Environment.SkyLight.SH3_Raw, FSHVectorRGB3::NumTotalFloats);
 		}
 
 		// Load cameras. 
 		{
 			TJSONNode JCameras = Doc["cameras"];
-			Helper.Cameras.clear();
-			Helper.Cameras.reserve(JCameras.Size());
+			Cameras.clear();
+			Cameras.reserve(JCameras.Size());
 			for (int32 c = 0; c < JCameras.Size(); ++c)
 			{
 				TJSONNode JCam = JCameras[c];
@@ -58,15 +56,15 @@ namespace tix
 				Cam.Rotate = TJSONUtil::JsonArrayToVector3df(JCam["rotator"]);
 				Cam.FOV = JCam["fov"].GetFloat();
 				Cam.Aspect = JCam["aspect"].GetFloat();
-				Helper.Cameras.push_back(Cam);
+				Cameras.push_back(Cam);
 			}
 		}
 
 		// Load VT region info
-		if (!TResSettings::GlobalSettings.VTInfoFile.empty())
+		if (!TCookerSettings::GlobalSettings.VTInfoFile.empty())
 		{
 			TFile f;
-			if (f.Open(TResSettings::GlobalSettings.VTInfoFile, EFA_READ))
+			if (f.Open(TCookerSettings::GlobalSettings.VTInfoFile, EFA_READ))
 			{
 				int8* content = ti_new int8[f.GetSize() + 1];
 				f.Read(content, f.GetSize(), f.GetSize());
@@ -76,8 +74,8 @@ namespace tix
 				TJSON JsonDoc;
 				JsonDoc.Parse(content);
 
-				Helper.VTSize = JsonDoc["vt_size"].GetInt();
-				Helper.PageSize = JsonDoc["page_size"].GetInt();
+				VTSize = JsonDoc["vt_size"].GetInt();
+				PageSize = JsonDoc["page_size"].GetInt();
 
 				TJSONNode JRegions = JsonDoc["regions"];
 
@@ -92,7 +90,7 @@ namespace tix
 					Info.Y = JRegion[1].GetInt();
 					Info.W = JRegion[2].GetInt();
 					Info.H = JRegion[3].GetInt();
-					Helper.VTRegionInfo[TextureName] = Info;
+					VTRegionInfo[TextureName] = Info;
 				}
 			}
 		}
@@ -101,21 +99,24 @@ namespace tix
 		{
 			TJSONNode JTileList = Doc["tiles"];
 
-			Helper.AssetSceneTiles.reserve(JTileList.Size());
+			AssetSceneTiles.reserve(JTileList.Size());
 			for (int32 i = 0; i < JTileList.Size(); ++i)
 			{
 				TJSONNode JTile = JTileList[i];
 				vector2di TilePos = vector2di(JTile[0].GetInt(), JTile[1].GetInt());
-				Helper.AssetSceneTiles.push_back(TilePos);
+				AssetSceneTiles.push_back(TilePos);
 				TI_ASSERT(TMath::Abs(TilePos.X) <= 32760 && TMath::Abs(TilePos.Y) <= 32760);
 			}
 		}
 
-		Helper.OutputScene(OutStream, OutStrings);
+		return true;
 	}
 	
-	void TResSceneHelper::OutputScene(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerScene::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_SCENE;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_SCENE;

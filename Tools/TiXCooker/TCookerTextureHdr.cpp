@@ -14,10 +14,10 @@
 namespace tix
 {
 	typedef TGenerateMipmapTask<1> THdrMipmapTask;
-	TResTextureDefine* TResTextureHelper::LoadHdrFile(const TResTextureSourceInfo& SrcInfo)
+	TResTextureDefine* TCookerTexture::LoadHdrFile(const TResTextureSourceInfo& SrcInfo)
 	{
 		TFile f;
-		TString SrcPathName = TResSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
+		TString SrcPathName = TCookerSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
 		if (!f.Open(SrcPathName, EFA_READ))
 		{
 			return nullptr;
@@ -107,7 +107,7 @@ namespace tix
 		return Texture;
 	}
 
-	TResTextureDefine* TResTextureHelper::Convert32FTo16F(TResTextureDefine* SrcImage)
+	TResTextureDefine* TCookerTexture::Convert32FTo16F(TResTextureDefine* SrcImage)
 	{
 		E_PIXEL_FORMAT SrcFormat = SrcImage->ImageSurfaces[0]->GetFormat();
 		TI_ASSERT(SrcFormat == EPF_RGBA32F);

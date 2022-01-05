@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "TCooker.h"
+
 namespace tix
 {
 	struct TResMeshSegment
@@ -114,19 +116,23 @@ namespace tix
 		TVector<TCollisionSet::TConvex> ColConvexes;
 	};
 
-	class TResMeshHelper
+	class TCookerMesh : public TCooker
 	{
 	public:
-		TResMeshHelper();
-		~TResMeshHelper();
+		TCookerMesh();
+		virtual ~TCookerMesh();
 
-		static bool LoadMeshFile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Mesh;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 		TResMeshDefine& GetMesh()
 		{
 			return Mesh;
 		}
-		void OutputMesh(TStream& OutStream, TVector<TString>& OutStrings);
 
 	private:
 

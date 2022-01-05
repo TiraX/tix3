@@ -517,7 +517,7 @@ namespace tix
 		ti_delete Combined;
 	}
 
-	TResTextureDefine* TResTextureHelper::LongLatToCubeAndFilter(TResTextureDefine* SrcImage)
+	TResTextureDefine* TCookerTexture::LongLatToCubeAndFilter(TResTextureDefine* SrcImage)
 	{
 		TIMER_RECORDER_FUNC();
 		TI_ASSERT(SrcImage->Desc.Type == ETT_TEXTURE_2D);

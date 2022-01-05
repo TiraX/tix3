@@ -11,53 +11,54 @@ using namespace rapidjson;
 
 namespace tix
 {
-	TResRtxPipelineHelper::TResRtxPipelineHelper()
+	TCookerRtxPipeline::TCookerRtxPipeline()
 	{
 	}
 
-	TResRtxPipelineHelper::~TResRtxPipelineHelper()
+	TCookerRtxPipeline::~TCookerRtxPipeline()
 	{
 	}
 
-	void TResRtxPipelineHelper::LoadRtxPipeline(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerRtxPipeline::Load(const TJSON& Doc)
 	{
-		TResRtxPipelineHelper Helper;
-
 		// shader lib
 		TJSONNode JShaderLib = Doc["shader_lib"];
-		Helper.ShaderLibName = JShaderLib.GetString();
+		ShaderLibName = JShaderLib.GetString();
 
 		// export names
 		TJSONNode JExportNames = Doc["export_names"];
 		TI_ASSERT(JExportNames.IsArray());
-		Helper.RtxDesc.ExportNames.resize(JExportNames.Size());
+		RtxDesc.ExportNames.resize(JExportNames.Size());
 		for (int32 i = 0; i < JExportNames.Size(); ++i)
 		{
-			Helper.RtxDesc.ExportNames[i] = JExportNames[i].GetString();
+			RtxDesc.ExportNames[i] = JExportNames[i].GetString();
 		}
 
 		// configs
 		TJSONNode JMaxAttributeSizeInBytes = Doc["max_attribute_size_in_bytes"];
 		TJSONNode JMaxPayloadSizeInBytes = Doc["max_payload_size_in_bytes"];
 		TJSONNode JMaxTraceRecursionDepth = Doc["max_trace_recursion_depth"];
-		Helper.RtxDesc.MaxAttributeSizeInBytes = JMaxAttributeSizeInBytes.GetInt();
-		Helper.RtxDesc.MaxPayloadSizeInBytes = JMaxPayloadSizeInBytes.GetInt();
-		Helper.RtxDesc.MaxTraceRecursionDepth = JMaxTraceRecursionDepth.GetInt();
+		RtxDesc.MaxAttributeSizeInBytes = JMaxAttributeSizeInBytes.GetInt();
+		RtxDesc.MaxPayloadSizeInBytes = JMaxPayloadSizeInBytes.GetInt();
+		RtxDesc.MaxTraceRecursionDepth = JMaxTraceRecursionDepth.GetInt();
 
 		// hit group
 		TJSONNode JHitGroupName = Doc["hit_group_name"];
-		Helper.RtxDesc.HitGroupName = JHitGroupName.GetString();
+		RtxDesc.HitGroupName = JHitGroupName.GetString();
 		TJSONNode JHitGroup = Doc["hit_group"];
 		TI_ASSERT(JHitGroup.IsArray() && JHitGroup.Size() == HITGROUP_NUM);
-		Helper.RtxDesc.HitGroup[HITGROUP_ANY_HIT] = JHitGroup[HITGROUP_ANY_HIT].GetString();
-		Helper.RtxDesc.HitGroup[HITGROUP_CLOSEST_HIT] = JHitGroup[HITGROUP_CLOSEST_HIT].GetString();
-		Helper.RtxDesc.HitGroup[HITGROUP_INTERSECTION] = JHitGroup[HITGROUP_INTERSECTION].GetString();
+		RtxDesc.HitGroup[HITGROUP_ANY_HIT] = JHitGroup[HITGROUP_ANY_HIT].GetString();
+		RtxDesc.HitGroup[HITGROUP_CLOSEST_HIT] = JHitGroup[HITGROUP_CLOSEST_HIT].GetString();
+		RtxDesc.HitGroup[HITGROUP_INTERSECTION] = JHitGroup[HITGROUP_INTERSECTION].GetString();
 
-		Helper.OutputRtxPipeline(OutStream, OutStrings);
+		return true;
 	}
 	
-	void TResRtxPipelineHelper::OutputRtxPipeline(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerRtxPipeline::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_RTX_PIPELINE;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_RTX_PIPELINE;

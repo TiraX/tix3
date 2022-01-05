@@ -11,25 +11,23 @@ using namespace rapidjson;
 
 namespace tix
 {
-	TResMaterialInstanceHelper::TResMaterialInstanceHelper()
+	TCookerMaterialInstance::TCookerMaterialInstance()
 	{
 	}
 
-	TResMaterialInstanceHelper::~TResMaterialInstanceHelper()
+	TCookerMaterialInstance::~TCookerMaterialInstance()
 	{
 	}
 
-	void TResMaterialInstanceHelper::LoadMaterialInstance(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerMaterialInstance::Load(const TJSON& Doc)
 	{
-		TResMaterialInstanceHelper Helper;
-
 		// MI Name
 		TJSONNode MIName = Doc["name"];
-		Helper.SetMaterialInstanceName(MIName.GetString());
+		SetMaterialInstanceName(MIName.GetString());
 
 		// linked material
 		TJSONNode LinkedMaterial = Doc["linked_material"];
-		Helper.SetMaterialRes(LinkedMaterial.GetString());
+		SetMaterialRes(LinkedMaterial.GetString());
 
 		TJSONNode Parameters = Doc["parameters"];
 		TI_ASSERT(Parameters.IsObject()); 
@@ -42,11 +40,11 @@ namespace tix
 			TJSONNode ParamValue = Param["value"];
 			if (ParamType == "int")
 			{
-				Helper.AddParameter(ParamName, ParamValue.GetInt());
+				AddParameter(ParamName, ParamValue.GetInt());
 			}
 			else if (ParamType == "float")
 			{
-				Helper.AddParameter(ParamName, ParamValue.GetFloat());
+				AddParameter(ParamName, ParamValue.GetFloat());
 			}
 			else if (ParamType == "float4")
 			{
@@ -54,14 +52,14 @@ namespace tix
 				quaternion q;
 				for (int32 pv = 0; pv < ParamValue.Size(); ++pv)
 					q[pv] = ParamValue[pv].GetFloat();
-				Helper.AddParameter(ParamName, q);
+				AddParameter(ParamName, q);
 			}
 			else if (ParamType == "texture2d" || ParamType == "texturecube")
 			{
 				TI_ASSERT(ParamValue.IsString());
 				TJSONNode ParamSize = Param["size"];
 				vector2di Size = TJSONUtil::JsonArrayToVector2di(ParamSize);
-				Helper.AddParameter(ParamName, ParamValue.GetString(), Size);
+				AddParameter(ParamName, ParamValue.GetString(), Size);
 			}
 			else
 			{
@@ -69,20 +67,20 @@ namespace tix
 			}
 		}
 
-		Helper.OutputMaterialInstance(OutStream, OutStrings);
+		return true;
 	}
 
-	void TResMaterialInstanceHelper::SetMaterialInstanceName(const TString& InInstanceName)
+	void TCookerMaterialInstance::SetMaterialInstanceName(const TString& InInstanceName)
 	{
 		InstanceName = InInstanceName;
 	}
 
-	void TResMaterialInstanceHelper::SetMaterialRes(const TString& MaterialName)
+	void TCookerMaterialInstance::SetMaterialRes(const TString& MaterialName)
 	{
 		LinkedMaterial = MaterialName;
 	}
 
-	bool TResMaterialInstanceHelper::IsParamExisted(const TString& InParamName)
+	bool TCookerMaterialInstance::IsParamExisted(const TString& InParamName)
 	{
 		for (const auto& Param : ValueParameters)
 		{
@@ -103,7 +101,7 @@ namespace tix
 		return false;
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, int32 Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, int32 Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -113,7 +111,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, float Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, float Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -123,7 +121,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, const vector3df& Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const vector3df& Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -133,7 +131,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, const quaternion& Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const quaternion& Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -143,7 +141,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, const SColorf& Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const SColorf& Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -153,7 +151,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TResMaterialInstanceHelper::AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -164,8 +162,11 @@ namespace tix
 		TextureParameters.push_back(V);
 	}
 	
-	void TResMaterialInstanceHelper::OutputMaterialInstance(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerMaterialInstance::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_MINSTANCE;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_MINSTANCE;

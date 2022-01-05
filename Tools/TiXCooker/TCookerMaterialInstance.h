@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
@@ -50,13 +51,18 @@ namespace tix
 		}
 	};
 
-	class TResMaterialInstanceHelper
+	class TCookerMaterialInstance : public TCooker
 	{
 	public:
-		TResMaterialInstanceHelper();
-		~TResMaterialInstanceHelper();
+		TCookerMaterialInstance();
+		virtual ~TCookerMaterialInstance();
 
-		static void LoadMaterialInstance(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::MaterialInstance;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 		void SetMaterialInstanceName(const TString& InstanceName);
 		void SetMaterialRes(const TString& MaterialName);
@@ -67,8 +73,6 @@ namespace tix
 		void AddParameter(const TString& InParamName, const quaternion& Value);
 		void AddParameter(const TString& InParamName, const SColorf& Value);
 		void AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size);
-
-		void OutputMaterialInstance(TStream& OutStream, TVector<TString>& OutStrings);
 
 	private:
 		bool IsParamExisted(const TString& InParamName);

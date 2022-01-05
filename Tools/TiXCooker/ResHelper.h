@@ -220,16 +220,4 @@ return Result;
 		return -1;
 	};
 	/////////////////////////////////////////////////////////////////
-	class TResFileHelper
-	{
-	public:
-		TResFileHelper();
-		~TResFileHelper();
-
-		TStream& GetChunk(E_CHUNK_LIB ChunkType);
-		bool SaveFile(const TString& Filename);
-
-		TVector<TString> Strings;
-		TStream ChunkStreams[ECL_COUNT];
-	};
 }

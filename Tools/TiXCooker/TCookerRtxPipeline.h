@@ -4,17 +4,22 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
-	class TResRtxPipelineHelper
+	class TCookerRtxPipeline : public TCooker
 	{
 	public:
-		TResRtxPipelineHelper();
-		~TResRtxPipelineHelper();
+		TCookerRtxPipeline();
+		virtual ~TCookerRtxPipeline();
 
-		static void LoadRtxPipeline(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
-		void OutputRtxPipeline(TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::RtxPipeline;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 	private:
 

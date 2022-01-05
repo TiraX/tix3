@@ -11,39 +11,37 @@ using namespace rapidjson;
 
 namespace tix
 {
-	TResSkeletonHelper::TResSkeletonHelper()
+	TCookerSkeleton::TCookerSkeleton()
 		: TotalBones(0)
 	{
 	}
 
-	TResSkeletonHelper::~TResSkeletonHelper()
+	TCookerSkeleton::~TCookerSkeleton()
 	{
 	}
 
-	void TResSkeletonHelper::LoadSkeleton(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerSkeleton::Load(const TJSON& Doc)
 	{
-		TResSkeletonHelper Helper;
-
 		// Bones
-		Helper.TotalBones = Doc["total_bones"].GetInt();
+		TotalBones = Doc["total_bones"].GetInt();
 
 		TJSONNode JBones = Doc["bones"];
-		TI_ASSERT(JBones.IsArray() && JBones.Size() == Helper.TotalBones);
+		TI_ASSERT(JBones.IsArray() && JBones.Size() == TotalBones);
 
-		Helper.InitBones.resize(Helper.TotalBones);
-		for (int32 b = 0; b < Helper.TotalBones; b++)
+		InitBones.resize(TotalBones);
+		for (int32 b = 0; b < TotalBones; b++)
 		{
 			TJSONNode JBone = JBones[b];
-			ResBoneInfo& Info = Helper.InitBones[b];
+			ResBoneInfo& Info = InitBones[b];
 			Info.ParentIndex = JBone["parent_index"].GetInt();
 			ConvertJArrayToVec3(JBone["translation"], Info.InitPos);
 			ConvertJArrayToQuat(JBone["rotation"], Info.InitRot);
 			ConvertJArrayToVec3(JBone["scale"], Info.InitScale);
 		}
 
-		Helper.CalcInvBindTransform();
+		CalcInvBindTransform();
 
-		Helper.OutputSkeleton(OutStream, OutStrings);
+		return true;
 	}
 
 	matrix4 MakeMatrix(const vector3df& Trans, const quaternion& Rot, const vector3df& Scale)
@@ -56,7 +54,7 @@ namespace tix
 		return Result;
 	}
 
-	void TResSkeletonHelper::CalcInvBindTransform()
+	void TCookerSkeleton::CalcInvBindTransform()
 	{
 		// Calc iinv bind matrix in game after loading
 		//TVector<matrix4> BindMatrix;
@@ -100,8 +98,11 @@ namespace tix
 		//}
 	}
 	
-	void TResSkeletonHelper::OutputSkeleton(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerSkeleton::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_SKELETON;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_SKELETON;

@@ -882,10 +882,10 @@ namespace tix
 		}
 	}
 
-	TResTextureDefine* TResTextureHelper::LoadDdsFile(const TResTextureSourceInfo& SrcInfo)
+	TResTextureDefine* TCookerTexture::LoadDdsFile(const TResTextureSourceInfo& SrcInfo)
 	{
 		TFile f;
-		TString SrcPathName = TResSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
+		TString SrcPathName = TCookerSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
 		if (!f.Open(SrcPathName, EFA_READ))
 		{
 			return nullptr;
@@ -945,7 +945,7 @@ namespace tix
 	//TResTextureDefine* LoadTgaToDds(const TResTextureSourceInfo& SrcInfo)
 	//{
 	//	// Load Tga Image to find its format and width/height
-	//	TString SrcName = TResSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
+	//	TString SrcName = TCookerSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
 	//	int32 ImageW, ImageH;
 	//	E_PIXEL_FORMAT ImageFormat;
 	//	{
@@ -1028,13 +1028,13 @@ namespace tix
 	//	TStringReplace(DxtSrcInfo.TextureSource, ".tga", ".DDS");
 	//	TResTextureDefine * DxtTexture = TResTextureHelper::LoadDdsFile(DxtSrcInfo);
 
-	//	TString DstPathName = TResSettings::GlobalSettings.SrcPath + DxtSrcInfo.TextureSource;
+	//	TString DstPathName = TCookerSettings::GlobalSettings.SrcPath + DxtSrcInfo.TextureSource;
 	//	DeleteTempFile(DstPathName);
 
 	//	return DxtTexture;
 	//}
 
-	TResTextureDefine* TResTextureHelper::ConvertToDds(TResTextureDefine* SrcImage)
+	TResTextureDefine* TCookerTexture::ConvertToDds(TResTextureDefine* SrcImage)
 	{
 		E_PIXEL_FORMAT SrcFormat = SrcImage->ImageSurfaces[0]->GetFormat();
 		E_PIXEL_FORMAT DstFormat = EPF_UNKNOWN;
@@ -1047,7 +1047,7 @@ namespace tix
 		}
 		else if (SrcFormat == EPF_RGBA8)
 		{
-			if (SrcImage->TGASourcePixelDepth == 24 && !TResSettings::GlobalSettings.ForceAlphaChannel)
+			if (SrcImage->TGASourcePixelDepth == 24 && !TCookerSettings::GlobalSettings.ForceAlphaChannel)
 			{
 				DstFormat = EPF_DDS_DXT1;
 			}

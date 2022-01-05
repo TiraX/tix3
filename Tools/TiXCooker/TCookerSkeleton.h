@@ -4,14 +4,22 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
-	class TResSkeletonHelper
+	class TCookerSkeleton : public TCooker
 	{
 	public:
-		TResSkeletonHelper();
-		~TResSkeletonHelper();
+		TCookerSkeleton();
+		virtual ~TCookerSkeleton();
+
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Skeleton;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 		static void LoadSkeleton(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
 

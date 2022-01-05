@@ -13,10 +13,10 @@
 
 namespace tix
 {
-	TResTextureDefine* TResTextureHelper::LoadTgaFile(const TResTextureSourceInfo& SrcInfo)
+	TResTextureDefine* TCookerTexture::LoadTgaFile(const TResTextureSourceInfo& SrcInfo)
 	{
 		TFile f;
-		TString SrcPathName = TResSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
+		TString SrcPathName = TCookerSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
 		if (!f.Open(SrcPathName, EFA_READ))
 		{
 			return nullptr;

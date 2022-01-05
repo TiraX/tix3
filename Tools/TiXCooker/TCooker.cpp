@@ -19,11 +19,11 @@
 TString FilenameSrc;
 TString FilenameDst;
 
-TResSettings TResSettings::GlobalSettings;
+TCookerSettings TCookerSettings::GlobalSettings;
 
 void ShowUsage()
 {
-	_LOG(Log, "ResConverter src_filename dst_filename\n");
+	_LOG(Log, "TiXCooker src_filename dst_filename\n");
 }
 
 bool bShowExample = false;
@@ -67,7 +67,7 @@ void ShowExample()
 	_LOG(Log, "}\n");
 }
 
-bool ParseParams(int argc, RES_CONVERTER_CONST int8* argv[])
+bool ParseParams(int argc, TIX_COOKER_CONST int8* argv[])
 {
 	for (int i = 1; i < argc; ++i)
 	{
@@ -97,46 +97,46 @@ bool ParseParams(int argc, RES_CONVERTER_CONST int8* argv[])
 			}
 			else if (key == "iterate")
 			{
-				TResSettings::GlobalSettings.Iterate = true;
+				TCookerSettings::GlobalSettings.Iterate = true;
 			}
 			else if (key == "force32bitindex")
 			{
-				TResSettings::GlobalSettings.Force32BitIndex = true;
+				TCookerSettings::GlobalSettings.Force32BitIndex = true;
 			}
 			else if (key == "forcealphachannel")
 			{
-				TResSettings::GlobalSettings.ForceAlphaChannel = true;
+				TCookerSettings::GlobalSettings.ForceAlphaChannel = true;
 			}
 			else if (key == "ignoretexture")
 			{
-				TResSettings::GlobalSettings.IgnoreTexture = true;
+				TCookerSettings::GlobalSettings.IgnoreTexture = true;
 			}
 			else if (key == "vtinfo")
 			{
-				TResSettings::GlobalSettings.VTInfoFile = value;
+				TCookerSettings::GlobalSettings.VTInfoFile = value;
 			}
 			else if (key == "astc_quality")
 			{
 				if (value == "high")
 				{
-					TResSettings::GlobalSettings.AstcQuality = TResSettings::Astc_Quality_High;
+					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_High;
 				}
 				else if (value == "mid")
 				{
-					TResSettings::GlobalSettings.AstcQuality = TResSettings::Astc_Quality_Mid;
+					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_Mid;
 				}
 				else
 				{
-					TResSettings::GlobalSettings.AstcQuality = TResSettings::Astc_Quality_Low;
+					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_Low;
 				}
 			}
 			else if (key == "cluster_size")
 			{
-				TResSettings::GlobalSettings.MeshClusterSize = atoi(value.c_str());
+				TCookerSettings::GlobalSettings.MeshClusterSize = atoi(value.c_str());
 			}
 			else if (key == "cluster_verbose")
 			{
-				TResSettings::GlobalSettings.ClusterVerbose = true;
+				TCookerSettings::GlobalSettings.ClusterVerbose = true;
 			}
 
 			//if (key == "texture_path")
@@ -147,7 +147,7 @@ bool ParseParams(int argc, RES_CONVERTER_CONST int8* argv[])
 		else if (FilenameSrc == (""))
 		{
 			FilenameSrc = argv[i];
-			GetPathAndName(FilenameSrc, TResSettings::GlobalSettings.SrcPath, TResSettings::GlobalSettings.SrcName);
+			GetPathAndName(FilenameSrc, TCookerSettings::GlobalSettings.SrcPath, TCookerSettings::GlobalSettings.SrcName);
 		}
 		else if (FilenameDst == (""))
 		{
@@ -218,7 +218,7 @@ bool IsTargetNeedUpdate(const TString& SrcFile, const TString& DstFile)
 	return bNeedUpdate;
 }
 
-int32 DoCook(int32 argc, RES_CONVERTER_CONST int8* argv[])
+int32 DoCook(int32 argc, TIX_COOKER_CONST int8* argv[])
 {
 	if (argc < 2 || !ParseParams(argc, argv))
 	{
@@ -234,114 +234,199 @@ int32 DoCook(int32 argc, RES_CONVERTER_CONST int8* argv[])
 
 	// Find path
 	TStringReplace(FilenameDst, "\\", "/");
-	if (TResSettings::GlobalSettings.Iterate && !IsTargetNeedUpdate(FilenameSrc, FilenameDst))
+	if (TCookerSettings::GlobalSettings.Iterate && !IsTargetNeedUpdate(FilenameSrc, FilenameDst))
 	{
 		return 0;
 	}
 
-	TResMTTaskExecuter::Create();
-	TResFileHelper Resfile;
+	return TCooker::Cook();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+namespace tix
+{
+	const TString ChunkNames[static_cast<int32>(EChunkLib::Count)] =
 	{
-		// Read json file.
-		TFile f;
-		if (f.Open(FilenameSrc, EFA_READ))
-		{
-			int8* content = ti_new int8[f.GetSize() + 1];
-			f.Read(content, f.GetSize(), f.GetSize());
-			content[f.GetSize()] = 0;
-			f.Close();
+		"static_mesh",			//	ECL_MESHES,
+		"texture",				//	ECL_TEXTURES,
+		"material",				//	ECL_MATERIAL,
+		"material_instance",	//	ECL_MATERIAL_INSTANCE,
+		"scene",				//	ECL_SCENE,
+		"scene_tile",			//	ECL_SCENETILE,
+		"skeleton",				//	ECL_SKELETON,
+		"animation",			//	ECL_ANIMATIONS,
+		"rtx_pipeline",			//	ECL_RTX_PIPELINE,
+	};
 
-			TJSON JsonDoc;
-			JsonDoc.Parse(content);
+	int32 TCooker::Cook()
+	{
+		TResMTTaskExecuter::Create();
 
-			const int8* type = JsonDoc["type"].GetString();
-
-			if (strcmp(type, "static_mesh") == 0 ||
-				strcmp(type, "skeletal_mesh") == 0)
-			{
-				// Static Mesh & Skeletal Mesh
-				TStream& MeshStream = Resfile.GetChunk(ECL_MESHES);
-				TResMeshHelper::LoadMeshFile(JsonDoc, MeshStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "texture") == 0)
-			{
-				if (TResSettings::GlobalSettings.IgnoreTexture)
-				{
-					TResMTTaskExecuter::Destroy();
-					return 0;
-				}
-				// Texture
-				TStream& TextureStream = Resfile.GetChunk(ECL_TEXTURES);
-				TResTextureHelper::LoadTextureFile(JsonDoc, TextureStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "material") == 0)
-			{
-				// Material
-				TStream& MaterialStream = Resfile.GetChunk(ECL_MATERIAL);
-				TResMaterialHelper::LoadMaterial(JsonDoc, MaterialStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "material_instance") == 0)
-			{
-				// Material Instance
-				TStream& MIStream = Resfile.GetChunk(ECL_MATERIAL_INSTANCE);
-				TResMaterialInstanceHelper::LoadMaterialInstance(JsonDoc, MIStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "scene") == 0)
-			{
-				// Scene
-				TStream& MIStream = Resfile.GetChunk(ECL_SCENE);
-				TResSceneHelper::LoadScene(JsonDoc, MIStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "scene_tile") == 0)
-			{
-				// Instances
-				TStream& InsStream = Resfile.GetChunk(ECL_SCENETILE);
-				TResSceneTileHelper::LoadSceneTile(JsonDoc, InsStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "skeleton") == 0)
-			{
-				// Skeletons
-				TStream& SkStream = Resfile.GetChunk(ECL_SKELETON);
-				TResSkeletonHelper::LoadSkeleton(JsonDoc, SkStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "animation") == 0)
-			{
-				// Animations
-				TStream& AnimStream = Resfile.GetChunk(ECL_ANIMATIONS);
-				TResAnimSequenceHelper::LoadAnimSequence(JsonDoc, AnimStream, Resfile.Strings);
-			}
-			else if (strcmp(type, "rtx_pipeline") == 0)
-			{
-				// Raytracing Pipeline description
-				TStream& RtxPipelineStream = Resfile.GetChunk(ECL_RTX_PIPELINE);
-				TResRtxPipelineHelper::LoadRtxPipeline(JsonDoc, RtxPipelineStream, Resfile.Strings);
-			}
-			else
-			{
-				_LOG(Error, "Unknown asset type - %s.\n", type);
-			}
-			ti_delete[] content;
-		}
-		else
+		TChunkFile ChunkFile;
+		TFile TjsFile;
+		if (!TjsFile.Open(FilenameSrc, EFA_READ))
 		{
 			_LOG(Error, "Failed to open file : %s.\n", FilenameSrc.c_str());
+			return -1;
 		}
+
+		// Load tjs file to buffer
+		int8* FileContent = ti_new int8[TjsFile.GetSize() + 1];
+		TjsFile.Read(FileContent, TjsFile.GetSize(), TjsFile.GetSize());
+		FileContent[TjsFile.GetSize()] = 0;
+		TjsFile.Close();
+
+		// Parse json file
+		TJSON JsonDoc;
+		JsonDoc.Parse(FileContent);
+
+		const int8* AssetTypeName = JsonDoc["type"].GetString();
+		TCooker* Cooker = TCooker::GetCookerByName(AssetTypeName);
+		if (Cooker == nullptr)
+		{
+			ti_delete[] FileContent;
+			_LOG(Error, "Unknown asset type : %s.\n", AssetTypeName);
+			return -1;
+		}
+
+		// Load asset content
+		Cooker->Load(JsonDoc);
+		Cooker->SaveTrunk(ChunkFile);
+
+		ti_delete[] FileContent;
+		ti_delete Cooker;
+
+		// Find path
+		TString DstPath;
+		TString::size_type SlashPos = FilenameDst.rfind('/');
+		if (SlashPos != TString::npos)
+		{
+			DstPath = FilenameDst.substr(0, SlashPos);
+			TPlatformUtils::CreateDirectoryIfNotExist(DstPath);
+		}
+
+		if (!ChunkFile.SaveFile(FilenameDst))
+		{
+			_LOG(Error, "Failed to save resfile : %s\n", FilenameDst.c_str());
+		}
+		TResMTTaskExecuter::Destroy();
+
+		return 0;
 	}
 
-	// Find path
-	TString DstPath;
-	TString::size_type SlashPos = FilenameDst.rfind('/');
-	if (SlashPos != TString::npos)
+	TCooker* TCooker::GetCookerByName(const TString& Name)
 	{
-		DstPath = FilenameDst.substr(0, SlashPos);
-		TPlatformUtils::CreateDirectoryIfNotExist(DstPath);
+		const int32 Count = static_cast<int32>(EChunkLib::Count);
+		for (int32 i = 0; i < Count; i++)
+		{
+			if (Name == ChunkNames[i])
+			{
+				return GetCookerByType(static_cast<EChunkLib>(i));
+			}
+		}
+		return nullptr;
 	}
 
-	if (!Resfile.SaveFile(FilenameDst))
+	TCooker* TCooker::GetCookerByType(EChunkLib ChunkType)
 	{
-		_LOG(Error, "Failed to save resfile : %s\n", FilenameDst.c_str());
+		switch (ChunkType)
+		{
+		case EChunkLib::Mesh:
+			return ti_new TCookerMesh;
+		case EChunkLib::Texture:
+			return ti_new TCookerTexture;
+		case EChunkLib::Material:
+			return ti_new TCookerMaterial;
+		case EChunkLib::MaterialInstance:
+			return ti_new TCookerMaterialInstance;
+		case EChunkLib::Scene:
+			return ti_new TCookerScene;
+		case EChunkLib::SceneTile:
+			return ti_new TCookerSceneTile;
+		case EChunkLib::Skeleton:
+			return ti_new TCookerSkeleton;
+		case EChunkLib::Animation:
+			return ti_new TCookerAnimSequence;
+		case EChunkLib::RtxPipeline:
+			return ti_new TCookerRtxPipeline;
+		default:
+			TI_ASSERT(0);	// Fail to find Cooker
+			break;
+		}
+		return nullptr;
 	}
-	TResMTTaskExecuter::Destroy();
 
-    return 0;
-}
+	TCooker::TCooker()
+	{
+	}
+
+	TCooker::~TCooker()
+	{
+	}
+
+	TStream& TChunkFile::GetChunk(EChunkLib ChunkType)
+	{
+		return ChunkStreams[ChunkType];
+	}
+
+	bool TChunkFile::SaveFile(const TString& Filename)
+	{
+		// Header
+		TResfileHeader HeaderResfile;
+		HeaderResfile.ID = TIRES_ID_RESFILE;
+		HeaderResfile.Version = TIRES_VERSION_MAINFILE;
+		int32 Chunks = 0;
+		for (int32 c = 0; c < EChunkLib::Count; ++c)
+		{
+			if (ChunkStreams[c].GetLength() > 0)
+			{
+				++Chunks;
+			}
+		}
+		HeaderResfile.ChunkCount = Chunks;
+		HeaderResfile.FileSize = TMath::Align4((int32)sizeof(TResfileHeader));
+		for (int32 c = 0; c < EChunkLib::Count; ++c)
+		{
+			if (ChunkStreams[c].GetLength() > 0)
+			{
+				HeaderResfile.FileSize += ChunkStreams[c].GetLength();
+			}
+		}
+		HeaderResfile.StringCount = (int32)Strings.size();
+		HeaderResfile.StringOffset = HeaderResfile.FileSize;
+
+		// Strings
+		TStream StringStream;
+		SaveStringList(Strings, StringStream);
+		HeaderResfile.FileSize += StringStream.GetLength();
+
+		TStream ChunkHeaderStream;
+		ChunkHeaderStream.Put(&HeaderResfile, sizeof(TResfileHeader));
+		FillZero4(ChunkHeaderStream);
+
+		// Write to file
+		TFile file;
+		if (file.Open(Filename, EFA_CREATEWRITE))
+		{
+			// header
+			file.Write(ChunkHeaderStream.GetBuffer(), ChunkHeaderStream.GetLength());
+
+			// chunk
+			for (int32 c = 0; c < EChunkLib::Count; ++c)
+			{
+				if (ChunkStreams[c].GetLength() > 0)
+				{
+					file.Write(ChunkStreams[c].GetBuffer(), ChunkStreams[c].GetLength());
+				}
+			}
+
+			// strings
+			file.Write(StringStream.GetBuffer(), StringStream.GetLength());
+			file.Close();
+			return true;
+		}
+
+		return false;
+	}
+};

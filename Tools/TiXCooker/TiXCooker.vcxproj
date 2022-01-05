@@ -119,13 +119,11 @@ copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Co
     <ClInclude Include="ResHelper.h" />
     <ClInclude Include="TCookerMaterial.h" />
     <ClInclude Include="TCookerMaterialInstance.h" />
-    <ClInclude Include="TCookerMeshCluster.h" />
     <ClInclude Include="TCookerMesh.h" />
     <ClInclude Include="TCookerMultiThreadTask.h" />
     <ClInclude Include="TCookerRtxPipeline.h" />
     <ClInclude Include="TCookerScene.h" />
     <ClInclude Include="TCookerSceneTile.h" />
-    <ClInclude Include="ResSettings.h" />
     <ClInclude Include="TCookerSkeleton.h" />
     <ClInclude Include="TCookerTexture.h" />
     <ClInclude Include="TCookerTextureTaskHelper.h" />
@@ -150,7 +148,6 @@ copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Co
     <ClCompile Include="ResHelper.cpp" />
     <ClCompile Include="TCookerMaterial.cpp" />
     <ClCompile Include="TCookerMaterialInstance.cpp" />
-    <ClCompile Include="TCookerMeshCluster.cpp" />
     <ClCompile Include="TCookerMesh.cpp" />
     <ClCompile Include="TCookerMultiThreadTask.cpp" />
     <ClCompile Include="TCookerRtxPipeline.cpp" />

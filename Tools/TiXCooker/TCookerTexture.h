@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "TCooker.h"
 #include "TImage.h"
 
 namespace tix
@@ -58,13 +59,19 @@ namespace tix
 	};
 
 	class TImage;
-	class TResTextureHelper
+	class TCookerTexture : public TCooker
 	{
 	public:
-		TResTextureHelper();
-		~TResTextureHelper();
+		TCookerTexture();
+		virtual ~TCookerTexture();
 
-		static bool LoadTextureFile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Texture;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
+
 		static TResTextureDefine* LoadDdsFile(const TResTextureSourceInfo& SrcInfo);
 		static TResTextureDefine* LoadTgaFile(const TResTextureSourceInfo& SrcInfo);
 		static TResTextureDefine* LoadHdrFile(const TResTextureSourceInfo& SrcInfo);
@@ -81,7 +88,6 @@ namespace tix
 		//static TResTextureDefine* LoadTgaToAstc(const TResTextureSourceInfo& SrcInfo);
 
 		void AddTexture(TResTextureDefine* Texture);
-		void OutputTexture(TStream& OutStream, TVector<TString>& OutStrings);
 
 	private:
 

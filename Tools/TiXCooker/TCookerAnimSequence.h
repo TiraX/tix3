@@ -4,18 +4,22 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
-	class TResAnimSequenceHelper
+	class TCookerAnimSequence : public TCooker
 	{
 	public:
-		TResAnimSequenceHelper();
-		~TResAnimSequenceHelper();
+		TCookerAnimSequence();
+		virtual ~TCookerAnimSequence();
 
-		static void LoadAnimSequence(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
-
-		void OutputAnimSequence(TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Animation;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 	private:
 

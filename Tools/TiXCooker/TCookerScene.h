@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
@@ -51,14 +52,18 @@ namespace tix
 		TSkyIrradianceSH3 SkyLight;
 	};
 
-	class TResSceneHelper
+	class TCookerScene : public TCooker
 	{
 	public:
-		TResSceneHelper();
-		~TResSceneHelper();
+		TCookerScene();
+		virtual ~TCookerScene();
 
-		static void LoadScene(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
-		void OutputScene(TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::Scene;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 	private:
 

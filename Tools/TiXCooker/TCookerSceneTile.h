@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "TCooker.h"
 
 namespace tix
 {
@@ -16,14 +17,18 @@ namespace tix
 		float Brightness;
 		vector3df Position;
 	};
-	class TResSceneTileHelper
+	class TCookerSceneTile : public TCooker
 	{
 	public:
-		TResSceneTileHelper();
-		~TResSceneTileHelper();
+		TCookerSceneTile();
+		virtual ~TCookerSceneTile();
 
-		static bool LoadSceneTile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
-		void OutputTiles(TStream& OutStream, TVector<TString>& OutStrings);
+		virtual EChunkLib GetCookerType() const override
+		{
+			return EChunkLib::SceneTile;
+		};
+		virtual bool Load(const TJSON& JsonDoc) override;
+		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
 		TString LevelName;
 		vector2di Position;

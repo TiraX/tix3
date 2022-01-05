@@ -116,39 +116,39 @@ namespace tix
 			switch (chunkHeader->ID)
 			{
 			case TIRES_ID_CHUNK_MESH:
-				ChunkHeader[ECL_MESHES] = chunkHeader;
+				ChunkHeader[EChunkLib::Mesh] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_MESH);
 				break;
 			case TIRES_ID_CHUNK_TEXTURE:
-				ChunkHeader[ECL_TEXTURES] = chunkHeader;
+				ChunkHeader[EChunkLib::Texture] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_TEXTURE);
 				break;
 			case TIRES_ID_CHUNK_MATERIAL:
-				ChunkHeader[ECL_MATERIAL] = chunkHeader;
+				ChunkHeader[EChunkLib::Material] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_MATERIAL);
 				break;
 			case TIRES_ID_CHUNK_MINSTANCE:
-				ChunkHeader[ECL_MATERIAL_INSTANCE] = chunkHeader;
+				ChunkHeader[EChunkLib::MaterialInstance] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_MINSTANCE);
 				break;
 			case TIRES_ID_CHUNK_SCENE:
-				ChunkHeader[ECL_SCENE] = chunkHeader;
+				ChunkHeader[EChunkLib::Scene] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_SCENE);
 				break;
 			case TIRES_ID_CHUNK_SCENETILE:
-				ChunkHeader[ECL_SCENETILE] = chunkHeader;
+				ChunkHeader[EChunkLib::SceneTile] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_SCENETILE);
 				break;
 			case TIRES_ID_CHUNK_SKELETON:
-				ChunkHeader[ECL_SKELETON] = chunkHeader;
+				ChunkHeader[EChunkLib::Skeleton] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_SKELETON);
 				break;
 			case TIRES_ID_CHUNK_ANIMATION:
-				ChunkHeader[ECL_ANIMATIONS] = chunkHeader;
+				ChunkHeader[EChunkLib::Animation] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_ANIM);
 				break;
 			case TIRES_ID_CHUNK_RTX_PIPELINE:
-				ChunkHeader[ECL_RTX_PIPELINE] = chunkHeader;
+				ChunkHeader[EChunkLib::RtxPipeline] = chunkHeader;
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_RTX_PIPELINE);
 				break;
 			default:
@@ -162,31 +162,31 @@ namespace tix
 
 	void TAssetFile::CreateResource(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_MESHES] != nullptr)
+		if (ChunkHeader[EChunkLib::Mesh] != nullptr)
 			CreateMeshBuffer(OutResources);
 
-		if (ChunkHeader[ECL_TEXTURES] != nullptr)
+		if (ChunkHeader[EChunkLib::Texture] != nullptr)
 			CreateTexture(OutResources);
 
-		if (ChunkHeader[ECL_MATERIAL] != nullptr)
+		if (ChunkHeader[EChunkLib::Material] != nullptr)
 			CreateMaterial(OutResources);
 
-		if (ChunkHeader[ECL_MATERIAL_INSTANCE] != nullptr)
+		if (ChunkHeader[EChunkLib::MaterialInstance] != nullptr)
 			CreateMaterialInstance(OutResources);
 
-		if (ChunkHeader[ECL_SCENE] != nullptr)
+		if (ChunkHeader[EChunkLib::Scene] != nullptr)
 			CreateScene();
 
-		if (ChunkHeader[ECL_SCENETILE] != nullptr)
+		if (ChunkHeader[EChunkLib::SceneTile] != nullptr)
 			CreateSceneTile(OutResources);
 
-		if (ChunkHeader[ECL_ANIMATIONS] != nullptr)
+		if (ChunkHeader[EChunkLib::Animation] != nullptr)
 			CreateAnimSequence(OutResources);
 
-		if (ChunkHeader[ECL_SKELETON] != nullptr)
+		if (ChunkHeader[EChunkLib::Skeleton] != nullptr)
 			CreateSkeleton(OutResources);
 
-		if (ChunkHeader[ECL_RTX_PIPELINE] != nullptr)
+		if (ChunkHeader[EChunkLib::RtxPipeline] != nullptr)
 			CreateRtxPipeline(OutResources);
 
 		for (auto& Res : OutResources)
@@ -197,11 +197,11 @@ namespace tix
 
 	void TAssetFile::CreateMeshBuffer(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_MESHES] == nullptr)
+		if (ChunkHeader[EChunkLib::Mesh] == nullptr)
 			return;
 
-		const int8* ChunkStart = (const int8*)ChunkHeader[ECL_MESHES];
-		const int32 MeshCount = ChunkHeader[ECL_MESHES]->ElementCount;
+		const int8* ChunkStart = (const int8*)ChunkHeader[EChunkLib::Mesh];
+		const int32 MeshCount = ChunkHeader[EChunkLib::Mesh]->ElementCount;
 		if (MeshCount == 0)
 		{
 			return;
@@ -357,11 +357,11 @@ namespace tix
 
 	void TAssetFile::CreateTexture(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_TEXTURES] == nullptr)
+		if (ChunkHeader[EChunkLib::Texture] == nullptr)
 			return;
 
-		const uint8* ChunkStart = (const uint8*)ChunkHeader[ECL_TEXTURES];
-		const int32 TextureCount = ChunkHeader[ECL_TEXTURES]->ElementCount;
+		const uint8* ChunkStart = (const uint8*)ChunkHeader[EChunkLib::Texture];
+		const int32 TextureCount = ChunkHeader[EChunkLib::Texture]->ElementCount;
 		if (TextureCount == 0)
 		{
 			return;
@@ -421,11 +421,11 @@ namespace tix
 
 	void TAssetFile::CreateMaterial(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_MATERIAL] == nullptr)
+		if (ChunkHeader[EChunkLib::Material] == nullptr)
 			return;
 
-		const uint8* ChunkStart = (const uint8*)ChunkHeader[ECL_MATERIAL];
-		const int32 MaterialCount = ChunkHeader[ECL_MATERIAL]->ElementCount;
+		const uint8* ChunkStart = (const uint8*)ChunkHeader[EChunkLib::Material];
+		const int32 MaterialCount = ChunkHeader[EChunkLib::Material]->ElementCount;
 		if (MaterialCount == 0)
 		{
 			return;
@@ -504,11 +504,11 @@ namespace tix
 
 	void TAssetFile::CreateMaterialInstance(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_MATERIAL_INSTANCE] == nullptr)
+		if (ChunkHeader[EChunkLib::MaterialInstance] == nullptr)
 			return;
 
-		const uint8* ChunkStart = (const uint8*)ChunkHeader[ECL_MATERIAL_INSTANCE];
-		const int32 MICount = ChunkHeader[ECL_MATERIAL_INSTANCE]->ElementCount;
+		const uint8* ChunkStart = (const uint8*)ChunkHeader[EChunkLib::MaterialInstance];
+		const int32 MICount = ChunkHeader[EChunkLib::MaterialInstance]->ElementCount;
 		if (MICount == 0)
 		{
 			return;
@@ -600,14 +600,14 @@ namespace tix
 
 	void TAssetFile::CreateScene()
 	{
-		if (ChunkHeader[ECL_SCENE] == nullptr)
+		if (ChunkHeader[EChunkLib::Scene] == nullptr)
 		{
 			_LOG(Error, "Can not find scene chunk when loading scene %s.", Filename.c_str());
 			return;
 		}
 
-		const uint8* ChunkStart = (const uint8*)ChunkHeader[ECL_SCENE];
-		TI_ASSERT(ChunkHeader[ECL_SCENE]->ElementCount == 1);
+		const uint8* ChunkStart = (const uint8*)ChunkHeader[EChunkLib::Scene];
+		TI_ASSERT(ChunkHeader[EChunkLib::Scene]->ElementCount == 1);
 
 		const uint8* HeaderStart = (const uint8*)(ChunkStart + TMath::Align4((int32)sizeof(TResfileChunkHeader)));
 		const uint8* SceneDataStart = HeaderStart + TMath::Align4((int32)sizeof(THeaderScene)) * 1;
@@ -707,14 +707,14 @@ namespace tix
 
 	void TAssetFile::CreateSceneTile(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_SCENETILE] == nullptr)
+		if (ChunkHeader[EChunkLib::SceneTile] == nullptr)
 		{
 			_LOG(Error, "Can not find scene tile chunk when loading scene %s.", Filename.c_str());
 			return;
 		}
 
-		const uint8* ChunkStart = (const uint8*)ChunkHeader[ECL_SCENETILE];
-		TI_ASSERT(ChunkHeader[ECL_SCENETILE]->ElementCount == 1);
+		const uint8* ChunkStart = (const uint8*)ChunkHeader[EChunkLib::SceneTile];
+		TI_ASSERT(ChunkHeader[EChunkLib::SceneTile]->ElementCount == 1);
 
 		const uint8* HeaderStart = (const uint8*)(ChunkStart + TMath::Align4((int32)sizeof(TResfileChunkHeader)));
 		const uint8* SceneTileDataStart = HeaderStart + TMath::Align4((int32)sizeof(THeaderSceneTile)) * 1;
@@ -945,11 +945,11 @@ namespace tix
 
 	void TAssetFile::CreateSkeleton(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_SKELETON] == nullptr)
+		if (ChunkHeader[EChunkLib::Skeleton] == nullptr)
 			return;
 
-		const int8* ChunkStart = (const int8*)ChunkHeader[ECL_SKELETON];
-		const int32 SkeletonCount = ChunkHeader[ECL_SKELETON]->ElementCount;
+		const int8* ChunkStart = (const int8*)ChunkHeader[EChunkLib::Skeleton];
+		const int32 SkeletonCount = ChunkHeader[EChunkLib::Skeleton]->ElementCount;
 		if (SkeletonCount == 0)
 		{
 			return;
@@ -984,11 +984,11 @@ namespace tix
 	}
 	void TAssetFile::CreateAnimSequence(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_ANIMATIONS] == nullptr)
+		if (ChunkHeader[EChunkLib::Animation] == nullptr)
 			return;
 
-		const int8* ChunkStart = (const int8*)ChunkHeader[ECL_ANIMATIONS];
-		const int32 AnimCount = ChunkHeader[ECL_ANIMATIONS]->ElementCount;
+		const int8* ChunkStart = (const int8*)ChunkHeader[EChunkLib::Animation];
+		const int32 AnimCount = ChunkHeader[EChunkLib::Animation]->ElementCount;
 		if (AnimCount == 0)
 		{
 			return;
@@ -1023,11 +1023,11 @@ namespace tix
 	}
 	void TAssetFile::CreateRtxPipeline(TVector<TResourcePtr>& OutResources)
 	{
-		if (ChunkHeader[ECL_RTX_PIPELINE] == nullptr)
+		if (ChunkHeader[EChunkLib::RtxPipeline] == nullptr)
 			return;
 
-		const int8* ChunkStart = (const int8*)ChunkHeader[ECL_RTX_PIPELINE];
-		const int32 PipelineCount = ChunkHeader[ECL_RTX_PIPELINE]->ElementCount;
+		const int8* ChunkStart = (const int8*)ChunkHeader[EChunkLib::RtxPipeline];
+		const int32 PipelineCount = ChunkHeader[EChunkLib::RtxPipeline]->ElementCount;
 		if (PipelineCount == 0)
 		{
 			return;

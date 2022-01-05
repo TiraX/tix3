@@ -73,31 +73,23 @@ namespace tix
 		//TIRES_ID_TILEZONE			= TI_MAKE_IDENTIFIER('Z', 'O', 'N', 'E'), 
 	};
 
-	enum E_CHUNK_LIB
+	// Chunk Library types
+	enum EChunkLib
 	{
-		ECL_MESHES,
-		ECL_TEXTURES,
-		ECL_MATERIAL,
-		ECL_MATERIAL_INSTANCE,
-		ECL_SCENE,
+		Mesh,
+		Texture,
+		Material,
+		MaterialInstance,
+		Scene,
 
 		// Contain mesh instances information
-		ECL_SCENETILE,
+		SceneTile,
 
-		ECL_SKELETON,
-		ECL_ANIMATIONS,
-		ECL_RTX_PIPELINE,
-		//ECL_MATERIALS,
-		//ECL_CONTROLLERS,
-		//ECL_SHADERS,
-		//ECL_PARTICLEEFFECT,
-		//ECL_TIMATERIAL,
-		//ECL_UI,
-		//ECL_VISUALSCENE,
+		Skeleton,
+		Animation,
+		RtxPipeline,
 
-		//ECL_RESOURCES,	// this is the last one
-
-		ECL_COUNT,
+		Count,
 	};
 	
 	struct TResfileHeader

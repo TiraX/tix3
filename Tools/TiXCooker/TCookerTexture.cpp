@@ -10,11 +10,11 @@
 
 namespace tix
 {
-	TResTextureHelper::TResTextureHelper()
+	TCookerTexture::TCookerTexture()
 	{
 	}
 
-	TResTextureHelper::~TResTextureHelper()
+	TCookerTexture::~TCookerTexture()
 	{
 		for (auto T : Textures)
 		{
@@ -23,12 +23,12 @@ namespace tix
 		Textures.clear();
 	}
 
-	void TResTextureHelper::AddTexture(TResTextureDefine* Texture)
+	void TCookerTexture::AddTexture(TResTextureDefine* Texture)
 	{
 		Textures.push_back(Texture);
 	}
 
-	bool TResTextureHelper::LoadTextureFile(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings)
+	bool TCookerTexture::Load(const TJSON& Doc)
 	{
 		TString Name = Doc["name"].GetString();
 		//int32 Version = Doc["version"].GetInt();
@@ -50,17 +50,17 @@ namespace tix
 		TString SrcImageType;
 		if (ExtName == "dds")
 		{
-			SrcImage = TResTextureHelper::LoadDdsFile(SrcInfo);
+			SrcImage = TCookerTexture::LoadDdsFile(SrcInfo);
 			SrcImageType = "DDS";
 		}
 		else if (ExtName == "tga")
 		{
-			SrcImage = TResTextureHelper::LoadTgaFile(SrcInfo);
+			SrcImage = TCookerTexture::LoadTgaFile(SrcInfo);
 			SrcImageType = "TGA";
 		}
 		else if (ExtName == "hdr")
 		{
-			SrcImage = TResTextureHelper::LoadHdrFile(SrcInfo);
+			SrcImage = TCookerTexture::LoadHdrFile(SrcInfo);
 			SrcImageType = "HDR";
 		}
 		else
@@ -99,7 +99,7 @@ namespace tix
 			if (SrcImage->Desc.Format == EPF_RGBA32F)
 			{
 				// Convert to RGBA16F
-				TextureOutput = TResTextureHelper::Convert32FTo16F(SrcImage);
+				TextureOutput = TCookerTexture::Convert32FTo16F(SrcImage);
 			}
 			else
 			{
@@ -111,7 +111,7 @@ namespace tix
 		{
 #if defined (TI_PLATFORM_WIN32)
 			// Win32 Platform need DDS texture
-			TextureOutput = TResTextureHelper::ConvertToDds(SrcImage);
+			TextureOutput = TCookerTexture::ConvertToDds(SrcImage);
 #elif defined (TI_PLATFORM_IOS)
 			// iOS Platform need ASTC texture
 			TextureOutput = TResTextureHelper::ConvertToAstc(SrcImage);
@@ -127,10 +127,8 @@ namespace tix
 			TextureOutput->Desc.AddressMode = SrcInfo.AddressMode;
 			TextureOutput->Desc.SRGB = SrcInfo.SRGB;
 
-			TResTextureHelper Helper;
+			TCookerTexture Helper;
 			Helper.AddTexture(TextureOutput);
-			Helper.OutputTexture(OutStream, OutStrings);
-
 			return true;
 		}
 		else
@@ -140,8 +138,11 @@ namespace tix
 		}
 	}
 	
-	void TResTextureHelper::OutputTexture(TStream& OutStream, TVector<TString>& OutStrings)
+	void TCookerTexture::SaveTrunk(TChunkFile& OutChunkFile)
 	{
+		TStream& OutStream = OutChunkFile.GetChunk(GetCookerType());
+		TVector<TString>& OutStrings = OutChunkFile.Strings;
+
 		TResfileChunkHeader ChunkHeader;
 		ChunkHeader.ID = TIRES_ID_CHUNK_TEXTURE;
 		ChunkHeader.Version = TIRES_VERSION_CHUNK_TEXTURE;
