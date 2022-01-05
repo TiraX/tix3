@@ -72,6 +72,7 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
+	private:
 		static TResTextureDefine* LoadDdsFile(const TResTextureSourceInfo& SrcInfo);
 		static TResTextureDefine* LoadTgaFile(const TResTextureSourceInfo& SrcInfo);
 		static TResTextureDefine* LoadHdrFile(const TResTextureSourceInfo& SrcInfo);
@@ -88,8 +89,6 @@ namespace tix
 		//static TResTextureDefine* LoadTgaToAstc(const TResTextureSourceInfo& SrcInfo);
 
 		void AddTexture(TResTextureDefine* Texture);
-
-	private:
 
 	private:
 		TVector<TResTextureDefine*> Textures;

@@ -58,7 +58,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WINDOWS;_CRT_SECURE_NO_WARNINGS;TI_LINK_STATIC_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../Sources/Engine;../../Sources/Externals;../../Sources/Externals/ISPCTextureCompressor-master/ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Sources/Engine;../../Sources/Externals/rapidjson;../../Sources/Externals/ISPCTextureCompressor-master/ispc_texcomp</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -80,7 +80,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_WINDOWS;_CRT_SECURE_NO_WARNINGS;TI_LINK_STATIC_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>../../Sources/Engine;../../Sources/Externals;../../Sources/Externals/ISPCTextureCompressor-master/ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Sources/Engine;../../Sources/Externals/rapidjson;../../Sources/Externals/ISPCTextureCompressor-master/ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

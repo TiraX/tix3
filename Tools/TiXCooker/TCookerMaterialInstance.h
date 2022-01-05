@@ -64,15 +64,15 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
+	private:
+		bool IsParamExisted(const TString& InParamName);
+
 		void AddParameter(const TString& InParamName, int32 Value);
 		void AddParameter(const TString& InParamName, float Value);
 		void AddParameter(const TString& InParamName, const vector3df& Value);
 		void AddParameter(const TString& InParamName, const quaternion& Value);
 		void AddParameter(const TString& InParamName, const SColorf& Value);
 		void AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size);
-
-	private:
-		bool IsParamExisted(const TString& InParamName);
 	private:
 		TString InstanceName;
 		TString LinkedMaterial;

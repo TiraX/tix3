@@ -21,10 +21,6 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
-		static void LoadSkeleton(TJSON& Doc, TStream& OutStream, TVector<TString>& OutStrings);
-
-		void OutputSkeleton(TStream& OutStream, TVector<TString>& OutStrings);
-
 	private:
 		void CalcInvBindTransform();
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "rapidjson/document.h"
+#include "document.h"
 using namespace rapidjson;
 
 namespace tix

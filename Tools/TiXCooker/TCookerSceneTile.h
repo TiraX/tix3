@@ -30,6 +30,7 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
+	private:
 		TString LevelName;
 		vector2di Position;
 		aabbox3df BBox;
