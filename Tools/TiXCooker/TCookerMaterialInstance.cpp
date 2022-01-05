@@ -22,12 +22,10 @@ namespace tix
 	bool TCookerMaterialInstance::Load(const TJSON& Doc)
 	{
 		// MI Name
-		TJSONNode MIName = Doc["name"];
-		SetMaterialInstanceName(MIName.GetString());
+		Doc["name"] << InstanceName;
 
 		// linked material
-		TJSONNode LinkedMaterial = Doc["linked_material"];
-		SetMaterialRes(LinkedMaterial.GetString());
+		Doc["linked_material"] << LinkedMaterial;
 
 		TJSONNode Parameters = Doc["parameters"];
 		TI_ASSERT(Parameters.IsObject()); 
@@ -36,30 +34,34 @@ namespace tix
 		{
 			TString ParamName = itr.Name();
 			TJSONNode Param = Parameters[ParamName.c_str()];
-			TString ParamType = Param["type"].GetString();
+			TString ParamType;
+			Param["type"] << ParamType;
 			TJSONNode ParamValue = Param["value"];
 			if (ParamType == "int")
 			{
-				AddParameter(ParamName, ParamValue.GetInt());
+				int32 Value;
+				ParamValue << Value;
+				AddParameter(ParamName, Value);
 			}
 			else if (ParamType == "float")
 			{
-				AddParameter(ParamName, ParamValue.GetFloat());
+				float Value;
+				ParamValue << Value;
+				AddParameter(ParamName, Value);
 			}
 			else if (ParamType == "float4")
 			{
-				TI_ASSERT(ParamValue.IsArray() && ParamValue.Size() <= 4);
 				quaternion q;
-				for (int32 pv = 0; pv < ParamValue.Size(); ++pv)
-					q[pv] = ParamValue[pv].GetFloat();
+				ParamValue << q;
 				AddParameter(ParamName, q);
 			}
 			else if (ParamType == "texture2d" || ParamType == "texturecube")
 			{
-				TI_ASSERT(ParamValue.IsString());
-				TJSONNode ParamSize = Param["size"];
-				vector2di Size = TJSONUtil::JsonArrayToVector2di(ParamSize);
-				AddParameter(ParamName, ParamValue.GetString(), Size);
+				TString Value;
+				ParamValue << Value;
+				vector2di Size;
+				Param["size"] << Size;
+				AddParameter(ParamName, Value, Size);
 			}
 			else
 			{
@@ -68,16 +70,6 @@ namespace tix
 		}
 
 		return true;
-	}
-
-	void TCookerMaterialInstance::SetMaterialInstanceName(const TString& InInstanceName)
-	{
-		InstanceName = InInstanceName;
-	}
-
-	void TCookerMaterialInstance::SetMaterialRes(const TString& MaterialName)
-	{
-		LinkedMaterial = MaterialName;
 	}
 
 	bool TCookerMaterialInstance::IsParamExisted(const TString& InParamName)

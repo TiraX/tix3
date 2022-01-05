@@ -64,9 +64,6 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
-		void SetMaterialInstanceName(const TString& InstanceName);
-		void SetMaterialRes(const TString& MaterialName);
-
 		void AddParameter(const TString& InParamName, int32 Value);
 		void AddParameter(const TString& InParamName, float Value);
 		void AddParameter(const TString& InParamName, const vector3df& Value);

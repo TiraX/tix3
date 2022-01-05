@@ -21,7 +21,7 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
-		void SetShaderName(E_SHADER_STAGE Stage, const TString& Name);
+		//void SetShaderName(E_SHADER_STAGE Stage, const TString& Name);
 		void SetBlendMode(E_BLEND_MODE InBlendMode);
 		void SetShaderVsFormat(uint32 InVsFormat);
 		void SetShaderInsFormat(uint32 InInsFormat);
@@ -33,7 +33,7 @@ namespace tix
 
 	private:
 		//E_BLEND_MODE BlendMode;
-		TString ShaderNames[ESS_COUNT];
+		TVector<TString> ShaderNames;
 		TStream ShaderCodes[ESS_COUNT];
 
 		E_BLEND_MODE BlendMode;

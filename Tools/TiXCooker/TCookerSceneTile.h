@@ -34,16 +34,16 @@ namespace tix
 		vector2di Position;
 		aabbox3df BBox;
 		
-		uint32 StaticMeshesTotal;
-		uint32 SMSectionsTotal;
-		uint32 SMInstancesTotal;
+		int32 StaticMeshesTotal;
+		int32 SMSectionsTotal;
+		int32 SMInstancesTotal;
 
-		uint32 ReflectionCapturesTotal;
+		int32 ReflectionCapturesTotal;
 
-		uint32 SkeletalMeshTotal;
-		uint32 SkeletonTotal;
-		uint32 AnimationTotal;
-		uint32 SKMActorsTotal;
+		int32 SkeletalMeshTotal;
+		int32 SkeletonTotal;
+		int32 AnimationTotal;
+		int32 SKMActorsTotal;
 
 		
 		TVector<TString> AssetTextures;

@@ -30,19 +30,23 @@ namespace tix
 
 	bool TCookerTexture::Load(const TJSON& Doc)
 	{
-		TString Name = Doc["name"].GetString();
+		TString Name;
+		Doc["name"] << Name;
 		//int32 Version = Doc["version"].GetInt();
 
 		TResTextureSourceInfo SrcInfo;
-		SrcInfo.SRGB = Doc["srgb"].GetInt();
-		SrcInfo.AddressMode = GetAddressMode(Doc["address_mode"].GetString());
-		SrcInfo.TargetFormat = GetPixelFormat(Doc["target_format"].GetString());
+		Doc["srgb"] << SrcInfo.SRGB;
+		TString AddressMode, TargetFormat;
+		Doc["address_mode"] << AddressMode;
+		Doc["target_format"] << TargetFormat;
+		SrcInfo.AddressMode = GetAddressMode(AddressMode);
+		SrcInfo.TargetFormat = GetPixelFormat(TargetFormat);
 
-		SrcInfo.LodBias = Doc["lod_bias"].GetInt();
-		SrcInfo.IsNormalmap = Doc["is_normalmap"].GetInt();
-		SrcInfo.IsIBL = Doc["ibl"].GetInt();
-		SrcInfo.HasMips = Doc["has_mips"].GetInt();
-		SrcInfo.TextureSource = Doc["source"].GetString();
+		Doc["lod_bias"] << SrcInfo.LodBias;
+		Doc["is_normalmap"] << SrcInfo.IsNormalmap;
+		Doc["ibl"] << SrcInfo.IsIBL;
+		Doc["has_mips"] << SrcInfo.HasMips;
+		Doc["source"] << SrcInfo.TextureSource;
 
 		TString ExtName = GetExtName(SrcInfo.TextureSource);
 		// Load Texture By Name

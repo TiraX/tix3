@@ -203,12 +203,6 @@ return Result;
 		return (uint8)n0;
 	}
 
-	void ConvertJArrayToArray(const TJSONNode& JArray, TVector<float>& OutArray);
-	void ConvertJArrayToArray(const TJSONNode& JArray, TVector<int32>& OutArray);
-	void ConvertJArrayToArray(const TJSONNode& JArray, TVector<TString>& OutArray);
-	void ConvertJArrayToVec3(const TJSONNode& JArray, vector3df& V3);
-	void ConvertJArrayToQuat(const TJSONNode& JArray, quaternion& Q4);
-
 	template< class T >
 	int32 IndexInArray (const T& v, const TVector<T>& Arr)
 	{

@@ -23,7 +23,7 @@ namespace tix
 
 		TVector<TString> ExportNames;
 		TString HitGroupName;
-		TString HitGroup[HITGROUP_NUM];
+		TVector<TString> HitGroup;
 
 		int32 MaxAttributeSizeInBytes;
 		int32 MaxPayloadSizeInBytes;

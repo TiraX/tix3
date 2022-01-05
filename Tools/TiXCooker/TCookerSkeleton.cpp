@@ -23,7 +23,7 @@ namespace tix
 	bool TCookerSkeleton::Load(const TJSON& Doc)
 	{
 		// Bones
-		TotalBones = Doc["total_bones"].GetInt();
+		Doc["total_bones"] << TotalBones;
 
 		TJSONNode JBones = Doc["bones"];
 		TI_ASSERT(JBones.IsArray() && JBones.Size() == TotalBones);
@@ -33,10 +33,10 @@ namespace tix
 		{
 			TJSONNode JBone = JBones[b];
 			ResBoneInfo& Info = InitBones[b];
-			Info.ParentIndex = JBone["parent_index"].GetInt();
-			ConvertJArrayToVec3(JBone["translation"], Info.InitPos);
-			ConvertJArrayToQuat(JBone["rotation"], Info.InitRot);
-			ConvertJArrayToVec3(JBone["scale"], Info.InitScale);
+			JBone["parent_index"] << Info.ParentIndex;
+			JBone["translation"] << Info.InitPos;
+			JBone["rotation"] << Info.InitRot;
+			JBone["scale"] << Info.InitScale;
 		}
 
 		CalcInvBindTransform();

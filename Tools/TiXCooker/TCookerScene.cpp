@@ -24,8 +24,7 @@ namespace tix
 	bool TCookerScene::Load(const TJSON& Doc)
 	{
 		// Map Name
-		TJSONNode JMapName = Doc["name"];
-		MapName = JMapName.GetString();
+		Doc["name"] << MapName;
 
 		// Load environments. include sun light, fog, etc
 		{
@@ -33,13 +32,19 @@ namespace tix
 
 			// Sun light
 			TJSONNode JSunLight = JEnv["sun_light"];
-			Environment.SunLight.Direction = TJSONUtil::JsonArrayToVector3df(JSunLight["direction"]);
-			Environment.SunLight.Color = TJSONUtil::JsonArrayToSColorf(JSunLight["color"]);
-			Environment.SunLight.Intensity = JSunLight["intensity"].GetFloat();
+			JSunLight["direction"] << Environment.SunLight.Direction;
+			JSunLight["color"] << Environment.SunLight.Color;
+			JSunLight["intensity"] << Environment.SunLight.Intensity;
 
 			// Sky light
 			TJSONNode JSkyLight = JEnv["sky_light"];
-			TJSONUtil::JsonArrayToFloatArray(JSkyLight["irradiance_sh3"], Environment.SkyLight.SH3_Raw, FSHVectorRGB3::NumTotalFloats);
+			TVector<float> FloatArray;
+			JSkyLight["irradiance_sh3"] << FloatArray;
+			TI_ASSERT(FloatArray.size() == FSHVectorRGB3::NumTotalFloats);
+			for (int32 i = 0; i < FSHVectorRGB3::NumTotalFloats; i++)
+			{
+				Environment.SkyLight.SH3_Raw[i] = FloatArray[i];
+			}
 		}
 
 		// Load cameras. 
@@ -51,11 +56,11 @@ namespace tix
 			{
 				TJSONNode JCam = JCameras[c];
 				THeaderCameraInfo Cam;
-				Cam.Location = TJSONUtil::JsonArrayToVector3df(JCam["location"]);
-				Cam.Target = TJSONUtil::JsonArrayToVector3df(JCam["target"]);
-				Cam.Rotate = TJSONUtil::JsonArrayToVector3df(JCam["rotator"]);
-				Cam.FOV = JCam["fov"].GetFloat();
-				Cam.Aspect = JCam["aspect"].GetFloat();
+				JCam["location"] << Cam.Location;
+				JCam["target"] << Cam.Target;
+				JCam["rotator"] << Cam.Rotate;
+				JCam["fov"] << Cam.FOV;
+				JCam["aspect"] << Cam.Aspect;
 				Cameras.push_back(Cam);
 			}
 		}
@@ -74,22 +79,25 @@ namespace tix
 				TJSON JsonDoc;
 				JsonDoc.Parse(content);
 
-				VTSize = JsonDoc["vt_size"].GetInt();
-				PageSize = JsonDoc["page_size"].GetInt();
+				JsonDoc["vt_size"] << VTSize;
+				JsonDoc["page_size"] << PageSize;
 
 				TJSONNode JRegions = JsonDoc["regions"];
 
 				for (int32 i = 0; i < JRegions.Size(); ++i)
 				{
 					TJSONNode JRegionObject = JRegions[i];
-					TString TextureName = JRegionObject["name"].GetString();
+					TString TextureName;
+					JRegionObject["name"] << TextureName;
 
 					TJSONNode JRegion = JRegionObject["region"];
+					TVector<int32> IntArray;
+					JRegion << IntArray;
 					TVTRegionInfo Info;
-					Info.X = JRegion[0].GetInt();
-					Info.Y = JRegion[1].GetInt();
-					Info.W = JRegion[2].GetInt();
-					Info.H = JRegion[3].GetInt();
+					Info.X = IntArray[0];
+					Info.Y = IntArray[1];
+					Info.W = IntArray[2];
+					Info.H = IntArray[3];
 					VTRegionInfo[TextureName] = Info;
 				}
 			}
@@ -103,7 +111,8 @@ namespace tix
 			for (int32 i = 0; i < JTileList.Size(); ++i)
 			{
 				TJSONNode JTile = JTileList[i];
-				vector2di TilePos = vector2di(JTile[0].GetInt(), JTile[1].GetInt());
+				vector2di TilePos;
+				JTile << TilePos;
 				AssetSceneTiles.push_back(TilePos);
 				TI_ASSERT(TMath::Abs(TilePos.X) <= 32760 && TMath::Abs(TilePos.Y) <= 32760);
 			}

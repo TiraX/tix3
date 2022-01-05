@@ -123,37 +123,142 @@ namespace tix
 			return (int32)JsonValue->Size();
 		}
 
-		bool GetBool() const
+		void operator << (bool& OutBool) const
 		{
-			if (IsNull())
-				return false;
-
-			return JsonValue->GetBool();
+			if (!IsNull())
+				OutBool = JsonValue->GetBool();
 		}
 
-		const int8* GetString() const
+		void operator << (TString& OutString) const
 		{
-			static const int8* EmptyStr = "";
-			if (IsNull())
-				return EmptyStr;
-
-			return JsonValue->GetString();
+			if (!IsNull())
+				OutString = JsonValue->GetString();
 		}
 
-		int32 GetInt() const
+		void operator << (int32& OutInt) const
 		{
-			if (IsNull())
-				return 0;
-
-			return JsonValue->GetInt();
+			if (!IsNull())
+				OutInt = JsonValue->GetInt();
 		}
 
-		float GetFloat() const
+		void operator << (float& OutFloat) const
 		{
-			if (IsNull())
-				return 0.f;
+			if (!IsNull())
+				OutFloat = JsonValue->GetFloat();
+		}
 
-			return JsonValue->GetFloat();
+		void operator << (vector2di& OutVec2) const
+		{
+			TI_ASSERT(IsArray() && Size() == 2);
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec2.X;
+				(*this)[1] << OutVec2.Y;
+			}
+		}
+
+		void operator << (vector2df& OutVec2) const
+		{
+			TI_ASSERT(IsArray() && Size() == 2);
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec2.X;
+				(*this)[1] << OutVec2.Y;
+			}
+		}
+
+		void operator << (vector3df& OutVec3) const
+		{
+			TI_ASSERT(IsArray() && Size() == 3);
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec3.X;
+				(*this)[1] << OutVec3.Y;
+				(*this)[2] << OutVec3.Z;
+			}
+		}
+
+		void operator << (quaternion& OutQuat) const
+		{
+			TI_ASSERT(IsArray() && Size() == 4);
+			if (!IsNull())
+			{
+				(*this)[0] << OutQuat.X;
+				(*this)[1] << OutQuat.Y;
+				(*this)[2] << OutQuat.Z;
+				(*this)[3] << OutQuat.W;
+			}
+		}
+
+		void operator << (aabbox3df& OutBBox) const
+		{
+			TI_ASSERT(IsArray() && Size() == 6);
+			if (!IsNull())
+			{
+				(*this)[0] << OutBBox.MinEdge.X;
+				(*this)[1] << OutBBox.MinEdge.Y;
+				(*this)[2] << OutBBox.MinEdge.Z;
+				(*this)[3] << OutBBox.MaxEdge.X;
+				(*this)[4] << OutBBox.MaxEdge.Y;
+				(*this)[5] << OutBBox.MaxEdge.Z;
+			}
+		}
+
+		void operator << (SColorf& OutColorf) const
+		{
+			TI_ASSERT(IsArray() && Size() == 4);
+			if (!IsNull())
+			{
+				(*this)[0] << OutColorf.R;
+				(*this)[1] << OutColorf.G;
+				(*this)[2] << OutColorf.B;
+				(*this)[3] << OutColorf.A;
+			}
+		}
+
+		void operator << (TVector<TString>& OutArray) const
+		{
+			TI_ASSERT(IsArray());
+			if (!IsNull())
+			{
+				OutArray.reserve(OutArray.size() + Size());
+				for (int32 i = 0; i < Size(); i++)
+				{
+					TString S;
+					(*this)[i] << S;
+					OutArray.push_back(S);
+				}
+			}
+		}
+
+		void operator << (TVector<int32>& OutArray) const
+		{
+			TI_ASSERT(IsArray());
+			if (!IsNull())
+			{
+				OutArray.reserve(OutArray.size() + Size());
+				for (int32 i = 0; i < Size(); i++)
+				{
+					int32 N;
+					(*this)[i] << N;
+					OutArray.push_back(N);
+				}
+			}
+		}
+
+		void operator << (TVector<float>& OutArray) const
+		{
+			TI_ASSERT(IsArray());
+			if (!IsNull())
+			{
+				OutArray.reserve(OutArray.size() + Size());
+				for (int32 i = 0; i < Size(); i++)
+				{
+					float N;
+					(*this)[i] << N;
+					OutArray.push_back(N);
+				}
+			}
 		}
 
 	protected:
@@ -177,73 +282,5 @@ namespace tix
 
 	protected:
 		Document JsonDoc;
-	};
-
-	class TJSONUtil
-	{
-	public:
-		static vector2di JsonArrayToVector2di(TJSONNode ArrayNode)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == 2);
-			vector2di Result;
-			Result.X = ArrayNode[0].GetInt();
-			Result.Y = ArrayNode[1].GetInt();
-
-			return Result;
-		}
-		static vector3df JsonArrayToVector3df(TJSONNode ArrayNode)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == 3);
-			vector3df Result;
-			Result.X = ArrayNode[0].GetFloat();
-			Result.Y = ArrayNode[1].GetFloat();
-			Result.Z = ArrayNode[2].GetFloat();
-
-			return Result;
-		}
-		static quaternion JsonArrayToQuaternion(TJSONNode ArrayNode)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == 4);
-			quaternion Result;
-			Result.X = ArrayNode[0].GetFloat();
-			Result.Y = ArrayNode[1].GetFloat();
-			Result.Z = ArrayNode[2].GetFloat();
-			Result.W = ArrayNode[3].GetFloat();
-
-			return Result;
-		}
-		static SColorf JsonArrayToSColorf(TJSONNode ArrayNode)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == 4);
-			SColorf Result;
-			Result.R = ArrayNode[0].GetFloat();
-			Result.G = ArrayNode[1].GetFloat();
-			Result.B = ArrayNode[2].GetFloat();
-			Result.A = ArrayNode[3].GetFloat();
-
-			return Result;
-		}
-		static aabbox3df JsonArrayToAABBox(TJSONNode ArrayNode)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == 6);
-			aabbox3df Result;
-			Result.MinEdge.X = ArrayNode[0].GetFloat();
-			Result.MinEdge.Y = ArrayNode[1].GetFloat();
-			Result.MinEdge.Z = ArrayNode[2].GetFloat();
-			Result.MaxEdge.X = ArrayNode[3].GetFloat();
-			Result.MaxEdge.Y = ArrayNode[4].GetFloat();
-			Result.MaxEdge.Z = ArrayNode[5].GetFloat();
-
-			return Result;
-		}
-		static void JsonArrayToFloatArray(TJSONNode ArrayNode, float* OutArray, int32 Count)
-		{
-			TI_ASSERT(ArrayNode.IsArray() && ArrayNode.Size() == Count);
-			for (int32 i = 0; i < Count; i++)
-			{
-				OutArray[i] = ArrayNode[i].GetFloat();
-			}
-		}
-
 	};
 }

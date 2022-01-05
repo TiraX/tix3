@@ -281,7 +281,8 @@ namespace tix
 		TJSON JsonDoc;
 		JsonDoc.Parse(FileContent);
 
-		const int8* AssetTypeName = JsonDoc["type"].GetString();
+		TString AssetTypeName;
+		JsonDoc["type"] << AssetTypeName;
 		TCooker* Cooker = TCooker::GetCookerByName(AssetTypeName);
 		if (Cooker == nullptr)
 		{

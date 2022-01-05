@@ -22,34 +22,20 @@ namespace tix
 	bool TCookerRtxPipeline::Load(const TJSON& Doc)
 	{
 		// shader lib
-		TJSONNode JShaderLib = Doc["shader_lib"];
-		ShaderLibName = JShaderLib.GetString();
+		Doc["shader_lib"] << ShaderLibName;
 
 		// export names
-		TJSONNode JExportNames = Doc["export_names"];
-		TI_ASSERT(JExportNames.IsArray());
-		RtxDesc.ExportNames.resize(JExportNames.Size());
-		for (int32 i = 0; i < JExportNames.Size(); ++i)
-		{
-			RtxDesc.ExportNames[i] = JExportNames[i].GetString();
-		}
+		Doc["export_names"] << RtxDesc.ExportNames;
 
 		// configs
-		TJSONNode JMaxAttributeSizeInBytes = Doc["max_attribute_size_in_bytes"];
-		TJSONNode JMaxPayloadSizeInBytes = Doc["max_payload_size_in_bytes"];
-		TJSONNode JMaxTraceRecursionDepth = Doc["max_trace_recursion_depth"];
-		RtxDesc.MaxAttributeSizeInBytes = JMaxAttributeSizeInBytes.GetInt();
-		RtxDesc.MaxPayloadSizeInBytes = JMaxPayloadSizeInBytes.GetInt();
-		RtxDesc.MaxTraceRecursionDepth = JMaxTraceRecursionDepth.GetInt();
+		Doc["max_attribute_size_in_bytes"] << RtxDesc.MaxAttributeSizeInBytes;
+		Doc["max_payload_size_in_bytes"] << RtxDesc.MaxPayloadSizeInBytes;
+		Doc["max_trace_recursion_depth"] << RtxDesc.MaxTraceRecursionDepth;
 
 		// hit group
-		TJSONNode JHitGroupName = Doc["hit_group_name"];
-		RtxDesc.HitGroupName = JHitGroupName.GetString();
-		TJSONNode JHitGroup = Doc["hit_group"];
-		TI_ASSERT(JHitGroup.IsArray() && JHitGroup.Size() == HITGROUP_NUM);
-		RtxDesc.HitGroup[HITGROUP_ANY_HIT] = JHitGroup[HITGROUP_ANY_HIT].GetString();
-		RtxDesc.HitGroup[HITGROUP_CLOSEST_HIT] = JHitGroup[HITGROUP_CLOSEST_HIT].GetString();
-		RtxDesc.HitGroup[HITGROUP_INTERSECTION] = JHitGroup[HITGROUP_INTERSECTION].GetString();
+		Doc["hit_group_name"] << RtxDesc.HitGroupName;
+		Doc["hit_group"] << RtxDesc.HitGroup;
+		TI_ASSERT(RtxDesc.HitGroup.size() == HITGROUP_NUM);
 
 		return true;
 	}

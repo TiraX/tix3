@@ -54,23 +54,15 @@ namespace tix
 
 	bool TCookerMesh::Load(const TJSON& Doc)
 	{
-		TString Name = Doc["name"].GetString();
+		TString Name;
+		Doc["name"] << Name;
 		//int32 Version = Doc["version"].GetInt();
-		int32 TotalVertices = Doc["vertex_count_total"].GetInt();
-		int32 TotalIndices = Doc["index_count_total"].GetInt();
+		int32 TotalVertices, TotalIndices;
+		Doc["vertex_count_total"] << TotalVertices;
+		Doc["index_count_total"] << TotalIndices;
 
-		{
-			// Get ref skeleton if this is a skeletal mesh
-			TJSONNode JSkeleton = Doc["skeleton"];
-			if (!JSkeleton.IsNull())
-			{
-				GetMesh().RefSkeleton = JSkeleton.GetString();
-			}
-		}
-
-		//int32 VCount = Doc["vertex_count_total"].GetInt();
-		//int32 ICount = Doc["index_count_total"].GetInt();
-		//int32 UVCount = Doc["texcoord_count"].GetInt();
+		// Get ref skeleton if this is a skeletal mesh
+		Doc["skeleton"] << Mesh.RefSkeleton;
 
 		// Load mesh data
 		{
@@ -78,7 +70,7 @@ namespace tix
 			TJSONNode JVsFormat = JData["vs_format"];
 
 			TVector<TString> SFormat;
-			ConvertJArrayToArray(JVsFormat, SFormat);
+			JVsFormat << SFormat;
 
 			TJSONNode JVertices = JData["vertices"];
 			TJSONNode JIndices = JData["indices"];
@@ -93,11 +85,10 @@ namespace tix
 			TI_ASSERT(TotalVertices * ElementsStride == JVertices.Size());
 
 			const int32 BytesStride = ElementsStride * sizeof(float);
-			TResMeshDefine& Mesh = GetMesh();
 			Mesh.NumVertices = TotalVertices;
 			Mesh.NumTriangles = (int32)JIndices.Size() / 3;
-			ConvertJArrayToArray(JVertices, Mesh.Vertices);
-			ConvertJArrayToArray(JIndices, Mesh.Indices);
+			JVertices << Mesh.Vertices;
+			JIndices << Mesh.Indices;
 
 			int32 ElementOffset = 0;
 			{
@@ -155,27 +146,11 @@ namespace tix
 				TJSONNode JSection = JSections[i];
 				TResMeshSection& Section = Mesh.Sections[i];
 
-				TJSONNode JSectionName = JSection["name"];
-				TJSONNode JMaterial = JSection["material"];
-				TJSONNode JIndexStart= JSection["index_start"];
-				TJSONNode JTriangles = JSection["triangles"];
-				TJSONNode JBoneMap = JSection["bone_map"];
-
-				Section.Name = JSectionName.GetString();
-				Section.ActiveBones.resize(JBoneMap.Size());
-				for (int32 b = 0; b < JBoneMap.Size(); ++b)
-				{
-					Section.ActiveBones[b] = JBoneMap[b].GetInt();
-				}
-
-				if (!JMaterial.IsNull())
-				{
-					TString MaterialName = JMaterial.GetString();
-					Section.LinkedMaterialInstance = MaterialName;
-				}
-
-				Section.IndexStart = JIndexStart.GetInt();
-				Section.Triangles = JTriangles.GetInt();
+				JSection["name"] << Section.Name;
+				JSection["bone_map"] << Section.ActiveBones;
+				JSection["material"] << Section.LinkedMaterialInstance;
+				JSection["index_start"] << Section.IndexStart;
+				JSection["triangles"] << Section.Triangles;
 			}
 
 			// Generate mesh cluster for this section
@@ -203,43 +178,31 @@ namespace tix
 			for (int32 i = 0 ; i < ColSpheres.Size(); ++ i)
 			{
 				TJSONNode JSphere = ColSpheres[i];
-				TJSONNode JCenter = JSphere["center"];
-				TJSONNode JRadius = JSphere["radius"];
-
-				Mesh.ColSpheres[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				Mesh.ColSpheres[i].Radius = JRadius.GetFloat();
+				JSphere["center"] << Mesh.ColSpheres[i].Center;
+				JSphere["radius"] << Mesh.ColSpheres[i].Radius;
 			}
 
 			// Boxes
 			for (int32 i = 0 ; i < ColBoxes.Size(); ++ i)
 			{
 				TJSONNode JBox = ColBoxes[i];
-				TJSONNode JCenter = JBox["center"];
-				TJSONNode JRotation = JBox["quat"];
-				TJSONNode JX = JBox["x"];
-				TJSONNode JY = JBox["y"];
-				TJSONNode JZ = JBox["z"];
 
-				Mesh.ColBoxes[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				Mesh.ColBoxes[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
-				Mesh.ColBoxes[i].Edge.X = JX.GetFloat();
-				Mesh.ColBoxes[i].Edge.Y = JY.GetFloat();
-				Mesh.ColBoxes[i].Edge.Z = JZ.GetFloat();
+				JBox["center"] << Mesh.ColBoxes[i].Center;
+				JBox["quat"] << Mesh.ColBoxes[i].Rotation;
+				JBox["x"] << Mesh.ColBoxes[i].Edge.X;
+				JBox["y"] << Mesh.ColBoxes[i].Edge.Y;
+				JBox["z"] << Mesh.ColBoxes[i].Edge.Z;
 			}
 
 			// Capsules
 			for (int32 i = 0 ; i < ColCapsules.Size() ; ++ i)
 			{
 				TJSONNode JCapsule = ColCapsules[i];
-				TJSONNode JCenter = JCapsule["center"];
-				TJSONNode JRotation = JCapsule["quat"];
-				TJSONNode JRadius = JCapsule["radius"];
-				TJSONNode JLength = JCapsule["length"];
 
-				Mesh.ColCapsules[i].Center = TJSONUtil::JsonArrayToVector3df(JCenter);
-				Mesh.ColCapsules[i].Rotation = TJSONUtil::JsonArrayToQuaternion(JRotation);
-				Mesh.ColCapsules[i].Radius = JRadius.GetFloat();
-				Mesh.ColCapsules[i].Length = JLength.GetFloat();
+				JCapsule["center"] << Mesh.ColCapsules[i].Center;
+				JCapsule["quat"] << Mesh.ColCapsules[i].Rotation;
+				JCapsule["radius"] << Mesh.ColCapsules[i].Radius;
+				JCapsule["length"] << Mesh.ColCapsules[i].Length;
 			}
 
 			// Convex
@@ -250,13 +213,12 @@ namespace tix
 				TJSONNode JCookedVB = JConvex["cooked_mesh_vertex_data"];
 				TJSONNode JCookedIB = JConvex["cooked_mesh_index_data"];
 
-				TJSONNode JTrans = JConvex["translation"];
-				TJSONNode JRot = JConvex["rotation"];
-				TJSONNode JScale = JConvex["scale"];
-
-				vector3df Translation = TJSONUtil::JsonArrayToVector3df(JTrans);
-				quaternion Rotation = TJSONUtil::JsonArrayToQuaternion(JRot);
-				vector3df Scale = TJSONUtil::JsonArrayToVector3df(JScale);
+				vector3df Translation;
+				quaternion Rotation;
+				vector3df Scale;
+				JConvex["translation"] << Translation;
+				JConvex["rotation"] << Rotation;
+				JConvex["scale"] << Scale;
 
 				matrix4 Mat;
 				Rotation.getMatrix(Mat);
@@ -268,9 +230,10 @@ namespace tix
 				VertexData.resize(JCookedVB.Size() / 3);
 				for (int32 e = 0 ; e < JCookedVB.Size(); e += 3)
 				{
-					float X = JCookedVB[e + 0].GetFloat();
-					float Y = JCookedVB[e + 1].GetFloat();
-					float Z = JCookedVB[e + 2].GetFloat();
+					float X, Y, Z;
+					JCookedVB[e + 0] << X;
+					JCookedVB[e + 1] << Y;
+					JCookedVB[e + 2] << Z;
 					vector3df Position = vector3df(X, Y, Z);
 					Mat.transformVect(Position);
 					VertexData[e/3] = Position;
@@ -280,8 +243,9 @@ namespace tix
 				IndexData.resize(JCookedIB.Size());
 				for (int32 e = 0; e < JCookedIB.Size(); ++e)
 				{
-					uint16 Index = JCookedIB[e].GetInt();
-					TI_ASSERT(Index < (uint32)VertexData.size());
+					int32 Index;
+					JCookedIB[e] << Index;
+					TI_ASSERT(Index < (int32)VertexData.size());
 					IndexData[e] = Index;
 				}
 

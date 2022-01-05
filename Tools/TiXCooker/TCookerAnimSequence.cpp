@@ -24,13 +24,13 @@ namespace tix
 	bool TCookerAnimSequence::Load(const TJSON& Doc)
 	{
 		// Bones
-		TotalFrames = Doc["total_frames"].GetInt();
-		SequenceLength = Doc["sequence_length"].GetFloat();
+		Doc["total_frames"] << TotalFrames;
+		Doc["sequence_length"] << SequenceLength;
 		TI_ASSERT(SequenceLength > 0.f);
-		RateScale = Doc["rate_scale"].GetFloat();
+		Doc["rate_scale"] << RateScale;
 		TI_ASSERT(RateScale > 0.f);
-		TotalTracks = Doc["total_tracks"].GetInt();
-		RefSkeleton = Doc["ref_skeleton"].GetString();
+		Doc["total_tracks"] << TotalTracks;
+		Doc["ref_skeleton"] << RefSkeleton;
 
 		TJSONNode JTracks = Doc["tracks"];
 		TI_ASSERT(JTracks.IsArray() && JTracks.Size() == TotalTracks);
@@ -40,11 +40,11 @@ namespace tix
 		{
 			TJSONNode JTrack = JTracks[t];
 			FTrackInfo& Info = Tracks[t];
-			Info.RefBoneIndex = JTrack["ref_bone_index"].GetInt();
+			JTrack["ref_bone_index"] << Info.RefBoneIndex;
 
-			ConvertJArrayToArray(JTrack["pos_keys"], Info.PosKeys);
-			ConvertJArrayToArray(JTrack["rot_keys"], Info.RotKeys);
-			ConvertJArrayToArray(JTrack["scale_keys"], Info.ScaleKeys);
+			JTrack["pos_keys"] << Info.PosKeys;
+			JTrack["rot_keys"] << Info.RotKeys;
+			JTrack["scale_keys"] << Info.ScaleKeys;
 
 			TI_ASSERT(Info.PosKeys.size() == 0 || Info.PosKeys.size() == 3 || Info.PosKeys.size() == TotalFrames * 3);
 			TI_ASSERT(Info.RotKeys.size() == 0 || Info.RotKeys.size() == 4 || Info.RotKeys.size() == TotalFrames * 4);

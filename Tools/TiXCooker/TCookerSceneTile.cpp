@@ -29,30 +29,21 @@ namespace tix
 	bool TCookerSceneTile::Load(const TJSON& Doc)
 	{
 		// Instances Name
-		TString TileName = Doc["name"].GetString();
-		LevelName = Doc["level"].GetString();
-		const int32 StaticMeshCount = Doc["static_mesh_total"].GetInt();
-		const int32 SMInsTotalCount = Doc["sm_instances_total"].GetInt();
-		const int32 SMSectionsCount = Doc["sm_sections_total"].GetInt();
+		TString TileName;
+		Doc["name"] << TileName;
+		Doc["level"] << LevelName;
 
-		const int32 ReflectionCaptures = Doc["reflection_captures_total"].GetInt();
+		Doc["static_mesh_total"] << StaticMeshesTotal;
+		Doc["sm_sections_total"] << SMSectionsTotal;
+		Doc["sm_instances_total"] << SMInstancesTotal;
+		Doc["reflection_captures_total"] << ReflectionCapturesTotal;
+		Doc["skeletal_meshes_total"] << SkeletalMeshTotal;
+		Doc["skeletons_total"] << SkeletonTotal;
+		Doc["anims_total"] << AnimationTotal;
+		Doc["skm_actors_total"] << SKMActorsTotal;
 
-		const int32 SkeletalMeshTotal = Doc["skeletal_meshes_total"].GetInt();
-		const int32 SkeletonTotal = Doc["skeletons_total"].GetInt();
-		const int32 AnimationTotal = Doc["anims_total"].GetInt();
-		const int32 SKMActorTotal = Doc["skm_actors_total"].GetInt();
-
-		this->StaticMeshesTotal = StaticMeshCount;
-		this->SMSectionsTotal = SMSectionsCount;
-		this->SMInstancesTotal = SMInsTotalCount;
-		this->ReflectionCapturesTotal = ReflectionCaptures;
-		this->SkeletalMeshTotal = SkeletalMeshTotal;
-		this->SkeletonTotal = SkeletonTotal;
-		this->AnimationTotal = AnimationTotal;
-		this->SKMActorsTotal = SKMActorTotal;
-
-		Position = TJSONUtil::JsonArrayToVector2di(Doc["position"]);
-		BBox = TJSONUtil::JsonArrayToAABBox(Doc["bbox"]);
+		Doc["position"] << Position;
+		Doc["bbox"] << BBox;
 
 		// reflection captures
 		{
@@ -61,12 +52,12 @@ namespace tix
 			{
 				TJSONNode JRC = JReflectionCaptures[i];
 				TResEnvLight RC;
-				RC.Name = JRC["name"].GetString();
-				RC.LinkedCubemap = JRC["linked_cubemap"].GetString();
-				RC.Size = JRC["cubemap_size"].GetInt();
-				RC.AvgBrightness = JRC["average_brightness"].GetFloat();
-				RC.Brightness = JRC["brightness"].GetFloat();
-				RC.Position = TJSONUtil::JsonArrayToVector3df(JRC["position"]);
+				JRC["name"] << RC.Name;
+				JRC["linked_cubemap"] << RC.LinkedCubemap;
+				JRC["cubemap_size"] << RC.Size;
+				JRC["average_brightness"] << RC.AvgBrightness;
+				JRC["brightness"] << RC.Brightness;
+				JRC["position"] << RC.Position;
 
 				EnvLights.push_back(RC);
 			}
@@ -76,68 +67,20 @@ namespace tix
 		{        
 			// Load asset list
 			TJSONNode JAssetList = Doc["dependency"];
-			TJSONNode JAssetTextures = JAssetList["textures"];
-			TJSONNode JAssetMaterials = JAssetList["materials"];
-			TJSONNode JAssetMaterialInstances = JAssetList["material_instances"];
-			TJSONNode JAssetSkeletons = JAssetList["skeletons"];
-			TJSONNode JAssetAnims = JAssetList["anims"];
-			TJSONNode JAssetSMs = JAssetList["static_meshes"];
-			TJSONNode JAssetSKMs = JAssetList["skeletal_meshes"];
-
-			AssetTextures.reserve(JAssetTextures.Size());
-			for (int32 i = 0; i < JAssetTextures.Size(); ++i)
-			{
-				TJSONNode JTexture = JAssetTextures[i];
-				AssetTextures.push_back(JTexture.GetString());
-			}
-
-			AssetMaterials.reserve(JAssetMaterials.Size());
-			for (int32 i = 0; i < JAssetMaterials.Size(); ++i)
-			{
-				TJSONNode JMaterial = JAssetMaterials[i];
-				AssetMaterials.push_back(JMaterial.GetString());
-			}
-
-			AssetMaterialInstances.reserve(JAssetMaterialInstances.Size());
-			for (int32 i = 0; i < JAssetMaterialInstances.Size(); ++i)
-			{
-				TJSONNode JMI = JAssetMaterialInstances[i];
-				AssetMaterialInstances.push_back(JMI.GetString());
-			}
-
-			AssetAnims.reserve(JAssetAnims.Size());
-			for (int32 i = 0; i < JAssetAnims.Size(); ++i)
-			{
-				TJSONNode JAnim = JAssetAnims[i];
-				AssetAnims.push_back(JAnim.GetString());
-			}
-
-			AssetSkeletons.reserve(JAssetSkeletons.Size());
-			for (int32 i = 0; i < JAssetSkeletons.Size(); ++i)
-			{
-				TJSONNode JSkeleton = JAssetSkeletons[i];
-				AssetSkeletons.push_back(JSkeleton.GetString());
-			}
-
-			AssetSMs.reserve(JAssetSMs.Size());
-			for (int32 i = 0; i < JAssetSMs.Size(); ++i)
-			{
-				TJSONNode JSM = JAssetSMs[i];
-				AssetSMs.push_back(JSM.GetString());
-			}
-			AssetSKMs.reserve(JAssetSKMs.Size());
-			for (int32 i = 0; i < JAssetSKMs.Size(); ++i)
-			{
-				TJSONNode JSKM = JAssetSKMs[i];
-				AssetSKMs.push_back(JSKM.GetString());
-			}
+			JAssetList["textures"] << AssetTextures;
+			JAssetList["materials"] << AssetMaterials;
+			JAssetList["material_instances"] << AssetMaterialInstances;
+			JAssetList["anims"] << AssetAnims;
+			JAssetList["skeletons"] << AssetSkeletons;
+			JAssetList["static_meshes"] << AssetSMs;
+			JAssetList["skeletal_meshes"] << AssetSKMs;
 		}
 
 		// Static Mesh Instances
 		{
 			TJSONNode JSMInstanceObjects = Doc["static_mesh_instances"];
 			TI_ASSERT(JSMInstanceObjects.IsArray());
-			SMInstances.reserve(SMInsTotalCount);
+			SMInstances.reserve(SMInstancesTotal);
 			SMInstanceCount.resize(JSMInstanceObjects.Size());
 			SMSections.resize(JSMInstanceObjects.Size());
 			for (int32 obj = 0; obj < JSMInstanceObjects.Size(); ++obj)
@@ -148,28 +91,20 @@ namespace tix
 				TJSONNode JInstances = JInstanceObj["instances"];
 
 				// Make sure InstanceObject has the same order with dependency-mesh
-				TI_ASSERT(JLinkedMesh.GetString() == AssetSMs[obj]);
+				TString LinkedMesh;
+				JLinkedMesh << LinkedMesh;
+				TI_ASSERT(LinkedMesh == AssetSMs[obj]);
 				SMInstanceCount[obj] = JInstances.Size();
-				SMSections[obj] = JMeshSections.GetInt();
+				JMeshSections << SMSections[obj];
 
 				for (int32 ins = 0 ; ins < JInstances.Size(); ++ ins)
 				{
 					TJSONNode JIns = JInstances[ins];
-					TJSONNode JPosition = JIns["position"];
-					TJSONNode JRotation = JIns["rotation"];
-					TJSONNode JScale = JIns["scale"];
 
 					TResSMInstance Ins;
-					Ins.Position[0] = JPosition[0].GetFloat();
-					Ins.Position[1] = JPosition[1].GetFloat();
-					Ins.Position[2] = JPosition[2].GetFloat();
-					Ins.Rotation[0] = JRotation[0].GetFloat();
-					Ins.Rotation[1] = JRotation[1].GetFloat();
-					Ins.Rotation[2] = JRotation[2].GetFloat();
-					Ins.Rotation[3] = JRotation[3].GetFloat();
-					Ins.Scale[0] = JScale[0].GetFloat();
-					Ins.Scale[1] = JScale[1].GetFloat();
-					Ins.Scale[2] = JScale[2].GetFloat();
+					JIns["position"] << Ins.Position;
+					JIns["rotation"] << Ins.Rotation;
+					JIns["scale"] << Ins.Scale;
 					SMInstances.push_back(Ins);
 				}
 			}
@@ -184,36 +119,29 @@ namespace tix
 			for (int32 obj = 0; obj < JSKMActorObjects.Size(); ++obj)
 			{
 				TJSONNode JActorObj = JSKMActorObjects[obj];
-				TJSONNode JLinkedMesh = JActorObj["linked_skm"];
-				TJSONNode JLinkedSkeleton = JActorObj["linked_sk"];
 				TJSONNode JSKMActors = JActorObj["actors"];
 
-				const int32 SKMIndex = IndexInArray<TString>(JLinkedMesh.GetString(), AssetSKMs);
-				const int32 SKIndex = IndexInArray<TString>(JLinkedSkeleton.GetString(), AssetSkeletons);
+				TString LinkedSkm, LinkedSK;
+				JActorObj["linked_skm"] << LinkedSkm;
+				JActorObj["linked_sk"] << LinkedSK;
+
+				const int32 SKMIndex = IndexInArray<TString>(LinkedSkm, AssetSKMs);
+				const int32 SKIndex = IndexInArray<TString>(LinkedSK, AssetSkeletons);
 
 				for (int32 actor = 0; actor < JSKMActors.Size(); ++actor)
 				{
 					TJSONNode JActor = JSKMActors[actor];
 
-					TJSONNode JAnim = JActor["linked_anim"];
-					TJSONNode JPosition = JActor["position"];
-					TJSONNode JRotation = JActor["rotation"];
-					TJSONNode JScale = JActor["scale"];
+					TString Anim;
+					JActor["linked_anim"] << Anim;
 
 					TResSKMActor Actor;
 					Actor.SKMIndex = SKMIndex;
 					Actor.SKIndex = SKIndex;
-					Actor.AnimIndex = IndexInArray<TString>(JAnim.GetString(), AssetAnims);;
-					Actor.Position[0] = JPosition[0].GetFloat();
-					Actor.Position[1] = JPosition[1].GetFloat();
-					Actor.Position[2] = JPosition[2].GetFloat();
-					Actor.Rotation[0] = JRotation[0].GetFloat();
-					Actor.Rotation[1] = JRotation[1].GetFloat();
-					Actor.Rotation[2] = JRotation[2].GetFloat();
-					Actor.Rotation[3] = JRotation[3].GetFloat();
-					Actor.Scale[0] = JScale[0].GetFloat();
-					Actor.Scale[1] = JScale[1].GetFloat();
-					Actor.Scale[2] = JScale[2].GetFloat();
+					Actor.AnimIndex = IndexInArray<TString>(Anim, AssetAnims);
+					JActor["position"] << Actor.Position;
+					JActor["rotation"] << Actor.Rotation;
+					JActor["scale"] << Actor.Scale;
 					SKMActors.push_back(Actor);
 				}
 			}

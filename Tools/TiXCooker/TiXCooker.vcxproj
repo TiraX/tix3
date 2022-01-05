@@ -145,7 +145,6 @@ copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Co
     <ClCompile Include="MainWin32.cpp" />
     <ClCompile Include="TCookerAnimSequence.cpp" />
     <ClCompile Include="TCooker.cpp" />
-    <ClCompile Include="ResHelper.cpp" />
     <ClCompile Include="TCookerMaterial.cpp" />
     <ClCompile Include="TCookerMaterialInstance.cpp" />
     <ClCompile Include="TCookerMesh.cpp" />

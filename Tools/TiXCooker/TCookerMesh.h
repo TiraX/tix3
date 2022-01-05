@@ -52,13 +52,13 @@ namespace tix
 
 		TString Name;
 		TString LinkedMaterialInstance;
-		uint32 IndexStart;
-		uint32 Triangles;
+		int32 IndexStart;
+		int32 Triangles;
 
 		TVector< TVector<uint32> > ClusterIndices;
 		TVector< aabbox3df > ClusterBBoxes;
 		TVector< vector4df > ClusterCones;
-		TVector< uint32 > ActiveBones;
+		TVector< int32 > ActiveBones;
 	};
 
 	struct TResMeshDefine
@@ -128,11 +128,6 @@ namespace tix
 		};
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
-
-		TResMeshDefine& GetMesh()
-		{
-			return Mesh;
-		}
 
 	private:
 
