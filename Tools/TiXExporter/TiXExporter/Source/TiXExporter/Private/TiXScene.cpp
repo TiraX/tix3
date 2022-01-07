@@ -79,40 +79,40 @@ void FTiXSceneTile::UpdateDependencies()
 	MaterialInstances.Empty();
 	Textures.Empty();
 
-	if (FTiXExporterSetting::Setting.bIgnoreMaterial)
-		return;
-
-	// Analysis materials from static meshes
-	for (const auto& MeshIter : SMInstances)
+	if (!FTiXExporterSetting::Setting.bIgnoreMaterial)
 	{
-		UStaticMesh* SM = MeshIter.Key;
-		const int32 LOD = 0;
-		FStaticMeshLODResources& LODResource = SM->GetRenderData()->LODResources[LOD];
-		for (int32 S = 0; S < LODResource.Sections.Num(); ++S)
+		// Analysis materials from static meshes
+		for (const auto& MeshIter : SMInstances)
 		{
-			FStaticMeshSection& Section = LODResource.Sections[S];
-			UMaterialInterface* MI = SM->GetStaticMaterials()[Section.MaterialIndex].MaterialInterface;
-
-			if (MI->IsA(UMaterial::StaticClass()))
+			UStaticMesh* SM = MeshIter.Key;
+			const int32 LOD = 0;
+			FStaticMeshLODResources& LODResource = SM->GetRenderData()->LODResources[LOD];
+			for (int32 S = 0; S < LODResource.Sections.Num(); ++S)
 			{
-				Materials.AddUnique(Cast<UMaterial>(MI));
-			}
-			else
-			{
-				check(MI->IsA(UMaterialInstance::StaticClass()));
-				UMaterialInstance* MInstance = Cast<UMaterialInstance>(MI);
-				MaterialInstances.AddUnique(MInstance);
+				FStaticMeshSection& Section = LODResource.Sections[S];
+				UMaterialInterface* MI = SM->GetStaticMaterials()[Section.MaterialIndex].MaterialInterface;
 
-				// Add material instance's parent material
-				UMaterialInterface* ParentMaterial = MInstance->Parent;
-				check(ParentMaterial && ParentMaterial->IsA(UMaterial::StaticClass()));
-				Materials.AddUnique(Cast<UMaterial>(ParentMaterial));
-
-				// Analysis used textures from material instances
-				for (const auto& TexParam : MInstance->TextureParameterValues)
+				if (MI->IsA(UMaterial::StaticClass()))
 				{
-					UTexture* Texture = TexParam.ParameterValue;
-					Textures.AddUnique(Texture);
+					Materials.AddUnique(Cast<UMaterial>(MI));
+				}
+				else
+				{
+					check(MI->IsA(UMaterialInstance::StaticClass()));
+					UMaterialInstance* MInstance = Cast<UMaterialInstance>(MI);
+					MaterialInstances.AddUnique(MInstance);
+
+					// Add material instance's parent material
+					UMaterialInterface* ParentMaterial = MInstance->Parent;
+					check(ParentMaterial && ParentMaterial->IsA(UMaterial::StaticClass()));
+					Materials.AddUnique(Cast<UMaterial>(ParentMaterial));
+
+					// Analysis used textures from material instances
+					for (const auto& TexParam : MInstance->TextureParameterValues)
+					{
+						UTexture* Texture = TexParam.ParameterValue;
+						Textures.AddUnique(Texture);
+					}
 				}
 			}
 		}
