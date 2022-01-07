@@ -11,6 +11,7 @@ struct FTiXExporterSetting
 	float MeshVertexPositionScale;
 	bool bIgnoreMaterial;
 	FString ExportPath;
+	FString ExtName;
 
 	static FTiXExporterSetting Setting;
 
@@ -18,7 +19,85 @@ struct FTiXExporterSetting
 		: TileSize(16.f)
 		, MeshVertexPositionScale(0.01f)
 		, bIgnoreMaterial(false)
+		, ExtName(TEXT(".tasset"))
 	{}
+};
+
+inline TArray<float> ToArray(const FVector& Vec)
+{
+	TArray<float> Array;
+	Array.Reserve(3);
+	Array.Add(Vec.X);
+	Array.Add(Vec.Y);
+	Array.Add(Vec.Z);
+	return Array;
+};
+inline TArray<float> ToArray(const FRotator& Rot)
+{
+	TArray<float> Array;
+	Array.Reserve(3);
+	Array.Add(Rot.Pitch);
+	Array.Add(Rot.Yaw);
+	Array.Add(Rot.Roll);
+	return Array;
+};
+inline TArray<float> ToArray(const FQuat& Quat)
+{
+	TArray<float> Array;
+	Array.Reserve(4);
+	Array.Add(Quat.X);
+	Array.Add(Quat.Y);
+	Array.Add(Quat.Z);
+	Array.Add(Quat.W);
+	return Array;
+};
+inline TArray<float> ToArray(const FLinearColor& Color)
+{
+	TArray<float> Array;
+	Array.Reserve(4);
+	Array.Add(Color.R);
+	Array.Add(Color.G);
+	Array.Add(Color.B);
+	Array.Add(Color.A);
+	return Array;
+};
+inline TArray<int32> ToArray(const FIntPoint& IntPoint)
+{
+	TArray<int32> Array;
+	Array.Reserve(2);
+	Array.Add(IntPoint.X);
+	Array.Add(IntPoint.Y);
+	return Array;
+};
+inline TArray<float> ToArray(const FBox& Box)
+{
+	TArray<float> Array;
+	Array.Reserve(6);
+	Array.Add(Box.Min.X);
+	Array.Add(Box.Min.Y);
+	Array.Add(Box.Min.Z);
+	Array.Add(Box.Max.X);
+	Array.Add(Box.Max.Y);
+	Array.Add(Box.Max.Z);
+	return Array;
+};
+inline TArray<float> ToArray(const FSHVectorRGB3& SH3)
+{
+	TArray<float> Array;
+	Array.Reserve(TSHVector<3>::NumTotalFloats * 3);
+	for (int32 i = 0; i < TSHVector<3>::NumTotalFloats; i++)
+	{
+		Array.Add(SH3.R.V[i]);
+	}
+	for (int32 i = 0; i < TSHVector<3>::NumTotalFloats; i++)
+	{
+		Array.Add(SH3.G.V[i]);
+	}
+	for (int32 i = 0; i < TSHVector<3>::NumTotalFloats; i++)
+	{
+		Array.Add(SH3.B.V[i]);
+	}
+	return Array;
 };
 
 // Directional Light
@@ -31,10 +110,10 @@ struct FTiXDirectionalLight
 	FString name;
 
 	UPROPERTY()
-	FVector direction;
+	TArray<float> direction;
 
 	UPROPERTY()
-	FLinearColor color;
+	TArray<float> color;
 
 	UPROPERTY()
 	float intensity;
@@ -60,13 +139,13 @@ struct FTiXCamera
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FVector location;
+	TArray<float> location;
 
 	UPROPERTY()
-	FVector target;
+	TArray<float> target;
 
 	UPROPERTY()
-	FRotator rotator;
+	TArray<float> rotator;
 
 	UPROPERTY()
 	float fov;
@@ -86,6 +165,27 @@ struct FTiXEnvironment
 
 	UPROPERTY()
 	FTiXSkyLight sky_light;
+};
+
+USTRUCT()
+struct FTileIndex
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 index[2];
+
+	FTileIndex()
+	{
+		index[0] = 0;
+		index[1] = 0;
+	}
+
+	FTileIndex(const FIntPoint& Pt)
+	{
+		index[0] = Pt.X;
+		index[1] = Pt.Y;
+	}
 };
 
 // Scene
@@ -113,7 +213,7 @@ struct FTiXSceneDesc
 	FTiXEnvironment environment;
 
 	UPROPERTY()
-	TArray<FIntPoint> tiles;
+	TArray< FTileIndex > tiles;
 };
 
 // Scene Tile Dependency
@@ -142,13 +242,13 @@ struct FTiXSMInstance
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FVector position;
+	TArray<float> position;
 
 	UPROPERTY()
-	FQuat rotation;
+	TArray<float> rotation;
 
 	UPROPERTY()
-	FVector scale;
+	TArray<float> scale;
 };
 
 // Scene Tile Static Mesh Instance
@@ -186,10 +286,10 @@ struct FTiXSceneTileDesc
 	FString desc;
 
 	UPROPERTY()
-	FIntPoint position;
+	TArray<int32> position;
 
 	UPROPERTY()
-	FBox bbox;
+	TArray<float> bbox;
 
 	UPROPERTY()
 	int32 static_meshes_total;
@@ -208,4 +308,120 @@ struct FTiXSceneTileDesc
 
 	UPROPERTY()
 	TArray<FTiXSceneTileSMInstance> static_mesh_instances;
+};
+
+// Static Mesh
+USTRUCT()
+struct FTiXStaticMeshData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FString> vs_format;
+	
+	UPROPERTY()
+	TArray<float> vertices;
+
+	UPROPERTY()
+	TArray<uint32> indices;
+};
+
+USTRUCT()
+struct FTiXStaticMeshSection
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+	
+	UPROPERTY()
+	FString material_instance;
+
+	UPROPERTY()
+	int32 index_start;
+
+	UPROPERTY()
+	int32 triangles;
+};
+
+USTRUCT()
+struct FTiXStaticMesh
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	int32 version;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	int32 vertex_count_total;
+
+	UPROPERTY()
+	int32 index_count_total;
+	
+	UPROPERTY()
+	int32 texcoord_count;
+	
+	UPROPERTY()
+	int32 total_lod;
+
+	UPROPERTY()
+	FTiXStaticMeshData data;
+
+	UPROPERTY()
+	TArray<FTiXStaticMeshSection> sections;
+};
+
+// Material
+USTRUCT()
+struct FTiXMaterial
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	int32 version;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	TArray<FString> shaders;
+
+	UPROPERTY()
+	TArray<FString> vs_format;
+
+	UPROPERTY()
+	TArray<FString> ins_format;
+
+	UPROPERTY()
+	TArray<FString> rt_colors;
+
+	UPROPERTY()
+	FString rt_depth;
+
+	UPROPERTY()
+	FString blend_mode;
+
+	UPROPERTY()
+	bool depth_write;
+
+	UPROPERTY()
+	bool depth_test;
+
+	UPROPERTY()
+	bool two_sides;
 };

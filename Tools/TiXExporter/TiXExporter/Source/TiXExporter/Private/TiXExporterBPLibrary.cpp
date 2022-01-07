@@ -34,8 +34,12 @@ void UTiXExporterBPLibrary::SetIgnoreMaterial(bool bIgnore)
 	FTiXExporterSetting::Setting.bIgnoreMaterial = bIgnore;
 }
 
-void UTiXExporterBPLibrary::SetExportPath(const FString& ExportPath)
+void UTiXExporterBPLibrary::SetExportPath(const FString& InExportPath)
 {
+	FString ExportPath = InExportPath;
+	ExportPath.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (ExportPath[ExportPath.Len() - 1] != '/')
+		ExportPath.AppendChar('/');
 	FTiXExporterSetting::Setting.ExportPath = ExportPath;
 }
 
@@ -47,7 +51,7 @@ UTiXExporterBPLibrary::UTiXExporterBPLibrary(const FObjectInitializer& ObjectIni
 
 }
 
-void UTiXExporterBPLibrary::ExportCurrentScene(AActor* Actor, const FString& ExportPath, const TArray<FString>& SceneComponents, const TArray<FString>& MeshComponents)
+void UTiXExporterBPLibrary::ExportCurrentLevel(AActor* Actor)
 {
 	UWorld* CurrentWorld = Actor->GetWorld();
 	ULevel* CurrentLevel = CurrentWorld->GetCurrentLevel();
@@ -80,15 +84,20 @@ void UTiXExporterBPLibrary::ExportCurrentScene(AActor* Actor, const FString& Exp
 		Scene.AddFoliageActor(A);
 	}
 
+	// Get directional light
+	Actors.Empty();
+	UGameplayStatics::GetAllActorsOfClass(Actor, ADirectionalLight::StaticClass(), Actors);
+	if (Actors.Num() > 0)
+	{
+		Scene.ApplyDirectionalLight(Actors[0]);
+	}
+
 	// Load all sky lights
 	Actors.Empty();
 	UGameplayStatics::GetAllActorsOfClass(Actor, ASkyLight::StaticClass(), Actors);
-	for (auto A : Actors)
+	if (Actors.Num() > 0)
 	{
-		if (A->IsHidden())
-			continue;
-
-		Scene.AddSkyLightActor(A);
+		Scene.ApplySkyLight(Actors[0]);
 	}
 
 	// Collect Reflection Captures
@@ -100,14 +109,6 @@ void UTiXExporterBPLibrary::ExportCurrentScene(AActor* Actor, const FString& Exp
 			continue;
 
 		Scene.AddReflectionCaptureActor(A);
-	}
-
-	// Get directional light
-	Actors.Empty();
-	UGameplayStatics::GetAllActorsOfClass(Actor, ADirectionalLight::StaticClass(), Actors);
-	if (Actors.Num() > 0)
-	{
-		Scene.ApplyDirectionalLight(Actors[0]);
 	}
 
 	// Load cameras

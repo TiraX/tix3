@@ -4,10 +4,14 @@
 #include "TiXScene.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInstance.h"
+#include "InstancedFoliageActor.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Components/LightComponent.h"
+#include "Components/SkyLightComponent.h"
 #include "Engine/SkyLight.h"
 #include "Components/SkyLightComponent.h"
 #include "TiXExportFunctions.h"
@@ -20,39 +24,178 @@ FTiXSceneTile::~FTiXSceneTile()
 {
 }
 
-void FTiXSceneTile::AddStaticMeshActor(AActor* Actor, TArray<UStaticMesh*>& OutSM)
+void FTiXSceneTile::AddStaticMeshActor(AActor* Actor)
 {
-	check(Actor->IsA<AStaticMeshActor>());
+	check(Actor->IsA(AStaticMeshActor::StaticClass()));
 	AStaticMeshActor* SMActor = Cast<AStaticMeshActor>(Actor);
 	UStaticMesh* StaticMesh = SMActor->GetStaticMeshComponent()->GetStaticMesh();
 
 	// Add to SM Instances
 	TArray<FTiXSceneTile::FInstance>& Instances = SMInstances.FindOrAdd(StaticMesh);
 	FTiXSceneTile::FInstance Instance;
-	Instance.Position = SMActor->GetTransform().GetLocation() * FTiXExporterSetting::Setting.MeshVertexPositionScale;
-	Instance.Rotation = SMActor->GetTransform().GetRotation();
-	Instance.Scale = SMActor->GetTransform().GetScale3D();
+	Instance.Transform = SMActor->GetTransform();
 	Instances.Add(Instance);
 }
 
 void FTiXSceneTile::AddFoliageActor(AActor* Actor)
 {
+	check(Actor->IsA(AInstancedFoliageActor::StaticClass()));
+	AInstancedFoliageActor* FoliageActor = Cast<AInstancedFoliageActor>(Actor);
 
-}
+	for (const auto& FoliagePair : FoliageActor->GetFoliageInfos())
+	{
+		const FFoliageInfo& FoliageInfo = *FoliagePair.Value;
 
-void FTiXSceneTile::AddReflectionCaptureActor(AActor* Actor)
-{
+		UHierarchicalInstancedStaticMeshComponent* MeshComponent = FoliageInfo.GetComponent();
+		TArray<FInstancedStaticMeshInstanceData> MeshDataArray = MeshComponent->PerInstanceSMData;
 
+		UStaticMesh* StaticMesh = MeshComponent->GetStaticMesh();
+		TArray<FTiXSceneTile::FInstance>& Instances = SMInstances.FindOrAdd(StaticMesh);
+
+		for (auto& MeshMatrix : MeshDataArray)
+		{
+			FTiXSceneTile::FInstance Instance;
+			Instance.Transform = FTransform(MeshMatrix.Transform);
+			Instances.Add(Instance);
+		}
+	}
 }
 
 void FTiXSceneTile::UpdateSceneTileDesc()
 {
-	check(0);
-	// Update statistics
-
 	// Update dependencies
+	UpdateDependencies();
 
 	// Update Instances
+	UpdateInstancesDesc();
+
+	// Update statistics
+	UpdateStatisticsDesc();
+}
+
+void FTiXSceneTile::UpdateDependencies()
+{
+	Materials.Empty();
+	MaterialInstances.Empty();
+	Textures.Empty();
+
+	if (FTiXExporterSetting::Setting.bIgnoreMaterial)
+		return;
+
+	// Analysis materials from static meshes
+	for (const auto& MeshIter : SMInstances)
+	{
+		UStaticMesh* SM = MeshIter.Key;
+		const int32 LOD = 0;
+		FStaticMeshLODResources& LODResource = SM->GetRenderData()->LODResources[LOD];
+		for (int32 S = 0; S < LODResource.Sections.Num(); ++S)
+		{
+			FStaticMeshSection& Section = LODResource.Sections[S];
+			UMaterialInterface* MI = SM->GetStaticMaterials()[Section.MaterialIndex].MaterialInterface;
+
+			if (MI->IsA(UMaterial::StaticClass()))
+			{
+				Materials.AddUnique(Cast<UMaterial>(MI));
+			}
+			else
+			{
+				check(MI->IsA(UMaterialInstance::StaticClass()));
+				UMaterialInstance* MInstance = Cast<UMaterialInstance>(MI);
+				MaterialInstances.AddUnique(MInstance);
+
+				// Add material instance's parent material
+				UMaterialInterface* ParentMaterial = MInstance->Parent;
+				check(ParentMaterial && ParentMaterial->IsA(UMaterial::StaticClass()));
+				Materials.AddUnique(Cast<UMaterial>(ParentMaterial));
+
+				// Analysis used textures from material instances
+				for (const auto& TexParam : MInstance->TextureParameterValues)
+				{
+					UTexture* Texture = TexParam.ParameterValue;
+					Textures.AddUnique(Texture);
+				}
+			}
+		}
+	}
+
+	// Update dependency desc
+	FTiXSceneTileDependency& Dependency = SceneTileDesc.dependency;
+	Dependency.textures.Reserve(Textures.Num());
+	for (auto T : Textures)
+	{
+		Dependency.textures.Add(FTiXExportFunctions::GetResourcePathName(T) + FTiXExporterSetting::Setting.ExtName);
+	}
+	Dependency.material_instances.Reserve(MaterialInstances.Num());
+	for (auto MI : MaterialInstances)
+	{
+		Dependency.material_instances.Add(FTiXExportFunctions::GetResourcePathName(MI) + FTiXExporterSetting::Setting.ExtName);
+	}
+	Dependency.materials.Reserve(Materials.Num());
+	for (auto M : Materials)
+	{
+		Dependency.materials.Add(FTiXExportFunctions::GetResourcePathName(M) + FTiXExporterSetting::Setting.ExtName);
+	}
+	Dependency.static_meshes.Reserve(SMInstances.Num());
+	for (const auto& MIter : SMInstances)
+	{
+		Dependency.static_meshes.Add(FTiXExportFunctions::GetResourcePathName(MIter.Key) + FTiXExporterSetting::Setting.ExtName);
+	}
+}
+
+void FTiXSceneTile::UpdateInstancesDesc()
+{
+	TArray<FTiXSceneTileSMInstance>& SMInstancesDesc = SceneTileDesc.static_mesh_instances;
+	SMInstancesDesc.Empty();
+	SMInstancesDesc.Reserve(SMInstances.Num());
+	for (const auto& Iter : SMInstances)
+	{
+		FTiXSceneTileSMInstance SMInstanceDesc;
+		SMInstanceDesc.linked_mesh = FTiXExportFunctions::GetResourcePathName(Iter.Key) + FTiXExporterSetting::Setting.ExtName;
+		SMInstanceDesc.instances.Reserve(Iter.Value.Num());
+		for (const auto& SMIns : Iter.Value)
+		{
+			FTiXSMInstance InsDesc;
+			InsDesc.position = ToArray(SMIns.Transform.GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
+			InsDesc.rotation = ToArray(SMIns.Transform.GetRotation());
+			InsDesc.scale = ToArray(SMIns.Transform.GetScale3D());
+			SMInstanceDesc.instances.Add(InsDesc);
+		}
+		SMInstancesDesc.Add(SMInstanceDesc);
+	}
+}
+
+void FTiXSceneTile::UpdateStatisticsDesc()
+{
+	// Update resources count
+	SceneTileDesc.static_meshes_total = SMInstances.Num();
+	SceneTileDesc.sm_instances_total = 0;
+	for (const auto& Iter : SMInstances)
+	{
+		SceneTileDesc.sm_instances_total += Iter.Value.Num();
+	}
+	SceneTileDesc.textures_total = Textures.Num();
+	SceneTileDesc.reflection_captures_total = 0;
+
+	// Update BBox
+	FBox bbox;
+	bbox.Init();
+	for (const auto& Iter : SMInstances)
+	{
+		UStaticMesh* SM = Iter.Key;
+		FBox SMBox = SM->GetBoundingBox();
+		SMBox.Min *= FTiXExporterSetting::Setting.MeshVertexPositionScale;
+		SMBox.Max *= FTiXExporterSetting::Setting.MeshVertexPositionScale;
+
+		for (const auto& SMIns : Iter.Value)
+		{
+			FBox TranslatedBox = SMBox.TransformBy(SMIns.Transform);
+			if (bbox.IsValid == 0)
+				bbox = TranslatedBox;
+			else
+				bbox += TranslatedBox;
+		}
+	}
+	SceneTileDesc.bbox = ToArray(bbox);
 }
 
 ///////////////////////////////////////////////////////////
@@ -83,15 +226,7 @@ void FTiXScene::DoExport()
 
 void FTiXScene::AddStaticMeshActor(AActor* Actor)
 {
-	// Add actor to scene tile
-	TArray<UStaticMesh*> ActorStaticMeshes;
-	GetActorTile(Actor)->AddStaticMeshActor(Actor, ActorStaticMeshes);
-
-	// Add static meshes to resources
-	for (auto SM : ActorStaticMeshes)
-	{
-		StaticMeshes.AddUnique(SM);
-	}
+	GetActorTile(Actor)->AddStaticMeshActor(Actor);
 }
 
 void FTiXScene::AddFoliageActor(AActor* Actor)
@@ -99,23 +234,19 @@ void FTiXScene::AddFoliageActor(AActor* Actor)
 	GetActorTile(Actor)->AddFoliageActor(Actor);
 }
 
-void FTiXScene::AddSkyLightActor(AActor* Actor)
-{
-
-}
-
 void FTiXScene::AddCameraActor(AActor* Actor)
 {
-	check(Actor->IsA<ACameraActor>());
+	check(Actor->IsA(ACameraActor::StaticClass()));
 	ACameraActor* CamActor = Cast<ACameraActor>(Actor);
 	UCameraComponent* CamComp = CamActor->GetCameraComponent();
 
 	FTiXCamera Camera;
-	Camera.location = CamComp->GetComponentToWorld().GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale;
-	Camera.rotator = CamComp->GetComponentToWorld().GetRotation().Rotator();
+	FVector CamPos = CamComp->GetComponentToWorld().GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale;
+	Camera.location = ToArray(CamPos);
+	Camera.rotator = ToArray(CamComp->GetComponentToWorld().GetRotation().Rotator());
 	FVector CamDir = CamComp->GetComponentToWorld().GetRotation().Vector();
 	CamDir.Normalize();
-	Camera.target = Camera.location + CamDir * 1.5f;
+	Camera.target = ToArray(CamPos + CamDir * 1.5f);
 	Camera.fov = CamComp->FieldOfView;
 	Camera.aspect = CamComp->AspectRatio;
 
@@ -124,19 +255,29 @@ void FTiXScene::AddCameraActor(AActor* Actor)
 
 void FTiXScene::AddReflectionCaptureActor(AActor* Actor)
 {
-	GetActorTile(Actor)->AddReflectionCaptureActor(Actor);
 }
 
 void FTiXScene::ApplyDirectionalLight(AActor* Actor)
 {
-	check(Actor->IsA<ADirectionalLight>());
+	check(Actor->IsA(ADirectionalLight::StaticClass()));
 	ADirectionalLight* DLightActor = Cast<ADirectionalLight>(Actor);
 	ULightComponent* DLightComp = DLightActor->GetLightComponent();
 
 	SceneDesc.environment.sun_light.name = DLightActor->GetName();
-	SceneDesc.environment.sun_light.direction = DLightComp->GetDirection();
-	SceneDesc.environment.sun_light.color = DLightComp->GetLightColor();
+	SceneDesc.environment.sun_light.direction = ToArray(DLightComp->GetDirection());
+	SceneDesc.environment.sun_light.color = ToArray(DLightComp->GetLightColor());
 	SceneDesc.environment.sun_light.intensity = DLightComp->Intensity;
+}
+
+void FTiXScene::ApplySkyLight(AActor* Actor)
+{
+	check(Actor->IsA(ASkyLight::StaticClass()));
+	USkyLightComponent::UpdateSkyCaptureContents(Actor->GetWorld());
+	ASkyLight* SkyLightActor = Cast<ASkyLight>(Actor);
+	USkyLightComponent* SkyLightComp = SkyLightActor->GetLightComponent();
+
+	SceneDesc.environment.sky_light.name = SkyLightActor->GetName();
+	SceneDesc.environment.sky_light.irradiance_sh3 = ToArray(SkyLightComp->GetIrradianceEnvironmentMap());
 }
 
 FTiXSceneTile* FTiXScene::GetActorTile(AActor* Actor)
@@ -168,7 +309,7 @@ FTiXSceneTile* FTiXScene::GetActorTile(AActor* Actor)
 	{
 		// Create a new tile
 		FTiXSceneTile* NewTile = CreateSceneTile(TileIndex);
-		SceneTiles[TileIndex] = NewTile;
+		SceneTiles.Add(TileIndex, NewTile);
 		return NewTile;
 	}
 	else
@@ -188,12 +329,20 @@ FTiXSceneTile* FTiXScene::CreateSceneTile(const FIntPoint& TileIndex)
 	Tile->SceneTileDesc.type = TEXT("scene_tile");
 	Tile->SceneTileDesc.version = 1;
 	Tile->SceneTileDesc.desc = TEXT("Scene tiles contains mesh instance information from TiX exporter.");
-	Tile->SceneTileDesc.position = TileIndex;
+	Tile->SceneTileDesc.position = ToArray(TileIndex);
 	return Tile;
 }
 
 void FTiXScene::UpdateSceneDesc()
 {
+	// Update scene tile descs first
+	for (const auto& TileIter : SceneTiles)
+	{
+		FTiXSceneTile* Tile = TileIter.Value;
+		Tile->UpdateSceneTileDesc();
+	}
+
+	// Update scene desc
 	SceneDesc.tiles.Empty();
 	SceneDesc.tiles.Reserve(SceneTiles.Num());
 
@@ -201,5 +350,32 @@ void FTiXScene::UpdateSceneDesc()
 	{
 		const FIntPoint& TileIndex = T.Key;
 		SceneDesc.tiles.Add(TileIndex);
+	}
+
+	// Collect UStaticMesh, UTexture, UMaterial, UMaterialInstances from tiles
+	StaticMeshes.Empty(1024);
+	Textures.Empty(1024);
+	Materials.Empty(1024);
+	MaterialInstances.Empty(1024);
+
+	for (const auto& T : SceneTiles)
+	{
+		FTiXSceneTile* Tile = T.Value;
+		for (const auto& SM : Tile->SMInstances)
+		{
+			StaticMeshes.AddUnique(SM.Key);
+		}
+		for (const auto& Tex : Tile->Textures)
+		{
+			Textures.AddUnique(Tex);
+		}
+		for (const auto& M : Tile->Materials)
+		{
+			Materials.AddUnique(M);
+		}
+		for (const auto& MI : Tile->MaterialInstances)
+		{
+			MaterialInstances.AddUnique(MI);
+		}
 	}
 }

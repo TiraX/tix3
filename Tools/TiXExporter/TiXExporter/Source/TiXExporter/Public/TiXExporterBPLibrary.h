@@ -45,6 +45,6 @@ public:
 
 
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Current Scene", Keywords = "TiX Export Current Scene"), Category = "TiXExporter")
-	static void ExportCurrentScene(AActor* Actor, const FString& ExportPath, const TArray<FString>& SceneComponents, const TArray<FString>& MeshComponents);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Current Level", Keywords = "TiX Export Current Scene"), Category = "TiXExporter")
+	static void ExportCurrentLevel(AActor* Actor);
 };
