@@ -6,6 +6,12 @@
 #include "Misc/FileHelper.h"
 #include "Serialization/BufferArchive.h"
 #include "ImageUtils.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInstance.h"
+#include "Engine/TextureCube.h"
+#include "Engine/MapBuildDataRegistry.h"
+#include "Factories/TextureFactory.h"
+#include "Exporters/Exporter.h"
 
 void FTiXExportFunctions::ExportScene(FTiXScene& Scene)
 {
@@ -52,7 +58,57 @@ void FTiXExportFunctions::ExportScene(FTiXScene& Scene)
 	// Export textures
 	for (const auto& T : Scene.Textures)
 	{
-		ExportTexture(T);
+		ExportTexture(T, ExportPath + GetResourcePath(T));
+	}
+
+	// Export reflection capture cubemaps
+	for (const auto& RCA : Scene.RCActors)
+	{
+		UWorld* RCWorld = RCA->GetWorld();
+		UReflectionCaptureComponent* RCComponent = RCA->GetCaptureComponent();
+
+		FReflectionCaptureData ReadbackCaptureData;
+		RCWorld->Scene->GetReflectionCaptureData(RCComponent, ReadbackCaptureData);
+		if (ReadbackCaptureData.CubemapSize > 0)
+		{
+			UMapBuildDataRegistry* Registry = RCWorld->GetCurrentLevel()->GetOrCreateMapBuildData();
+			FString TextureName = TEXT("TC_") + RCA->GetName();
+			UTextureFactory* TextureFactory = NewObject<UTextureFactory>();
+			TextureFactory->SuppressImportOverwriteDialog();
+
+			TextureFactory->CompressionSettings = TC_HDR;
+			UTextureCube* TextureCube = TextureFactory->CreateTextureCube(Registry, FName(TextureName), RF_Standalone | RF_Public);
+
+			if (TextureCube)
+			{
+				const int32 NumMips = FMath::CeilLogTwo(ReadbackCaptureData.CubemapSize) + 1;
+				TextureCube->Source.Init(
+					ReadbackCaptureData.CubemapSize,
+					ReadbackCaptureData.CubemapSize,
+					6,
+					NumMips,
+					TSF_RGBA16F,
+					ReadbackCaptureData.FullHDRCapturedData.GetData()
+				);
+				// the loader can suggest a compression setting
+				TextureCube->LODGroup = TEXTUREGROUP_World;
+
+				bool bIsCompressed = false;
+				TextureCube->CompressionSettings = TC_HDR;
+				TextureCube->CompressionNone = !bIsCompressed;
+				TextureCube->CompressionQuality = TCQ_Highest;
+				TextureCube->Filter = TF_Trilinear;
+				TextureCube->SRGB = 0;
+
+				// for now we don't support mip map generation on cubemaps
+				TextureCube->MipGenSettings = TMGS_LeaveExistingMips;
+
+				TextureCube->UpdateResource();
+				TextureCube->MarkPackageDirty();
+
+				ExportTexture(TextureCube, ExportPath + RCWorld->GetName() + TEXT("/"), true);
+			}
+		}
 	}
 
 	UE_LOG(LogTiXExporter, Log, TEXT("Export tix scene DONE."));
@@ -169,7 +225,11 @@ void FTiXExportFunctions::ExportStaticMesh(UStaticMesh* SM)
 		else
 		{
 			TiXSection.MaterialSlotName = SM->GetStaticMaterials()[MeshSection.MaterialIndex].MaterialSlotName.ToString();
-			TiXSection.MIPathName = GetResourcePathName(SM->GetStaticMaterials()[MeshSection.MaterialIndex].MaterialInterface) + FTiXExporterSetting::Setting.ExtName;
+			UMaterialInterface* MaterialInterface = SM->GetStaticMaterials()[MeshSection.MaterialIndex].MaterialInterface;
+			if (MaterialInterface != nullptr)
+				TiXSection.MIPathName = GetResourcePathName(MaterialInterface) + FTiXExporterSetting::Setting.ExtName;
+			else
+				TiXSection.MIPathName = TEXT("MI_Default.tasset");
 		}
 		MeshSections.Add(TiXSection);
 	}
@@ -285,11 +345,179 @@ void FTiXExportFunctions::ExportMaterial(UMaterial* M)
 
 void FTiXExportFunctions::ExportMaterialInstance(UMaterialInstance* MI)
 {
+	FTiXMaterialInstance MIDesc;
+	MIDesc.name = MI->GetName();
+	MIDesc.type = TEXT("material_instance");
+	MIDesc.version = 1;
+	MIDesc.desc = TEXT("Material instance from TiX exporter.");
+	UMaterialInterface * ParentMaterial = MI->Parent;
+	while (ParentMaterial->IsA(UMaterialInstance::StaticClass()))
+	{
+		ParentMaterial = Cast<UMaterialInstance>(ParentMaterial)->Parent;
+	}
+	check(ParentMaterial != nullptr && ParentMaterial->IsA(UMaterial::StaticClass()));
+	MIDesc.linked_material = GetResourcePathName(ParentMaterial) + FTiXExporterSetting::Setting.ExtName;
+
+	// Collect Parameters
+	// Scalar parameters collect as float4
+	TArray<FVector4> ScalarVectorValues;
+	TArray<FString> ScalarVectorNames;
+	TArray<FString> ScalarVectorComments;
+	for (int32 i = 0; i < MI->ScalarParameterValues.Num(); ++i)
+	{
+		const FScalarParameterValue& ScalarValue = MI->ScalarParameterValues[i];
+
+		int32 CombinedIndex = i / 4;
+		int32 IndexInVector4 = i % 4;
+		if (ScalarVectorValues.Num() <= CombinedIndex)
+		{
+			ScalarVectorValues.Add(FVector4(0, 0, 0, 0));
+			FString Name = FString::Printf(TEXT("CombinedScalar%d"), CombinedIndex);
+			ScalarVectorNames.Add(Name);
+			ScalarVectorComments.Add(FString());
+		}
+		// Remember value
+		ScalarVectorValues[CombinedIndex][IndexInVector4] = ScalarValue.ParameterValue;
+		// Remember scalar param name
+		FString ScalarParamName = FString::Printf(TEXT("%d = %s; "), IndexInVector4, *ScalarValue.ParameterInfo.Name.ToString());
+		ScalarVectorComments[CombinedIndex] += ScalarParamName;
+	}
+
+	// Vector parameters.
+	for (int32 i = 0; i < MI->VectorParameterValues.Num(); ++i)
+	{
+		const FVectorParameterValue& VectorValue = MI->VectorParameterValues[i];
+
+		ScalarVectorValues.Add(FVector4(VectorValue.ParameterValue));
+		ScalarVectorNames.Add(VectorValue.ParameterInfo.Name.ToString());
+		ScalarVectorComments.Add(VectorValue.ParameterInfo.Name.ToString());
+	}
+
+	MIDesc.param_vectors.Reserve(ScalarVectorValues.Num());
+	for (int32 p = 0; p < ScalarVectorValues.Num(); p++)
+	{
+		FTiXMIParamVector ParamDesc;
+		ParamDesc.name = ScalarVectorNames[p];
+		ParamDesc.type = TEXT("float4");
+		ParamDesc.desc = ScalarVectorComments[p];
+		ParamDesc.value = ToArray(ScalarVectorValues[p]);
+		MIDesc.param_vectors.Add(ParamDesc);
+	}
+
+	MIDesc.param_textures.Reserve(MI->TextureParameterValues.Num());
+	for (int32 p = 0; p < MI->TextureParameterValues.Num(); p++)
+	{
+		const FTextureParameterValue& TextureValue = MI->TextureParameterValues[p];
+		UTexture* Texture = TextureValue.ParameterValue;
+		FTiXMIParamTexture ParamDesc;
+		ParamDesc.name = TextureValue.ParameterInfo.Name.ToString();
+		if (Texture->IsA(UTexture2D::StaticClass()))
+		{
+			ParamDesc.type = TEXT("texture2d");
+		}
+		else if (Texture->IsA(UTextureCube::StaticClass()))
+		{
+			ParamDesc.type = TEXT("texturecube");
+		}
+		else
+		{
+			UE_LOG(LogTiXExporter, Error, TEXT("Unsupported texture type in material instance [%s, %s]."), *MI->GetName(), *TextureValue.ParameterInfo.Name.ToString());
+		}
+		ParamDesc.desc = TEXT("");
+		ParamDesc.value = GetResourcePathName(Texture) + FTiXExporterSetting::Setting.ExtName;
+		MIDesc.param_textures.Add(ParamDesc);
+	}
+
+	// Save to json
+	FString JsonStr;
+	FJsonObjectConverter::UStructToJsonObjectString(MIDesc, JsonStr);
+	SaveJsonToFile(JsonStr, MI->GetName(), FTiXExporterSetting::Setting.ExportPath + GetResourcePath(MI));
 }
 
-void FTiXExportFunctions::ExportTexture(UTexture* T)
+void FTiXExportFunctions::ExportTexture(UTexture* T, const FString& ExportPath, bool UsedAsIBL)
 {
+	if (!T->IsA(UTexture2D::StaticClass()) && !T->IsA(UTextureCube::StaticClass()))
+	{
+		UE_LOG(LogTiXExporter, Error, TEXT("  Texture other than UTexture2D and UTextureCube are NOT supported yet."));
+		return;
+	}
+	const bool IsTexture2D = T->IsA(UTexture2D::StaticClass());
+	UTexture2D* InTexture2D = Cast<UTexture2D>(T);
+	UTextureCube* InTextureCube = Cast<UTextureCube>(T);
 
+	// Save texture 2d with tga format and texture cube with hdr format
+	FString ImageExtName = T->CompressionSettings == TC_HDR ? TEXT("hdr") : TEXT("tga");
+
+	FBufferArchive Buffer;
+	if (IsTexture2D)
+	{
+		UExporter::ExportToArchive(InTexture2D, nullptr, Buffer, *ImageExtName, 0);
+	}
+	else
+	{
+		UExporter::ExportToArchive(InTextureCube, nullptr, Buffer, *ImageExtName, 0);
+	}
+
+	FString ImageSourcePath = ExportPath;
+	VerifyOrCreateDirectory(ImageSourcePath);
+	FString ExportFullPathName = ImageSourcePath + T->GetName() + TEXT(".") + ImageExtName;
+	if (Buffer.Num() == 0 || !FFileHelper::SaveArrayToFile(Buffer, *ExportFullPathName))
+	{
+		UE_LOG(LogTiXExporter, Error, TEXT("Fail to save texture %s"), *ExportFullPathName);
+		return;
+	}
+
+	// Export a Json Desc
+	FTiXTexture TextureDesc;
+	TextureDesc.name = T->GetName();
+	TextureDesc.type = TEXT("texture");
+	TextureDesc.version = 1;
+	TextureDesc.desc = TEXT("Texture from TiX exporter.");
+	TextureDesc.source = T->GetName() + TEXT(".") + ImageExtName;
+	TextureDesc.texture_type = IsTexture2D ? TEXT("ETT_TEXTURE_2D") : TEXT("ETT_TEXTURE_CUBE");
+	TextureDesc.srgb = T->SRGB;
+	TextureDesc.is_normalmap = T->LODGroup == TEXTUREGROUP_WorldNormalMap;
+	TextureDesc.has_mips = T->MipGenSettings != TMGS_NoMipmaps;
+	TextureDesc.ibl = UsedAsIBL;
+	TextureDesc.lod_bias = T->LODBias;
+	if (IsTexture2D)
+	{
+		TextureDesc.width = InTexture2D->GetSizeX();
+		TextureDesc.height = InTexture2D->GetSizeY();
+		TextureDesc.mips = InTexture2D->GetNumMips();
+	}
+	else
+	{
+		TextureDesc.width = InTextureCube->GetSizeX();
+		TextureDesc.height = InTextureCube->GetSizeY();
+		TextureDesc.mips = InTextureCube->GetNumMips();
+	}
+	if (IsTexture2D)
+	{
+		switch (InTexture2D->AddressX)
+		{
+		case TA_Wrap:
+			TextureDesc.address_mode = TEXT("ETC_REPEAT");
+			break;
+		case TA_Clamp:
+			TextureDesc.address_mode = TEXT("ETC_CLAMP_TO_EDGE");
+			break;
+		case TA_Mirror:
+			TextureDesc.address_mode = TEXT("ETC_MIRROR");
+			break;
+		}
+
+		if (!FMath::IsPowerOfTwo(InTexture2D->GetSizeX()) ||
+			!FMath::IsPowerOfTwo(InTexture2D->GetSizeY()))
+		{
+			UE_LOG(LogTiXExporter, Warning, TEXT("%s size is not Power of Two. %d, %d."), *T->GetName(), InTexture2D->GetSizeX(), InTexture2D->GetSizeY());
+		}
+	}
+
+	// Save to json
+	FString JsonStr;
+	FJsonObjectConverter::UStructToJsonObjectString(TextureDesc, JsonStr);
+	SaveJsonToFile(JsonStr, T->GetName(), ExportPath);
 }
 
 void FTiXExportFunctions::TryCreateDirectory(const FString& InTargetPath)

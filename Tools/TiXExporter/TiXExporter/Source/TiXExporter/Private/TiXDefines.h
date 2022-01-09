@@ -32,6 +32,16 @@ inline TArray<float> ToArray(const FVector& Vec)
 	Array.Add(Vec.Z);
 	return Array;
 };
+inline TArray<float> ToArray(const FVector4& Vec)
+{
+	TArray<float> Array;
+	Array.Reserve(4);
+	Array.Add(Vec.X);
+	Array.Add(Vec.Y);
+	Array.Add(Vec.Z);
+	Array.Add(Vec.W);
+	return Array;
+};
 inline TArray<float> ToArray(const FRotator& Rot)
 {
 	TArray<float> Array;
@@ -264,6 +274,31 @@ struct FTiXSceneTileSMInstance
 	TArray<FTiXSMInstance> instances;
 };
 
+// Reflection capture actor
+USTRUCT()
+struct FTiXReflectionCapture
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString linked_cubemap;
+
+	UPROPERTY()
+	int32 cubemap_size;
+
+	UPROPERTY()
+	float average_brightness;
+
+	UPROPERTY()
+	float brightness;
+
+	UPROPERTY()
+	TArray<float> position;
+};
+
 // Scene Tile
 USTRUCT()
 struct FTiXSceneTileDesc
@@ -305,6 +340,9 @@ struct FTiXSceneTileDesc
 
 	UPROPERTY()
 	FTiXSceneTileDependency dependency;
+
+	UPROPERTY()
+	TArray<FTiXReflectionCapture> reflection_captures;
 
 	UPROPERTY()
 	TArray<FTiXSceneTileSMInstance> static_mesh_instances;
@@ -424,4 +462,121 @@ struct FTiXMaterial
 
 	UPROPERTY()
 	bool two_sides;
+};
+
+// Material Instance
+USTRUCT()
+struct FTiXMIParamVector
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	TArray<float> value;
+};
+
+USTRUCT()
+struct FTiXMIParamTexture
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	FString value;
+};
+
+USTRUCT()
+struct FTiXMaterialInstance
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	int32 version;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	FString linked_material;
+
+	UPROPERTY()
+	TArray<FTiXMIParamVector> param_vectors;
+
+	UPROPERTY()
+	TArray<FTiXMIParamTexture> param_textures;
+};
+
+
+// Texture
+USTRUCT()
+struct FTiXTexture
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString name;
+
+	UPROPERTY()
+	FString type;
+
+	UPROPERTY()
+	int32 version;
+
+	UPROPERTY()
+	FString desc;
+
+	UPROPERTY()
+	FString source;
+
+	UPROPERTY()
+	FString texture_type;
+
+	UPROPERTY()
+	bool srgb;
+
+	UPROPERTY()
+	bool is_normalmap;
+
+	UPROPERTY()
+	bool has_mips;
+
+	UPROPERTY()
+	bool ibl;
+
+	UPROPERTY()
+	int32 width;
+
+	UPROPERTY()
+	int32 height;
+
+	UPROPERTY()
+	int32 mips;
+
+	UPROPERTY()
+	FString address_mode;
+
+	UPROPERTY()
+	int32 lod_bias;
 };

@@ -14,6 +14,9 @@
 #include "Components/SkyLightComponent.h"
 #include "Engine/SkyLight.h"
 #include "Components/SkyLightComponent.h"
+#include "Engine/ReflectionCapture.h"
+#include "Components/ReflectionCaptureComponent.h"
+#include "Engine/MapBuildDataRegistry.h"
 #include "TiXExportFunctions.h"
 
 FTiXSceneTile::FTiXSceneTile()
@@ -61,6 +64,13 @@ void FTiXSceneTile::AddFoliageActor(AActor* Actor)
 	}
 }
 
+void FTiXSceneTile::AddReflectionCaptureActor(AActor* Actor)
+{
+	check(Actor->IsA(AReflectionCapture::StaticClass()));
+	AReflectionCapture* RCActor = Cast<AReflectionCapture>(Actor);
+	RCActors.AddUnique(RCActor);
+}
+
 void FTiXSceneTile::UpdateSceneTileDesc()
 {
 	// Update dependencies
@@ -91,6 +101,8 @@ void FTiXSceneTile::UpdateDependencies()
 			{
 				FStaticMeshSection& Section = LODResource.Sections[S];
 				UMaterialInterface* MI = SM->GetStaticMaterials()[Section.MaterialIndex].MaterialInterface;
+				if (MI == nullptr)
+					continue;
 
 				if (MI->IsA(UMaterial::StaticClass()))
 				{
@@ -104,7 +116,11 @@ void FTiXSceneTile::UpdateDependencies()
 
 					// Add material instance's parent material
 					UMaterialInterface* ParentMaterial = MInstance->Parent;
-					check(ParentMaterial && ParentMaterial->IsA(UMaterial::StaticClass()));
+					while (ParentMaterial->IsA(UMaterialInstance::StaticClass()))
+					{
+						ParentMaterial = Cast<UMaterialInstance>(ParentMaterial)->Parent;
+					}
+					check(ParentMaterial != nullptr && ParentMaterial->IsA(UMaterial::StaticClass()));
 					Materials.AddUnique(Cast<UMaterial>(ParentMaterial));
 
 					// Analysis used textures from material instances
@@ -120,10 +136,16 @@ void FTiXSceneTile::UpdateDependencies()
 
 	// Update dependency desc
 	FTiXSceneTileDependency& Dependency = SceneTileDesc.dependency;
-	Dependency.textures.Reserve(Textures.Num());
+	Dependency.textures.Reserve(Textures.Num() + RCActors.Num());
 	for (auto T : Textures)
 	{
 		Dependency.textures.Add(FTiXExportFunctions::GetResourcePathName(T) + FTiXExporterSetting::Setting.ExtName);
+	}
+	for (auto RCA : RCActors)
+	{
+		UWorld* RCWorld = RCA->GetWorld();
+		FString RCMapPath = RCWorld->GetName() + TEXT("/TC_") + RCA->GetName() + FTiXExporterSetting::Setting.ExtName;
+		Dependency.textures.Add(RCMapPath);
 	}
 	Dependency.material_instances.Reserve(MaterialInstances.Num());
 	for (auto MI : MaterialInstances)
@@ -144,6 +166,26 @@ void FTiXSceneTile::UpdateDependencies()
 
 void FTiXSceneTile::UpdateInstancesDesc()
 {
+	// Update reflection actor
+	SceneTileDesc.reflection_captures.Reserve(RCActors.Num());
+	for (const auto& RCA : RCActors)
+	{
+		FTiXReflectionCapture RCDesc;
+		RCDesc.name = RCA->GetName();
+		UWorld* RCWorld = RCA->GetWorld();
+		RCDesc.linked_cubemap = RCWorld->GetName() + TEXT("/TC_") + RCA->GetName() + FTiXExporterSetting::Setting.ExtName;
+
+		UReflectionCaptureComponent* RCComponent = RCA->GetCaptureComponent();
+		FReflectionCaptureData ReadbackCaptureData;
+		RCWorld->Scene->GetReflectionCaptureData(RCComponent, ReadbackCaptureData);
+		RCDesc.cubemap_size = ReadbackCaptureData.CubemapSize;
+		RCDesc.average_brightness = ReadbackCaptureData.AverageBrightness;
+		RCDesc.brightness = ReadbackCaptureData.Brightness;
+		RCDesc.position = ToArray(RCA->GetTransform().GetLocation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
+		SceneTileDesc.reflection_captures.Add(RCDesc);
+	}
+
+	// Update static mesh instances
 	TArray<FTiXSceneTileSMInstance>& SMInstancesDesc = SceneTileDesc.static_mesh_instances;
 	SMInstancesDesc.Empty();
 	SMInstancesDesc.Reserve(SMInstances.Num());
@@ -174,7 +216,7 @@ void FTiXSceneTile::UpdateStatisticsDesc()
 		SceneTileDesc.sm_instances_total += Iter.Value.Num();
 	}
 	SceneTileDesc.textures_total = Textures.Num();
-	SceneTileDesc.reflection_captures_total = 0;
+	SceneTileDesc.reflection_captures_total = RCActors.Num();
 
 	// Update BBox
 	FBox bbox;
@@ -200,9 +242,10 @@ void FTiXSceneTile::UpdateStatisticsDesc()
 
 ///////////////////////////////////////////////////////////
 
-FTiXScene::FTiXScene(const FString& SceneName)
+FTiXScene::FTiXScene(UWorld* InWorld)
+	: SceneWorld(InWorld)
 {
-	SceneDesc.name = SceneName;
+	SceneDesc.name = InWorld->GetName();
 	SceneDesc.type = TEXT("scene");
 	SceneDesc.version = 1;
 	SceneDesc.desc = TEXT("Scene and scene tiles information from TiX exporter.");
@@ -255,6 +298,7 @@ void FTiXScene::AddCameraActor(AActor* Actor)
 
 void FTiXScene::AddReflectionCaptureActor(AActor* Actor)
 {
+	GetActorTile(Actor)->AddReflectionCaptureActor(Actor);
 }
 
 void FTiXScene::ApplyDirectionalLight(AActor* Actor)
@@ -335,6 +379,10 @@ FTiXSceneTile* FTiXScene::CreateSceneTile(const FIntPoint& TileIndex)
 
 void FTiXScene::UpdateSceneDesc()
 {
+	// Update reflection capture at very first
+	FString UpdateReason = TEXT("Update for TiX reflection capture export");
+	UReflectionCaptureComponent::UpdateReflectionCaptureContents(SceneWorld, *UpdateReason, true);
+
 	// Update scene tile descs first
 	for (const auto& TileIter : SceneTiles)
 	{
@@ -352,11 +400,12 @@ void FTiXScene::UpdateSceneDesc()
 		SceneDesc.tiles.Add(TileIndex);
 	}
 
-	// Collect UStaticMesh, UTexture, UMaterial, UMaterialInstances from tiles
+	// Collect UStaticMesh, UTexture, UMaterial, UMaterialInstances, RCActors from tiles
 	StaticMeshes.Empty(1024);
 	Textures.Empty(1024);
 	Materials.Empty(1024);
 	MaterialInstances.Empty(1024);
+	RCActors.Empty(1024);
 
 	for (const auto& T : SceneTiles)
 	{
@@ -376,6 +425,10 @@ void FTiXScene::UpdateSceneDesc()
 		for (const auto& MI : Tile->MaterialInstances)
 		{
 			MaterialInstances.AddUnique(MI);
+		}
+		for (const auto& RCA : Tile->RCActors)
+		{
+			RCActors.AddUnique(RCA);
 		}
 	}
 }

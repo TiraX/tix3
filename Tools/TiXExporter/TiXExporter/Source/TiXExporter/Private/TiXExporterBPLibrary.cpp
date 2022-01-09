@@ -12,7 +12,6 @@
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
 #include "Engine/ReflectionCapture.h"
-#include "Components/ReflectionCaptureComponent.h"
 #include "Camera/CameraActor.h"
 
 DEFINE_LOG_CATEGORY(LogTiXExporter);
@@ -56,7 +55,7 @@ void UTiXExporterBPLibrary::ExportCurrentLevel(AActor* Actor)
 	UWorld* CurrentWorld = Actor->GetWorld();
 	ULevel* CurrentLevel = CurrentWorld->GetCurrentLevel();
 
-	FTiXScene Scene(CurrentWorld->GetName());
+	FTiXScene Scene(CurrentWorld);
 	TArray<AActor*> Actors;
 
 	UE_LOG(LogTiXExporter, Log, TEXT("Exporting tix scene ..."));

@@ -128,5 +128,5 @@ private:
 	static void ExportStaticMesh(UStaticMesh* SM);
 	static void ExportMaterial(UMaterial* M);
 	static void ExportMaterialInstance(UMaterialInstance* MI);
-	static void ExportTexture(UTexture* T);
+	static void ExportTexture(UTexture* T, const FString& ExportPath, bool UsedAsIBL = false);
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/ReflectionCapture.h"
 #include "TiXDefines.h"
 
 class FTiXSceneTile
@@ -13,6 +14,7 @@ public:
 
 	void AddStaticMeshActor(AActor* Actor);
 	void AddFoliageActor(AActor* Actor);
+	void AddReflectionCaptureActor(AActor* Actor);
 
 	void UpdateSceneTileDesc();
 private:
@@ -29,6 +31,7 @@ private:
 		FTransform Transform;
 	};
 	TMap<UStaticMesh*, TArray<FInstance>> SMInstances;
+	TArray<AReflectionCapture*> RCActors;
 	TArray<UMaterial*> Materials;
 	TArray<UMaterialInstance*> MaterialInstances;
 	TArray<UTexture*> Textures;
@@ -40,7 +43,7 @@ private:
 class FTiXScene
 {
 public:
-	FTiXScene(const FString& SceneName);
+	FTiXScene(UWorld* InWorld);
 	~FTiXScene();
 
 	void DoExport();
@@ -58,6 +61,7 @@ private:
 	void UpdateSceneDesc();
 
 private:
+	UWorld* SceneWorld;
 	FTiXSceneDesc SceneDesc;
 
 	// Scene tiles
@@ -68,6 +72,7 @@ private:
 	TArray<UTexture*> Textures;
 	TArray<UMaterial*> Materials;
 	TArray<UMaterialInstance*> MaterialInstances;
+	TArray<AReflectionCapture*> RCActors;
 
 	friend class FTiXExportFunctions;
 };
