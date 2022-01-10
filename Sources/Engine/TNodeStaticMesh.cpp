@@ -21,7 +21,7 @@ namespace tix
 	TNodeStaticMesh::~TNodeStaticMesh()
 	{
 		// Remove Primitive from scene
-		if (LinkedPrimitives.size() > 0)
+		//if (LinkedPrimitives.size() > 0)
 		{
 			//ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(RemoveStaticMeshPrimitiveFromScene,
 			//	TVector<FPrimitivePtr>, Primitives, LinkedPrimitives,
@@ -68,27 +68,18 @@ namespace tix
 		bool bReceiveShadow)
 	{
 		// Create Primitives
-		LinkedPrimitives.clear();
-		LinkedPrimitives.reserve(InStaticMesh->GetMeshSectionCount());
+		LinkedPrimitive = nullptr;
 
 		TNode* SceneTileParent = GetParent(ENT_SceneTile);
 		TNodeSceneTile * SceneTileNode = static_cast<TNodeSceneTile *>(SceneTileParent);
-		for (uint32 s = 0 ; s < InStaticMesh->GetMeshSectionCount() ; ++ s)
-		{
-			const TMeshSection& MeshSection = InStaticMesh->GetMeshSection(s);
-			TI_ASSERT(InStaticMesh->GetMeshBuffer()->MeshBufferResource != nullptr);
-			FPrimitivePtr Primitive = ti_new FPrimitive;
-			Primitive->SetInstancedStaticMesh(
-				InStaticMesh->GetMeshBuffer()->MeshBufferResource,
-				MeshSection.IndexStart,
-				MeshSection.Triangles,
-				MeshSection.DefaultMaterial, 
-				InInstanceBuffer != nullptr ? InInstanceBuffer->InstanceResource : nullptr,
-				InInstanceCount,
-				InInstanceOffset
-			);
-			LinkedPrimitives.push_back(Primitive);
-		}
+
+		LinkedPrimitive = ti_new FPrimitive;
+		LinkedPrimitive->SetInstancedStaticMesh(
+			InStaticMesh,
+			InInstanceBuffer != nullptr ? InInstanceBuffer->InstanceResource : nullptr,
+			InInstanceCount,
+			InInstanceOffset
+		);
 
 		// Add primitive to scene
 		//ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(AddStaticMeshPrimitivesToScene,
@@ -119,24 +110,17 @@ namespace tix
 
 		if (HasFlag(ENF_ABSOLUTETRANSFORMATION_UPDATED))
 		{
-			TI_ASSERT(LinkedPrimitives.size() > 0);
-			TransformedBBox = LinkedPrimitives[0]->GetMeshBuffer()->GetBBox();
-			for (int32 i = 1; i < (int32)LinkedPrimitives.size(); ++i)
-			{
-				TransformedBBox.addInternalBox(LinkedPrimitives[i]->GetMeshBuffer()->GetBBox());
-			}
+			TI_ASSERT(LinkedPrimitive != nullptr);
+			TransformedBBox = LinkedPrimitive->GetMeshBuffer()->GetBBox();
 			AbsoluteTransformation.transformBoxEx(TransformedBBox);
 
 			// Init uniform buffer resource in render thread
-			TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
+			FPrimitivePtr Primitive = LinkedPrimitive;
 			matrix4 LocalToWorld = AbsoluteTransformation;
 			ENQUEUE_RENDER_COMMAND(UpdatePrimitiveBuffer)(
-				[Primitives, LocalToWorld]()
+				[Primitive, LocalToWorld]()
 				{
-					for (auto P : Primitives)
-					{
-						P->SetLocalToWorld(LocalToWorld);
-					}
+					Primitive->SetLocalToWorld(LocalToWorld);
 				});
 		}
 

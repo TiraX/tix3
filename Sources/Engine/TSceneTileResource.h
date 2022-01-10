@@ -10,13 +10,10 @@ namespace tix
 	struct TMeshInfoInTile
 	{
 		uint32 NumMeshes;
-		uint32 TotalSections;
 		TVector<TAssetPtr> MeshAssets;
-		TVector<uint32> SectionsCount;
 
 		TMeshInfoInTile()
 			: NumMeshes(0)
-			, TotalSections(0)
 		{}
 	};
 	struct TStaticMeshInstanceInfo

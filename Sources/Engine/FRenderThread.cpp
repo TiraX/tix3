@@ -7,7 +7,6 @@
 #include "FRenderThread.h"
 #include "FRenderer.h"
 #include "FRHI.h"
-#include "FVTSystem.h"
 
 namespace tix
 {
@@ -77,7 +76,6 @@ namespace tix
 		, RHI(nullptr)
 		, Renderer(nullptr)
 		, RenderScene(nullptr)
-		, VTSystem(nullptr)
 	{
 		FRHI::CreateRHI();
 	}
@@ -101,8 +99,6 @@ namespace tix
 
 		// Create render scene
 		RenderScene = ti_new FScene;
-		// Create virtual texture system
-		VTSystem = ti_new FVTSystem;
 	}
 
 	void FRenderThread::DestroyRenderComponents()
@@ -121,7 +117,6 @@ namespace tix
 		ti_delete Renderer;
 
 		SAFE_DELETE(RenderScene);
-		SAFE_DELETE(VTSystem);
 
 		// Release RHI
 		FRHI::ReleaseRHI();

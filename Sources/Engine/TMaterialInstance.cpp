@@ -49,27 +49,6 @@ namespace tix
 
 				ArgumentBuffer->SetBuffer(0, UniformBuffer);
 			}
-
-            if (!FVTSystem::IsEnabled())
-            {
-                // if vt system enabled, all texture will be in vt atlas.
-                // do not need to load textures and put into argument buffer here.
-                TI_ASSERT(ParamTextures.size() == ParamTextureNames.size());
-                for (int32 i = 0; i < (int32)ParamTextures.size(); ++ i)
-                {
-                    TI_ASSERT(ParamTextures[i]->TextureResource != nullptr);
-                    ArgumentBuffer->SetTexture(i + NumBuffers, ParamTextures[i]->TextureResource);
-                }
-                
-                FShaderPtr MaterialShader = LinkedMaterial->GetDesc().Shader->ShaderResource;
-
-				FArgumentBufferPtr _ArgumentBuffer = ArgumentBuffer;
-				ENQUEUE_RENDER_COMMAND(UpdateMIArgumentBuffer)(
-					[_ArgumentBuffer, MaterialShader]()
-					{
-						FRHI::Get()->UpdateHardwareResourceAB(_ArgumentBuffer, MaterialShader);
-					});
-            }
 		}
 	}
 

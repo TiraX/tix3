@@ -107,7 +107,6 @@ using namespace std;
 #include "FLight.h"
 #include "FSceneLights.h"
 #include "FScene.h"
-#include "FVTSystem.h"
 #include "FRenderer.h"
 #include "FDefaultRenderer.h"
 #include "FFullScreenRender.h"

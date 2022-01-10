@@ -22,8 +22,7 @@ namespace tix
 		virtual void EndRenderFrame(FScene* Scene) override;
 		virtual void Render(FRHI* RHI, FScene* Scene) override;
 
-		virtual void ApplyShaderParameter(FRHI * RHI, FScene * Scene, FPrimitivePtr Primitive);
-		virtual void ApplyShaderParameter(FRHI * RHI, FShaderPtr Shader, FScene * Scene, FArgumentBufferPtr ArgumentBuffer);
+		virtual void ApplyShaderParameter(FRHI * RHI, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex);
 
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() override
 		{
@@ -31,7 +30,7 @@ namespace tix
 		}
 
 	protected:
-		void BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FScene * Scene, FPrimitivePtr Primitive);
+		void BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex);
 		//void BindMaterialInstanceArgument(FRHI * RHI, FShaderBindingPtr InShaderBinding, FArgumentBufferPtr ArgumentBuffer);
 
 		void DrawSceneTiles(FRHI* RHI, FScene* Scene);

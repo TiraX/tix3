@@ -39,11 +39,6 @@ namespace tix
 			return TotalStaticMeshes;
 		}
 
-		uint32 GetTotalMeshSections() const
-		{
-			return TotalSMSections;
-		}
-
 		uint32 GetTotalInstances() const
 		{
 			return TotalSMInstances;
@@ -74,7 +69,6 @@ namespace tix
 		vector2di Position;
 		aabbox3df BBox;
 		uint32 TotalStaticMeshes;
-		uint32 TotalSMSections;
 		uint32 TotalSMInstances;
 		// X is Count, Y is Offset
 		TVector<vector2di> InstanceCountAndOffset;

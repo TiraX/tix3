@@ -24,10 +24,7 @@ namespace tix
 		~FPrimitive();
 
 		void SetInstancedStaticMesh(
-			FMeshBufferPtr InMeshBuffer,
-			uint32 InIndexStart,
-			uint32 InTriangles,
-			TMaterialInstancePtr InMInstance,
+			TStaticMeshPtr InStaticMesh,
 			FInstanceBufferPtr InInstanceBuffer,
 			uint32 InInstanceCount,
 			uint32 InInstanceOffset
@@ -42,6 +39,29 @@ namespace tix
 			FUniformBufferPtr InSkeletonResource
 		);
 
+		struct FSection
+		{
+			FSection()
+				: IndexStart(0)
+				, Triangles(0)
+				, DrawList(LIST_INVALID)
+			{}
+			int32 IndexStart;
+			int32 Triangles;
+			FPipelinePtr Pipeline;
+			FArgumentBufferPtr Argument;
+			E_DRAWLIST_TYPE DrawList;
+		};
+		int32 GetNumSections() const
+		{
+			return (int32)Sections.size();
+		}
+
+		const FSection& GetSection(int32 Index) const
+		{
+			return Sections[Index];
+		}
+
 		FMeshBufferPtr GetMeshBuffer()
 		{
 			return MeshBuffer;
@@ -49,14 +69,6 @@ namespace tix
 		FInstanceBufferPtr GetInstanceBuffer()
 		{
 			return InstanceBuffer;
-		}
-		const uint32 GetIndexStart() const
-		{
-			return IndexStart;
-		}
-		const uint32 GetTriangles() const
-		{
-			return Triangles;
 		}
 		uint32 GetInstanceCount() const
 		{
@@ -66,14 +78,6 @@ namespace tix
 		{
 			return InstanceOffset;
 		}
-		FPipelinePtr GetPipeline()
-		{
-			return Pipeline;
-		}
-		FArgumentBufferPtr GetArgumentBuffer()
-		{
-			return Argument;
-		}
 		FPrimitiveUniformBufferPtr GetPrimitiveUniform()
 		{
 			return PrimitiveUniformBuffer;
@@ -81,10 +85,6 @@ namespace tix
 		FUniformBufferPtr GetSkeletonUniform()
 		{
 			return SkeletonResourceRef;
-		}
-		E_DRAWLIST_TYPE GetDrawList() const
-		{
-			return DrawList;
 		}
 		bool IsPrimitiveBufferDirty() const
 		{
@@ -99,22 +99,17 @@ namespace tix
 		uint32 PrimitiveFlag;
 
 		FMeshBufferPtr MeshBuffer;
-		uint32 IndexStart;
-		uint32 Triangles;
 		FInstanceBufferPtr InstanceBuffer;
 		uint32 InstanceCount;
 		uint32 InstanceOffset;
 
 		FUniformBufferPtr SkeletonResourceRef;
 
-		FPipelinePtr Pipeline;
-		FArgumentBufferPtr Argument;
+		TVector<FSection> Sections;
 
 		// Every primitive has a unique Primitive uniform buffer, because VT UVTransform
 		// Duplicated, always use instance buffer for GPU driven
 		FPrimitiveUniformBufferPtr PrimitiveUniformBuffer;
-
-		E_DRAWLIST_TYPE DrawList;
 	};
 } // end namespace tix
 

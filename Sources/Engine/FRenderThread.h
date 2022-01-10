@@ -50,11 +50,6 @@ namespace tix
 			return RenderScene;
 		}
 
-		FVTSystem* GetVTSystem()
-		{
-			return VTSystem;
-		}
-
 		float GetRenderThreadLiveTime() const
 		{
 			return RTLiveTime;
@@ -103,7 +98,6 @@ namespace tix
 		FRenderer* Renderer;
 
 		FScene * RenderScene;
-		FVTSystem * VTSystem;
 
 		static bool Inited;
 		static bool ThreadEnabled;

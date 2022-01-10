@@ -327,7 +327,6 @@ namespace tix
 		int32 NumSkeletons;
 		int32 NumAnims;
 		int32 NumStaticMeshes;
-		int32 NumSMSections;
 		int32 NumSMInstances;
 		int32 NumSkeletalMeshes;
 		int32 NumSKMActors;

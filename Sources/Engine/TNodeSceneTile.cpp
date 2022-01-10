@@ -35,8 +35,6 @@ namespace tix
 			TI_ASSERT(FirstResource->GetType() == ERES_SCENE_TILE);
 
 			NodeSceneTile->SceneTileResource = static_cast<TSceneTileResource*>(FirstResource.get());
-			TI_ASSERT(NodeSceneTile->SceneTileResource->SMInfos.TotalSections == NodeSceneTile->SceneTileResource->SMInstances.InstanceCountAndOffset.size());
-			TI_ASSERT(NodeSceneTile->SceneTileResource->SMInfos.NumMeshes == NodeSceneTile->SceneTileResource->SMInfos.SectionsCount.size());
 			TI_ASSERT(NodeSceneTile->LoadedStaticMeshAssets.empty() && NodeSceneTile->LoadedSkeletalMeshAssets.empty());
 			// Init Loaded mesh asset array.
 			NodeSceneTile->LoadedStaticMeshAssets.resize(NodeSceneTile->SceneTileResource->SMInfos.MeshAssets.size());
@@ -96,7 +94,6 @@ namespace tix
 		if (StaticMeshCount > 0)
 		{
 			uint32 LoadedMeshCount = 0;
-			uint32 MeshSectionOffset = 0;
 			for (uint32 m = 0; m < StaticMeshCount; ++m)
 			{
 				TAssetPtr MeshAsset = SceneTileResource->SMInfos.MeshAssets[m];
@@ -106,37 +103,20 @@ namespace tix
 					if (MeshAsset->IsLoaded())
 					{
 						// Gather loaded mesh resources
-						TVector<FPrimitivePtr> LinkedPrimitives;
-						TVector<uint32> PrimitiveIndices;
+						FPrimitivePtr LinkedPrimitive;
 
 						const TVector<TResourcePtr>& MeshResources = MeshAsset->GetResources();
 						TI_ASSERT(MeshResources[0]->GetType() == ERES_STATIC_MESH);
 						TStaticMeshPtr StaticMesh = static_cast<TStaticMesh*>(MeshResources[0].get());
-						// MeshResources Include mesh sections and 1 collision set
-						// Mesh sections
-						const uint32 TotalSections = StaticMesh->GetMeshSectionCount();
-						TI_ASSERT(TotalSections > 0 && SceneTileResource->SMInfos.SectionsCount[m] == TotalSections);
-						LinkedPrimitives.reserve(TotalSections);
-						PrimitiveIndices.reserve(TotalSections);
-						for (uint32 Section = 0; Section < TotalSections; ++Section)
-						{
-							TI_ASSERT(StaticMesh->GetMeshBuffer()->MeshBufferResource != nullptr);
-
-							const TMeshSection& MeshSection = StaticMesh->GetMeshSection(Section);
-
-							FPrimitivePtr Primitive = ti_new FPrimitive;
-							Primitive->SetInstancedStaticMesh(
-								StaticMesh->GetMeshBuffer()->MeshBufferResource,
-								MeshSection.IndexStart,
-								MeshSection.Triangles,
-								MeshSection.DefaultMaterial,
-								SceneTileResource->SMInstances.InstanceBuffer->InstanceResource,
-								SceneTileResource->SMInstances.InstanceCountAndOffset[MeshSectionOffset + Section].X,
-								SceneTileResource->SMInstances.InstanceCountAndOffset[MeshSectionOffset + Section].Y
-							);
-							LinkedPrimitives.push_back(Primitive);
-							PrimitiveIndices.push_back(MeshSectionOffset + Section);
-						}
+						// MeshResources Include static mesh, mesh sections and 1 collision set
+						TI_ASSERT(StaticMesh->GetMeshBuffer()->MeshBufferResource != nullptr);
+						LinkedPrimitive = ti_new FPrimitive;
+						LinkedPrimitive->SetInstancedStaticMesh(
+							StaticMesh,
+							SceneTileResource->SMInstances.InstanceBuffer->InstanceResource,
+							SceneTileResource->SMInstances.InstanceCountAndOffset[m].X,
+							SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y
+						);
 
 						// Add static mesh to scene
 						FMeshBufferPtr OccludeMeshBufferResource = StaticMesh->GetOccludeMesh() == nullptr ? nullptr : StaticMesh->GetOccludeMesh()->MeshBufferResource;
@@ -154,22 +134,17 @@ namespace tix
 
 						// Add primitive to scene
 						FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResource->RenderThreadTileResource;
-						TVector<uint32> Indices = PrimitiveIndices;
-						TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
+						FPrimitivePtr Primitive = LinkedPrimitive;
 						ENQUEUE_RENDER_COMMAND(AddTSceneTileMeshPrimitivesToFSceneTile)(
-							[RenderThreadSceneTileResource, Indices, Primitives]()
+							[RenderThreadSceneTileResource, m, Primitive]()
 							{
-								const uint32 TotalPrimitives = (uint32)Primitives.size();
-								for (uint32 p = 0; p < TotalPrimitives; ++p)
-								{
-									RenderThreadSceneTileResource->AddPrimitive(Indices[p], Primitives[p]);
-								}
+								RenderThreadSceneTileResource->AddPrimitive(m, Primitive);
 							});
 
 						// Create BLAS and BLAS instances for this mesh
 						TInstanceBufferPtr InstanceBufferData = SceneTileResource->SMInstances.InstanceBuffer;
-						const int32 InstanceCount = SceneTileResource->SMInstances.InstanceCountAndOffset[MeshSectionOffset].X;
-						const int32 InstanceOffset = SceneTileResource->SMInstances.InstanceCountAndOffset[MeshSectionOffset].Y;
+						const int32 InstanceCount = SceneTileResource->SMInstances.InstanceCountAndOffset[m].X;
+						const int32 InstanceOffset = SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y;
 						ENQUEUE_RENDER_COMMAND(CreateBLASAndInstances)(
 							[RenderThreadSceneTileResource, StaticMeshResource, InstanceBufferData, InstanceCount, InstanceOffset]()
 							{
@@ -194,7 +169,6 @@ namespace tix
 				{
 					++LoadedMeshCount;
 				}
-				MeshSectionOffset += SceneTileResource->SMInfos.SectionsCount[m];
 			}
 			TI_ASSERT(LoadedMeshCount <= StaticMeshCount);
 			if (LoadedMeshCount == StaticMeshCount)
@@ -217,7 +191,6 @@ namespace tix
 		if (SkeletalMeshCount > 0)
 		{
 			uint32 LoadedMeshCount = 0;
-			uint32 MeshSectionOffset = 0;
 			for (uint32 m = 0; m < SkeletalMeshCount; ++m)
 			{
 				TAssetPtr MeshAsset = SceneTileResource->SKMInfos.MeshAssets[m];
@@ -274,7 +247,6 @@ namespace tix
 				{
 					++LoadedMeshCount;
 				}
-				MeshSectionOffset += SceneTileResource->SMInfos.SectionsCount[m];
 			}
 			TI_ASSERT(LoadedMeshCount <= SkeletalMeshCount);
 			if (LoadedMeshCount == SkeletalMeshCount)

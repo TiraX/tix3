@@ -37,7 +37,7 @@ namespace tix
 		virtual void UpdateAbsoluteTransformation() override;
 
 	protected:
-		TVector<FPrimitivePtr> LinkedPrimitives;
+		FPrimitivePtr LinkedPrimitive;
 		aabbox3df TransformedBBox;
 		TVector<TNodeLight*> BindedLights;
 

@@ -40,10 +40,13 @@ namespace tix
 			TJSONNode JSkyLight = JEnv["sky_light"];
 			TVector<float> FloatArray;
 			JSkyLight["irradiance_sh3"] << FloatArray;
-			TI_ASSERT(FloatArray.size() == FSHVectorRGB3::NumTotalFloats);
-			for (int32 i = 0; i < FSHVectorRGB3::NumTotalFloats; i++)
+			if (FloatArray.size() > 0)
 			{
-				Environment.SkyLight.SH3_Raw[i] = FloatArray[i];
+				TI_ASSERT(FloatArray.size() == FSHVectorRGB3::NumTotalFloats);
+				for (int32 i = 0; i < FSHVectorRGB3::NumTotalFloats; i++)
+				{
+					Environment.SkyLight.SH3_Raw[i] = FloatArray[i];
+				}
 			}
 		}
 

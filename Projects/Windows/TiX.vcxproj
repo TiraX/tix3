@@ -58,8 +58,6 @@
     <ClCompile Include="..\..\Sources\Engine\FStats.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FTexture.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FUniformBuffer.cpp" />
-    <ClCompile Include="..\..\Sources\Engine\FVTSystem.cpp" />
-    <ClCompile Include="..\..\Sources\Engine\FVTTaskThread.cpp" />
     <ClCompile Include="..\..\Sources\Engine\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -116,7 +114,6 @@
     <ClCompile Include="..\..\Sources\Engine\TThreadIO.cpp" />
     <ClCompile Include="..\..\Sources\Engine\TThreadLoading.cpp" />
     <ClCompile Include="..\..\Sources\Engine\TTimer.cpp" />
-    <ClCompile Include="..\..\Sources\Engine\TVTTextureLoader.cpp" />
     <ClCompile Include="..\..\Sources\Externals\inih\cpp\INIReader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -179,8 +176,6 @@
     <ClInclude Include="..\..\Sources\Engine\FUniformBuffer.h" />
     <ClInclude Include="..\..\Sources\Engine\FUniformBufferView.h" />
     <ClInclude Include="..\..\Sources\Engine\FViewport.h" />
-    <ClInclude Include="..\..\Sources\Engine\FVTSystem.h" />
-    <ClInclude Include="..\..\Sources\Engine\FVTTaskThread.h" />
     <ClInclude Include="..\..\Sources\Engine\IInstrusivePtr.hpp" />
     <ClInclude Include="..\..\Sources\Engine\IReferenceCounted.h" />
     <ClInclude Include="..\..\Sources\Engine\math\Aabbox3d.h" />
@@ -270,7 +265,6 @@
     <ClInclude Include="..\..\Sources\Engine\TUtils.h" />
     <ClInclude Include="..\..\Sources\Engine\TVersion.h" />
     <ClInclude Include="..\..\Sources\Engine\TiX.h" />
-    <ClInclude Include="..\..\Sources\Engine\TVTTextureLoader.h" />
     <ClInclude Include="..\..\Sources\Externals\inih\cpp\INIReader.h" />
     <ClInclude Include="..\..\Sources\Externals\inih\ini.h" />
   </ItemGroup>

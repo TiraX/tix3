@@ -11,7 +11,6 @@ namespace tix
 {
 	TCookerSceneTile::TCookerSceneTile()
 		: StaticMeshesTotal(0)
-		, SMSectionsTotal(0)
 		, SMInstancesTotal(0)
 		, ReflectionCapturesTotal(0)
 		, EnvLights(0)
@@ -125,7 +124,6 @@ namespace tix
 			SceneTileHeader.NumSkeletons = 0;
 			SceneTileHeader.NumAnims = 0;
 			SceneTileHeader.NumStaticMeshes = (int32)AssetSMs.size();
-			SceneTileHeader.NumSMSections = SMSectionsTotal;
 			SceneTileHeader.NumSMInstances = (int32)SMInstances.size();
 			SceneTileHeader.NumSkeletalMeshes = 0;
 			SceneTileHeader.NumSKMActors = 0;

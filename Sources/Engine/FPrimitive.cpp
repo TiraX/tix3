@@ -10,11 +10,8 @@ namespace tix
 {
 	FPrimitive::FPrimitive()
 		: PrimitiveFlag(0)
-		, IndexStart(0)
-		, Triangles(0)
 		, InstanceCount(0)
 		, InstanceOffset(0)
-		, DrawList(LIST_INVALID)
 	{
 		PrimitiveUniformBuffer = ti_new FPrimitiveUniformBuffer;
 	}
@@ -26,44 +23,50 @@ namespace tix
 	}
 
 	void FPrimitive::SetInstancedStaticMesh(
-		FMeshBufferPtr InMeshBuffer, 
-		uint32 InIndexStart,
-		uint32 InTriangles,
-		TMaterialInstancePtr InMInstance, 
+		TStaticMeshPtr InStaticMesh, 
 		FInstanceBufferPtr InInstanceBuffer,
 		uint32 InInstanceCount,
 		uint32 InInstanceOffset)
 	{
+		TI_ASSERT(IsGameThread());
 		// Add mesh buffer
-		MeshBuffer = InMeshBuffer;
-		IndexStart = InIndexStart;
-		Triangles = InTriangles;
+		MeshBuffer = InStaticMesh->GetMeshBuffer()->MeshBufferResource;
+		TI_ASSERT(MeshBuffer != nullptr);
 
 		// Add instance buffer
 		InstanceBuffer = InInstanceBuffer;
 		InstanceCount = InInstanceCount;
 		InstanceOffset = InInstanceOffset;
 
-		// Add pipeline
-		TMaterialPtr Material = InMInstance->LinkedMaterial;
-		TI_ASSERT(Material->PipelineResource != nullptr);
-		Pipeline = Material->PipelineResource;
+		// Add sections here.
+		uint32 NumSections = InStaticMesh->GetMeshSectionCount();
+		Sections.reserve(NumSections);
+		for (uint32 S = 0; S < NumSections; S++)
+		{
+			const TMeshSection& Section = InStaticMesh->GetMeshSection(S);
 
-		// Instance material argument buffer
-		Argument = InMInstance->ArgumentBuffer;
+			FSection PrimitiveSection;
+			PrimitiveSection.IndexStart = Section.IndexStart;
+			PrimitiveSection.Triangles = Section.Triangles;
 
-		// Draw List
-		if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
-		{
-			DrawList = LIST_OPAQUE;
-		}
-		else if (Material->GetBlendMode() == BLEND_MODE_MASK)
-		{
-			DrawList = LIST_MASK;
-		}
-		else
-		{
-			DrawList = LIST_TRANSLUCENT;
+			TMaterialPtr Material = Section.DefaultMaterial->LinkedMaterial;
+			TI_ASSERT(Material->PipelineResource != nullptr);
+			PrimitiveSection.Pipeline = Material->PipelineResource;
+			PrimitiveSection.Argument = Section.DefaultMaterial->ArgumentBuffer;
+			
+			if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
+			{
+				PrimitiveSection.DrawList = LIST_OPAQUE;
+			}
+			else if (Material->GetBlendMode() == BLEND_MODE_MASK)
+			{
+				PrimitiveSection.DrawList = LIST_MASK;
+			}
+			else
+			{
+				PrimitiveSection.DrawList = LIST_TRANSLUCENT;
+			}
+			Sections.push_back(PrimitiveSection);
 		}
 	}
 
@@ -73,32 +76,31 @@ namespace tix
 		uint32 InTriangles,
 		TMaterialInstancePtr InMInstance)
 	{
-		// Add mesh buffer
-		MeshBuffer = InMeshBuffer;
-		IndexStart = InIndexStart;
-		Triangles = InTriangles;
+		TI_ASSERT(0);
+		//// Add mesh buffer
+		//MeshBuffer = InMeshBuffer;
 
-		// Add pipeline
-		TMaterialPtr Material = InMInstance->LinkedMaterial;
-		TI_ASSERT(Material->PipelineResource != nullptr);
-		Pipeline = Material->PipelineResource;
+		//// Add pipeline
+		//TMaterialPtr Material = InMInstance->LinkedMaterial;
+		//TI_ASSERT(Material->PipelineResource != nullptr);
+		//Pipeline = Material->PipelineResource;
 
-		// Instance material argument buffer
-		Argument = InMInstance->ArgumentBuffer;
+		//// Instance material argument buffer
+		//Argument = InMInstance->ArgumentBuffer;
 
-		// Draw List
-		if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
-		{
-			DrawList = LIST_OPAQUE;
-		}
-		else if (Material->GetBlendMode() == BLEND_MODE_MASK)
-		{
-			DrawList = LIST_MASK;
-		}
-		else
-		{
-			DrawList = LIST_TRANSLUCENT;
-		}
+		//// Draw List
+		//if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
+		//{
+		//	DrawList = LIST_OPAQUE;
+		//}
+		//else if (Material->GetBlendMode() == BLEND_MODE_MASK)
+		//{
+		//	DrawList = LIST_MASK;
+		//}
+		//else
+		//{
+		//	DrawList = LIST_TRANSLUCENT;
+		//}
 	}
 
 	void FPrimitive::SetSkeletonResource(FUniformBufferPtr InSkeletonResource)

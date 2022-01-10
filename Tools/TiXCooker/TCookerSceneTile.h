@@ -36,7 +36,6 @@ namespace tix
 		aabbox3df BBox;
 		
 		int32 StaticMeshesTotal;
-		int32 SMSectionsTotal;
 		int32 SMInstancesTotal;
 
 		int32 ReflectionCapturesTotal;

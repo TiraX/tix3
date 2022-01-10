@@ -250,26 +250,17 @@
     <ClCompile Include="..\..\Sources\Engine\TSceneLoading.cpp">
       <Filter>Sources\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FVTSystem.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TRegion.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TEngineResources.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FVTTaskThread.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TImage.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TImageLoaderTGA.cpp">
       <Filter>Sources\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\TVTTextureLoader.cpp">
-      <Filter>Sources\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TNodeSceneTile.cpp">
       <Filter>Sources\Scene</Filter>
@@ -690,23 +681,14 @@
     <ClInclude Include="..\..\Sources\Engine\TTypeScene.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FVTSystem.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TRegion.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TEngineResources.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FVTTaskThread.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TImage.h">
       <Filter>Sources\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\TVTTextureLoader.h">
-      <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TNodeSceneTile.h">
       <Filter>Sources\Scene</Filter>
