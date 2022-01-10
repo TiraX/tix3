@@ -55,9 +55,6 @@ namespace tix
 		int32 IndexStart;
 		int32 Triangles;
 
-		TVector< TVector<uint32> > ClusterIndices;
-		TVector< aabbox3df > ClusterBBoxes;
-		TVector< vector4df > ClusterCones;
 		TVector< int32 > ActiveBones;
 	};
 

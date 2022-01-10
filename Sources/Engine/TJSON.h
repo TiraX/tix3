@@ -149,7 +149,7 @@ namespace tix
 
 		void operator << (vector2di& OutVec2) const
 		{
-			TI_ASSERT(IsArray() && Size() == 2);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 2));
 			if (!IsNull())
 			{
 				(*this)[0] << OutVec2.X;
@@ -159,7 +159,7 @@ namespace tix
 
 		void operator << (vector2df& OutVec2) const
 		{
-			TI_ASSERT(IsArray() && Size() == 2);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 2));
 			if (!IsNull())
 			{
 				(*this)[0] << OutVec2.X;
@@ -169,7 +169,7 @@ namespace tix
 
 		void operator << (vector3df& OutVec3) const
 		{
-			TI_ASSERT(IsArray() && Size() == 3);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 3));
 			if (!IsNull())
 			{
 				(*this)[0] << OutVec3.X;
@@ -180,7 +180,7 @@ namespace tix
 
 		void operator << (quaternion& OutQuat) const
 		{
-			TI_ASSERT(IsArray() && Size() == 4);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 4));
 			if (!IsNull())
 			{
 				(*this)[0] << OutQuat.X;
@@ -192,7 +192,7 @@ namespace tix
 
 		void operator << (aabbox3df& OutBBox) const
 		{
-			TI_ASSERT(IsArray() && Size() == 6);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 6));
 			if (!IsNull())
 			{
 				(*this)[0] << OutBBox.MinEdge.X;
@@ -206,7 +206,7 @@ namespace tix
 
 		void operator << (SColorf& OutColorf) const
 		{
-			TI_ASSERT(IsArray() && Size() == 4);
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 4));
 			if (!IsNull())
 			{
 				(*this)[0] << OutColorf.R;
@@ -218,7 +218,7 @@ namespace tix
 
 		void operator << (TVector<TString>& OutArray) const
 		{
-			TI_ASSERT(IsArray());
+			TI_ASSERT(IsNull() || IsArray());
 			if (!IsNull())
 			{
 				OutArray.reserve(OutArray.size() + Size());
@@ -233,7 +233,7 @@ namespace tix
 
 		void operator << (TVector<int32>& OutArray) const
 		{
-			TI_ASSERT(IsArray());
+			TI_ASSERT(IsNull() || IsArray());
 			if (!IsNull())
 			{
 				OutArray.reserve(OutArray.size() + Size());
@@ -248,7 +248,7 @@ namespace tix
 
 		void operator << (TVector<float>& OutArray) const
 		{
-			TI_ASSERT(IsArray());
+			TI_ASSERT(IsNull() || IsArray());
 			if (!IsNull())
 			{
 				OutArray.reserve(OutArray.size() + Size());

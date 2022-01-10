@@ -19,7 +19,7 @@
 TString FilenameSrc;
 TString FilenameDst;
 
-TCookerSettings TCookerSettings::GlobalSettings;
+TCookerSettings TCookerSettings::Setting;
 
 void ShowUsage()
 {
@@ -97,46 +97,46 @@ bool ParseParams(int argc, TIX_COOKER_CONST int8* argv[])
 			}
 			else if (key == "iterate")
 			{
-				TCookerSettings::GlobalSettings.Iterate = true;
+				TCookerSettings::Setting.Iterate = true;
 			}
 			else if (key == "force32bitindex")
 			{
-				TCookerSettings::GlobalSettings.Force32BitIndex = true;
+				TCookerSettings::Setting.Force32BitIndex = true;
 			}
 			else if (key == "forcealphachannel")
 			{
-				TCookerSettings::GlobalSettings.ForceAlphaChannel = true;
+				TCookerSettings::Setting.ForceAlphaChannel = true;
 			}
 			else if (key == "ignoretexture")
 			{
-				TCookerSettings::GlobalSettings.IgnoreTexture = true;
+				TCookerSettings::Setting.IgnoreTexture = true;
 			}
 			else if (key == "vtinfo")
 			{
-				TCookerSettings::GlobalSettings.VTInfoFile = value;
+				TCookerSettings::Setting.VTInfoFile = value;
 			}
 			else if (key == "astc_quality")
 			{
 				if (value == "high")
 				{
-					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_High;
+					TCookerSettings::Setting.AstcQuality = TCookerSettings::Astc_Quality_High;
 				}
 				else if (value == "mid")
 				{
-					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_Mid;
+					TCookerSettings::Setting.AstcQuality = TCookerSettings::Astc_Quality_Mid;
 				}
 				else
 				{
-					TCookerSettings::GlobalSettings.AstcQuality = TCookerSettings::Astc_Quality_Low;
+					TCookerSettings::Setting.AstcQuality = TCookerSettings::Astc_Quality_Low;
 				}
 			}
 			else if (key == "cluster_size")
 			{
-				TCookerSettings::GlobalSettings.MeshClusterSize = atoi(value.c_str());
+				TCookerSettings::Setting.MeshClusterSize = atoi(value.c_str());
 			}
 			else if (key == "cluster_verbose")
 			{
-				TCookerSettings::GlobalSettings.ClusterVerbose = true;
+				TCookerSettings::Setting.ClusterVerbose = true;
 			}
 
 			//if (key == "texture_path")
@@ -147,7 +147,7 @@ bool ParseParams(int argc, TIX_COOKER_CONST int8* argv[])
 		else if (FilenameSrc == (""))
 		{
 			FilenameSrc = argv[i];
-			GetPathAndName(FilenameSrc, TCookerSettings::GlobalSettings.SrcPath, TCookerSettings::GlobalSettings.SrcName);
+			GetPathAndName(FilenameSrc, TCookerSettings::Setting.SrcPath, TCookerSettings::Setting.SrcName);
 		}
 		else if (FilenameDst == (""))
 		{
@@ -234,7 +234,7 @@ int32 DoCook(int32 argc, TIX_COOKER_CONST int8* argv[])
 
 	// Find path
 	TStringReplace(FilenameDst, "\\", "/");
-	if (TCookerSettings::GlobalSettings.Iterate && !IsTargetNeedUpdate(FilenameSrc, FilenameDst))
+	if (TCookerSettings::Setting.Iterate && !IsTargetNeedUpdate(FilenameSrc, FilenameDst))
 	{
 		return 0;
 	}

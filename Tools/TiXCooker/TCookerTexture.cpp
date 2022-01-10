@@ -40,7 +40,7 @@ namespace tix
 		Doc["address_mode"] << AddressMode;
 		Doc["target_format"] << TargetFormat;
 		SrcInfo.AddressMode = GetAddressMode(AddressMode);
-		SrcInfo.TargetFormat = GetPixelFormat(TargetFormat);
+		//SrcInfo.TargetFormat = GetPixelFormat(TargetFormat);
 
 		Doc["lod_bias"] << SrcInfo.LodBias;
 		Doc["is_normalmap"] << SrcInfo.IsNormalmap;
@@ -131,8 +131,7 @@ namespace tix
 			TextureOutput->Desc.AddressMode = SrcInfo.AddressMode;
 			TextureOutput->Desc.SRGB = SrcInfo.SRGB;
 
-			TCookerTexture Helper;
-			Helper.AddTexture(TextureOutput);
+			AddTexture(TextureOutput);
 			return true;
 		}
 		else

@@ -353,7 +353,7 @@ namespace tix
 		E_PIXEL_FORMAT DstFormat = EPF_UNKNOWN;
 		int32 BlockSize = 4;
 
-		switch (TCookerSettings::GlobalSettings.AstcQuality)
+		switch (TCookerSettings::Setting.AstcQuality)
 		{
 		case TCookerSettings::Astc_Quality_High:
 			DstFormat = EPF_ASTC4x4;
@@ -378,7 +378,7 @@ namespace tix
 		}
 		else if (SrcFormat == EPF_RGBA8)
 		{
-			if (SrcImage->TGASourcePixelDepth == 24 && !TCookerSettings::GlobalSettings.ForceAlphaChannel)
+			if (SrcImage->TGASourcePixelDepth == 24 && !TCookerSettings::Setting.ForceAlphaChannel)
 			{
 				bHasAlpha = false;
 			}

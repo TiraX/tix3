@@ -154,7 +154,7 @@ namespace tix
 			}
 
 			// Generate mesh cluster for this section
-			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::Setting.MeshClusterSize > 0)
 			{
 				TI_ASSERT(0);
 			}
@@ -274,7 +274,7 @@ namespace tix
 			TI_ASSERT(Mesh.Segments[ESSI_POSITION].Data != nullptr);
 
 			int32 IndexType = Mesh.NumVertices > 65535 ? EIT_32BIT : EIT_16BIT;
-			if (TCookerSettings::GlobalSettings.Force32BitIndex)
+			if (TCookerSettings::Setting.Force32BitIndex)
 			{
 				IndexType = EIT_32BIT;
 			}
@@ -318,31 +318,9 @@ namespace tix
 				}
 			}
 
-			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::Setting.MeshClusterSize > 0)
 			{
-				// Remember all clusters
-				MeshHeader.ClusterSize = TCookerSettings::GlobalSettings.MeshClusterSize;
-				int32 TotalClusters = 0;
-				for (int32 s = 0; s < MeshHeader.Sections; ++s)
-				{
-					TotalClusters += (int32)Mesh.Sections[s].ClusterIndices.size();
-				}
-				TI_ASSERT(TotalClusters < 65000);
-				MeshHeader.Clusters = (uint16)TotalClusters;
-				MeshHeader.PrimitiveCount = MeshHeader.ClusterSize * MeshHeader.Clusters;
-
-				// Correct section index_start and triangles
-				int32 IndexOffset = 0;
-				for (int32 s = 0; s < MeshHeader.Sections; ++s)
-				{
-					SMSections[s].IndexStart = IndexOffset;
-					SMSections[s].Triangles = (int32)(Mesh.Sections[s].ClusterIndices.size() * MeshHeader.ClusterSize);
-					for (const auto& CI : Mesh.Sections[s].ClusterIndices)
-					{
-						TI_ASSERT(CI.size() == MeshHeader.ClusterSize * 3);
-					}
-					IndexOffset += SMSections[s].Triangles * 3;
-				}
+				TI_ASSERT(0);
 			}
 
 			// fill data
@@ -458,36 +436,9 @@ namespace tix
 			FillZero4(DataStream);
 
 			// - Indices
-			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::Setting.MeshClusterSize > 0)
 			{
-				if (MeshHeader.IndexType == EIT_16BIT)
-				{
-					for (int32 s = 0; s < MeshHeader.Sections; ++s)
-					{
-						for (auto CI : Mesh.Sections[s].ClusterIndices)
-						{
-							for (auto I : CI)
-							{
-								uint16 Index = (uint16)I;
-								DataStream.Put(&Index, sizeof(uint16));
-							}
-						}
-					}
-				}
-				else
-				{
-					for (int32 s = 0; s < MeshHeader.Sections; ++s)
-					{
-						for (auto CI : Mesh.Sections[s].ClusterIndices)
-						{
-							for (auto I : CI)
-							{
-								uint32 Index = (uint32)I;
-								DataStream.Put(&Index, sizeof(uint32));
-							}
-						}
-					}
-				}
+				TI_ASSERT(0);
 			}
 			else
 			{
@@ -512,22 +463,9 @@ namespace tix
 			FillZero4(DataStream);
 
 			// Export cluster meta data
-			if (TCookerSettings::GlobalSettings.MeshClusterSize > 0)
+			if (TCookerSettings::Setting.MeshClusterSize > 0)
 			{
-				for (int32 s = 0; s < MeshHeader.Sections; ++s)
-				{
-					TI_ASSERT(Mesh.Sections[s].ClusterBBoxes.size() == Mesh.Sections[s].ClusterCones.size());
-
-					const uint32 ClusterCount = (uint32)Mesh.Sections[s].ClusterBBoxes.size();
-					for (uint32 c = 0; c < ClusterCount; ++c)
-					{
-						TMeshClusterDef Cluster;
-						Cluster.BBox = Mesh.Sections[s].ClusterBBoxes[c];
-						Cluster.Cone = Mesh.Sections[s].ClusterCones[c];
-
-						DataStream.Put(&Cluster, sizeof(TMeshClusterDef));
-					}
-				}
+				TI_ASSERT(0);
 			}
 
 			// Fill header

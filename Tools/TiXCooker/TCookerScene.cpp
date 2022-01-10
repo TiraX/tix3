@@ -65,44 +65,6 @@ namespace tix
 			}
 		}
 
-		// Load VT region info
-		if (!TCookerSettings::GlobalSettings.VTInfoFile.empty())
-		{
-			TFile f;
-			if (f.Open(TCookerSettings::GlobalSettings.VTInfoFile, EFA_READ))
-			{
-				int8* content = ti_new int8[f.GetSize() + 1];
-				f.Read(content, f.GetSize(), f.GetSize());
-				content[f.GetSize()] = 0;
-				f.Close();
-
-				TJSON JsonDoc;
-				JsonDoc.Parse(content);
-
-				JsonDoc["vt_size"] << VTSize;
-				JsonDoc["page_size"] << PageSize;
-
-				TJSONNode JRegions = JsonDoc["regions"];
-
-				for (int32 i = 0; i < JRegions.Size(); ++i)
-				{
-					TJSONNode JRegionObject = JRegions[i];
-					TString TextureName;
-					JRegionObject["name"] << TextureName;
-
-					TJSONNode JRegion = JRegionObject["region"];
-					TVector<int32> IntArray;
-					JRegion << IntArray;
-					TVTRegionInfo Info;
-					Info.X = IntArray[0];
-					Info.Y = IntArray[1];
-					Info.W = IntArray[2];
-					Info.H = IntArray[3];
-					VTRegionInfo[TextureName] = Info;
-				}
-			}
-		}
-
 		// Load tiles
 		{
 			TJSONNode JTileList = Doc["tiles"];
@@ -111,8 +73,8 @@ namespace tix
 			for (int32 i = 0; i < JTileList.Size(); ++i)
 			{
 				TJSONNode JTile = JTileList[i];
-				vector2di TilePos;
-				JTile << TilePos;
+				vector2di TilePos(-99999, -99999);
+				JTile["index"] << TilePos;
 				AssetSceneTiles.push_back(TilePos);
 				TI_ASSERT(TMath::Abs(TilePos.X) <= 32760 && TMath::Abs(TilePos.Y) <= 32760);
 			}

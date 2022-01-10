@@ -17,7 +17,7 @@ namespace tix
 	TResTextureDefine* TCookerTexture::LoadHdrFile(const TResTextureSourceInfo& SrcInfo)
 	{
 		TFile f;
-		TString SrcPathName = TCookerSettings::GlobalSettings.SrcPath + SrcInfo.TextureSource;
+		TString SrcPathName = TCookerSettings::Setting.SrcPath + SrcInfo.TextureSource;
 		if (!f.Open(SrcPathName, EFA_READ))
 		{
 			return nullptr;

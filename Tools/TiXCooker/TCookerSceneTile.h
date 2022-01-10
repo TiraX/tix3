@@ -40,24 +40,13 @@ namespace tix
 		int32 SMInstancesTotal;
 
 		int32 ReflectionCapturesTotal;
-
-		int32 SkeletalMeshTotal;
-		int32 SkeletonTotal;
-		int32 AnimationTotal;
-		int32 SKMActorsTotal;
-
 		
 		TVector<TString> AssetTextures;
 		TVector<TString> AssetMaterialInstances;
 		TVector<TString> AssetMaterials;
-		TVector<TString> AssetAnims;
-		TVector<TString> AssetSkeletons;
 		TVector<TString> AssetSMs;
-		TVector<TString> AssetSKMs;
 		TVector<int32> SMInstanceCount;
-		TVector<int32> SMSections;
 		TVector<TResEnvLight> EnvLights;
 		TVector<TResSMInstance> SMInstances;
-		TVector<TResSKMActor> SKMActors;
 	};
 }

@@ -42,19 +42,19 @@ namespace tix
 		int32 LodBias;
 		E_PIXEL_FORMAT TargetFormat;
 		E_TEXTURE_ADDRESS_MODE AddressMode;
-		int32 SRGB;
-		int32 IsNormalmap;
-		int32 IsIBL;
-		int32 HasMips;
+		bool SRGB;
+		bool IsNormalmap;
+		bool IsIBL;
+		bool HasMips;
 
 		TResTextureSourceInfo()
 			: LodBias(0)
 			, TargetFormat(EPF_RGBA8)
 			, AddressMode(ETC_REPEAT)
-			, SRGB(0)
-			, IsNormalmap(0)
-			, IsIBL(0)
-			, HasMips(0)
+			, SRGB(false)
+			, IsNormalmap(false)
+			, IsIBL(false)
+			, HasMips(false)
 		{}
 	};
 

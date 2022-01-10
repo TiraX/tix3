@@ -17,13 +17,13 @@ namespace tix
 			Astc_Quality_Low
 		};
 
-		static TCookerSettings GlobalSettings;
+		static TCookerSettings Setting;
 		TCookerSettings()
 			: Iterate(false)
 			, Force32BitIndex(false)
 			, ForceAlphaChannel(false)
 			, IgnoreTexture(false)
-			, AstcQuality(Astc_Quality_Low)
+			, AstcQuality(Astc_Quality_High)
 			, MeshClusterSize(0)
 			, ClusterVerbose(false)
 		{}
