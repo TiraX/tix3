@@ -19,16 +19,6 @@ namespace tix
 		ERHI_NUM,
 	};
 
-	enum E_PIPELINE_TYPE
-	{
-		EPL_INVALID = -1,
-		EPL_GRAPHICS,
-		EPL_COMPUTE,
-        EPL_BLIT,
-
-		EPL_NUM,
-	};
-
 	enum E_RESOURCE_STATE
 	{
 		RESOURCE_STATE_COMMON,
@@ -82,9 +72,6 @@ namespace tix
 		virtual void BeginFrame();
 		virtual void EndFrame() = 0;
         virtual void BeginRenderToFrameBuffer() {};
-
-		virtual void BeginComputeTask(bool IsTileComputeShader = false) = 0;
-		virtual void EndComputeTask(bool IsTileComputeShader = false) = 0;
 
 		virtual void BeginEvent(const int8* InEventName) = 0;
 		virtual void BeginEvent(const int8* InEventName, int32 Index) = 0;
@@ -279,25 +266,5 @@ namespace tix
 
 		FRenderResourceHeap RenderResourceHeap[EHT_COUNT];
 		FBoundResource CurrentBoundResource;
-        
-        struct FCommandListState
-        {
-            E_PIPELINE_TYPE ListType;
-            int32 ListIndex;
-            
-            FCommandListState()
-            : ListType(EPL_INVALID)
-            , ListIndex(-1)
-            {}
-            
-            void Reset()
-            {
-                ListType = EPL_INVALID;
-                ListIndex = -1;
-            }
-        };
-        FCommandListState CurrentCommandListState;
-        TVector<FCommandListState> ListExecuteOrder;
-        int32 CurrentCommandListCounter[EPL_NUM];
 	};
 }
