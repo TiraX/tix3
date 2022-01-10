@@ -36,7 +36,9 @@ void FTiXSceneTile::AddStaticMeshActor(AActor* Actor)
 	// Add to SM Instances
 	TArray<FTiXSceneTile::FInstance>& Instances = SMInstances.FindOrAdd(StaticMesh);
 	FTiXSceneTile::FInstance Instance;
-	Instance.Transform = SMActor->GetTransform();
+	FTransform Transform = SMActor->GetTransform();
+	Transform.SetTranslation(Transform.GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
+	Instance.Transform = Transform;
 	Instances.Add(Instance);
 }
 
@@ -58,7 +60,9 @@ void FTiXSceneTile::AddFoliageActor(AActor* Actor)
 		for (auto& MeshMatrix : MeshDataArray)
 		{
 			FTiXSceneTile::FInstance Instance;
-			Instance.Transform = FTransform(MeshMatrix.Transform);
+			FTransform Transform = FTransform(MeshMatrix.Transform);
+			Transform.SetTranslation(Transform.GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
+			Instance.Transform = Transform;
 			Instances.Add(Instance);
 		}
 	}
@@ -197,7 +201,7 @@ void FTiXSceneTile::UpdateInstancesDesc()
 		for (const auto& SMIns : Iter.Value)
 		{
 			FTiXSMInstance InsDesc;
-			InsDesc.position = ToArray(SMIns.Transform.GetTranslation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
+			InsDesc.position = ToArray(SMIns.Transform.GetTranslation());
 			InsDesc.rotation = ToArray(SMIns.Transform.GetRotation());
 			InsDesc.scale = ToArray(SMIns.Transform.GetScale3D());
 			SMInstanceDesc.instances.Add(InsDesc);
