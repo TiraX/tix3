@@ -68,6 +68,7 @@ private:
 	TMap<FIntPoint, FTiXSceneTile*> SceneTiles;
 
 	// Resources to export
+	UTextureCube* SkylightCube;
 	TArray<UStaticMesh*> StaticMeshes;
 	TArray<UTexture*> Textures;
 	TArray<UMaterial*> Materials;

@@ -140,6 +140,12 @@ struct FTiXSkyLight
 
 	UPROPERTY()
 	TArray<float> irradiance_sh3;
+
+	UPROPERTY()
+	FString cube_source;
+
+	UPROPERTY()
+	float cube_angle;
 };
 
 // Camera Asset

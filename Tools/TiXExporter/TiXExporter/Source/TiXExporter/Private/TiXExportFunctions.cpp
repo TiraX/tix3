@@ -37,6 +37,12 @@ void FTiXExportFunctions::ExportScene(FTiXScene& Scene)
 		}
 	}
 
+	// Export skylight cubemap
+	if (Scene.SkylightCube != nullptr)
+	{
+		ExportTexture(Scene.SkylightCube, ExportPath + GetResourcePath(Scene.SkylightCube), true);
+	}
+
 	// Export static meshes
 	for (const auto& SM : Scene.StaticMeshes)
 	{
@@ -446,7 +452,7 @@ void FTiXExportFunctions::ExportTexture(UTexture* T, const FString& ExportPath, 
 	UTextureCube* InTextureCube = Cast<UTextureCube>(T);
 
 	// Save texture 2d with tga format and texture cube with hdr format
-	FString ImageExtName = T->CompressionSettings == TC_HDR ? TEXT("hdr") : TEXT("tga");
+	FString ImageExtName = (T->Source.GetFormat() == TSF_BGRE8 || T->Source.GetFormat() == TSF_RGBA16F) ? TEXT("hdr") : TEXT("tga");
 
 	FBufferArchive Buffer;
 	if (IsTexture2D)

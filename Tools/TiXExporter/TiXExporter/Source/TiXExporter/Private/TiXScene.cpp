@@ -244,6 +244,7 @@ void FTiXSceneTile::UpdateStatisticsDesc()
 
 FTiXScene::FTiXScene(UWorld* InWorld)
 	: SceneWorld(InWorld)
+	, SkylightCube(nullptr)
 {
 	SceneDesc.name = InWorld->GetName();
 	SceneDesc.type = TEXT("scene");
@@ -322,6 +323,16 @@ void FTiXScene::ApplySkyLight(AActor* Actor)
 
 	SceneDesc.environment.sky_light.name = SkyLightActor->GetName();
 	SceneDesc.environment.sky_light.irradiance_sh3 = ToArray(SkyLightComp->GetIrradianceEnvironmentMap());
+	if (SkyLightComp->SourceType == SLS_SpecifiedCubemap)
+	{
+		SceneDesc.environment.sky_light.cube_source = FTiXExportFunctions::GetResourcePathName(SkyLightComp->Cubemap) + FTiXExporterSetting::Setting.ExtName;
+		SceneDesc.environment.sky_light.cube_angle = SkyLightComp->SourceCubemapAngle;
+		SkylightCube = SkyLightComp->Cubemap;
+	}
+	else
+	{
+		SceneDesc.environment.sky_light.cube_angle = 0;
+	}
 }
 
 FTiXSceneTile* FTiXScene::GetActorTile(AActor* Actor)
