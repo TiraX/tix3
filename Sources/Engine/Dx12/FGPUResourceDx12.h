@@ -51,5 +51,29 @@ namespace tix
 
 		friend class FRHIDx12;
 	};
+
+	/////////////////////////////////////////////////////////////
+
+	class FGPUResourceBufferDx12 : public FGPUResourceBuffer
+	{
+	public:
+		FGPUResourceBufferDx12()
+		{}
+
+		virtual ~FGPUResourceBufferDx12()
+		{}
+	};
+
+	/////////////////////////////////////////////////////////////
+
+	class FGPUResourceTextureDx12 : public FGPUResourceTexture
+	{
+	public:
+		FGPUResourceTextureDx12()
+		{}
+
+		virtual ~FGPUResourceTextureDx12()
+		{}
+	};
 }
 #endif	// COMPILE_WITH_RHI_DX12

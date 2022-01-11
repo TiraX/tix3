@@ -544,6 +544,16 @@ namespace tix
 		END_EVENT(DirectCommandList.Get());
 	}
 
+	FGPUResourceBufferPtr FRHIDx12::CreateGPUResourceBuffer()
+	{
+		return ti_new FGPUResourceBufferDx12();
+	}
+	
+	FGPUResourceTexturePtr FRHIDx12::CreateGPUResourceTexture()
+	{
+		return ti_new FGPUResourceTextureDx12();
+	}
+
 	FTexturePtr FRHIDx12::CreateTexture()
 	{
 		return ti_new FTextureDx12();
@@ -571,23 +581,6 @@ namespace tix
 		{
 			return ti_new FUniformBufferDx12(InStructureSizeInBytes, Elements, Flag);
 		}
-	}
-
-	FMeshBufferPtr FRHIDx12::CreateMeshBuffer()
-	{
-		return ti_new FMeshBufferDx12();
-	}
-
-	FMeshBufferPtr FRHIDx12::CreateEmptyMeshBuffer(
-		E_PRIMITIVE_TYPE InPrimType,
-		uint32 InVSFormat,
-		uint32 InVertexCount,
-		E_INDEX_TYPE InIndexType,
-		uint32 InIndexCount,
-		const FBox& InMeshBBox
-	)
-	{
-		return ti_new FMeshBufferDx12(InPrimType, InVSFormat, InVertexCount, InIndexType, InIndexCount, InMeshBBox);
 	}
 
 	FInstanceBufferPtr FRHIDx12::CreateInstanceBuffer()
@@ -859,143 +852,143 @@ namespace tix
 
 	bool FRHIDx12::UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData)
 	{
-#if defined (TIX_DEBUG)
-		MeshBuffer->SetResourceName(InMeshData->GetResourceName());
-#endif
-		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
-
-		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
-		// The upload resource must not be released until after the GPU has finished using it.
-		ComPtr<ID3D12Resource> VertexBufferUpload;
-
-		const int32 BufferSize = InMeshData->GetDesc().VertexCount * InMeshData->GetDesc().Stride;
-		CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-		CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
-
-		MBDx12->VertexBuffer.CreateResource(
-			D3dDevice.Get(),
-			&defaultHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&vertexBufferDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST);
-
-		CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-			&uploadHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&vertexBufferDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&VertexBufferUpload)));
-
-		DX_SETNAME(MBDx12->VertexBuffer.GetResource().Get(), MeshBuffer->GetResourceName() + "-VB");
-		DX_SETNAME(VertexBufferUpload.Get(), MeshBuffer->GetResourceName() + "-Upload");
-
-		// Upload the vertex buffer to the GPU.
-		{
-			D3D12_SUBRESOURCE_DATA VertexData = {};
-			VertexData.pData = reinterpret_cast<const uint8*>(InMeshData->GetVSData());
-			VertexData.RowPitch = BufferSize;
-			VertexData.SlicePitch = VertexData.RowPitch;
-
-			UpdateSubresources(DirectCommandList.Get(), MBDx12->VertexBuffer.GetResource().Get(), VertexBufferUpload.Get(), 0, 0, 1, &VertexData);
-
-			D3D12_RESOURCE_STATES DestState;
-			if (MeshBuffer->GetUsage() == FRenderResource::USAGE_DEFAULT)
-			{
-				DestState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-			}
-			else if (MeshBuffer->GetUsage() == FRenderResource::USAGE_COPY_SOURCE)
-			{
-				DestState = D3D12_RESOURCE_STATE_COPY_SOURCE;
-			}
-			else
-			{
-				TI_ASSERT(0);
-			}
-
-			if (RHIConfig.IsRaytracingEnabled())
-			{
-				TI_TODO("Mark Meshbuffers that need to generate BLAS.");
-				DestState |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-			}
-
-			Transition(&MBDx12->VertexBuffer, DestState);
-		}
-
-		const uint32 IndexBufferSize = (InMeshData->GetDesc().IndexCount * (InMeshData->GetDesc().IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32)));
-
-		// Create the index buffer resource in the GPU's default heap and copy index data into it using the upload heap.
-		// The upload resource must not be released until after the GPU has finished using it.
-		ComPtr<ID3D12Resource> IndexBufferUpload;
-
-		CD3DX12_RESOURCE_DESC IndexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(IndexBufferSize);
-
-		MBDx12->IndexBuffer.CreateResource(
-			D3dDevice.Get(),
-			&defaultHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&IndexBufferDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST);
-
-		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-			&uploadHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&IndexBufferDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&IndexBufferUpload)));
-
-		DX_SETNAME(MBDx12->IndexBuffer.GetResource().Get(), MeshBuffer->GetResourceName() + "-ib");
-		DX_SETNAME(IndexBufferUpload.Get(), MeshBuffer->GetResourceName() + "-Upload");
-
-		// Upload the index buffer to the GPU.
-		{
-			D3D12_SUBRESOURCE_DATA IndexData = {};
-			IndexData.pData = reinterpret_cast<const uint8*>(InMeshData->GetPSData());
-			IndexData.RowPitch = IndexBufferSize;
-			IndexData.SlicePitch = IndexData.RowPitch;
-
-			UpdateSubresources(DirectCommandList.Get(), MBDx12->IndexBuffer.GetResource().Get(), IndexBufferUpload.Get(), 0, 0, 1, &IndexData);
-
-			D3D12_RESOURCE_STATES DestState;
-			if (MeshBuffer->GetUsage() == FRenderResource::USAGE_DEFAULT)
-			{
-				DestState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-			}
-			else if (MeshBuffer->GetUsage() == FRenderResource::USAGE_COPY_SOURCE)
-			{
-				DestState = D3D12_RESOURCE_STATE_COPY_SOURCE;
-			}
-			else
-			{
-				TI_ASSERT(0);
-			}
-
-			if (RHIConfig.IsRaytracingEnabled())
-			{
-				TI_TODO("Mark Meshbuffers that need to generate BLAS.");
-				DestState |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-			}
-
-			Transition(&MBDx12->IndexBuffer, DestState);
-		}
-
-		FlushGraphicsBarriers(DirectCommandList.Get());
-
-		// Create vertex/index buffer views.
-		MBDx12->VertexBufferView.BufferLocation = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
-		MBDx12->VertexBufferView.StrideInBytes = InMeshData->GetDesc().Stride;
-		MBDx12->VertexBufferView.SizeInBytes = BufferSize;
-
-		MBDx12->IndexBufferView.BufferLocation = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
-		MBDx12->IndexBufferView.SizeInBytes = IndexBufferSize;
-		MBDx12->IndexBufferView.Format = InMeshData->GetDesc().IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-
-		// Hold resources used here
-		HoldResourceReference(MeshBuffer);
-		HoldResourceReference(VertexBufferUpload);
-		HoldResourceReference(IndexBufferUpload);
+//#if defined (TIX_DEBUG)
+//		MeshBuffer->SetResourceName(InMeshData->GetResourceName());
+//#endif
+//		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
+//
+//		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
+//		// The upload resource must not be released until after the GPU has finished using it.
+//		ComPtr<ID3D12Resource> VertexBufferUpload;
+//
+//		const int32 BufferSize = InMeshData->GetDesc().VertexCount * InMeshData->GetDesc().Stride;
+//		CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+//		CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
+//
+//		MBDx12->VertexBuffer.CreateResource(
+//			D3dDevice.Get(),
+//			&defaultHeapProperties,
+//			D3D12_HEAP_FLAG_NONE,
+//			&vertexBufferDesc,
+//			D3D12_RESOURCE_STATE_COPY_DEST);
+//
+//		CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+//		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
+//			&uploadHeapProperties,
+//			D3D12_HEAP_FLAG_NONE,
+//			&vertexBufferDesc,
+//			D3D12_RESOURCE_STATE_GENERIC_READ,
+//			nullptr,
+//			IID_PPV_ARGS(&VertexBufferUpload)));
+//
+//		DX_SETNAME(MBDx12->VertexBuffer.GetResource().Get(), MeshBuffer->GetResourceName() + "-VB");
+//		DX_SETNAME(VertexBufferUpload.Get(), MeshBuffer->GetResourceName() + "-Upload");
+//
+//		// Upload the vertex buffer to the GPU.
+//		{
+//			D3D12_SUBRESOURCE_DATA VertexData = {};
+//			VertexData.pData = reinterpret_cast<const uint8*>(InMeshData->GetVSData());
+//			VertexData.RowPitch = BufferSize;
+//			VertexData.SlicePitch = VertexData.RowPitch;
+//
+//			UpdateSubresources(DirectCommandList.Get(), MBDx12->VertexBuffer.GetResource().Get(), VertexBufferUpload.Get(), 0, 0, 1, &VertexData);
+//
+//			D3D12_RESOURCE_STATES DestState;
+//			if (MeshBuffer->GetUsage() == FRenderResource::USAGE_DEFAULT)
+//			{
+//				DestState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+//			}
+//			else if (MeshBuffer->GetUsage() == FRenderResource::USAGE_COPY_SOURCE)
+//			{
+//				DestState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+//			}
+//			else
+//			{
+//				TI_ASSERT(0);
+//			}
+//
+//			if (RHIConfig.IsRaytracingEnabled())
+//			{
+//				TI_TODO("Mark Meshbuffers that need to generate BLAS.");
+//				DestState |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+//			}
+//
+//			Transition(&MBDx12->VertexBuffer, DestState);
+//		}
+//
+//		const uint32 IndexBufferSize = (InMeshData->GetDesc().IndexCount * (InMeshData->GetDesc().IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32)));
+//
+//		// Create the index buffer resource in the GPU's default heap and copy index data into it using the upload heap.
+//		// The upload resource must not be released until after the GPU has finished using it.
+//		ComPtr<ID3D12Resource> IndexBufferUpload;
+//
+//		CD3DX12_RESOURCE_DESC IndexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(IndexBufferSize);
+//
+//		MBDx12->IndexBuffer.CreateResource(
+//			D3dDevice.Get(),
+//			&defaultHeapProperties,
+//			D3D12_HEAP_FLAG_NONE,
+//			&IndexBufferDesc,
+//			D3D12_RESOURCE_STATE_COPY_DEST);
+//
+//		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
+//			&uploadHeapProperties,
+//			D3D12_HEAP_FLAG_NONE,
+//			&IndexBufferDesc,
+//			D3D12_RESOURCE_STATE_GENERIC_READ,
+//			nullptr,
+//			IID_PPV_ARGS(&IndexBufferUpload)));
+//
+//		DX_SETNAME(MBDx12->IndexBuffer.GetResource().Get(), MeshBuffer->GetResourceName() + "-ib");
+//		DX_SETNAME(IndexBufferUpload.Get(), MeshBuffer->GetResourceName() + "-Upload");
+//
+//		// Upload the index buffer to the GPU.
+//		{
+//			D3D12_SUBRESOURCE_DATA IndexData = {};
+//			IndexData.pData = reinterpret_cast<const uint8*>(InMeshData->GetPSData());
+//			IndexData.RowPitch = IndexBufferSize;
+//			IndexData.SlicePitch = IndexData.RowPitch;
+//
+//			UpdateSubresources(DirectCommandList.Get(), MBDx12->IndexBuffer.GetResource().Get(), IndexBufferUpload.Get(), 0, 0, 1, &IndexData);
+//
+//			D3D12_RESOURCE_STATES DestState;
+//			if (MeshBuffer->GetUsage() == FRenderResource::USAGE_DEFAULT)
+//			{
+//				DestState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+//			}
+//			else if (MeshBuffer->GetUsage() == FRenderResource::USAGE_COPY_SOURCE)
+//			{
+//				DestState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+//			}
+//			else
+//			{
+//				TI_ASSERT(0);
+//			}
+//
+//			if (RHIConfig.IsRaytracingEnabled())
+//			{
+//				TI_TODO("Mark Meshbuffers that need to generate BLAS.");
+//				DestState |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+//			}
+//
+//			Transition(&MBDx12->IndexBuffer, DestState);
+//		}
+//
+//		FlushGraphicsBarriers(DirectCommandList.Get());
+//
+//		// Create vertex/index buffer views.
+//		MBDx12->VertexBufferView.BufferLocation = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
+//		MBDx12->VertexBufferView.StrideInBytes = InMeshData->GetDesc().Stride;
+//		MBDx12->VertexBufferView.SizeInBytes = BufferSize;
+//
+//		MBDx12->IndexBufferView.BufferLocation = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
+//		MBDx12->IndexBufferView.SizeInBytes = IndexBufferSize;
+//		MBDx12->IndexBufferView.Format = InMeshData->GetDesc().IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+//
+//		// Hold resources used here
+//		HoldResourceReference(MeshBuffer);
+//		HoldResourceReference(VertexBufferUpload);
+//		HoldResourceReference(IndexBufferUpload);
 
 		return true;
 	}

@@ -56,6 +56,9 @@ namespace tix
 		virtual ~FRenderResource() 
 		{}
 
+		virtual void CreateGPUResource(TStreamPtr Data)
+		{}
+
 		E_RENDER_RESOURCE_TYPE GetResourceType() const
 		{
 			return ResourceType;

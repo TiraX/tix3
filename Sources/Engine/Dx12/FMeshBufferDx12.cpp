@@ -26,17 +26,6 @@ namespace tix
 	{
 	}
 
-	FMeshBufferDx12::FMeshBufferDx12(
-		E_PRIMITIVE_TYPE InPrimType,
-		uint32 InVSFormat,
-		uint32 InVertexCount,
-		E_INDEX_TYPE InIndexType,
-		uint32 InIndexCount,
-		const FBox& InBBox
-	)
-		: FMeshBuffer(InPrimType, InVSFormat, InVertexCount, InIndexType, InIndexCount, InBBox)
-	{}
-
 	FMeshBufferDx12::~FMeshBufferDx12()
 	{
 		TI_ASSERT(IsRenderThread());

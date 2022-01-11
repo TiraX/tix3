@@ -12,18 +12,10 @@ namespace tix
 	{
 	public:
 		FMeshBuffer();
-		FMeshBuffer(
-			E_PRIMITIVE_TYPE InPrimType,
-			uint32 InVSFormat,
-			uint32 InVertexCount,
-			E_INDEX_TYPE InIndexType,
-			uint32 InIndexCount,
-			const FBox& InBBox
-		);
+		FMeshBuffer(const TMeshBufferDesc& InDesc);
 		virtual ~FMeshBuffer();
 
-	public:
-		void TI_API SetFromTMeshBuffer(TMeshBufferPtr InMeshBuffer);
+		virtual void CreateGPUResource(TStreamPtr Data) override;
 
 		const TMeshBufferDesc& GetDesc() const
 		{
@@ -33,6 +25,9 @@ namespace tix
 
 	protected:
 		TMeshBufferDesc Desc;
+
+		FGPUResourceBufferPtr GPUResourceVB;
+		FGPUResourceBufferPtr GPUResourceIB;
 	};
 
 	///////////////////////////////////////////////////////////

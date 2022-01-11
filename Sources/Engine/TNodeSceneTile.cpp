@@ -121,14 +121,13 @@ namespace tix
 						// Add static mesh to scene
 						FMeshBufferPtr OccludeMeshBufferResource = StaticMesh->GetOccludeMesh() == nullptr ? nullptr : StaticMesh->GetOccludeMesh()->MeshBufferResource;
 						FMeshBufferPtr StaticMeshResource = StaticMesh->GetMeshBuffer()->MeshBufferResource;
-						FUniformBufferPtr ClusterData = StaticMesh->GetMeshBuffer()->MeshClusterDataResource;
 						ENQUEUE_RENDER_COMMAND(AddTSceneTileStaticMeshToFScene)(
-							[StaticMeshResource, OccludeMeshBufferResource, ClusterData]()
+							[StaticMeshResource, OccludeMeshBufferResource]()
 							{
 								FRenderThread::Get()->GetRenderScene()->AddSceneMeshBuffer(
 									StaticMeshResource, 
 									OccludeMeshBufferResource, 
-									ClusterData);
+									nullptr);
 							});
 
 

@@ -11,15 +11,11 @@ namespace tix
 {
 	TMeshBuffer::TMeshBuffer()
 		: TResource(ERES_MESH_BUFFER)
-		, VsData(nullptr)
-		, PsData(nullptr)
 	{
 	}
 
 	TMeshBuffer::~TMeshBuffer()
 	{
-		SAFE_DELETE(VsData);
-		SAFE_DELETE(PsData);
 	}
 
 	uint32 TMeshBuffer::GetStrideFromFormat(uint32 Format)
@@ -52,17 +48,18 @@ namespace tix
 	void TMeshBuffer::InitRenderThreadResource()
 	{
 		TI_ASSERT(MeshBufferResource == nullptr);
-		MeshBufferResource = FRHI::Get()->CreateMeshBuffer();
+		MeshBufferResource = ti_new FMeshBuffer(Desc);
 
 		FMeshBufferPtr MeshBuffer = MeshBufferResource;
-		FUniformBufferPtr ClusterDataBuffer = MeshClusterDataResource;
-		TMeshBufferPtr InMeshData = this;
+		TStreamPtr InData = Data;
 		ENQUEUE_RENDER_COMMAND(TMeshBufferUpdateFMeshBuffer)(
-			[MeshBuffer, ClusterDataBuffer, InMeshData]()
+			[MeshBuffer, InData]()
 			{
-				MeshBuffer->SetFromTMeshBuffer(InMeshData);
-				FRHI::Get()->UpdateHardwareResourceMesh(MeshBuffer, InMeshData);
+				MeshBuffer->CreateGPUResource(InData);
 			});
+
+		// release CPU memory after create render resource
+		Data = nullptr;	
 	}
 
 	void TMeshBuffer::DestroyRenderThreadResource()
@@ -93,17 +90,16 @@ namespace tix
 
 		Desc.Stride = GetStrideFromFormat(InFormat);
 
-		const uint32 VsSize = InVertexCount * Desc.Stride;
-		const uint32 VsBufferSize = TMath::Align(VsSize, 16);
-		TI_ASSERT(VsData == nullptr);
-		VsData = ti_new uint8[VsBufferSize];
-		memcpy(VsData, InVertexData, VsSize);
-
-		const uint32 PsSize = InIndexCount * (InIndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
-		const uint32 PsBufferSize = TMath::Align(PsSize, 16);
-		TI_ASSERT(PsData == nullptr);
-		PsData = ti_new uint8[PsBufferSize];
-		memcpy(PsData, InIndexData, PsSize);
+		// Copy data
+		TI_ASSERT(Data == nullptr);
+		const int32 VertexDataSize = InVertexCount * Desc.Stride;
+		const int32 IndexDataSize = InIndexCount * (InIndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
+		const uint32 VertexBufferSize = TMath::Align4(VertexDataSize);
+		TI_ASSERT(VertexBufferSize == VertexDataSize); // vertex always 4 bytes aligned
+		const uint32 IndexBufferSize = TMath::Align4(IndexDataSize);
+		Data = ti_new TStream(VertexBufferSize + IndexBufferSize);
+		Data->Put(InVertexData, VertexDataSize);
+		Data->Put(InIndexData, IndexDataSize);
 	}
 
 	///////////////////////////////////////////////////////////

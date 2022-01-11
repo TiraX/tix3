@@ -41,8 +41,7 @@ namespace tix
 		TMeshBufferPtr MBData = ti_new TMeshBuffer();
 		MBData->SetResourceName("FullScreenQuad");
 		MBData->SetVertexStreamData(EVSSEG_POSITION | EVSSEG_TEXCOORD0, FullScreenQuadVertices, 4, EIT_16BIT, FullScreenQuadIndices, 6);
-		FullScreenQuad = RHI->CreateMeshBuffer();
-		FullScreenQuad->SetFromTMeshBuffer(MBData);
+		FullScreenQuad = ti_new FMeshBuffer(MBData->GetDesc());
 		RHI->UpdateHardwareResourceMesh(FullScreenQuad, MBData);
 		MBData = nullptr;
 

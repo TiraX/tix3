@@ -39,6 +39,10 @@ namespace tix
 		virtual int32 GetCurrentEncodingFrameIndex() override;
 		virtual void WaitingForGpu() override;
 
+		// Create GPU Resource
+		virtual FGPUResourceBufferPtr CreateGPUResourceBuffer() override;
+		virtual FGPUResourceTexturePtr CreateGPUResourceTexture() override;
+
 		// Create RTX related resources
 		virtual FShaderPtr CreateRtxShaderLib(const TString& ShaderLibName) override;
 		virtual FRtxPipelinePtr CreateRtxPipeline(FShaderPtr InShader) override;
@@ -49,15 +53,6 @@ namespace tix
 		virtual FTexturePtr CreateTexture() override;
 		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) override;
 		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = 0) override;
-		virtual FMeshBufferPtr CreateMeshBuffer() override;
-		virtual FMeshBufferPtr CreateEmptyMeshBuffer(
-			E_PRIMITIVE_TYPE InPrimType,
-			uint32 InVSFormat,
-			uint32 InVertexCount,
-			E_INDEX_TYPE InIndexType,
-			uint32 InIndexCount,
-			const FBox& InMeshBBox
-		) override;
 		virtual FInstanceBufferPtr CreateInstanceBuffer() override;
 		virtual FInstanceBufferPtr CreateEmptyInstanceBuffer(uint32 InstanceCount, uint32 InstanceStride) override;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) override;

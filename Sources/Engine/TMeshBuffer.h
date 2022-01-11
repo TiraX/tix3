@@ -55,7 +55,6 @@ namespace tix
 		static const int32 SemanticIndex[ESSI_TOTAL];
 	public:
 		FMeshBufferPtr MeshBufferResource;
-		FUniformBufferPtr MeshClusterDataResource;
 
 		static uint32 GetStrideFromFormat(uint32 Format);
 		static TVector<E_MESH_STREAM_INDEX> GetSteamsFromFormat(uint32 Format);
@@ -83,23 +82,11 @@ namespace tix
 		{
 			Desc.BBox = bbox;
 		}
-
-		const void* GetVSData() const
-		{
-			return VsData;
-		}
-
-		const void* GetPSData() const
-		{
-			return PsData;
-		}
 	protected:
 
 	protected:
 		TMeshBufferDesc Desc;
-
-		uint8* VsData;
-		uint8* PsData;
+		TStreamPtr Data;
 	};
 
 	///////////////////////////////////////////////////////////

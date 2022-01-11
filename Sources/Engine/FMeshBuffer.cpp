@@ -12,32 +12,21 @@ namespace tix
 	{
 	}
 
-	FMeshBuffer::FMeshBuffer(
-		E_PRIMITIVE_TYPE InPrimType,
-		uint32 InVSFormat, 
-		uint32 InVertexCount, 
-		E_INDEX_TYPE InIndexType,
-		uint32 InIndexCount,
-		const FBox& InBBox
-	)
+	FMeshBuffer::FMeshBuffer(const TMeshBufferDesc& InDesc)
 		: FRenderResource(RRT_VERTEX_BUFFER)
+		, Desc(InDesc)
 	{
-		Desc.PrimitiveType = InPrimType;
-		Desc.VertexCount = InVertexCount;
-		Desc.IndexType = InIndexType;
-		Desc.IndexCount = InIndexCount;
-		Desc.VsFormat = InVSFormat;
-		Desc.BBox = InBBox;
-		Desc.Stride = TMeshBuffer::GetStrideFromFormat(InVSFormat);
+		Desc.Stride = TMeshBuffer::GetStrideFromFormat(InDesc.VsFormat);
 	}
 
 	FMeshBuffer::~FMeshBuffer()
 	{
 	}
 
-	void FMeshBuffer::SetFromTMeshBuffer(TMeshBufferPtr InMeshBuffer)
+	void FMeshBuffer::CreateGPUResource(TStreamPtr Data)
 	{
-		Desc = InMeshBuffer->GetDesc();
+		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(0);
 	}
 
 	///////////////////////////////////////////////////////////

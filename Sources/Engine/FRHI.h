@@ -80,6 +80,10 @@ namespace tix
 		virtual int32 GetCurrentEncodingFrameIndex() = 0;
 		virtual void WaitingForGpu() = 0;
 
+		// Create GPU Resource
+		virtual FGPUResourceBufferPtr CreateGPUResourceBuffer() = 0;
+		virtual FGPUResourceTexturePtr CreateGPUResourceTexture() = 0;
+
 		// Create RTX related resources
 		virtual FShaderPtr CreateRtxShaderLib(const TString& ShaderLibName) = 0;
 		virtual FRtxPipelinePtr CreateRtxPipeline(FShaderPtr InShader) = 0;
@@ -90,15 +94,6 @@ namespace tix
 		virtual FTexturePtr CreateTexture() = 0;
 		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) = 0;
 		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = 0) = 0;
-		virtual FMeshBufferPtr CreateMeshBuffer() = 0;
-		virtual FMeshBufferPtr CreateEmptyMeshBuffer(
-			E_PRIMITIVE_TYPE InPrimType,
-			uint32 InVSFormat,
-			uint32 InVertexCount,
-			E_INDEX_TYPE InIndexType,
-			uint32 InIndexCount,
-			const FBox& InMeshBBox
-		) = 0;
 		virtual FInstanceBufferPtr CreateInstanceBuffer() = 0;
 		virtual FInstanceBufferPtr CreateEmptyInstanceBuffer(uint32 InstanceCount, uint32 InstanceStride) = 0;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
