@@ -76,7 +76,7 @@ namespace tix
 			for (int32 i = 0; i < JTileList.Size(); ++i)
 			{
 				TJSONNode JTile = JTileList[i];
-				vector2di TilePos(-99999, -99999);
+				FInt2 TilePos(-99999, -99999);
 				JTile["index"] << TilePos;
 				AssetSceneTiles.push_back(TilePos);
 				TI_ASSERT(TMath::Abs(TilePos.X) <= 32760 && TMath::Abs(TilePos.Y) <= 32760);
@@ -121,10 +121,10 @@ namespace tix
 			// Fill Tile Positions
 			for (const auto& A : AssetSceneTiles)
 			{
-				vector2di16 Pos;
+				FHInt2 Pos;
 				Pos.X = (int16)(A.X);
 				Pos.Y = (int16)(A.Y);
-				DataStream.Put(&Pos, sizeof(vector2di16));
+				DataStream.Put(&Pos, sizeof(FHInt2));
 			}
 			
 			// Save header

@@ -96,7 +96,7 @@ namespace tix
 		virtual bool UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer) override;
 		virtual void PrepareDataForCPU(FTexturePtr Texture) override;
 		virtual void PrepareDataForCPU(FUniformBufferPtr UniformBuffer) override;
-		virtual bool CopyTextureRegion(FTexturePtr DstTexture, const recti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) override;
+		virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) override;
 		virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) override;
 		virtual bool CopyBufferRegion(
 			FMeshBufferPtr DstBuffer,

@@ -15,7 +15,7 @@ namespace tix
 		int32 Size;
 		float AvgBrightness;
 		float Brightness;
-		vector3df Position;
+		FFloat3 Position;
 	};
 	class TCookerSceneTile : public TCooker
 	{
@@ -32,8 +32,8 @@ namespace tix
 
 	private:
 		TString LevelName;
-		vector2di Position;
-		aabbox3df BBox;
+		FInt2 Position;
+		FBox BBox;
 		
 		int32 StaticMeshesTotal;
 		int32 SMInstancesTotal;

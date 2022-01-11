@@ -51,7 +51,7 @@ namespace tix
 			}
 			else if (ParamType == "float4")
 			{
-				quaternion q;
+				FQuat q;
 				ParamValue << q;
 				AddParameter(ParamName, q);
 			}
@@ -59,7 +59,7 @@ namespace tix
 			{
 				TString Value;
 				ParamValue << Value;
-				vector2di Size;
+				FInt2 Size;
 				Param["size"] << Size;
 				AddParameter(ParamName, Value, Size);
 			}
@@ -113,7 +113,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const vector3df& Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const FFloat3& Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -123,7 +123,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const quaternion& Value)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const FQuat& Value)
 	{
 		if (IsParamExisted(InParamName))
 			return;
@@ -143,7 +143,7 @@ namespace tix
 		ValueParameters.push_back(V);
 	}
 
-	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size)
+	void TCookerMaterialInstance::AddParameter(const TString& InParamName, const TString& Value, const FInt2& Size)
 	{
 		if (IsParamExisted(InParamName))
 			return;

@@ -28,9 +28,9 @@ namespace tix
 		struct ResBoneInfo
 		{
 			int32 ParentIndex;
-			vector3df InitPos;
-			quaternion InitRot;
-			vector3df InitScale;
+			FFloat3 InitPos;
+			FQuat InitRot;
+			FFloat3 InitScale;
 		};
 
 		int32 TotalBones;

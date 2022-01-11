@@ -144,7 +144,7 @@ namespace tix
 			return Current;
 	}
 
-	TNode* TNode::IsIntersectWithRay(const line3df& ray, FBox& outBBox, FFloat3& outIntersection)
+	TNode* TNode::IsIntersectWithRay(const FLine3& ray, FBox& outBBox, FFloat3& outIntersection)
 	{
 		// test children
 		VecRenderElements::const_iterator it = Children.begin();

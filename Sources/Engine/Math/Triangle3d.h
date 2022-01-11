@@ -1,58 +1,50 @@
-// Copyright (C) 2002-2010 Nikolaus Gebhardt
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
+/*
+	TiX Engine v3.0 Copyright (C) 2022~2025
+	By ZhaoShuai tirax.cn@gmail.com
+*/
 
-#ifndef __IRR_TRIANGLE_3D_H_INCLUDED__
-#define __IRR_TRIANGLE_3D_H_INCLUDED__
+#pragma once
 
 namespace tix
 {
-
-	//! 3d triangle template class for doing collision detection and other things.
 	template <class T>
-	class triangle3d
+	class FTriangle3D
 	{
 	public:
+		FTriangle3D() {}
 
-		//! Constructor for an all 0 triangle
-		triangle3d() {}
-		//! Constructor for triangle with given three vertices
-		triangle3d(FVec3<T> v1, FVec3<T> v2, FVec3<T> v3) : pointA(v1), pointB(v2), pointC(v3) {}
+		FTriangle3D(const FVec3<T>& v1, const FVec3<T>& v2, const FVec3<T>& v3)
+			: pointA(v1)
+			, pointB(v2)
+			, pointC(v3)
+		{}
 
-		//! Equality operator
-		bool operator==(const triangle3d<T>& other) const
+		bool operator==(const FTriangle3D<T>& other) const
 		{
-			return other.pointA==pointA && other.pointB==pointB && other.pointC==pointC;
+			return other.pointA == pointA && other.pointB == pointB && other.pointC == pointC;
 		}
 
-		//! Inequality operator
-		bool operator!=(const triangle3d<T>& other) const
+		bool operator!=(const FTriangle3D<T>& other) const
 		{
-			return !(*this==other);
+			return !(*this == other);
 		}
 
-		//! Determines if the triangle is totally inside a bounding box.
-		/** \param box Box to check.
-		\return True if triangle is within the box, otherwise false. */
-		bool isTotalInsideBox(const FAABBox<T>& box) const
+		bool IsTotalInsideBox(const FAABBox<T>& box) const
 		{
 			return (box.isPointInside(pointA) &&
 				box.isPointInside(pointB) &&
 				box.isPointInside(pointC));
 		}
 
-		//! Determines if the triangle is totally outside a bounding box.
-		/** \param box Box to check.
-		\return True if triangle is outside the box, otherwise false. */
-		bool isTotalOutsideBox(const FAABBox<T>& box) const
+		bool IsTotalOutsideBox(const FAABBox<T>& box) const
 		{
 			return ((pointA.X > box.Max.X && pointB.X > box.Max.X && pointC.X > box.Max.X) ||
 
 				(pointA.Y > box.Max.Y && pointB.Y > box.Max.Y && pointC.Y > box.Max.Y) ||
 				(pointA.Z > box.Max.Z && pointB.Z > box.Max.Z && pointC.Z > box.Max.Z) ||
-				(pointA.X < box.Min.X && pointB.X < box.Min.X && pointC.X < box.Min.X) ||
-				(pointA.Y < box.Min.Y && pointB.Y < box.Min.Y && pointC.Y < box.Min.Y) ||
-				(pointA.Z < box.Min.Z && pointB.Z < box.Min.Z && pointC.Z < box.Min.Z));
+				(pointA.X < box.Min.X&& pointB.X < box.Min.X&& pointC.X < box.Min.X) ||
+				(pointA.Y < box.Min.Y&& pointB.Y < box.Min.Y&& pointC.Y < box.Min.Y) ||
+				(pointA.Z < box.Min.Z&& pointB.Z < box.Min.Z&& pointC.Z < box.Min.Z));
 		}
 
 		//! Determines if the triangle is intersect with a bounding box
@@ -65,7 +57,7 @@ namespace tix
 		//https://stackoverflow.com/questions/17458562/efficient-aabb-triangle-intersection-in-c-sharp
 		/** \param box Box to check.
 		\return True if triangle is intersect the box, otherwise false. */
-		bool isIntersectWithBox(const FAABBox<T>& box) const
+		bool IsIntersectWithBox(const FAABBox<T>& box) const
 		{
 			T TriangleMin, TriangleMax;
 			T BoxMin, BoxMax;
@@ -78,7 +70,7 @@ namespace tix
 				FVec3<T>(0,0,1)
 			};
 
-			auto ProjectTriangle = [](const triangle3d<T>& Tri, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
+			auto ProjectTriangle = [](const FTriangle3D<T>& Tri, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
 			{
 				MinValue = FLT_MAX;
 				MaxValue = FLT_MIN;
@@ -135,7 +127,7 @@ namespace tix
 			}
 
 			// Test the triangle normal
-			FVec3<T> TriN = getNormal().Normalize();
+			FVec3<T> TriN = GetNormal().Normalize();
 			T TriangleOffset = TriN.Dot(pointA);
 			ProjecFAABBox(box, TriN, BoxMin, BoxMax);
 			if (BoxMax < TriangleOffset || BoxMin > TriangleOffset)
@@ -168,11 +160,11 @@ namespace tix
 		//! Get the closest point on a triangle to a point on the same plane.
 		/** \param p Point which must be on the same plane as the triangle.
 		\return The closest point of the triangle */
-		FVec3<T> closestPointOnTriangle(const FVec3<T>& p) const
+		FVec3<T> ClosestPointOnTriangle(const FVec3<T>& p) const
 		{
-			const FVec3<T> rab = line3d<T>(pointA, pointB).getClosestPoint(p);
-			const FVec3<T> rbc = line3d<T>(pointB, pointC).getClosestPoint(p);
-			const FVec3<T> rca = line3d<T>(pointC, pointA).getClosestPoint(p);
+			const FVec3<T> rab = FLine3D<T>(pointA, pointB).getClosestPoint(p);
+			const FVec3<T> rbc = FLine3D<T>(pointB, pointC).getClosestPoint(p);
+			const FVec3<T> rca = FLine3D<T>(pointC, pointA).getClosestPoint(p);
 
 			const T d1 = rab.getDistanceFrom(p);
 			const T d2 = rbc.getDistanceFrom(p);
@@ -185,43 +177,43 @@ namespace tix
 		}
 
 		//! Check if a point is inside the triangle (border-points count also as inside)
-		/** NOTE: When working with T='int' you should prefer isPointInsideFast, as 
+		/** NOTE: When working with T='int' you should prefer isPointInsideFast, as
 		isPointInside will run into number-overflows already with coordinates in the 3-digit-range.
 		\param p Point to test. Assumes that this point is already
 		on the plane of the triangle.
 		\return True if the point is inside the triangle, otherwise false. */
-		bool isPointInside(const FVec3<T>& p) const
+		bool IsPointInside(const FVec3<T>& p) const
 		{
-			return (isOnSameSide(p, pointA, pointB, pointC) &&
- 				isOnSameSide(p, pointB, pointA, pointC) &&
- 				isOnSameSide(p, pointC, pointA, pointB));
+			return (IsOnSameSide(p, pointA, pointB, pointC) &&
+				IsOnSameSide(p, pointB, pointA, pointC) &&
+				IsOnSameSide(p, pointC, pointA, pointB));
 		}
 
 		//! Check if a point is inside the triangle (border-points count also as inside)
-		/** This method uses a barycentric coordinate system. 
-		It is faster than isPointInside but is more susceptible to floating point rounding 
-		errors. This will especially be noticable when the FPU is in single precision mode 
+		/** This method uses a barycentric coordinate system.
+		It is faster than isPointInside but is more susceptible to floating point rounding
+		errors. This will especially be noticable when the FPU is in single precision mode
 		(which is for example set on default by Direct3D).
 		\param p Point to test. Assumes that this point is already
 		on the plane of the triangle.
 		\return True if point is inside the triangle, otherwise false. */
-		bool isPointInsideFast(const FVec3<T>& p) const
+		bool IsPointInsideFast(const FVec3<T>& p) const
 		{
 			const FVec3<T> a = pointC - pointA;
 			const FVec3<T> b = pointB - pointA;
 			const FVec3<T> c = p - pointA;
-			
-			const float64 dotAA = a.Dot( a);
-			const float64 dotAB = a.Dot( b);
-			const float64 dotAC = a.Dot( c);
-			const float64 dotBB = b.Dot( b);
-			const float64 dotBC = b.Dot( c);
-			 
+
+			const float64 dotAA = a.Dot(a);
+			const float64 dotAB = a.Dot(b);
+			const float64 dotAC = a.Dot(c);
+			const float64 dotBB = b.Dot(b);
+			const float64 dotBC = b.Dot(c);
+
 			// get coordinates in barycentric coordinate system
-			const float64 invDenom =  1/(dotAA * dotBB - dotAB * dotAB); 
+			const float64 invDenom = 1 / (dotAA * dotBB - dotAB * dotAB);
 			const float64 u = (dotBB * dotAC - dotAB * dotBC) * invDenom;
-			const float64 v = (dotAA * dotBC - dotAB * dotAC ) * invDenom;
-		 
+			const float64 v = (dotAA * dotBC - dotAB * dotAC) * invDenom;
+
 			// We count border-points as inside to keep downward compatibility.
 			// That's why we use >= and <= instead of > and < as more commonly seen on the web.
 			return (u >= 0) && (v >= 0) && (u + v <= 1);
@@ -233,12 +225,12 @@ namespace tix
 		/** \param line Line to intersect with.
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, false if not. */
-		bool getIntersectionWithLimitedLine(const line3d<T>& line,
+		bool GetIntersectionWithLimitedLine(const FLine3D<T>& line,
 			FVec3<T>& outIntersection) const
 		{
-			return getIntersectionWithLine(line.start,
+			return getIntersectionWithLine(line.Start,
 				line.getVector(), outIntersection) &&
-				outIntersection.isBetweenPoints(line.start, line.end);
+				outIntersection.isBetweenPoints(line.Start, line.end);
 		}
 
 
@@ -251,16 +243,16 @@ namespace tix
 		\param lineVect Vector of the line to intersect with.
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, false if there was not. */
-		bool getIntersectionWithLine(const FVec3<T>& linePoint,
+		bool GetIntersectionWithLine(const FVec3<T>& linePoint,
 			const FVec3<T>& lineVect, FVec3<T>& outIntersection) const
 		{
-			if (getIntersectionOfPlaneWithLine(linePoint, lineVect, outIntersection))
-				return isPointInside(outIntersection);
+			if (GetIntersectionOfPlaneWithLine(linePoint, lineVect, outIntersection))
+				return IsPointInside(outIntersection);
 
 			return false;
 		}
 
-		bool getIntersectionWithLine( const FVec3<T>& linePoint, 
+		bool GetIntersectionWithLine(const FVec3<T>& linePoint,
 			const FVec3<T>& lineVect, float* t, float* u, float* v) const
 		{
 			// Find vectors for two edges sharing vert0
@@ -274,7 +266,7 @@ namespace tix
 			float32 det = edge1.Dot(pvec);
 
 			FVec3<T> tvec;
-			if( det > 0 )
+			if (det > 0)
 			{
 				tvec = linePoint - pointA;
 			}
@@ -284,12 +276,12 @@ namespace tix
 				det = -det;
 			}
 
-			if( det < 0.0001f )
+			if (det < 0.0001f)
 				return false;
 
 			// Calculate U parameter and test bounds
 			*u = tvec.Dot(pvec);
-			if( *u < 0.0f || *u > det )
+			if (*u < 0.0f || *u > det)
 				return false;
 
 			// Prepare to test V parameter
@@ -297,7 +289,7 @@ namespace tix
 
 			// Calculate V parameter and test bounds
 			*v = lineVect.Dot(qvec);
-			if( *v < 0.0f || *u + *v > det )
+			if (*v < 0.0f || *u + *v > det)
 				return false;
 
 			// Calculate t, scale parameters, ray intersects triangle
@@ -316,13 +308,13 @@ namespace tix
 		\param linePoint Point of the line to intersect with.
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, else false. */
-		bool getIntersectionOfPlaneWithLine(const FVec3<T>& linePoint,
+		bool GetIntersectionOfPlaneWithLine(const FVec3<T>& linePoint,
 			const FVec3<T>& lineVect, FVec3<T>& outIntersection) const
 		{
-			const FVec3<T> normal = getNormal().Normalize();
+			const FVec3<T> normal = GetNormal().Normalize();
 			T t2;
 
-			if ( iszero ( t2 = normal.Dot(lineVect) ) )
+			if (iszero(t2 = normal.Dot(lineVect)))
 				return false;
 
 			T d = pointA.Dot(normal);
@@ -334,7 +326,7 @@ namespace tix
 
 		//! Get the normal of the triangle.
 		/** Please note: The normal is not always normalized. */
-		FVec3<T> getNormal() const
+		FVec3<T> GetNormal() const
 		{
 			return (pointB - pointA).Cross(pointC - pointA);
 		}
@@ -347,19 +339,19 @@ namespace tix
 		\return True if the plane is front facing and false if it is backfacing. */
 		bool isFrontFacing(const FVec3<T>& lookDirection) const
 		{
-			const FVec3<T> n = getNormal().Normalize();
+			const FVec3<T> n = GetNormal().Normalize();
 			const float32 d = (float32)n.Dot(lookDirection);
 			return F32_LOWER_EQUAL_0(d);
 		}
 
 		//! Get the plane of this triangle.
-		plane3d<T> getPlane() const
+		FPlane3D<T> GetPlane() const
 		{
-			return plane3d<T>(pointA, pointB, pointC);
+			return FPlane3D<T>(pointA, pointB, pointC);
 		}
 
 		//! Get the bounding box of this triangle
-		FAABBox<T> getBoundingBox() const
+		FAABBox<T> GetBoundingBox() const
 		{
 			FAABBox<T> Box(pointA);
 			Box.addInternalPoint(pointB);
@@ -368,26 +360,26 @@ namespace tix
 		}
 
 		//! Get the area of the triangle
-		T getArea() const
+		T GetArea() const
 		{
 			return (pointB - pointA).Cross(pointC - pointA).getLength() * 0.5f;
 
 		}
 
-		T getArea1() const
+		T GetArea1() const
 		{
 			float a = (pointB - pointA).getLength();
 			float b = (pointC - pointA).getLength();
 			float c = (pointB - pointC).getLength();
 
 			float p = (a + b + c) * 0.5f;
-			float s = sqrt(p * (p-a) * (p-b) * (p-c));
+			float s = sqrt(p * (p - a) * (p - b) * (p - c));
 
 			return s;
 		}
 
 		//! sets the triangle's points
-		void set(const FVec3<T>& a, const FVec3<T>& b, const FVec3<T>& c)
+		void Set(const FVec3<T>& a, const FVec3<T>& b, const FVec3<T>& c)
 		{
 			pointA = a;
 			pointB = b;
@@ -400,7 +392,7 @@ namespace tix
 		FVec3<T> pointC;
 
 	private:
-		bool isOnSameSide(const FVec3<T>& p1, const FVec3<T>& p2,
+		bool IsOnSameSide(const FVec3<T>& p1, const FVec3<T>& p2,
 			const FVec3<T>& a, const FVec3<T>& b) const
 		{
 			FVec3<T> bminusa = b - a;
@@ -410,14 +402,6 @@ namespace tix
 		}
 	};
 
+	typedef FTriangle3D<float32> FTriangle;
 
-	//! Typedef for a float32 3d triangle.
-	typedef triangle3d<float32> triangle3df;
-
-	//! Typedef for an integer 3d triangle.
-	typedef triangle3d<int32> triangle3di;
-
-} // end namespace ti
-
-#endif
-
+}

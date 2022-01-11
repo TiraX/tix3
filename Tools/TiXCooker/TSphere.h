@@ -7,19 +7,19 @@
 
 struct TSphere
 {
-	vector3df Center;
+	FFloat3 Center;
 	float Radius;
 
 	TSphere()
 		: Radius(0.f)
 	{}
 
-	TSphere(const vector3df& InCenter, float InRadius)
+	TSphere(const FFloat3& InCenter, float InRadius)
 		: Center(InCenter)
 		, Radius(InRadius)
 	{}
 
-	bool IsPointInsideSphere(const vector3df& P) const
+	bool IsPointInsideSphere(const FFloat3& P) const
 	{
 		return (Center - P).getLength() <= Radius;
 	}

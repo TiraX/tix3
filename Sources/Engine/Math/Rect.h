@@ -1,29 +1,31 @@
-//-*-c++-*-
-// Copyright (C) 2002-2008 Nikolaus Gebhardt
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
+/*
+	TiX Engine v3.0 Copyright (C) 2022~2025
+	By ZhaoShuai tirax.cn@gmail.com
+*/
+
 #pragma once
-#ifndef __IRR_RECT_H_INCLUDED__
-#define __IRR_RECT_H_INCLUDED__
 
 namespace tix
 {
-	//! Rectangle template.
-	/** Mostly used by 2D GUI elements and for 2D drawing methods.
-		It has 2 positions instead of position and dimension and a fast
-		method for collision detection with other rectangles and points.
-	*/
 	template <class T>
-	class rect
+	class FRect2D
 	{
 	public:
+		FRect2D() 
+			: Upper(0)
+			, Left(0)
+			, Lower(0)
+			, Right(0) 
+		{}
 
-		rect() : Upper(0), Left(0), Lower(0), Right(0) {}
+		FRect2D(T x, T y, T x2, T y2)
+			: Upper(y)
+			, Left(x)
+			, Lower(y2)
+			, Right(x2)
+		{}
 
-		rect(T x, T y, T x2, T y2)
-			: Upper(y), Left(x), Lower(y2), Right(x2) {}
-
-		void reset(T x, T y)
+		void Reset(T x, T y)
 		{
 			Left = x;
 			Right = x;
@@ -31,12 +33,12 @@ namespace tix
 			Lower = y;
 		}
 
-		void reset(const FVec2<T>& p)
+		void Reset(const FVec2<T>& p)
 		{
 			reset(p.X, p.Y);
 		}
 
-		bool operator==(const rect<T>& other) const
+		bool operator==(const FRect2D<T>& other) const
 		{
 			return (Upper == other.Upper &&
 				Left == other.Left &&
@@ -45,7 +47,7 @@ namespace tix
 		}
 
 
-		bool operator!=(const rect<T>& other) const
+		bool operator!=(const FRect2D<T>& other) const
 		{
 			return (Upper != other.Upper ||
 				Left != other.Left ||
@@ -53,16 +55,16 @@ namespace tix
 				Right != other.Right);
 		}
 
-		rect<T>& operator+=(const rect<T>& other)
+		FRect2D<T>& operator+=(const FRect2D<T>& other)
 		{
 			addInternalPoint(other.Upper, other.Left);
 			addInternalPoint(other.Lower, other.Right);
 			return *this;
 		}
 
-		rect<T> operator * (T num) const
+		FRect2D<T> operator * (T num) const
 		{
-			rect<T> rc;
+			FRect2D<T> rc;
 			rc.Left = this->Left * num;
 			rc.Right = this->Right * num;
 			rc.Upper = this->Upper * num;
@@ -71,9 +73,9 @@ namespace tix
 			return rc;
 		}
 
-		rect<T> operator * (const rect<T>& other) const
+		FRect2D<T> operator * (const FRect2D<T>& other) const
 		{
-			rect<T> rc;
+			FRect2D<T> rc;
 			rc.Left = Left * other.Left;
 			rc.Right = Right * other.Right;
 			rc.Upper = Upper * other.Upper;
@@ -83,27 +85,27 @@ namespace tix
 		}
 
 		// compares size of rectangles
-		bool operator<(const rect<T>& other) const
+		bool operator<(const FRect2D<T>& other) const
 		{
-			return getArea() < other.getArea();
+			return GetArea() < other.GetArea();
 		}
 
 		//! Returns size of rectangle
-		T getArea() const
+		T GetArea() const
 		{
-			return getWidth() * getHeight();
+			return GetWidth() * GetHeight();
 		}
 
 		//! Returns if a 2d point is within this rectangle.
 		//! \return Returns true if the position is within the rectangle, false if not.
-		bool isPointInside(T x, T y) const
+		bool IsPointInside(T x, T y) const
 		{
 			return (x >= Left && x <= Right &&
 				y >= Upper && y <= Lower);
 		}
 
 		//! Returns if the rectangle collides with another rectangle.
-		bool isRectCollided(const rect<T>& other) const
+		bool IsRectCollided(const FRect2D<T>& other) const
 		{
 			return (Lower > other.Upper &&
 				Upper < other.Lower&&
@@ -112,14 +114,14 @@ namespace tix
 		}
 
 		//! Returns if the rectangle collides with a circle
-		bool isRectCollidedWithCircle(const FVec2<T>& point, T radius) const
+		bool IsRectCollidedWithCircle(const FVec2<T>& point, T radius) const
 		{
-			FVec2<T> center = getCenter();
-			return	abs(center.X - point.X) < radius + getWidth() / 2 &&
-				abs(center.Y - point.Y) < radius + getHeight() / 2;
+			FVec2<T> center = GetCenter();
+			return	TMath::Abs(center.X - point.X) < radius + GetWidth() / 2 &&
+				TMath::Abs(center.Y - point.Y) < radius + GetHeight() / 2;
 		}
 
-		bool isCollide_1d(T max0, T min0, T max1, T min1) const
+		bool IsCollide_1d(T max0, T min0, T max1, T min1) const
 		{
 			T tmp;
 			if (max0 < min0)
@@ -144,29 +146,29 @@ namespace tix
 		}
 
 		//! Returns if the rectangle collides with a line
-		bool isRectCollidedWithLine2d(const line2d<T>& line) const
+		bool IsRectCollidedWithLine2d(const FLine2D<T>& line) const
 		{
 			// rough test first
-			if (isCollide_1d(Right, Left, line.end.X, line.start.X) &&
-				isCollide_1d(Lower, Upper, line.end.Y, line.start.Y))
+			if (IsCollide_1d(Right, Left, line.End.X, line.Start.X) &&
+				IsCollide_1d(Lower, Upper, line.End.Y, line.Start.Y))
 			{
 				// accurate test, test line across 2 lines
-				line2d<T> l;
-				l.start.X = Left;
-				l.start.Y = Upper;
-				l.end.X = Right;
-				l.end.Y = Lower;
+				FLine2D<T> l;
+				l.Start.X = Left;
+				l.Start.Y = Upper;
+				l.End.X = Right;
+				l.End.Y = Lower;
 
-				if (l.isIntersectWithLine2d(line))
+				if (l.IsIntersectWithLine2d(line))
 				{
 					return true;
 				}
 
-				l.start.X = Right;
-				l.start.Y = Upper;
-				l.end.X = Left;
-				l.end.Y = Lower;
-				if (l.isIntersectWithLine2d(line))
+				l.Start.X = Right;
+				l.Start.Y = Upper;
+				l.End.X = Left;
+				l.End.Y = Lower;
+				if (l.IsIntersectWithLine2d(line))
 				{
 					return true;
 				}
@@ -175,7 +177,7 @@ namespace tix
 		}
 
 		//! Clips this rectangle with another one.
-		void clipAgainst(const rect<T>& other)
+		void ClipAgainst(const FRect2D<T>& other)
 		{
 			if (other.Right < Right)
 				Right = other.Right;
@@ -196,9 +198,9 @@ namespace tix
 
 		//! Moves this rectangle to fit inside another one.
 		//! \return: returns true on success, false if not possible
-		bool constrainTo(const rect<T>& other)
+		bool ConstrainTo(const FRect2D<T>& other)
 		{
-			if (other.getWidth() < getWidth() || other.getHeight() < getHeight())
+			if (other.GetWidth() < GetWidth() || other.GetHeight() < GetHeight())
 				return false;
 
 			T diff = other.Right - Right;
@@ -233,20 +235,20 @@ namespace tix
 		}
 
 		//! Returns width of rectangle.
-		T getWidth() const
+		T GetWidth() const
 		{
 			return Right - Left;
 		}
 
 		//! Returns height of rectangle.
-		T getHeight() const
+		T GetHeight() const
 		{
 			return Lower - Upper;
 		}
 
 		//! If the lower right corner of the rect is smaller then the
 		//! upper left, the points are swapped.
-		void repair()
+		void Repair()
 		{
 			if (Right < Left)
 			{
@@ -266,39 +268,39 @@ namespace tix
 		//! Returns if the rect is valid to draw. It could be invalid
 		//! if the UpperLeftCorner is lower or more right than the
 		//! LowerRightCorner, or if any dimension is 0.
-		bool isValid() const
+		bool IsValid() const
 		{
 			return ((Right >= Left) &&
 				(Lower >= Upper));
 		}
 
 		//! Returns the center of the rectangle
-		FVec2<T> getCenter() const
+		FVec2<T> GetCenter() const
 		{
 			return FVec2<T>((Left + Right) / 2,
 				(Upper + Lower) / 2);
 		}
 
 		//! Returns the dimensions of the rectangle
-		FVec2<T> getSize() const
+		FVec2<T> GetSize() const
 		{
-			return FVec2<T>(getWidth(), getHeight());
+			return FVec2<T>(GetWidth(), GetHeight());
 		}
 
 
 		//! Adds a point to the rectangle, causing it to grow bigger,
 		//! if point is outside of the box
 		//! \param p Point to add into the box.
-		void addInternalPoint(const FVec2<T>& p)
+		void AddInternalPoint(const FVec2<T>& p)
 		{
-			addInternalPoint(p.X, p.Y);
+			AddInternalPoint(p.X, p.Y);
 		}
 
 		//! Adds a point to the bounding rectangle, causing it to grow bigger,
 		//! if point is outside of the box.
 		//! \param x X Coordinate of the point to add to this box.
 		//! \param y Y Coordinate of the point to add to this box.
-		void addInternalPoint(T x, T y)
+		void AddInternalPoint(T x, T y)
 		{
 			if (x > Right)
 				Right = x;
@@ -312,13 +314,13 @@ namespace tix
 		}
 
 		//! Adds a rectangle to the bounding rectangle, causing it to grow bigger,
-		void addInternalRect(const rect<T>& rc)
+		void AddInternalRect(const FRect2D<T>& rc)
 		{
-			addInternalPoint(rc.Left, rc.Upper);
-			addInternalPoint(rc.Right, rc.Lower);
+			AddInternalPoint(rc.Left, rc.Upper);
+			AddInternalPoint(rc.Right, rc.Lower);
 		}
 
-		void move(T x, T y)
+		void Move(T x, T y)
 		{
 			Left += x;
 			Right += x;
@@ -326,7 +328,7 @@ namespace tix
 			Lower += y;
 		}
 
-		void move(const FVec2<T>& off)
+		void Move(const FVec2<T>& off)
 		{
 			Left += off.X;
 			Right += off.X;
@@ -334,7 +336,7 @@ namespace tix
 			Lower += off.Y;
 		}
 
-		void scale(T w, T h)
+		void Scale(T w, T h)
 		{
 			Left = Left * w;
 			Upper = Upper * h;
@@ -342,11 +344,11 @@ namespace tix
 			Lower = Lower * h;
 		}
 
-		void scaleFromCenter(float w, float h)
+		void ScaleFromCenter(float w, float h)
 		{
-			FVec2<T> center = getCenter();
-			T w_h = (T)(getWidth() * w / 2);
-			T h_h = (T)(getHeight() * h / 2);
+			FVec2<T> center = GetCenter();
+			T w_h = (T)(GetWidth() * w / 2);
+			T h_h = (T)(GetHeight() * h / 2);
 			Left = center.X - w_h;
 			Right = center.X + w_h;
 			Upper = center.Y - h_h;
@@ -358,9 +360,6 @@ namespace tix
 		T Lower, Right;
 	};
 
-	typedef rect<float32> rectf;
-	typedef rect<int32> recti;
-} // end namespace ti
-
-#endif
-
+	typedef FRect2D<float32> FRect;
+	typedef FRect2D<int32> FRecti;
+}

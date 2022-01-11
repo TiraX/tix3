@@ -196,19 +196,19 @@ namespace tix
 			return true;    // collision exist
 		}
 
-		bool IntersectsWithLine(const line3d<T>& line) const
+		bool IntersectsWithLine(const FLine3D<T>& line) const
 		{
 			T fst, fet;
 			return IntersectsWithSegment(line, fst, fet);
 		}
 
-		bool IntersectsWithSegment(const line3d<T>& line, T& fst, T& fet) const
+		bool IntersectsWithSegment(const FLine3D<T>& line, T& fst, T& fet) const
 		{
 			fst = 0;
 			fet = 1;
-			return IntersectsWithLine_impl_1d(Min.X, Max.X, line.start.X, line.end.X, fst, fet)
-				&& IntersectsWithLine_impl_1d(Min.Y, Max.Y, line.start.Y, line.end.Y, fst, fet)
-				&& IntersectsWithLine_impl_1d(Min.Z, Max.Z, line.start.Z, line.end.Z, fst, fet);
+			return IntersectsWithLine_impl_1d(Min.X, Max.X, line.Start.X, line.End.X, fst, fet)
+				&& IntersectsWithLine_impl_1d(Min.Y, Max.Y, line.Start.Y, line.End.Y, fst, fet)
+				&& IntersectsWithLine_impl_1d(Min.Z, Max.Z, line.Start.Z, line.End.Z, fst, fet);
 		}
 
 		FVec3<T> GetCenter() const

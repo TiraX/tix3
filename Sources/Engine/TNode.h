@@ -58,7 +58,7 @@ namespace tix
 		virtual void GetNodesByType(E_NODE_TYPE type, TVector<TNode*>& elements);
 		virtual TNode* GetNodeByPath(const TString& NodePath);
 		
-		virtual TNode* IsIntersectWithRay(const line3df& ray, FBox& outBBox, FFloat3& outIntersection);
+		virtual TNode* IsIntersectWithRay(const FLine3& ray, FBox& outBBox, FFloat3& outIntersection);
 		virtual TNode* IsIntersectWithPoint(const FFloat3& p, FBox& outBBox, FFloat3& outIntersection);
 
 		virtual void Tick(float Dt);

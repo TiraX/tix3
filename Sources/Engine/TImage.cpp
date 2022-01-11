@@ -696,7 +696,7 @@ namespace tix
 		}
 	}
 
-	bool TImage::CopyRegionTo(TImagePtr DstImage, const recti& DstRegion, int32 DstMip, const recti& SrcRegion, int32 SrcMip)
+	bool TImage::CopyRegionTo(TImagePtr DstImage, const FRecti& DstRegion, int32 DstMip, const FRecti& SrcRegion, int32 SrcMip)
 	{
 		if (DstImage->GetFormat() != PixelFormat)
 		{
@@ -715,13 +715,13 @@ namespace tix
 			// Compress format NOT support for now, CAN BE supported in future.
 			return false;
 		}
-		if (DstRegion.getWidth() != SrcRegion.getWidth() || DstRegion.getHeight() != SrcRegion.getHeight())
+		if (DstRegion.GetWidth() != SrcRegion.GetWidth() || DstRegion.GetHeight() != SrcRegion.GetHeight())
 		{
-			float StepX = (float)(SrcRegion.getWidth()) / (float)(DstRegion.getWidth());
-			float StepY = (float)(SrcRegion.getHeight()) / (float)(DstRegion.getHeight());
+			float StepX = (float)(SrcRegion.GetWidth()) / (float)(DstRegion.GetWidth());
+			float StepY = (float)(SrcRegion.GetHeight()) / (float)(DstRegion.GetHeight());
 
-			const int32 DstH = DstRegion.getHeight();
-			const int32 DstW = DstRegion.getWidth();
+			const int32 DstH = DstRegion.GetHeight();
+			const int32 DstW = DstRegion.GetWidth();
 
 			for (int32 y = 0 ; y < DstH ; ++ y)
 			{
@@ -744,12 +744,12 @@ namespace tix
 			uint8* DstBuffer = DstImage->Lock();
 			int32 DstPitch = DstImage->GetMipmap(DstMip).RowPitch;
 			DstBuffer += DstRegion.Upper * DstPitch + DstRegion.Left * PixelSizeInBytes;
-			int32 DstRowLength = DstRegion.getWidth() * PixelSizeInBytes;
+			int32 DstRowLength = DstRegion.GetWidth() * PixelSizeInBytes;
 
 			uint8* SrcBuffer = Lock(SrcMip);
 			int32 SrcPitch = GetMipmap(SrcMip).RowPitch;
 			SrcBuffer += SrcRegion.Upper * SrcPitch + SrcRegion.Left * PixelSizeInBytes;
-			for (int32 y = 0 ; y < DstRegion.getHeight() ; ++ y)
+			for (int32 y = 0 ; y < DstRegion.GetHeight() ; ++ y)
 			{
 				memcpy(DstBuffer, SrcBuffer, DstRowLength);
 				DstBuffer += DstPitch;

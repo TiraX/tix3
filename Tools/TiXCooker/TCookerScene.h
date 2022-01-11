@@ -10,9 +10,9 @@ namespace tix
 {
 	struct TSceneMeshInstance
 	{
-		vector3df Position;
-		quaternion Rotation;
-		vector3df Scale;
+		FFloat3 Position;
+		FQuat Rotation;
+		FFloat3 Scale;
 
 		TSceneMeshInstance()
 			: Scale(1.f, 1.f, 1.f)
@@ -26,7 +26,7 @@ namespace tix
 
 	struct TSceneEnvSunLight
 	{
-		vector3df Direction;
+		FFloat3 Direction;
 		SColorf Color;
 		float Intensity;
 
@@ -75,7 +75,7 @@ namespace tix
 		int32 VTSize;
 		int32 PageSize;
 
-		TVector<vector2di> AssetSceneTiles;
+		TVector<FInt2> AssetSceneTiles;
 		THMap<TString, TVTRegionInfo> VTRegionInfo;
 	};
 }

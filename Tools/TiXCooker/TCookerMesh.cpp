@@ -213,20 +213,20 @@ namespace tix
 				TJSONNode JCookedVB = JConvex["cooked_mesh_vertex_data"];
 				TJSONNode JCookedIB = JConvex["cooked_mesh_index_data"];
 
-				vector3df Translation;
-				quaternion Rotation;
-				vector3df Scale;
+				FFloat3 Translation;
+				FQuat Rotation;
+				FFloat3 Scale;
 				JConvex["translation"] << Translation;
 				JConvex["rotation"] << Rotation;
 				JConvex["scale"] << Scale;
 
-				matrix4 Mat;
-				Rotation.getMatrix(Mat);
-				Mat.postScale(Scale);
-				Mat.setTranslation(Translation);
+				FMat4 Mat;
+				Rotation.GetMatrix(Mat);
+				Mat.PostScale(Scale);
+				Mat.SetTranslation(Translation);
 
 				TI_ASSERT(JCookedVB.Size() % 3 == 0 && JCookedIB.Size() % 3 == 0);
-				TVector<vector3df> VertexData;
+				TVector<FFloat3> VertexData;
 				VertexData.resize(JCookedVB.Size() / 3);
 				for (int32 e = 0 ; e < JCookedVB.Size(); e += 3)
 				{
@@ -234,8 +234,8 @@ namespace tix
 					JCookedVB[e + 0] << X;
 					JCookedVB[e + 1] << Y;
 					JCookedVB[e + 2] << Z;
-					vector3df Position = vector3df(X, Y, Z);
-					Mat.transformVect(Position);
+					FFloat3 Position = FFloat3(X, Y, Z);
+					Mat.TransformVect(Position);
 					VertexData[e/3] = Position;
 				}
 				TI_ASSERT(JCookedIB.Size() < 65535);
@@ -295,8 +295,8 @@ namespace tix
 			MeshHeader.Sections = (int32)Mesh.Sections.size();
 			TI_ASSERT(MeshHeader.Sections > 0);
 			MeshHeader.Flag = 0;
-			vector3df FirstPosition(Mesh.Segments[ESSI_POSITION].Data[0], Mesh.Segments[ESSI_POSITION].Data[1], Mesh.Segments[ESSI_POSITION].Data[2]);
-			MeshHeader.BBox.reset(FirstPosition);
+			FFloat3 FirstPosition(Mesh.Segments[ESSI_POSITION].Data[0], Mesh.Segments[ESSI_POSITION].Data[1], Mesh.Segments[ESSI_POSITION].Data[2]);
+			MeshHeader.BBox.Reset(FirstPosition);
 			if (Mesh.RefSkeleton != "")
 			{
 				MeshHeader.RefSkeletonStrIndex = AddStringToList(OutStrings, Mesh.RefSkeleton);
@@ -340,11 +340,11 @@ namespace tix
 			{
 				if (DataPos != nullptr)
 				{
-					vector3df pos(DataPos[0], DataPos[1], DataPos[2]);
-					MeshHeader.BBox.addInternalPoint(pos);
+					FFloat3 pos(DataPos[0], DataPos[1], DataPos[2]);
+					MeshHeader.BBox.AddInternalPoint(pos);
 
-					TI_ASSERT(sizeof(vector3df) == TMeshBuffer::SemanticSize[ESSI_POSITION]);
-					DataStream.Put(DataPos, sizeof(vector3df));
+					TI_ASSERT(sizeof(FFloat3) == TMeshBuffer::SemanticSize[ESSI_POSITION]);
+					DataStream.Put(DataPos, sizeof(FFloat3));
 					DataPos += Mesh.Segments[ESSI_POSITION].StrideInFloat;
 				}
 				if (DataNormal != nullptr)
@@ -490,18 +490,18 @@ namespace tix
 			HeaderCollision.SpheresSizeInBytes = sizeof(TCollisionSet::TSphere) * (uint32)Mesh.ColSpheres.size();
 			HeaderCollision.BoxesSizeInBytes = sizeof(TCollisionSet::TBox) * (uint32)Mesh.ColBoxes.size();
 			HeaderCollision.CapsulesSizeInBytes = sizeof(TCollisionSet::TCapsule) * (uint32)Mesh.ColCapsules.size();
-			HeaderCollision.ConvexesSizeInBytes = sizeof(vector2du) * (uint32)Mesh.ColConvexes.size();
+			HeaderCollision.ConvexesSizeInBytes = sizeof(FUInt2) * (uint32)Mesh.ColConvexes.size();
 			HeaderStream.Put(&HeaderCollision, sizeof(THeaderCollisionSet));
 
 			// Data
 			DataStream.Put(Mesh.ColSpheres.data(), HeaderCollision.SpheresSizeInBytes);
 			DataStream.Put(Mesh.ColBoxes.data(), HeaderCollision.BoxesSizeInBytes);
 			DataStream.Put(Mesh.ColCapsules.data(), HeaderCollision.CapsulesSizeInBytes);
-			TVector<vector2du> ConvexVertexIndexCount;
+			TVector<FUInt2> ConvexVertexIndexCount;
 			ConvexVertexIndexCount.reserve(Mesh.ColConvexes.size());
 			for (const auto& Convex : Mesh.ColConvexes)
 			{
-				vector2du VertexIndexCount;
+				FUInt2 VertexIndexCount;
 				VertexIndexCount.X = (uint32)Convex.VertexData.size();
 				VertexIndexCount.Y = (uint32)Convex.IndexData.size();
 				ConvexVertexIndexCount.push_back(VertexIndexCount);
@@ -511,7 +511,7 @@ namespace tix
 			// Convex vertex data and index data
 			for (const auto& Convex : Mesh.ColConvexes)
 			{
-				DataStream.Put(Convex.VertexData.data(), sizeof(vector3df) * (uint32)Convex.VertexData.size());
+				DataStream.Put(Convex.VertexData.data(), sizeof(FFloat3) * (uint32)Convex.VertexData.size());
 				DataStream.Put(Convex.IndexData.data(), sizeof(uint16) * (uint32)Convex.IndexData.size());
 				FillZero4(DataStream);
 			}

@@ -44,12 +44,12 @@ namespace tix
 		return true;
 	}
 
-	matrix4 MakeMatrix(const vector3df& Trans, const quaternion& Rot, const vector3df& Scale)
+	FMat4 MakeMatrix(const FFloat3& Trans, const FQuat& Rot, const FFloat3& Scale)
 	{
-		matrix4 Result;
-		Rot.getMatrix(Result);
-		Result.postScale(Scale);
-		Result.setTranslation(Trans);
+		FMat4 Result;
+		Rot.GetMatrix(Result);
+		Result.PostScale(Scale);
+		Result.SetTranslation(Trans);
 
 		return Result;
 	}
@@ -57,7 +57,7 @@ namespace tix
 	void TCookerSkeleton::CalcInvBindTransform()
 	{
 		// Calc iinv bind matrix in game after loading
-		//TVector<matrix4> BindMatrix;
+		//TVector<FMat4> BindMatrix;
 		//BindMatrix.resize(InitBones.size());
 
 		//for (int32 b = 0; b < TotalBones; b++)
@@ -69,21 +69,21 @@ namespace tix
 		//	}
 		//	else
 		//	{
-		//		matrix4 ParentMat = BindMatrix[Bone.ParentIndex];
-		//		matrix4 Mat = MakeMatrix(Bone.InitPos, Bone.InitRot, Bone.InitScale);
+		//		FMat4 ParentMat = BindMatrix[Bone.ParentIndex];
+		//		FMat4 Mat = MakeMatrix(Bone.InitPos, Bone.InitRot, Bone.InitScale);
 		//		BindMatrix[b] = ParentMat * Mat;
 		//	}
 		//}
 
-		//matrix4 testmat;
-		//testmat.setTranslation(vector3df(1, 2, 3));
-		//matrix4 invmat;
+		//FMat4 testmat;
+		//testmat.SetTranslation(FFloat3(1, 2, 3));
+		//FMat4 invmat;
 		//testmat.getInverse(invmat);
 
 		//ConvertedBones.resize(InitBones.size());
 		//for (int32 b = 0; b < TotalBones; b++)
 		//{
-		//	matrix4 InvMat;
+		//	FMat4 InvMat;
 		//	BindMatrix[b].getInverse(InvMat);
 
 		//	TBoneInitInfo& Bone = ConvertedBones[b];
@@ -92,8 +92,8 @@ namespace tix
 		//	Bone.InvRot = InvMat;
 		//	Bone.InvScale = InvMat.getScale();
 
-		//	vector3df NewScale = vector3df(1.f / Bone.InvScale.X, 1.f / Bone.InvScale.Y, 1.f / Bone.InvScale.Z);
-		//	InvMat.postScale(NewScale);
+		//	FFloat3 NewScale = FFloat3(1.f / Bone.InvScale.X, 1.f / Bone.InvScale.Y, 1.f / Bone.InvScale.Z);
+		//	InvMat.PostScale(NewScale);
 		//	Bone.InvRot = InvMat;
 		//}
 	}

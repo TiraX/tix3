@@ -198,13 +198,13 @@ namespace tix
 		void TranslateVect(FVec3<T>& vect) const;
 
 		//! Transforms a plane by this matrix
-		void TransformPlane(plane3d<T>& plane) const;
+		void TransformPlane(FPlane3D<T>& plane) const;
 
 		//! Transforms a plane by this matrix ( some problems to solve..)
-		void TransformPlane_new(plane3d<T>& plane) const;
+		void TransformPlane_new(FPlane3D<T>& plane) const;
 
 		//! Transforms a plane by this matrix
-		void TransformPlane(const plane3d<T>& in, plane3d<T>& out) const;
+		void TransformPlane(const FPlane3D<T>& in, FPlane3D<T>& out) const;
 
 		//! Transforms a axis aligned bounding box
 		/** The result box of this operation may not be accurate at all. For
@@ -1028,10 +1028,10 @@ namespace tix
 
 	//! Transforms a plane by this matrix
 	template <class T>
-	inline void FMatrix4<T>::TransformPlane(plane3d<T>& plane) const
+	inline void FMatrix4<T>::TransformPlane(FPlane3D<T>& plane) const
 	{
 		FVec3<T> member;
-		TransformVect(member, plane.getMemberPoint());
+		TransformVect(member, plane.GetMemberPoint());
 
 		FVec3<T> origin(0, 0, 0);
 		TransformVect(plane.Normal);
@@ -1043,7 +1043,7 @@ namespace tix
 
 	//! Transforms a plane by this matrix
 	template <class T>
-	inline void FMatrix4<T>::TransformPlane_new(plane3d<T>& plane) const
+	inline void FMatrix4<T>::TransformPlane_new(FPlane3D<T>& plane) const
 	{
 		// rotate normal -> rotateVect ( plane.n );
 		FVec3<T> n;
@@ -1060,7 +1060,7 @@ namespace tix
 
 	//! Transforms a plane by this matrix
 	template <class T>
-	inline void FMatrix4<T>::TransformPlane(const plane3d<T>& in, plane3d<T>& out) const
+	inline void FMatrix4<T>::TransformPlane(const FPlane3D<T>& in, FPlane3D<T>& out) const
 	{
 		out = in;
 		TransformPlane(out);
@@ -1669,7 +1669,7 @@ namespace tix
 	//	\param point: value between 0 and 1, describing the light source.
 	//	If this is 1, it is a point light, if it is 0, it is a directional light. */
 	template<typename T>
-	FMatrix4<T> BuildShadowMatrix(const FVec3<T>& light, plane3d<T> plane, T point = 1.0f)
+	FMatrix4<T> BuildShadowMatrix(const FVec3<T>& light, FPlane3D<T> plane, T point = 1.0f)
 	{
 		FMatrix4<T> m(FMatrix4<T>::EM4CONST_NOTHING);
 

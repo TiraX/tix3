@@ -82,7 +82,7 @@ namespace tix
 	{
 		//IsOrthogonal = isOrthogonal;
 		ViewArea.Matrices[ETS_PROJECTION] = projection;
-		ViewArea.setTransformState(ETS_PROJECTION);
+		ViewArea.SetTransformState(ETS_PROJECTION);
 	}
 
 	//! Gets the current projection matrix of the camera
@@ -203,7 +203,7 @@ namespace tix
 		}
 
 		ViewArea.Matrices[ETS_VIEW] = BuildCameraLookAtMatrix(pos, Target, up);;
-		ViewArea.setTransformState(ETS_VIEW);
+		ViewArea.SetTransformState(ETS_VIEW);
 
 		RecalculateViewArea();
 
@@ -219,7 +219,7 @@ namespace tix
 		ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
 		//const FMat4& mat	= ViewArea.Matrices[ETS_PROJECTION];
 
-		ViewArea.setTransformState(ETS_PROJECTION);
+		ViewArea.SetTransformState(ETS_PROJECTION);
 	}
 
 	//! returns the view frustum. needed sometimes by bsp or lod render nodes.
@@ -231,10 +231,10 @@ namespace tix
 	void TNodeCamera::RecalculateViewArea()
 	{
 		ViewArea.CameraPosition = GetAbsolutePosition();
-		ViewArea.setFrom(ViewArea.Matrices[SViewFrustum::ETS_VIEW_PROJECTION_3]);
+		ViewArea.SetFrom(ViewArea.Matrices[SViewFrustum::ETS_VIEW_PROJECTION_3]);
 	}
 
-	void TNodeCamera::GetRayFrom2DPoint(const FInt2& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPoint(const FInt2& pos, FLine3&ray, float length)
 	{
 		TI_ASSERT(0);
 		//FFloat3 orig,dir;
@@ -243,7 +243,7 @@ namespace tix
 
 		//FMat4 m;
 		//matView.getInverse(m);
-		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
+		//const FRecti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
 		//// Compute the vector of the Pick ray in screen space
 		//FFloat3 v;
@@ -258,7 +258,7 @@ namespace tix
 		//ray.end = pEnd;
 	}
 
-	void TNodeCamera::GetRayFrom2DPoint(const FFloat2& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPoint(const FFloat2& pos, FLine3&ray, float length)
 	{
 		TI_ASSERT(0);
 		//FFloat3 orig,dir;
@@ -267,7 +267,7 @@ namespace tix
 
 		//FMat4 m;
 		//matView.getInverse(m);
-		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
+		//const FRecti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
 		//// Compute the vector of the Pick ray in screen space
 		//FFloat3 v;
@@ -282,7 +282,7 @@ namespace tix
 		//ray.end = pEnd;
 	}
 
-	void TNodeCamera::GetRayFrom2DPointWithViewport(const rectf& vp, const FFloat2& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPointWithViewport(const FRect& vp, const FFloat2& pos, FLine3&ray, float length)
 	{
 		FFloat3 orig,dir;
 		const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
@@ -293,15 +293,15 @@ namespace tix
 
 		// Compute the vector of the Pick ray in screen space
 		FFloat3 v;
-		v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
-		v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
+		v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.GetWidth() ) - 1 ) / matProj(0, 0);
+		v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.GetHeight() ) - 1 ) / matProj(1, 1);
 		v.Z = 1.0f;
 
 		FFloat3 pStart, pEnd;
 		m.TransformVect(pStart, v * 1.0f);
 		m.TransformVect(pEnd, v * length);
-		ray.start = pStart;
-		ray.end = pEnd;
+		ray.Start = pStart;
+		ray.End = pEnd;
 	}
 
 	FFloat2 TNodeCamera::Convert3Dto2D(const FFloat3& pos)
@@ -316,7 +316,7 @@ namespace tix
 		//_proj_pos[0]			/= _proj_pos[3];
 		//_proj_pos[1]			/= _proj_pos[3];
 
-		//const recti& vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
+		//const FRecti& vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
 		//_pos_2d.X				= (_proj_pos[0] * 0.5f + 0.5f) * vp.getWidth();
 		//_pos_2d.Y				= (0.5f - _proj_pos[1] * 0.5f) * vp.getHeight();

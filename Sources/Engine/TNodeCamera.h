@@ -125,9 +125,9 @@ namespace tix
 		virtual const SViewFrustum* GetViewFrustum() const;
 
 		//! Get a ray from the screen coord.
-		virtual void GetRayFrom2DPoint(const FInt2& pos, line3df &ray, float length = 1000.f);
-		virtual void GetRayFrom2DPoint(const FFloat2& pos, line3df &ray, float length = 1000.f);
-		virtual void GetRayFrom2DPointWithViewport(const rectf& vp, const FFloat2& pos, line3df &ray, float length = 1000.f);
+		virtual void GetRayFrom2DPoint(const FInt2& pos, FLine3&ray, float length = 1000.f);
+		virtual void GetRayFrom2DPoint(const FFloat2& pos, FLine3&ray, float length = 1000.f);
+		virtual void GetRayFrom2DPointWithViewport(const FRect& vp, const FFloat2& pos, FLine3&ray, float length = 1000.f);
 
 		//! Convert 3d position into 2d screen space
 		TI_API FFloat2 Convert3Dto2D(const FFloat3& pos);

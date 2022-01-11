@@ -14,8 +14,8 @@ namespace tix
 		{
 			int32 ValueInt;
 			float ValueFloat;
-			vector3df ValueVec;
-			quaternion ValueQuat;
+			FFloat3 ValueVec;
+			FQuat ValueQuat;
 			SColorf ValueClr;
 		};
 		TString ValueString;
@@ -36,7 +36,7 @@ namespace tix
 		TString ParamName;
 		uint8 ParamType;
 		TMIParamValue ParamValue;
-		vector2di ParamValueSize;
+		FInt2 ParamValueSize;
 
 		TMIParam()
 			: ParamName("None")
@@ -69,10 +69,10 @@ namespace tix
 
 		void AddParameter(const TString& InParamName, int32 Value);
 		void AddParameter(const TString& InParamName, float Value);
-		void AddParameter(const TString& InParamName, const vector3df& Value);
-		void AddParameter(const TString& InParamName, const quaternion& Value);
+		void AddParameter(const TString& InParamName, const FFloat3& Value);
+		void AddParameter(const TString& InParamName, const FQuat& Value);
 		void AddParameter(const TString& InParamName, const SColorf& Value);
-		void AddParameter(const TString& InParamName, const TString& Value, const vector2di& Size);
+		void AddParameter(const TString& InParamName, const TString& Value, const FInt2& Size);
 	private:
 		TString InstanceName;
 		TString LinkedMaterial;

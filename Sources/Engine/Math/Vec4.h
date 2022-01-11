@@ -158,5 +158,4 @@ namespace tix
 	//! Typedef for an integer 4d vector.
 	typedef FVec4<int32> FInt4;
 	typedef FVec4<uint32> FUInt4;
-
 }

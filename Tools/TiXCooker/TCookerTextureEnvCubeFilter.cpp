@@ -16,47 +16,47 @@ namespace tix
 	// Longlat image to cubemap
 	// From UE4 TextureCompressorModule.cpp
 	// transform world space vector to a space relative to the face
-	static vector3df TransformSideToWorldSpace(uint32 CubemapFace, const vector3df& InDirection)
+	static FFloat3 TransformSideToWorldSpace(uint32 CubemapFace, const FFloat3& InDirection)
 	{
 		float x = InDirection.X, y = InDirection.Y, z = InDirection.Z;
 
-		vector3df Ret;
+		FFloat3 Ret;
 
 		// see http://msdn.microsoft.com/en-us/library/bb204881(v=vs.85).aspx
 		switch (CubemapFace)
 		{
-		case 0: Ret = vector3df(+z, -y, -x); break;
-		case 1: Ret = vector3df(-z, -y, +x); break;
-		case 2: Ret = vector3df(+x, +z, +y); break;
-		case 3: Ret = vector3df(+x, -z, -y); break;
-		case 4: Ret = vector3df(+x, -y, +z); break;
-		case 5: Ret = vector3df(-x, -y, -z); break;
+		case 0: Ret = FFloat3(+z, -y, -x); break;
+		case 1: Ret = FFloat3(-z, -y, +x); break;
+		case 2: Ret = FFloat3(+x, +z, +y); break;
+		case 3: Ret = FFloat3(+x, -z, -y); break;
+		case 4: Ret = FFloat3(+x, -y, +z); break;
+		case 5: Ret = FFloat3(-x, -y, -z); break;
 		default:
 			TI_ASSERT(0);
 			break;
 		}
 
 		// this makes it with the Unreal way (z and y are flipped)
-		return vector3df(Ret.X, Ret.Z, Ret.Y);
+		return FFloat3(Ret.X, Ret.Z, Ret.Y);
 	}
 
 	// transform vector relative to the face to world space
-	static vector3df TransformWorldToSideSpace(uint32 CubemapFace, const vector3df& InDirection)
+	static FFloat3 TransformWorldToSideSpace(uint32 CubemapFace, const FFloat3& InDirection)
 	{
 		// undo Unreal way (z and y are flipped)
 		float x = InDirection.X, y = InDirection.Z, z = InDirection.Y;
 
-		vector3df Ret;
+		FFloat3 Ret;
 
 		// see http://msdn.microsoft.com/en-us/library/bb204881(v=vs.85).aspx
 		switch (CubemapFace)
 		{
-		case 0: Ret = vector3df(-z, -y, +x); break;
-		case 1: Ret = vector3df(+z, -y, -x); break;
-		case 2: Ret = vector3df(+x, +z, +y); break;
-		case 3: Ret = vector3df(+x, -z, -y); break;
-		case 4: Ret = vector3df(+x, -y, +z); break;
-		case 5: Ret = vector3df(-x, -y, -z); break;
+		case 0: Ret = FFloat3(-z, -y, +x); break;
+		case 1: Ret = FFloat3(+z, -y, -x); break;
+		case 2: Ret = FFloat3(+x, +z, +y); break;
+		case 3: Ret = FFloat3(+x, -z, -y); break;
+		case 4: Ret = FFloat3(+x, -y, +z); break;
+		case 5: Ret = FFloat3(-x, -y, -z); break;
 		default:
 			TI_ASSERT(0);
 			break;
@@ -65,18 +65,18 @@ namespace tix
 		return Ret;
 	}
 
-	vector3df ComputeSSCubeDirectionAtTexelCenter(uint32 x, uint32 y, float InvSideExtent)
+	FFloat3 ComputeSSCubeDirectionAtTexelCenter(uint32 x, uint32 y, float InvSideExtent)
 	{
 		// center of the texels
-		vector3df DirectionSS((x + 0.5f) * InvSideExtent * 2 - 1, (y + 0.5f) * InvSideExtent * 2 - 1, 1);
+		FFloat3 DirectionSS((x + 0.5f) * InvSideExtent * 2 - 1, (y + 0.5f) * InvSideExtent * 2 - 1, 1);
 		return DirectionSS;
 	}
 
-	static vector3df ComputeWSCubeDirectionAtTexelCenter(uint32 CubemapFace, uint32 x, uint32 y, float InvSideExtent)
+	static FFloat3 ComputeWSCubeDirectionAtTexelCenter(uint32 CubemapFace, uint32 x, uint32 y, float InvSideExtent)
 	{
-		vector3df DirectionSS = ComputeSSCubeDirectionAtTexelCenter(x, y, InvSideExtent);
-		vector3df DirectionWS = TransformSideToWorldSpace(CubemapFace, DirectionSS);
-		DirectionWS.normalize();
+		FFloat3 DirectionSS = ComputeSSCubeDirectionAtTexelCenter(x, y, InvSideExtent);
+		FFloat3 DirectionWS = TransformSideToWorldSpace(CubemapFace, DirectionSS);
+		DirectionWS.Normalize();
 		return DirectionWS;
 	}
 	static int32 ComputeLongLatCubemapExtents(int32 ImageWidth)
@@ -97,13 +97,13 @@ namespace tix
 		}
 	}
 
-	inline vector3df LongLatToPosition(const vector2df& Coord)
+	inline FFloat3 LongLatToPosition(const FFloat2& Coord)
 	{
 		float Lat = - (Coord.Y - 0.5f) * PI;
 		// Long coord offset PI/2 to match unreal way.
 		float Long = Coord.X * PI * 2.f + PI * 0.5f;
 
-		vector3df Result;
+		FFloat3 Result;
 		Result.X = cos(Lat) * cos(Long);
 		Result.Y = cos(Lat) * sin(Long);
 		Result.Z = sin(Lat);
@@ -111,20 +111,20 @@ namespace tix
 
 		// fix this with unreal way.
 		// this makes it with the Unreal way (z and y are flipped)
-		return vector3df(Result.X, Result.Z, Result.Y);
+		return FFloat3(Result.X, Result.Z, Result.Y);
 	}
 
-	SColorf SampleLongLat(TImage* LongLat, const vector3df& Dir, int32 Mip)
+	SColorf SampleLongLat(TImage* LongLat, const FFloat3& Dir, int32 Mip)
 	{
 		int32 W = LongLat->GetMipmap(Mip).W;
 		int32 H = LongLat->GetMipmap(Mip).H;
 
-		auto DirectionToLongLat = [](const vector3df& NormalizedDirection, int32 LongLatWidth, int32 LongLatHeight)
+		auto DirectionToLongLat = [](const FFloat3& NormalizedDirection, int32 LongLatWidth, int32 LongLatHeight)
 		{
 			// see http://gl.ict.usc.edu/Data/HighResProbes
 			// latitude-longitude panoramic format = equirectangular mapping
 
-			vector2df Result;
+			FFloat2 Result;
 
 			Result.X = (1 + atan2(NormalizedDirection.X, -NormalizedDirection.Z) / PI) / 2 * LongLatWidth;
 			Result.Y = acos(NormalizedDirection.Y) / PI * LongLatHeight;
@@ -162,12 +162,12 @@ namespace tix
 			return TMath::Lerp(CornerRGB0, CornerRGB1, FracY);
 		};
 
-		vector2df Coord = DirectionToLongLat(Dir, W, H);
+		FFloat2 Coord = DirectionToLongLat(Dir, W, H);
 
 		return GetPixelFloatWithXWrap(LongLat, Coord.X, Coord.Y, Mip);
 	}
 
-	SColorf SampleLongLatLinearMip(TImage* LongLat, const vector3df& Dir, float Mip)
+	SColorf SampleLongLatLinearMip(TImage* LongLat, const FFloat3& Dir, float Mip)
 	{
 		int32 Mip0 = (int32)Mip;
 		int32 Mip1 = Mip0 + 1;
@@ -217,7 +217,7 @@ namespace tix
 				{
 					for (int32 x = 0; x < Extent; ++x)
 					{
-						vector3df DirectionWS = ComputeWSCubeDirectionAtTexelCenter(Face, x, y, InvExtent);
+						FFloat3 DirectionWS = ComputeWSCubeDirectionAtTexelCenter(Face, x, y, InvExtent);
 						SColorf Sample = SampleLongLat(LongLat, DirectionWS, Mip);
 
 						FaceImage->SetPixel(x, y, Sample, Mip);
@@ -239,16 +239,16 @@ namespace tix
 		float xx = x * x;
 		return xx * xx;
 	}
-	inline matrix4 GetTangentBasis(const vector3df& TangentZ)
+	inline FMat4 GetTangentBasis(const FFloat3& TangentZ)
 	{
 		const float Sign = TangentZ.Z >= 0.f ? 1.f : -1.f;
 		const float a = -1.f/(Sign + TangentZ.Z);
 		const float b = TangentZ.X * TangentZ.Y * a;
 
-		vector3df TangentX = vector3df( 1 + Sign * a * Pow2(TangentZ.X), Sign * b, -Sign * TangentZ.X );
-		vector3df TangentY = vector3df( b,  Sign + a * Pow2(TangentZ.Y), -TangentZ.Y );
+		FFloat3 TangentX = FFloat3( 1 + Sign * a * Pow2(TangentZ.X), Sign * b, -Sign * TangentZ.X );
+		FFloat3 TangentY = FFloat3( b,  Sign + a * Pow2(TangentZ.Y), -TangentZ.Y );
 
-		matrix4 Result;
+		FMat4 Result;
 		Result[0] = TangentX.X;
 		Result[1] = TangentX.Y;
 		Result[2] = TangentX.Z;
@@ -296,38 +296,38 @@ namespace tix
 		return bits;
 	}
 	
-	inline vector2df Hammersley(uint32 Index, uint32 NumSamples, const vector2du& Random)
+	inline FFloat2 Hammersley(uint32 Index, uint32 NumSamples, const FUInt2& Random)
 	{
 		//float E1 = frac((float)Index / NumSamples + float(Random.X & 0xffff) / (1 << 16));
 		float IntPart;
 		float E1 = modf((float)Index / NumSamples + float(Random.X & 0xffff) / (1 << 16), &IntPart);
 		float E2 = float(ReverseBits32(Index) ^ Random.Y) * 2.3283064365386963e-10f;
-		return vector2df(E1, E2);
+		return FFloat2(E1, E2);
 	}
 
-	inline vector4df CosineSampleHemisphere(const vector2df& E)
+	inline FFloat4 CosineSampleHemisphere(const FFloat2& E)
 	{
 		float Phi = 2 * PI * E.X;
 		float CosTheta = sqrt(E.Y);
 		float SinTheta = sqrt(1 - CosTheta * CosTheta);
 
-		vector3df H;
+		FFloat3 H;
 		H.X = SinTheta * cos(Phi);
 		H.Y = SinTheta * sin(Phi);
 		H.Z = CosTheta;
 
 		float PDF = CosTheta * (1.0f / PI);
 
-		return vector4df(H.X, H.Y, H.Z, PDF);
+		return FFloat4(H.X, H.Y, H.Z, PDF);
 	}
 
-	inline vector4df ImportanceSampleGGX(const vector2df& E, float a2)
+	inline FFloat4 ImportanceSampleGGX(const FFloat2& E, float a2)
 	{
 		float Phi = 2 * PI * E.X;
 		float CosTheta = sqrt((1 - E.Y) / (1 + (a2 - 1) * E.Y));
 		float SinTheta = sqrt(1 - CosTheta * CosTheta);
 
-		vector3df H;
+		FFloat3 H;
 		H.X = SinTheta * cos(Phi);
 		H.Y = SinTheta * sin(Phi);
 		H.Z = CosTheta;
@@ -336,7 +336,7 @@ namespace tix
 		float D = a2 / (PI * d * d);
 		float PDF = D * CosTheta;
 
-		return vector4df(H.X, H.Y, H.Z, PDF);
+		return FFloat4(H.X, H.Y, H.Z, PDF);
 	}
 
 	// GGX / Trowbridge-Reitz
@@ -387,8 +387,8 @@ namespace tix
 			{
 				for (int32 x = 0; x < W; ++x)
 				{
-					vector3df DirectionWS = LongLatToPosition(vector2df((x + 0.5f) / float(W), (y + 0.5f) / float(H)));
-					matrix4 TangentToWorld = GetTangentBasis(DirectionWS);
+					FFloat3 DirectionWS = LongLatToPosition(FFloat2((x + 0.5f) / float(W), (y + 0.5f) / float(H)));
+					FMat4 TangentToWorld = GetTangentBasis(DirectionWS);
 
 					SColorf OutColor;
 
@@ -398,17 +398,17 @@ namespace tix
 					}
 					else
 					{
-						vector4df FilteredColor;
+						FFloat4 FilteredColor;
 						if (Roughness > 0.99f)
 						{
 							// Roughness=1, GGX is constant. Use cosine distribution instead
 
 							for (uint32 i = 0; i < NumSamples; i++)
 							{
-								vector2df E = Hammersley(i, NumSamples, vector2du());
+								FFloat2 E = Hammersley(i, NumSamples, FUInt2());
 
-								vector4df CosSample = CosineSampleHemisphere(E);
-								vector3df L = vector3df(CosSample.X, CosSample.Y, CosSample.Z);
+								FFloat4 CosSample = CosineSampleHemisphere(E);
+								FFloat3 L = FFloat3(CosSample.X, CosSample.Y, CosSample.Z);
 
 								float NoL = L.Z;
 
@@ -418,9 +418,9 @@ namespace tix
 								Mip = TMath::Clamp(Mip, 0.f, float(TotalMips - 1) - 0.01f);
 
 								//L = mul(L, TangentToWorld);
-								TangentToWorld.transformVect(L);
-								L.normalize();
-								vector4df Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
+								TangentToWorld.TransformVect(L);
+								L.Normalize();
+								FFloat4 Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
 								FilteredColor += Sample;
 							}
 
@@ -432,7 +432,7 @@ namespace tix
 
 							for (uint32 i = 0; i < NumSamples; i++)
 							{
-								vector2df E = Hammersley(i, NumSamples, vector2du());
+								FFloat2 E = Hammersley(i, NumSamples, FUInt2());
 
 								// 6x6 Offset rows. Forms uniform star pattern
 								//uint2 Index = uint2( i % 6, i / 6 );
@@ -441,9 +441,9 @@ namespace tix
 
 								E.Y *= 0.995f;
 
-								vector4df ImportanceSample = ImportanceSampleGGX(E, Pow4(Roughness));
-								vector3df HalfVector = vector3df(ImportanceSample.X, ImportanceSample.Y, ImportanceSample.Z);
-								vector3df L = 2 * HalfVector.Z * HalfVector - vector3df(0, 0, 1);
+								FFloat4 ImportanceSample = ImportanceSampleGGX(E, Pow4(Roughness));
+								FFloat3 HalfVector = FFloat3(ImportanceSample.X, ImportanceSample.Y, ImportanceSample.Z);
+								FFloat3 L = 2 * HalfVector.Z * HalfVector - FFloat3(0, 0, 1);
 
 								float NoL = L.Z;
 								float NoH = HalfVector.Z;
@@ -458,9 +458,9 @@ namespace tix
 									float ConeAngle = acos(1 - SolidAngleSample / (2 * PI));
 
 									//L = mul(L, TangentToWorld);
-									TangentToWorld.transformVect(L);
-									L.normalize();
-									vector4df Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
+									TangentToWorld.TransformVect(L);
+									L.Normalize();
+									FFloat4 Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
 									FilteredColor += Sample * NoL;
 									Weight += NoL;
 								}

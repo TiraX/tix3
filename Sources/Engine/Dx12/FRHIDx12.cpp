@@ -2335,14 +2335,14 @@ namespace tix
 		}
 	}
 
-	bool FRHIDx12::CopyTextureRegion(FTexturePtr DstTexture, const recti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel)
+	bool FRHIDx12::CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel)
 	{
 		TI_ASSERT(SrcTexture != nullptr);
-		TI_ASSERT(SrcTexture->GetDesc().Width == InDstRegion.getWidth() && SrcTexture->GetDesc().Height == InDstRegion.getHeight());
+		TI_ASSERT(SrcTexture->GetDesc().Width == InDstRegion.GetWidth() && SrcTexture->GetDesc().Height == InDstRegion.GetHeight());
 		FTextureDx12 * DstTexDx12 = static_cast<FTextureDx12*>(DstTexture.get());
 		FTextureDx12 * SrcTexDx12 = static_cast<FTextureDx12*>(SrcTexture.get());
 		TI_ASSERT(DstTexDx12->GetDesc().Type == ETT_TEXTURE_2D && SrcTexDx12->GetDesc().Type == ETT_TEXTURE_2D);
-		TI_ASSERT(InDstRegion.getWidth() == SrcTexture->GetDesc().Width && InDstRegion.getHeight() == SrcTexture->GetDesc().Height);
+		TI_ASSERT(InDstRegion.GetWidth() == SrcTexture->GetDesc().Width && InDstRegion.GetHeight() == SrcTexture->GetDesc().Height);
 		
 		Transition(&DstTexDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_DEST);
 		Transition(&SrcTexDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -2352,8 +2352,8 @@ namespace tix
 		SrcBox.left = 0;
 		SrcBox.top = 0;
 		SrcBox.front = 0;
-		SrcBox.right = InDstRegion.getWidth();
-		SrcBox.bottom = InDstRegion.getHeight();
+		SrcBox.right = InDstRegion.GetWidth();
+		SrcBox.bottom = InDstRegion.GetHeight();
 		SrcBox.back = 1;
 		CD3DX12_TEXTURE_COPY_LOCATION Dst(DstTexDx12->TextureResource.GetResource().Get(), DstMipLevel);
 		CD3DX12_TEXTURE_COPY_LOCATION Src(SrcTexDx12->TextureResource.GetResource().Get(), SrcMipLevel);
