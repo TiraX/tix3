@@ -11,14 +11,8 @@ namespace tix
 {
 	TMeshBuffer::TMeshBuffer()
 		: TResource(ERES_MESH_BUFFER)
-		, PrimitiveType(EPT_TRIANGLELIST)
 		, VsData(nullptr)
-		, VsDataCount(0)
-		, IndexType(EIT_16BIT)
 		, PsData(nullptr)
-		, PsDataCount(0)
-		, VsFormat(0)
-		, Stride(0)
 	{
 	}
 
@@ -59,11 +53,6 @@ namespace tix
 	{
 		TI_ASSERT(MeshBufferResource == nullptr);
 		MeshBufferResource = FRHI::Get()->CreateMeshBuffer();
-		if (ClusterData.size() > 0)
-		{
-			TI_ASSERT(MeshClusterDataResource == nullptr);
-			MeshClusterDataResource = FRHI::Get()->CreateUniformBuffer(sizeof(TMeshClusterData), (uint32)ClusterData.size(), UB_FLAG_INTERMEDIATE);
-		}
 
 		FMeshBufferPtr MeshBuffer = MeshBufferResource;
 		FUniformBufferPtr ClusterDataBuffer = MeshClusterDataResource;
@@ -73,10 +62,6 @@ namespace tix
 			{
 				MeshBuffer->SetFromTMeshBuffer(InMeshData);
 				FRHI::Get()->UpdateHardwareResourceMesh(MeshBuffer, InMeshData);
-				if (ClusterDataBuffer != nullptr)
-				{
-					FRHI::Get()->UpdateHardwareResourceUB(ClusterDataBuffer, InMeshData->GetClusterData().data());
-				}
 			});
 	}
 
@@ -100,15 +85,15 @@ namespace tix
 		E_INDEX_TYPE InIndexType,
 		const void* InIndexData, uint32 InIndexCount)
 	{
-		VsFormat = InFormat;
-		VsDataCount = InVertexCount;
+		Desc.VsFormat = InFormat;
+		Desc.VertexCount = InVertexCount;
 
-		IndexType = InIndexType;
-		PsDataCount = InIndexCount;
+		Desc.IndexType = InIndexType;
+		Desc.IndexCount = InIndexCount;
 
-		Stride = GetStrideFromFormat(VsFormat);
+		Desc.Stride = GetStrideFromFormat(InFormat);
 
-		const uint32 VsSize = InVertexCount * Stride;
+		const uint32 VsSize = InVertexCount * Desc.Stride;
 		const uint32 VsBufferSize = TMath::Align(VsSize, 16);
 		TI_ASSERT(VsData == nullptr);
 		VsData = ti_new uint8[VsBufferSize];
@@ -119,20 +104,6 @@ namespace tix
 		TI_ASSERT(PsData == nullptr);
 		PsData = ti_new uint8[PsBufferSize];
 		memcpy(PsData, InIndexData, PsSize);
-	}
-
-	void TMeshBuffer::SetClusterData(const void* InClusterData, uint32 InClusterCount)
-	{
-		TI_ASSERT(InClusterCount > 0);
-		ClusterData.resize(InClusterCount);
-
-		const TMeshClusterDef* InData = (const TMeshClusterDef*)InClusterData;
-		for (uint32 c = 0 ; c < InClusterCount ; ++ c)
-		{
-			ClusterData[c].Min = InData[c].BBox.Min;
-			ClusterData[c].Max = InData[c].BBox.Max;
-			ClusterData[c].Cone = InData[c].Cone;
-		}
 	}
 
 	///////////////////////////////////////////////////////////
@@ -146,10 +117,7 @@ namespace tix
 
 	TInstanceBuffer::TInstanceBuffer()
 		: TResource(ERES_INSTANCE)
-		, InsFormat(0)
 		, InstanceData(nullptr)
-		, InstanceCount(0)
-		, Stride(0)
 	{
 	}
 
@@ -190,11 +158,11 @@ namespace tix
 		const void* InInstanceData, int32 InInstanceCount
 	)
 	{
-		InsFormat = InFormat;
-		InstanceCount = InInstanceCount;
-		Stride = GetStrideFromFormat(InsFormat);
+		Desc.InsFormat = InFormat;
+		Desc.InstanceCount = InInstanceCount;
+		Desc.Stride = GetStrideFromFormat(InFormat);
 
-		const int32 BufferSize = InstanceCount * Stride;
+		const int32 BufferSize = Desc.InstanceCount * Desc.Stride;
 		TI_ASSERT(InstanceData == nullptr);
 		InstanceData = ti_new uint8[BufferSize];
 		memcpy(InstanceData, InInstanceData, BufferSize);
@@ -208,7 +176,7 @@ namespace tix
 		// as GPU Driven pipeline need to copy these instance buffer into a merged instance buffer
 		TI_TODO("Add gpu driven CVAR to check here.");
 		//InstanceResource->SetUsage(FRenderResource::USAGE_COPY_SOURCE);
-		TI_ASSERT(InstanceCount != 0);
+		TI_ASSERT(Desc.InstanceCount != 0);
 
 		FInstanceBufferPtr InstanceBuffer = InstanceResource;
 		TInstanceBufferPtr InInstanceData = this;

@@ -9,12 +9,6 @@ namespace tix
 {
 	FMeshBuffer::FMeshBuffer()
 		: FRenderResource(RRT_VERTEX_BUFFER)
-		, PrimitiveType(EPT_TRIANGLELIST)
-		, VsDataCount(0)
-		, IndexType(EIT_16BIT)
-		, PsDataCount(0)
-		, VsFormat(0)
-		, Stride(0)
 	{
 	}
 
@@ -27,15 +21,14 @@ namespace tix
 		const FBox& InBBox
 	)
 		: FRenderResource(RRT_VERTEX_BUFFER)
-		, PrimitiveType(InPrimType)
-		, VsDataCount(InVertexCount)
-		, IndexType(InIndexType)
-		, PsDataCount(InIndexCount)
-		, VsFormat(InVSFormat)
-		, Stride(0)
-		, BBox(InBBox)
 	{
-		Stride = TMeshBuffer::GetStrideFromFormat(InVSFormat);
+		Desc.PrimitiveType = InPrimType;
+		Desc.VertexCount = InVertexCount;
+		Desc.IndexType = InIndexType;
+		Desc.IndexCount = InIndexCount;
+		Desc.VsFormat = InVSFormat;
+		Desc.BBox = InBBox;
+		Desc.Stride = TMeshBuffer::GetStrideFromFormat(InVSFormat);
 	}
 
 	FMeshBuffer::~FMeshBuffer()
@@ -44,13 +37,7 @@ namespace tix
 
 	void FMeshBuffer::SetFromTMeshBuffer(TMeshBufferPtr InMeshBuffer)
 	{
-		PrimitiveType = InMeshBuffer->GetPrimitiveType();
-		VsDataCount = InMeshBuffer->GetVerticesCount();
-		IndexType = InMeshBuffer->GetIndexType();
-		PsDataCount = InMeshBuffer->GetIndicesCount();
-		VsFormat = InMeshBuffer->GetVSFormat();
-		Stride = InMeshBuffer->GetStride();
-		BBox = InMeshBuffer->GetBBox();
+		Desc = InMeshBuffer->GetDesc();
 	}
 
 	///////////////////////////////////////////////////////////
@@ -74,7 +61,7 @@ namespace tix
 
 	void FInstanceBuffer::SetFromTInstanceBuffer(TInstanceBufferPtr InInstanceData)
 	{
-		InstanceCount = InInstanceData->GetInstanceCount();
-		Stride = InInstanceData->GetStride();
+		InstanceCount = InInstanceData->GetDesc().InstanceCount;
+		Stride = InInstanceData->GetDesc().Stride;
 	}
 }

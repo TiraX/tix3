@@ -29,14 +29,14 @@ namespace tix
 		GeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 		GeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-		GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(MBDx12->GetIndexType());
+		GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(MBDx12->GetDesc().IndexType);
 		GeometryDesc.Triangles.IndexBuffer = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
-		GeometryDesc.Triangles.IndexCount = MBDx12->GetIndicesCount();
+		GeometryDesc.Triangles.IndexCount = MBDx12->GetDesc().IndexCount;
 
 		GeometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;	// Position always be RGB32F
 		GeometryDesc.Triangles.VertexBuffer.StartAddress = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
-		GeometryDesc.Triangles.VertexBuffer.StrideInBytes = MBDx12->GetStride();
-		GeometryDesc.Triangles.VertexCount = MBDx12->GetVerticesCount();
+		GeometryDesc.Triangles.VertexBuffer.StrideInBytes = MBDx12->GetDesc().Stride;
+		GeometryDesc.Triangles.VertexCount = MBDx12->GetDesc().VertexCount;
 
 		GeometryDesc.Triangles.Transform3x4 = NULL;
 

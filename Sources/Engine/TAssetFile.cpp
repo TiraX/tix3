@@ -248,10 +248,6 @@ namespace tix
 		const int8* IndexData = VertexDataStart + TMath::Align4(Header->VertexCount * VertexStride);
 		const int8* ClusterData = IndexData + TMath::Align4(Header->PrimitiveCount * 3 * IndexStride);
 		MeshBuffer->SetVertexStreamData(Header->VertexFormat, VertexData, Header->VertexCount, (E_INDEX_TYPE)Header->IndexType, IndexData, Header->PrimitiveCount * 3);
-		if (Header->Clusters > 0)
-		{
-			MeshBuffer->SetClusterData(ClusterData, Header->Clusters);
-		}
 		MeshBuffer->SetBBox(Header->BBox);
 		TI_ASSERT(Header->ClusterSize == 0 || (Header->PrimitiveCount == Header->Clusters * Header->ClusterSize));
 

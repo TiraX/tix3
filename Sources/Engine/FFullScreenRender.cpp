@@ -65,7 +65,7 @@ namespace tix
         FSMaterial->EnableTwoSides(true);
 		FSMaterial->EnableDepthWrite(false);
 		FSMaterial->EnableDepthTest(false);
-		FSMaterial->SetShaderVsFormat(FullScreenQuad->GetVSFormat());
+		FSMaterial->SetShaderVsFormat(FullScreenQuad->GetDesc().VsFormat);
 		FSMaterial->SetRTColor(FRHIConfig::DefaultBackBufferFormat, ERTC_COLOR0);
 
 		// Pipeline

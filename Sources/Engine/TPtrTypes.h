@@ -51,6 +51,9 @@ namespace tix
 	DECLARE_INSTRUSIVE_PTR(FRtxPipeline);
 	DECLARE_INSTRUSIVE_PTR(FBottomLevelAccelerationStructure);
 	DECLARE_INSTRUSIVE_PTR(FTopLevelAccelerationStructure);
+	DECLARE_INSTRUSIVE_PTR(FGPUResource);
+	DECLARE_INSTRUSIVE_PTR(FGPUResourceBuffer);
+	DECLARE_INSTRUSIVE_PTR(FGPUResourceTexture);
 
 #undef DECLARE_INSTRUSIVE_PTR
 } // end namespace tix

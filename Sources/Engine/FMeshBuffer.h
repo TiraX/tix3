@@ -25,64 +25,14 @@ namespace tix
 	public:
 		void TI_API SetFromTMeshBuffer(TMeshBufferPtr InMeshBuffer);
 
-		uint32 GetVerticesCount() const
+		const TMeshBufferDesc& GetDesc() const
 		{
-			return VsDataCount;
-		}
-
-		uint32 GetIndicesCount() const
-		{
-			return PsDataCount;
-		}
-
-		E_PRIMITIVE_TYPE GetPrimitiveType() const
-		{
-			return PrimitiveType;
-		}
-
-		E_INDEX_TYPE GetIndexType() const
-		{
-			return IndexType;
-		}
-
-		void SetPrimitiveType(E_PRIMITIVE_TYPE type)
-		{
-			PrimitiveType = type;
-		}
-
-		uint32 GetVSFormat() const
-		{
-			return VsFormat;
-		}
-
-		uint32 GetStride() const
-		{
-			return Stride;
-		}
-
-		uint32 GetUsage() const
-		{
-			return Usage;
-		}
-
-		const FBox& GetBBox() const
-		{
-			return BBox;
+			return Desc;
 		}
 	protected:
 
 	protected:
-		E_PRIMITIVE_TYPE PrimitiveType;
-
-		uint32 VsDataCount;
-
-		E_INDEX_TYPE IndexType;
-		uint32 PsDataCount;
-
-		uint32 VsFormat;
-		uint32 Stride;
-
-		FBox BBox;
+		TMeshBufferDesc Desc;
 	};
 
 	///////////////////////////////////////////////////////////

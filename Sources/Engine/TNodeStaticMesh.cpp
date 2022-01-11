@@ -111,7 +111,7 @@ namespace tix
 		if (HasFlag(ENF_ABSOLUTETRANSFORMATION_UPDATED))
 		{
 			TI_ASSERT(LinkedPrimitive != nullptr);
-			TransformedBBox = LinkedPrimitive->GetMeshBuffer()->GetBBox();
+			TransformedBBox = LinkedPrimitive->GetMeshBuffer()->GetDesc().BBox;
 			AbsoluteTransformation.TransformBoxEx(TransformedBBox);
 
 			// Init uniform buffer resource in render thread

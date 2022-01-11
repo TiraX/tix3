@@ -21,11 +21,26 @@ namespace tix
 		TVector<uint32> BoneMap;
 	};
 
-	struct TMeshClusterData
+	struct TMeshBufferDesc
 	{
-		FFloat4 Min;
-		FFloat4 Max;
-		FFloat4 Cone;
+		E_PRIMITIVE_TYPE PrimitiveType;
+		FBox BBox;
+		uint32 VertexCount;
+
+		E_INDEX_TYPE IndexType;
+		uint32 IndexCount;
+
+		uint32 VsFormat;
+		uint32 Stride;
+
+		TMeshBufferDesc()
+			: PrimitiveType(EPT_TRIANGLELIST)
+			, VertexCount(0)
+			, IndexType(EIT_16BIT)
+			, IndexCount(0)
+			, VsFormat(0)
+			, Stride(0)
+		{}
 	};
 
 	// TMeshBuffer, hold mesh vertex and index data memory in game thread
@@ -53,52 +68,20 @@ namespace tix
 			const void* InVertexData, uint32 InVertexCount,
 			E_INDEX_TYPE InIndexType,
 			const void* InIndexData, uint32 InIndexCount);
-		void SetClusterData(
-			const void* InClusterData, uint32 InClusterCount);
 
-		uint32 GetVerticesCount() const
+		const TMeshBufferDesc& GetDesc() const
 		{
-			return VsDataCount;
-		}
-
-		uint32 GetIndicesCount() const
-		{
-			return PsDataCount;
-		}
-
-		E_PRIMITIVE_TYPE GetPrimitiveType() const
-		{
-			return PrimitiveType;
-		}
-
-		E_INDEX_TYPE GetIndexType() const
-		{
-			return IndexType;
+			return Desc;
 		}
 
 		void SetPrimitiveType(E_PRIMITIVE_TYPE type)
 		{
-			PrimitiveType = type;
-		}
-
-		uint32 GetVSFormat() const
-		{
-			return VsFormat;
-		}
-
-		uint32 GetStride() const
-		{
-			return Stride;
-		}
-
-		const FBox& GetBBox() const
-		{
-			return BBox;
+			Desc.PrimitiveType = type;
 		}
 
 		void SetBBox(const FBox& bbox)
 		{
-			BBox = bbox;
+			Desc.BBox = bbox;
 		}
 
 		const void* GetVSData() const
@@ -110,32 +93,29 @@ namespace tix
 		{
 			return PsData;
 		}
-
-		const TVector<TMeshClusterData>& GetClusterData() const
-		{
-			return ClusterData;
-		}
 	protected:
 
 	protected:
-		E_PRIMITIVE_TYPE PrimitiveType;
-		FBox BBox;
+		TMeshBufferDesc Desc;
 
 		uint8* VsData;
-		uint32 VsDataCount;
-
-		E_INDEX_TYPE IndexType;
 		uint8* PsData;
-		uint32 PsDataCount;
-
-		TVector<TMeshClusterData> ClusterData;
-
-		uint32 VsFormat;
-		uint32 Stride;
 	};
 
 	///////////////////////////////////////////////////////////
 
+	struct TInstanceBufferDesc
+	{
+		uint32 InsFormat;
+		int32 InstanceCount;
+		uint32 Stride;
+
+		TInstanceBufferDesc()
+			: InsFormat(0)
+			, InstanceCount(0)
+			, Stride(0)
+		{}
+	};
 	// TInstanceBuffer, hold instance data
 	class TI_API TInstanceBuffer : public TResource
 	{
@@ -163,14 +143,9 @@ namespace tix
 		virtual void InitRenderThreadResource() override;
 		virtual void DestroyRenderThreadResource() override;
 
-		int32 GetInstanceCount() const
+		const TInstanceBufferDesc& GetDesc() const
 		{
-			return InstanceCount;
-		}
-
-		uint32 GetStride() const
-		{
-			return Stride;
+			return Desc;
 		}
 
 		const void* GetInstanceData() const
@@ -180,9 +155,7 @@ namespace tix
 	protected:
 
 	protected:
-		uint32 InsFormat;
+		TInstanceBufferDesc Desc;
 		uint8* InstanceData;
-		int32 InstanceCount;
-		uint32 Stride;
 	};
 }

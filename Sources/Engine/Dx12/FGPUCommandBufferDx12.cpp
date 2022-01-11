@@ -62,7 +62,7 @@ namespace tix
 		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
 
 		// Only support indexed triangle list.
-		TI_ASSERT(MeshBuffer->GetPrimitiveType() == EPT_TRIANGLELIST);
+		TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
 
 		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
 		E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
@@ -109,7 +109,7 @@ namespace tix
 		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
 
 		// Only support indexed triangle list.
-		TI_ASSERT(MeshBuffer->GetPrimitiveType() == EPT_TRIANGLELIST);
+		TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
 
 		// Mesh Buffer will encode 3 D3D12 commands, set vertex buffer, set instance buffer, set index buffer
 		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();

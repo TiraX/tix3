@@ -868,7 +868,7 @@ namespace tix
 		// The upload resource must not be released until after the GPU has finished using it.
 		ComPtr<ID3D12Resource> VertexBufferUpload;
 
-		const int32 BufferSize = InMeshData->GetVerticesCount() * InMeshData->GetStride();
+		const int32 BufferSize = InMeshData->GetDesc().VertexCount * InMeshData->GetDesc().Stride;
 		CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
 		CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
@@ -923,7 +923,7 @@ namespace tix
 			Transition(&MBDx12->VertexBuffer, DestState);
 		}
 
-		const uint32 IndexBufferSize = (InMeshData->GetIndicesCount() * (InMeshData->GetIndexType() == EIT_16BIT ? sizeof(uint16) : sizeof(uint32)));
+		const uint32 IndexBufferSize = (InMeshData->GetDesc().IndexCount * (InMeshData->GetDesc().IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32)));
 
 		// Create the index buffer resource in the GPU's default heap and copy index data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -985,12 +985,12 @@ namespace tix
 
 		// Create vertex/index buffer views.
 		MBDx12->VertexBufferView.BufferLocation = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
-		MBDx12->VertexBufferView.StrideInBytes = InMeshData->GetStride();
+		MBDx12->VertexBufferView.StrideInBytes = InMeshData->GetDesc().Stride;
 		MBDx12->VertexBufferView.SizeInBytes = BufferSize;
 
 		MBDx12->IndexBufferView.BufferLocation = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
 		MBDx12->IndexBufferView.SizeInBytes = IndexBufferSize;
-		MBDx12->IndexBufferView.Format = InMeshData->GetIndexType() == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		MBDx12->IndexBufferView.Format = InMeshData->GetDesc().IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
 		// Hold resources used here
 		HoldResourceReference(MeshBuffer);
@@ -2402,8 +2402,8 @@ namespace tix
 		FMeshBufferDx12 * SrcBufferDx12 = static_cast<FMeshBufferDx12*>(SrcBuffer.get());
 
 		// Copy vertex data
-		TI_ASSERT(DstBuffer->GetVSFormat() == SrcBuffer->GetVSFormat());
-		TI_ASSERT(DstVertexOffset + VertexLengthInBytes <= DstBuffer->GetVerticesCount() * DstBuffer->GetStride());
+		TI_ASSERT(DstBuffer->GetDesc().VsFormat == SrcBuffer->GetDesc().VsFormat);
+		TI_ASSERT(DstVertexOffset + VertexLengthInBytes <= DstBuffer->GetDesc().VertexCount * DstBuffer->GetDesc().Stride);
 		DirectCommandList->CopyBufferRegion(
 			DstBufferDx12->VertexBuffer.GetResource().Get(), 
 			DstVertexOffset, 
@@ -2412,8 +2412,8 @@ namespace tix
 			VertexLengthInBytes);
 
 		// Copy index data
-		TI_ASSERT(DstBuffer->GetIndexType() == SrcBuffer->GetIndexType());
-		TI_ASSERT(DstIndexOffset + IndexLengthInBytes <= (uint32)(DstBuffer->GetIndicesCount() * (DstBuffer->GetIndexType() == EIT_16BIT ? 2 : 4)));
+		TI_ASSERT(DstBuffer->GetDesc().IndexType == SrcBuffer->GetDesc().IndexType);
+		TI_ASSERT(DstIndexOffset + IndexLengthInBytes <= (uint32)(DstBuffer->GetDesc().IndexCount * (DstBuffer->GetDesc().IndexType == EIT_16BIT ? 2 : 4)));
 		DirectCommandList->CopyBufferRegion(
 			DstBufferDx12->IndexBuffer.GetResource().Get(), 
 			DstIndexOffset, 
@@ -2465,8 +2465,8 @@ namespace tix
 		FUniformBufferDx12* SrcBufferDx12 = static_cast<FUniformBufferDx12*>(SrcBuffer.get());
 
 		// Copy vertex data
-		const uint32 InstanceStride = DstBuffer->GetStride();
-		TI_ASSERT((DstBuffer->GetVerticesCount() * DstBuffer->GetStride() - DstOffsetInBytes) >= Bytes);
+		const uint32 InstanceStride = DstBuffer->GetDesc().Stride;
+		TI_ASSERT((DstBuffer->GetDesc().VertexCount * DstBuffer->GetDesc().Stride - DstOffsetInBytes) >= Bytes);
 		TI_ASSERT((SrcBuffer->GetTotalBufferSize() - SrcOffsetInBytes) >= Bytes);
 		DirectCommandList->CopyBufferRegion(
 			DstBufferDx12->VertexBuffer.Resource.Get(),
@@ -3238,8 +3238,8 @@ namespace tix
 
 		if (InVBHeapSlot >= 0)
 		{
-			TI_ASSERT(InBuffer->GetStride() % 4 == 0);
-			SRVDesc.Buffer.NumElements = InBuffer->GetVerticesCount() * InBuffer->GetStride() / sizeof(float);
+			TI_ASSERT(InBuffer->GetDesc().Stride % 4 == 0);
+			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().VertexCount * InBuffer->GetDesc().Stride / sizeof(float);
 			SRVDesc.Buffer.StructureByteStride = sizeof(float);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InVBHeapSlot);
@@ -3248,8 +3248,8 @@ namespace tix
 
 		if (InIBHeapSlot >= 0)
 		{
-			TI_ASSERT(InBuffer->GetIndexType() == EIT_32BIT);
-			SRVDesc.Buffer.NumElements = InBuffer->GetIndicesCount();
+			TI_ASSERT(InBuffer->GetDesc().IndexType == EIT_32BIT);
+			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().IndexCount;
 			SRVDesc.Buffer.StructureByteStride = sizeof(uint32);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InIBHeapSlot);
@@ -3363,7 +3363,7 @@ namespace tix
 		FMeshBufferDx12* MBDx12 = static_cast<FMeshBufferDx12*>(InMeshBuffer.get());
 
 		TI_TODO("Remove duplicated IASetPrimitiveTopology and IASetVertexBuffers call similar as SetGraphicsPipeline()");
-		DirectCommandList->IASetPrimitiveTopology(k_PRIMITIVE_TYPE_MAP[InMeshBuffer->GetPrimitiveType()]);
+		DirectCommandList->IASetPrimitiveTopology(k_PRIMITIVE_TYPE_MAP[InMeshBuffer->GetDesc().PrimitiveType]);
 		if (InInstanceBuffer == nullptr)
 		{
 			DirectCommandList->IASetVertexBuffers(0, 1, &MBDx12->VertexBufferView);
@@ -3637,24 +3637,24 @@ namespace tix
 
 	void FRHIDx12::DrawPrimitiveInstanced(FMeshBufferPtr MeshBuffer, uint32 InstanceCount, uint32 InstanceOffset)
 	{
-		DirectCommandList->DrawInstanced(MeshBuffer->GetVerticesCount(), InstanceCount, 0, 0);
+		DirectCommandList->DrawInstanced(MeshBuffer->GetDesc().VertexCount, InstanceCount, 0, 0);
 
 		//FStats::Stats.TrianglesRendered += MeshBuffer->GetIndicesCount() / 3 * InstanceCount;
 	}
 
 	void FRHIDx12::DrawPrimitiveIndexedInstanced(FMeshBufferPtr MeshBuffer, uint32 InstanceCount, uint32 InstanceOffset)
 	{
-		DirectCommandList->DrawIndexedInstanced(MeshBuffer->GetIndicesCount(), InstanceCount, 0, 0, InstanceOffset);
+		DirectCommandList->DrawIndexedInstanced(MeshBuffer->GetDesc().IndexCount, InstanceCount, 0, 0, InstanceOffset);
 
-		FStats::Stats.TrianglesRendered += MeshBuffer->GetIndicesCount() / 3 * InstanceCount;
+		FStats::Stats.TrianglesRendered += MeshBuffer->GetDesc().IndexCount / 3 * InstanceCount;
 	}
 
 	void FRHIDx12::DrawPrimitiveIndexedInstanced(FMeshBufferPtr MeshBuffer, uint32 IndicesCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset)
 	{
-		TI_ASSERT(IndicesCount <= MeshBuffer->GetIndicesCount());
+		TI_ASSERT(IndicesCount <= MeshBuffer->GetDesc().IndexCount);
 		DirectCommandList->DrawIndexedInstanced(IndicesCount, InstanceCount, IndexOffset, 0, InstanceOffset);
 
-		FStats::Stats.TrianglesRendered += MeshBuffer->GetIndicesCount() / 3 * InstanceCount;
+		FStats::Stats.TrianglesRendered += MeshBuffer->GetDesc().IndexCount / 3 * InstanceCount;
 	}
 
 	void FRHIDx12::GraphicsCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize)
