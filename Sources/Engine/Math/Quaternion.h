@@ -1,146 +1,106 @@
-//-*-c++-*-
-// Copyright (C) 2002-2008 Nikolaus Gebhardt
-// This file is part of the "Irrlicht Engine".
-// For conditions of distribution and use, see copyright notice in irrlicht.h
+/*
+	TiX Engine v2.0 Copyright (C) 2018~2021
+	By ZhaoShuai tirax.cn@gmail.com
+*/
+
 #pragma once
-#ifndef __IRR_QUATERNION_H_INCLUDED__
-#define __IRR_QUATERNION_H_INCLUDED__
 
 namespace tix
 {
-	//! Quaternion class for representing rotations.
-	/** It provides cheap combinations and avoids gimbal locks.
-		Also useful for interpolations. */
-	class quaternion
+	class FQuat
 	{
 	public:
+		FQuat() 
+			: X(0.0f)
+			, Y(0.0f)
+			, Z(0.0f)
+			, W(1.0f) 
+		{}
 
-		//! Default Constructor
-		quaternion() : X(0.0f), Y(0.0f), Z(0.0f), W(1.0f) {}
+		FQuat(float32 x, float32 y, float32 z, float32 w) 
+			: X(x)
+			, Y(y)
+			, Z(z)
+			, W(w) 
+		{}
 
-		//! Constructor
-		quaternion(float32 x, float32 y, float32 z, float32 w) : X(x), Y(y), Z(z), W(w) { }
+		// Constructor which converts euler angles to a FQuat
+		FQuat(float32 x, float32 y, float32 z);
+		FQuat(const FFloat3& vec);
 
-		//! Constructor which converts euler angles (radians) to a quaternion
-		quaternion(float32 x, float32 y, float32 z);
+		// Constructor which converts a matrix to a FQuat
+		FQuat(const matrix4& mat);
 
-		//! Constructor which converts euler angles (radians) to a quaternion
-		quaternion(const FFloat3& vec);
-
-		//! Constructor which converts a matrix to a quaternion
-		quaternion(const matrix4& mat);
-
-		//!
 		float32& operator [] (uint32 i)
 		{
 			TI_ASSERT(i < 4);
-			return getDataPtr()[i];
+			return Data()[i];
 		}
 
-		//!
 		const float32& operator [] (uint32 i) const
 		{
 			TI_ASSERT(i < 4);
-			return getDataPtr()[i];
+			return Data()[i];
 		}
 
-		//! Equalilty operator
-		bool operator==(const quaternion& other) const;
-		bool operator!=(const quaternion& other) const;
+		bool operator==(const FQuat& other) const;
+		bool operator!=(const FQuat& other) const;
 
-		//! Assignment operator
-		inline quaternion& operator=(const quaternion& other);
-
-		//! Matrix assignment operator
-		inline quaternion& operator=(const matrix4& other);
-
-		//! Add operator
-		quaternion operator+(const quaternion& other) const;
-
-		//! Multiplication operator
-		quaternion operator*(const quaternion& other) const;
-
-		//! Multiplication operator with scalar
-		quaternion operator*(float32 s) const;
-
-		//! Multiplication operator with scalar
-		quaternion& operator*=(float32 s);
-
-		//! Multiplication operator
+		inline FQuat& operator=(const FQuat& other);
+		inline FQuat& operator=(const matrix4& other);
+		FQuat operator+(const FQuat& other) const;
+		FQuat operator*(const FQuat& other) const;
+		FQuat operator*(float32 s) const;
+		FQuat& operator*=(float32 s);
 		FFloat3 operator*(const FFloat3& v) const;
+		FQuat& operator*=(const FQuat& other);
 
-		//! Multiplication operator
-		quaternion& operator*=(const quaternion& other);
+		inline float32 Dot(const FQuat& other) const;
 
-		//! Calculates the dot product
-		inline float32 Dot(const quaternion& other) const;
+		inline FQuat& Set(float32 x, float32 y, float32 z, float32 w);
+		inline FQuat& Set(float32 x, float32 y, float32 z);
 
-		//! Sets newly quaternion
-		inline quaternion& set(float32 x, float32 y, float32 z, float32 w);
+		//! Sets newly FQuat based on euler angles (radians)
+		inline FQuat& Set(const FFloat3& vec);
 
-		//! Sets newly quaternion based on euler angles (radians)
-		inline quaternion& set(float32 x, float32 y, float32 z);
+		//! Normalizes the FQuat
+		inline FQuat& Normalize();
 
-		//! Sets newly quaternion based on euler angles (radians)
-		inline quaternion& set(const FFloat3& vec);
+		matrix4 GetMatrix() const;
+		matrix4 GetMatrixTransposed() const;
 
-		//! Normalizes the quaternion
-		inline quaternion& normalize();
+		void GetMatrix(matrix4& dest) const;
+		void GetMatrixTransposed(matrix4& dest) const;
 
-		//! Creates a matrix from this quaternion
-		matrix4 getMatrix() const;
-		matrix4 getMatrix_transposed() const;
+		FQuat& MakeInverse();
 
-		//! Creates a matrix from this quaternion
-		void getMatrix(matrix4& dest) const;
+		FQuat& Slerp(FQuat q1, FQuat q2, float32 interpolate);
 
-		//! Creates a matrix from this quaternion
-		void getMatrix_transposed(matrix4& dest) const;
-
-		//! Inverts this quaternion
-		quaternion& makeInverse();
-
-		//! Set this quaternion to the result of the interpolation between two quaternions
-		quaternion& slerp(quaternion q1, quaternion q2, float32 interpolate);
-
-		//! Create quaternion from rotation angle and rotation axis.
+		//! Create FQuat from rotation angle and rotation axis.
 		/** Axis must be unit length.
-			The quaternion representing the rotation is
+			The FQuat representing the rotation is
 			q = cos(A/2)+sin(A/2)*(x*i+y*j+z*k).
 			\param angle Rotation Angle in radians.
 			\param axis Rotation axis. */
-		quaternion& fromAngleAxis(float32 angle, const FFloat3& axis);
+		FQuat& FromAngleAxis(float32 angle, const FFloat3& axis);
 
-		//! Fills an angle (radians) around an axis (unit vector)
-		void toAngleAxis(float32& angle, FFloat3& axis) const;
+		void ToAngleAxis(float32& angle, FFloat3& axis) const;
+		void ToEuler(FFloat3& euler) const;
+		void ToEulerDegree(FFloat3& euler) const;
 
-		//! Output this quaternion to an euler angle (radians)
-		void toEuler(FFloat3& euler) const;
+		FQuat& MakeIdentity();
 
-		//! Output this quaternion to an euler angle (360 degree)
-		void toEulerDegree(FFloat3& euler) const;
-
-		//! Set quaternion to identity
-		quaternion& makeIdentity();
-
-		//! Set quaternion to represent a rotation from one vector to another.
-		quaternion& rotationFromTo(const FFloat3& from, const FFloat3& to);
-		//! parameters are normalized, do not need normalize in function
-		quaternion& rotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized);
-
-		void setX(float32 val) { X = val; }
-		void setY(float32 val) { Y = val; }
-		void setZ(float32 val) { Z = val; }
-		void setW(float32 val) { W = val; }
+		FQuat& RotationFromTo(const FFloat3& from, const FFloat3& to);
+		FQuat& RotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized);
 
 		//!
-		const float32* getDataPtr() const
+		const float32* Data() const
 		{
 			return reinterpret_cast<const float32*>(this);
 		}
 
 		//!
-		float32* getDataPtr()
+		float32* Data()
 		{
 			return reinterpret_cast<float32*>(this);
 		}
@@ -150,36 +110,31 @@ namespace tix
 	};
 
 
-	// Constructor which converts euler angles to a quaternion
-	inline quaternion::quaternion(float32 x, float32 y, float32 z)
+	// Constructor which converts euler angles to a FQuat
+	inline FQuat::FQuat(float32 x, float32 y, float32 z)
 	{
-		set(x, y, z);
+		Set(x, y, z);
+	}
+	// Constructor which converts euler angles to a FQuat
+	inline FQuat::FQuat(const FFloat3& vec)
+	{
+		Set(vec.X, vec.Y, vec.Z);
 	}
 
-
-	// Constructor which converts euler angles to a quaternion
-	inline quaternion::quaternion(const FFloat3& vec)
-	{
-		set(vec.X, vec.Y, vec.Z);
-	}
-
-
-	// Constructor which converts a matrix to a quaternion
-	inline quaternion::quaternion(const matrix4& mat)
+	// Constructor which converts a matrix to a FQuat
+	inline FQuat::FQuat(const matrix4& mat)
 	{
 		(*this) = mat;
 	}
 
-
-	// equal operator
-	inline bool quaternion::operator==(const quaternion& other) const
+	inline bool FQuat::operator==(const FQuat& other) const
 	{
 		return ((X == other.X) &&
 			(Y == other.Y) &&
 			(Z == other.Z) &&
 			(W == other.W));
 	}
-	inline bool quaternion::operator!=(const quaternion& other) const
+	inline bool FQuat::operator!=(const FQuat& other) const
 	{
 		return ((X != other.X) ||
 			(Y != other.Y) ||
@@ -187,9 +142,7 @@ namespace tix
 			(W != other.W));
 	}
 
-
-	// assignment operator
-	inline quaternion& quaternion::operator=(const quaternion& other)
+	inline FQuat& FQuat::operator=(const FQuat& other)
 	{
 		X = other.X;
 		Y = other.Y;
@@ -198,9 +151,7 @@ namespace tix
 		return *this;
 	}
 
-
-	// matrix assignment operator
-	inline quaternion& quaternion::operator=(const matrix4& m)
+	inline FQuat& FQuat::operator=(const matrix4& m)
 	{
 		// Determine which of w, x, y, or z has the largest absolute value
 		float fourWSquaredMinus1 = m(0, 0) + m(1, 1) + m(2, 2);
@@ -229,7 +180,7 @@ namespace tix
 		// Perform square root and division
 		float biggestVal = sqrt(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
 		float mult = 0.25f / biggestVal;
-		// Apply table to compute quaternion values
+		// Apply table to compute FQuat values
 		switch (biggestIndex)
 		{
 		case 0:
@@ -315,14 +266,12 @@ namespace tix
 		//	makeInverse();
 		//#endif
 
-		return normalize();
+		return Normalize();
 	}
 
-
-	// multiplication operator
-	inline quaternion quaternion::operator*(const quaternion& other) const
+	inline FQuat FQuat::operator*(const FQuat& other) const
 	{
-		quaternion tmp;
+		FQuat tmp;
 #if TI_USE_RH
 		tmp.W = (other.W * W) - (other.X * X) - (other.Y * Y) - (other.Z * Z);
 		tmp.X = (other.W * X) + (other.X * W) + (other.Y * Z) - (other.Z * Y);
@@ -337,15 +286,12 @@ namespace tix
 		return tmp;
 	}
 
-
-	// multiplication operator
-	inline quaternion quaternion::operator*(float32 s) const
+	inline FQuat FQuat::operator*(float32 s) const
 	{
-		return quaternion(s * X, s * Y, s * Z, s * W);
+		return FQuat(s * X, s * Y, s * Z, s * W);
 	}
 
-	// multiplication operator
-	inline quaternion& quaternion::operator*=(float32 s)
+	inline FQuat& FQuat::operator*=(float32 s)
 	{
 		X *= s;
 		Y *= s;
@@ -354,40 +300,35 @@ namespace tix
 		return *this;
 	}
 
-	// multiplication operator
-	inline quaternion& quaternion::operator*=(const quaternion& other)
+	inline FQuat& FQuat::operator*=(const FQuat& other)
 	{
 		return (*this = other * (*this));
 	}
 
-	// add operator
-	inline quaternion quaternion::operator+(const quaternion& b) const
+	inline FQuat FQuat::operator+(const FQuat& b) const
 	{
-		return quaternion(X + b.X, Y + b.Y, Z + b.Z, W + b.W);
+		return FQuat(X + b.X, Y + b.Y, Z + b.Z, W + b.W);
 	}
 
-
-	// Creates a matrix from this quaternion
-	inline matrix4 quaternion::getMatrix() const
+	inline matrix4 FQuat::GetMatrix() const
 	{
 		matrix4 m(matrix4::EM4CONST_NOTHING);
 #if TI_USE_RH
-		getMatrix_transposed(m);
+		GetMatrixTransposed(m);
 #else
-		getMatrix(m);
+		GetMatrix(m);
 #endif
 		return m;
 	}
 
-	inline matrix4 quaternion::getMatrix_transposed() const
+	inline matrix4 FQuat::GetMatrixTransposed() const
 	{
 		matrix4 m(matrix4::EM4CONST_NOTHING);
-		getMatrix_transposed(m);
+		GetMatrixTransposed(m);
 		return m;
 	}
 
-	// Creates a matrix from this quaternion
-	inline void quaternion::getMatrix(matrix4& dest) const
+	inline void FQuat::GetMatrix(matrix4& dest) const
 	{
 		const float32 _2xx = 2.0f * X * X;
 		const float32 _2yy = 2.0f * Y * Y;
@@ -420,8 +361,7 @@ namespace tix
 		dest[15] = 1.f;
 	}
 
-	// Creates a matrix from this quaternion
-	inline void quaternion::getMatrix_transposed(matrix4& dest) const
+	inline void FQuat::GetMatrixTransposed(matrix4& dest) const
 	{
 		const float32 _2xx = 2.0f * X * X;
 		const float32 _2yy = 2.0f * Y * Y;
@@ -454,17 +394,15 @@ namespace tix
 		dest[15] = 1.f;
 	}
 
-
-
-	// Inverts this quaternion
-	inline quaternion& quaternion::makeInverse()
+	inline FQuat& FQuat::MakeInverse()
 	{
-		X = -X; Y = -Y; Z = -Z;
+		X = -X; 
+		Y = -Y;
+		Z = -Z;
 		return *this;
 	}
 
-	// sets newly quaternion
-	inline quaternion& quaternion::set(float32 x, float32 y, float32 z, float32 w)
+	inline FQuat& FQuat::Set(float32 x, float32 y, float32 z, float32 w)
 	{
 		X = x;
 		Y = y;
@@ -473,9 +411,7 @@ namespace tix
 		return *this;
 	}
 
-
-	// sets newly quaternion based on euler angles
-	inline quaternion& quaternion::set(float32 x, float32 y, float32 z)
+	inline FQuat& FQuat::Set(float32 x, float32 y, float32 z)
 	{
 		float64 angle;
 
@@ -501,17 +437,15 @@ namespace tix
 		Z = (float32)(cr * cpsy - sr * spcy);
 		W = (float32)(cr * cpcy + sr * spsy);
 
-		return normalize();
+		return Normalize();
 	}
 
-	// sets newly quaternion based on euler angles
-	inline quaternion& quaternion::set(const FFloat3& vec)
+	inline FQuat& FQuat::Set(const FFloat3& vec)
 	{
-		return set(vec.X, vec.Y, vec.Z);
+		return Set(vec.X, vec.Y, vec.Z);
 	}
 
-	// normalizes the quaternion
-	inline quaternion& quaternion::normalize()
+	inline FQuat& FQuat::Normalize()
 	{
 		const float32 n = X * X + Y * Y + Z * Z + W * W;
 
@@ -522,9 +456,7 @@ namespace tix
 		return (*this *= TMath::ReciprocalSquareroot(n));
 	}
 
-
-	// set this quaternion to the result of the interpolation between two quaternions
-	inline quaternion& quaternion::slerp(quaternion q1, quaternion q2, float32 time)
+	inline FQuat& FQuat::Slerp(FQuat q1, FQuat q2, float32 time)
 	{
 		float32 angle = q1.Dot(q2);
 
@@ -552,12 +484,12 @@ namespace tix
 				scale = 1.0f - time;
 				invscale = time;
 				*this = (q1 * scale) + (q2 * invscale);
-				normalize();
+				Normalize();
 			}
 		}
 		else
 		{
-			q2.set(-q1.Y, q1.X, -q1.W, q1.Z);
+			q2.Set(-q1.Y, q1.X, -q1.W, q1.Z);
 			scale = sinf(PI * (0.5f - time));
 			invscale = sinf(PI * time);
 			*this = (q1 * scale) + (q2 * invscale);
@@ -566,17 +498,14 @@ namespace tix
 		return *this;
 	}
 
-
-	// calculates the dot product
-	inline float32 quaternion::Dot(const quaternion& q2) const
+	inline float32 FQuat::Dot(const FQuat& q2) const
 	{
 		return (X * q2.X) + (Y * q2.Y) + (Z * q2.Z) + (W * q2.W);
 	}
 
-
 	//! axis must be unit length
 	//! angle in radians
-	inline quaternion& quaternion::fromAngleAxis(float32 angle, const FFloat3& axis)
+	inline FQuat& FQuat::FromAngleAxis(float32 angle, const FFloat3& axis)
 	{
 		const float32 fHalfAngle = 0.5f * angle;
 		const float32 fSin = sinf(fHalfAngle);
@@ -588,9 +517,9 @@ namespace tix
 	}
 
 
-	inline void quaternion::toAngleAxis(float32& angle, FFloat3& axis) const
+	inline void FQuat::ToAngleAxis(float32& angle, FFloat3& axis) const
 	{
-		const float32 scale = sqrtf(X * X + Y * Y + Z * Z);
+		const float32 scale = TMath::Sqrt(X * X + Y * Y + Z * Z);
 
 		if (TMath::IsZero(scale) || W > 1.0f || W < -1.0f)
 		{
@@ -609,21 +538,21 @@ namespace tix
 		}
 	}
 
-	inline void quaternion::toEuler(FFloat3& euler) const
+	inline void FQuat::ToEuler(FFloat3& euler) const
 	{
-		toEulerDegree(euler);
+		ToEulerDegree(euler);
 		euler *= DEGTORAD;
 	}
 
-	inline void quaternion::toEulerDegree(FFloat3& euler) const
+	inline void FQuat::ToEulerDegree(FFloat3& euler) const
 	{
 		matrix4 m;
 		m.makeIdentity();
-		getMatrix(m);
+		GetMatrix(m);
 		euler = m.getRotationDegrees();
 	}
 
-	inline FFloat3 quaternion::operator* (const FFloat3& v) const
+	inline FFloat3 FQuat::operator* (const FFloat3& v) const
 	{
 		// nVidia SDK implementation
 
@@ -637,8 +566,8 @@ namespace tix
 		return v + uv + uuv;
 	}
 
-	// set quaternion to identity
-	inline quaternion& quaternion::makeIdentity()
+	// set FQuat to identity
+	inline FQuat& FQuat::MakeIdentity()
 	{
 		W = 1.f;
 		X = 0.f;
@@ -647,7 +576,7 @@ namespace tix
 		return *this;
 	}
 
-	inline quaternion& quaternion::rotationFromTo(const FFloat3& from, const FFloat3& to)
+	inline FQuat& FQuat::RotationFromTo(const FFloat3& from, const FFloat3& to)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
 		// Copy, since cannot modify local
@@ -659,7 +588,7 @@ namespace tix
 		const float32 d = v0.Dot(v1);
 		if (d >= 1.0f) // If dot == 1, vectors are the same
 		{
-			return makeIdentity();
+			return MakeIdentity();
 		}
 
 		if (d <= -1.0f) // if dot == -1, vectors are opossite
@@ -672,7 +601,7 @@ namespace tix
 				axis = axis.Cross(from);
 			}
 			axis.Normalize();
-			return fromAngleAxis(PI, axis);
+			return FromAngleAxis(PI, axis);
 		}
 
 		const float32 s = sqrtf((1 + d) * 2); // optimize inv_sqrt
@@ -689,7 +618,7 @@ namespace tix
 		return *this;
 	}
 
-	inline quaternion& quaternion::rotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized)
+	inline FQuat& FQuat::RotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
 		// Copy, since cannot modify local
@@ -699,7 +628,7 @@ namespace tix
 		const float32 d = v0.Dot(v1);
 		if (d >= 0.99f) // If dot == 1, vectors are the same
 		{
-			return makeIdentity();
+			return MakeIdentity();
 		}
 
 		if (d <= -0.99f) // if dot == -1, vectors are opossite
@@ -712,7 +641,7 @@ namespace tix
 				axis = axis.Cross(from_normalized);
 			}
 			axis.Normalize();
-			return fromAngleAxis(PI, axis);
+			return FromAngleAxis(PI, axis);
 		}
 
 		const float32 s = sqrtf((1 + d) * 2); // optimize inv_sqrt
@@ -729,7 +658,5 @@ namespace tix
 		return *this;
 	}
 
-} // end namespace ti
-
-#endif
+}
 

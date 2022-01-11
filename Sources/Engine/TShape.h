@@ -20,7 +20,7 @@ namespace tix
 		static void CreateBox(
 			const FFloat3& Center, 
 			const FFloat3& Edges, 
-			const quaternion& Rotation, 
+			const FQuat& Rotation, 
 			TVector<FFloat3>& OutPositions, 
 			TVector<uint32>& OutIndices);
 
@@ -30,7 +30,7 @@ namespace tix
 			const FFloat3& Center, 
 			float Radius, 
 			float Length, 
-			const quaternion& Rotation, 
+			const FQuat& Rotation, 
 			TVector<FFloat3>& OutPositions, 
 			TVector<uint32>& OutIndices);
 

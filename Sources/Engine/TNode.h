@@ -52,7 +52,7 @@ namespace tix
 		
 		virtual void SetPosition(const FFloat3& pos);
 		virtual void SetScale(const FFloat3& scale);
-		virtual void SetRotate(const quaternion& rotate);
+		virtual void SetRotate(const FQuat& rotate);
 		
 		virtual TNode* GetNodeById(const TString& uid);
 		virtual void GetNodesByType(E_NODE_TYPE type, TVector<TNode*>& elements);
@@ -107,7 +107,7 @@ namespace tix
 			return RelativePosition;
 		}
 
-		virtual const quaternion& GetRelativeRotation() const
+		virtual const FQuat& GetRelativeRotation() const
 		{
 			return RelativeRotate;
 		}
@@ -157,7 +157,7 @@ namespace tix
 		uint32 NodeFlag;
 
 		FFloat3 RelativePosition;
-		quaternion RelativeRotate;
+		FQuat RelativeRotate;
 		FFloat3 RelativeScale;
 
 		matrix4 AbsoluteTransformation;

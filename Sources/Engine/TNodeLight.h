@@ -25,7 +25,7 @@ namespace tix
 		// light do not need scale and rotate,
 		// make these 2 functions empty
 		virtual void SetScale(const FFloat3& scale);
-		virtual void SetRotate(const quaternion& rotate);
+		virtual void SetRotate(const FQuat& rotate);
 
 		void SetLightFlag(uint32 flag, bool enable)
 		{

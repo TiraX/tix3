@@ -60,7 +60,7 @@ namespace tix
 		TEngine::Get()->GetScene()->AddToActiveList(ESLT_LIGHTS, this);
 	}
 
-	void TNodeLight::SetRotate(const quaternion &rotate)
+	void TNodeLight::SetRotate(const FQuat &rotate)
 	{
 		// keep this empty, light do not need rotate
 	}

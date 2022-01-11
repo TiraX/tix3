@@ -342,7 +342,7 @@ namespace tix
 	struct TResSMInstance
 	{
 		FFloat3 Position;
-		quaternion Rotation;
+		FQuat Rotation;
 		FFloat3 Scale;
 	};
 
@@ -353,7 +353,7 @@ namespace tix
 		int32 AnimIndex;	// Index to dependency.anims[]
 
 		FFloat3 Position;
-		quaternion Rotation;
+		FQuat Rotation;
 		FFloat3 Scale;
 	};
 

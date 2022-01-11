@@ -386,7 +386,7 @@ namespace tix
 	void TShape::CreateBox(
 		const FFloat3& Center,
 		const FFloat3& Edges,
-		const quaternion& Rotation,
+		const FQuat& Rotation,
 		TVector<FFloat3>& OutPositions,
 		TVector<uint32>& OutIndices)
 	{
@@ -398,7 +398,7 @@ namespace tix
 		}
 
 		const uint32 IndexOffset = (uint32)(OutPositions.size());
-		if (Rotation == quaternion())
+		if (Rotation == FQuat())
 		{
 			for (const auto& P : BoxPositions)
 			{
@@ -409,7 +409,7 @@ namespace tix
 		else
 		{
 			matrix4 RotMat;
-			Rotation.getMatrix(RotMat);
+			Rotation.GetMatrix(RotMat);
 
 			for (const auto& P : BoxPositions)
 			{
@@ -432,7 +432,7 @@ namespace tix
 		const FFloat3& Center,
 		float Radius,
 		float Length,
-		const quaternion& Rotation,
+		const FQuat& Rotation,
 		TVector<FFloat3>& OutPositions,
 		TVector<uint32>& OutIndices)
 	{
@@ -466,7 +466,7 @@ namespace tix
 
 		// Apply rotation
 		const uint32 IndexOffset = (uint32)(OutPositions.size());
-		if (Rotation == quaternion())
+		if (Rotation == FQuat())
 		{
 			for (const auto& P : CapsulePositions)
 			{
@@ -477,7 +477,7 @@ namespace tix
 		else
 		{
 			matrix4 RotMat;
-			Rotation.getMatrix(RotMat);
+			Rotation.GetMatrix(RotMat);
 
 			for (const auto& P : CapsulePositions)
 			{

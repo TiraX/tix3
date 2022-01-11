@@ -178,7 +178,7 @@ namespace tix
 			}
 		}
 
-		void operator << (quaternion& OutQuat) const
+		void operator << (FQuat& OutQuat) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 4));
 			if (!IsNull())

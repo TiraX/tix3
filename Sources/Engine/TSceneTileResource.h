@@ -32,7 +32,7 @@ namespace tix
 		TAssetPtr SkeletonAsset;
 		TAssetPtr AnimAsset;
 		FFloat3 Pos;
-		quaternion Rot;
+		FQuat Rot;
 		FFloat3 Scale;
 	};
 

@@ -23,7 +23,7 @@ namespace tix
 		struct TBox
 		{
 			FFloat3 Center;
-			quaternion Rotation;
+			FQuat Rotation;
 			FFloat3 Edge;
 		};
 		struct TCapsule
@@ -34,7 +34,7 @@ namespace tix
 			{}
 
 			FFloat3 Center;
-			quaternion Rotation;
+			FQuat Rotation;
 			float Radius;
 			float Length;
 		};

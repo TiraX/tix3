@@ -8,9 +8,9 @@
 
 namespace tix
 {
-	inline void MakeMatrix(matrix4& Mat, const FFloat3& Pos, const quaternion& Rot, const FFloat3& Scale)
+	inline void MakeMatrix(matrix4& Mat, const FFloat3& Pos, const FQuat& Rot, const FFloat3& Scale)
 	{
-		Rot.getMatrix(Mat);
+		Rot.GetMatrix(Mat);
 		Mat.postScale(Scale);
 		Mat.setTranslation(Pos);
 	}
@@ -32,7 +32,7 @@ namespace tix
 	{
 	}
 
-	void TSkeleton::AddBone(int32 ParentIndex, const FFloat3& InvTrans, const quaternion& InvRot, const FFloat3& InvScale)
+	void TSkeleton::AddBone(int32 ParentIndex, const FFloat3& InvTrans, const FQuat& InvRot, const FFloat3& InvScale)
 	{
 		TBoneInfo Bone;
 		Bone.ParentIndex = ParentIndex;
@@ -82,7 +82,7 @@ namespace tix
 		Bones[BoneIndex].Pos = InPos;
 	}
 
-	void TSkeleton::SetBoneRot(int32 BoneIndex, const quaternion& InRot)
+	void TSkeleton::SetBoneRot(int32 BoneIndex, const FQuat& InRot)
 	{
 		Bones[BoneIndex].Rot = InRot;
 	}

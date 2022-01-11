@@ -141,14 +141,14 @@ namespace tix
 			const float rot_speed = 1.f;
 #endif
 			matrix4 mat;
-			quaternion rotX, rotY, rot;
+			FQuat rotX, rotY, rot;
 			FFloat3 tar_offset = OldPosition - OldTarget;
 			FFloat3 axis = UpVector.Cross(tar_offset);
 			axis.Normalize();
-			rotX.fromAngleAxis(-TMath::DegToRad(float(mouseCurrent.X - mouseStart.X)) * rot_speed, UpVector);
-			rotY.fromAngleAxis(TMath::DegToRad(float(mouseCurrent.Y - mouseStart.Y)) * rot_speed, axis);
+			rotX.FromAngleAxis(-TMath::DegToRad(float(mouseCurrent.X - mouseStart.X)) * rot_speed, UpVector);
+			rotY.FromAngleAxis(TMath::DegToRad(float(mouseCurrent.Y - mouseStart.Y)) * rot_speed, axis);
 			rot = rotX * rotY;
-			rot.getMatrix(mat);
+			rot.GetMatrix(mat);
 
 			mat.transformVect(tar_offset);
 			SetPosition(OldTarget + tar_offset);

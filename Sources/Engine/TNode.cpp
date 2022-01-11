@@ -77,7 +77,7 @@ namespace tix
 		NodeFlag		|= ENF_DIRTY_SCALE;
 	}
 
-	void TNode::SetRotate(const quaternion& rotate)
+	void TNode::SetRotate(const FQuat& rotate)
 	{
 		RelativeRotate	= rotate;
 		NodeFlag		|= ENF_DIRTY_ROT;
@@ -201,7 +201,7 @@ namespace tix
 		{
 			if (NodeFlag & (ENF_DIRTY_SCALE | ENF_DIRTY_ROT))
 			{
-				RelativeRotate.getMatrix(RelativeTransformation);
+				RelativeRotate.GetMatrix(RelativeTransformation);
 				if (RelativeScale != FFloat3(1.f, 1.f, 1.f))
 				{
 					RelativeTransformation.postScale(RelativeScale);

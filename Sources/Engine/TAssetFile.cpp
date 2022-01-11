@@ -647,10 +647,10 @@ namespace tix
 		}
 	}
 
-	inline void GetInstanceRotationScaleMatrix(FMatrix& OutMatrix, const quaternion& Rotation, const FFloat3& Scale)
+	inline void GetInstanceRotationScaleMatrix(FMatrix& OutMatrix, const FQuat& Rotation, const FFloat3& Scale)
 	{
 		matrix4 MatInstanceTrans;
-		Rotation.getMatrix(MatInstanceTrans);
+		Rotation.GetMatrix(MatInstanceTrans);
 		MatInstanceTrans.postScale(Scale);
 		MatInstanceTrans = MatInstanceTrans.getTransposed();
 		OutMatrix = MatInstanceTrans;

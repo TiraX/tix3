@@ -11,7 +11,7 @@ namespace tix
 	{
 		int32 ParentIndex;
 		FFloat3 Pos;
-		quaternion Rot;
+		FQuat Rot;
 		FFloat3 Scale;
 	};
 
@@ -25,12 +25,12 @@ namespace tix
 		TSkeleton(int32 NumBones);
 		~TSkeleton();
 
-		void AddBone(int32 ParentIndex, const FFloat3& InvTrans, const quaternion& InvRot, const FFloat3& InvScale);
+		void AddBone(int32 ParentIndex, const FFloat3& InvTrans, const FQuat& InvRot, const FFloat3& InvScale);
 		void AddBone(const TBoneInfo& Bone);
 		void ComputeInvBindMatrices();
 
 		void SetBonePos(int32 BoneIndex, const FFloat3& InPos);
-		void SetBoneRot(int32 BoneIndex, const quaternion& InRot);
+		void SetBoneRot(int32 BoneIndex, const FQuat& InRot);
 		void SetBoneScale(int32 BoneIndex, const FFloat3& InScale);
 
 		void BuildGlobalPoses();

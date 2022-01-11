@@ -139,11 +139,11 @@ namespace tix
 			const float* TrackKeys = FrameData + Track.KeyDataOffset;
 
 			const FFloat3* PosKeys = (FFloat3*)TrackKeys;
-			const quaternion* RotKeys = (quaternion*)(TrackKeys + Track.NumPosKeys * 3);
+			const FQuat* RotKeys = (FQuat*)(TrackKeys + Track.NumPosKeys * 3);
 			const FFloat3* ScaleKeys = (FFloat3*)(TrackKeys + Track.NumPosKeys * 3 + Track.NumRotKeys * 4);
 
 			FFloat3 Pos;
-			quaternion Rot;
+			FQuat Rot;
 			FFloat3 Scale(1, 1, 1);
 
 			if (Track.NumPosKeys > 0)
@@ -166,7 +166,7 @@ namespace tix
 				}
 				else
 				{
-					Rot.slerp(RotKeys[Frame0], RotKeys[Frame1], t);
+					Rot.Slerp(RotKeys[Frame0], RotKeys[Frame1], t);
 				}
 			}
 
