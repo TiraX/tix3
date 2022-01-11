@@ -1,5 +1,5 @@
 /*
-	TiX Engine v2.0 Copyright (C) 2018~2021
+	TiX Engine v3.0 Copyright (C) 2022~2025
 	By ZhaoShuai tirax.cn@gmail.com
 	Created in Stanford~ :)
 */
