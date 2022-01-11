@@ -50,7 +50,7 @@ namespace tix
 
 	protected:
 		TVector<TBoneInfo> Bones;
-		TVector<matrix4> InvBindMatrix;
-		TVector<matrix4> GlobalPoses;
+		TVector<FMat4> InvBindMatrix;
+		TVector<FMat4> GlobalPoses;
 	};
 }

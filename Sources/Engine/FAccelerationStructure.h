@@ -55,7 +55,7 @@ namespace tix
 
 		virtual void ClearAllInstances() = 0;
 		virtual void ReserveInstanceCount(uint32 Count) = 0;
-		virtual void AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMatrix3x4& Transform) = 0;
+		virtual void AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMat34& Transform) = 0;
 
 	protected:
 		FUniformBufferPtr TLASInstanceBuffer;

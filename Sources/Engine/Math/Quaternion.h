@@ -29,7 +29,7 @@ namespace tix
 		FQuat(const FFloat3& vec);
 
 		// Constructor which converts a matrix to a FQuat
-		FQuat(const matrix4& mat);
+		FQuat(const FMat4& mat);
 
 		float32& operator [] (uint32 i)
 		{
@@ -47,7 +47,7 @@ namespace tix
 		bool operator!=(const FQuat& other) const;
 
 		inline FQuat& operator=(const FQuat& other);
-		inline FQuat& operator=(const matrix4& other);
+		inline FQuat& operator=(const FMat4& other);
 		FQuat operator+(const FQuat& other) const;
 		FQuat operator*(const FQuat& other) const;
 		FQuat operator*(float32 s) const;
@@ -66,11 +66,11 @@ namespace tix
 		//! Normalizes the FQuat
 		inline FQuat& Normalize();
 
-		matrix4 GetMatrix() const;
-		matrix4 GetMatrixTransposed() const;
+		FMat4 GetMatrix() const;
+		FMat4 GetMatrixTransposed() const;
 
-		void GetMatrix(matrix4& dest) const;
-		void GetMatrixTransposed(matrix4& dest) const;
+		void GetMatrix(FMat4& dest) const;
+		void GetMatrixTransposed(FMat4& dest) const;
 
 		FQuat& MakeInverse();
 
@@ -86,7 +86,6 @@ namespace tix
 
 		void ToAngleAxis(float32& angle, FFloat3& axis) const;
 		void ToEuler(FFloat3& euler) const;
-		void ToEulerDegree(FFloat3& euler) const;
 
 		FQuat& MakeIdentity();
 
@@ -122,7 +121,7 @@ namespace tix
 	}
 
 	// Constructor which converts a matrix to a FQuat
-	inline FQuat::FQuat(const matrix4& mat)
+	inline FQuat::FQuat(const FMat4& mat)
 	{
 		(*this) = mat;
 	}
@@ -151,7 +150,7 @@ namespace tix
 		return *this;
 	}
 
-	inline FQuat& FQuat::operator=(const matrix4& m)
+	inline FQuat& FQuat::operator=(const FMat4& m)
 	{
 		// Determine which of w, x, y, or z has the largest absolute value
 		float fourWSquaredMinus1 = m(0, 0) + m(1, 1) + m(2, 2);
@@ -209,63 +208,6 @@ namespace tix
 			break;
 		}
 
-
-		//	const float32 diag = m(0,0) + m(1,1) + m(2,2);
-
-		//	if( diag > 0.0f )
-		//	{
-		//		float32 scale = sqrtf(1.0f + diag); // get scale from diagonal
-
-		//		// TODO: speed this up
-		//		W = 0.5f * scale;
-		//		scale = 0.5f / scale;
-		//		X = ( m(2,1) - m(1,2)) * scale;
-		//		Y = ( m(0,2) - m(2,0)) * scale;
-		//		Z = ( m(1,0) - m(0,1)) * scale;
-		//		
-		//	}
-		//	else if ( m(0,0) > m(1,1) && m(0,0) > m(2,2))
-		//	{
-		//		// 1st element of diag is greatest value
-		//		// find scale according to 1st element
-		//		float32 scale = sqrtf( 1.0f + m(0,0) - m(1,1) - m(2,2));
-
-		//		X = 0.5f * scale;
-		//		scale = 0.5f / scale;
-		//		Y = (m(0,1) + m(1,0)) * scale;
-		//		Z = (m(2,0) + m(0,2)) * scale;
-		//		W = (m(2,1) - m(1,2)) * scale;
-		//	}
-		//	else if ( m(1,1) > m(2,2))
-		//	{
-		//		// 2nd element of diag is greatest value
-		//		// find scale according to 2nd element
-		//		float32 scale = sqrtf( 1.0f + m(1,1) - m(0,0) - m(2,2));
-
-		//		// TODO: speed this up
-		//		Y = 0.5f * scale;
-		//		scale = 0.5f / scale;
-		//		X = (m(0,1) + m(1,0) ) * scale;
-		//		Z = (m(1,2) + m(2,1) ) * scale;
-		//		W = (m(0,2) - m(2,0) ) * scale;
-		//	}
-		//	else
-		//	{
-		//		// 3rd element of diag is greatest value
-		//		// find scale according to 3rd element
-		//		float32 scale = sqrtf( 1.0f + m(2,2) - m(0,0) - m(1,1));
-
-		//		// TODO: speed this up
-		//		Z = 0.5f * scale;
-		//		scale = 0.5f / scale;
-		//		X = (m(0,2) + m(2,0)) * scale;
-		//		Y = (m(1,2) + m(2,1)) * scale;
-		//		W = (m(1,0) - m(0,1)) * scale;
-		//	}
-		//#if !(TI_USE_RH)
-		//	makeInverse();
-		//#endif
-
 		return Normalize();
 	}
 
@@ -310,9 +252,9 @@ namespace tix
 		return FQuat(X + b.X, Y + b.Y, Z + b.Z, W + b.W);
 	}
 
-	inline matrix4 FQuat::GetMatrix() const
+	inline FMat4 FQuat::GetMatrix() const
 	{
-		matrix4 m(matrix4::EM4CONST_NOTHING);
+		FMat4 m(FMat4::EM4CONST_NOTHING);
 #if TI_USE_RH
 		GetMatrixTransposed(m);
 #else
@@ -321,14 +263,14 @@ namespace tix
 		return m;
 	}
 
-	inline matrix4 FQuat::GetMatrixTransposed() const
+	inline FMat4 FQuat::GetMatrixTransposed() const
 	{
-		matrix4 m(matrix4::EM4CONST_NOTHING);
+		FMat4 m(FMat4::EM4CONST_NOTHING);
 		GetMatrixTransposed(m);
 		return m;
 	}
 
-	inline void FQuat::GetMatrix(matrix4& dest) const
+	inline void FQuat::GetMatrix(FMat4& dest) const
 	{
 		const float32 _2xx = 2.0f * X * X;
 		const float32 _2yy = 2.0f * Y * Y;
@@ -361,7 +303,7 @@ namespace tix
 		dest[15] = 1.f;
 	}
 
-	inline void FQuat::GetMatrixTransposed(matrix4& dest) const
+	inline void FQuat::GetMatrixTransposed(FMat4& dest) const
 	{
 		const float32 _2xx = 2.0f * X * X;
 		const float32 _2yy = 2.0f * Y * Y;
@@ -540,16 +482,10 @@ namespace tix
 
 	inline void FQuat::ToEuler(FFloat3& euler) const
 	{
-		ToEulerDegree(euler);
-		euler *= DEGTORAD;
-	}
-
-	inline void FQuat::ToEulerDegree(FFloat3& euler) const
-	{
-		matrix4 m;
-		m.makeIdentity();
+		FMat4 m;
+		m.MakeIdentity();
 		GetMatrix(m);
-		euler = m.getRotationDegrees();
+		euler = m.GetRotationRadians();
 	}
 
 	inline FFloat3 FQuat::operator* (const FFloat3& v) const

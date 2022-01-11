@@ -49,15 +49,15 @@ namespace tix
 
 		//! This constructor creates a view frustum based on a projection and/or
 		//! view matrix.
-		SViewFrustum(const matrix4& mat);
+		SViewFrustum(const FMat4& mat);
 
 		//! This constructor creates a view frustum based on a projection and/or
 		//! view matrix.
-		inline void setFrom(const matrix4& mat);
+		inline void setFrom(const FMat4& mat);
 
 		//! transforms the frustum by the matrix
 		/** \param mat Matrix by which the view frustum is transformed.*/
-		void transform(const matrix4& mat);
+		void transform(const FMat4& mat);
 
 		//! returns the point which is on the far left upper corner inside the the
 		//! view frustum.
@@ -92,7 +92,7 @@ namespace tix
 		FFloat3 getNearRightDown() const;
 
 		//! returns a bounding box enclosing the whole view frustum
-		const aabbox3d<float32> &getBoundingBox() const;
+		const FAABBox<float32> &getBoundingBox() const;
 
 		//! recalculates the bounding box member based on the planes
 		inline void recalculateBoundingBox();
@@ -101,37 +101,37 @@ namespace tix
 		void setTransformState( E_TRANSFORMATION_STATE state);
 
 		//!
-		bool testPlane(uint32 i, const aabbox3df& bbox) const;
+		bool testPlane(uint32 i, const FBox& bbox) const;
 
 		//!
-		bool intersectsWithoutBoxTest(const aabbox3df& bbox) const;
+		bool intersectsWithoutBoxTest(const FBox& bbox) const;
 
 		//!
-		bool intersects3(const aabbox3df& bbox) const;
+		bool intersects3(const FBox& bbox) const;
 
 		//!
-		bool intersectsWithoutBoxTest3(const aabbox3df& bbox) const;
+		bool intersectsWithoutBoxTest3(const FBox& bbox) const;
 
 		//!
-		E_CULLING_RESULT intersectsExWithoutBoxTest3(const aabbox3df& bbox) const;
+		E_CULLING_RESULT intersectsExWithoutBoxTest3(const FBox& bbox) const;
 
 		//!
-		bool intersects(const aabbox3df& bbox) const;
+		bool intersects(const FBox& bbox) const;
 
 		//!
-		bool testInsidePlane(uint32 i, const aabbox3df& bbox) const;
+		bool testInsidePlane(uint32 i, const FBox& bbox) const;
 
 		//!
-		bool isFullInsideWithoutBoxTest(const aabbox3df& bbox) const;
+		bool isFullInsideWithoutBoxTest(const FBox& bbox) const;
 
 		//!
-		bool isFullInside(const aabbox3df& bbox) const;
+		bool isFullInside(const FBox& bbox) const;
 
 		//!
-		E_CULLING_RESULT intersectsExWithoutBoxTest(const aabbox3df& bbox) const;
+		E_CULLING_RESULT intersectsExWithoutBoxTest(const FBox& bbox) const;
 
 		//!
-		E_CULLING_RESULT intersectsEx(const aabbox3df& bbox) const;
+		E_CULLING_RESULT intersectsEx(const FBox& bbox) const;
 
 		//! the position of the camera
 		FFloat3 CameraPosition;
@@ -140,25 +140,25 @@ namespace tix
 		plane3d<float32> Planes[VF_PLANE_COUNT];
 
 		//! bounding box around the view frustum
-		aabbox3d<float32> BoundingBox;
+		FAABBox<float32> BoundingBox;
 
 		//! Hold a copy of important transform matrices
-		matrix4 Matrices[ETS_COUNT_3];
+		FMat4 Matrices[ETS_COUNT_3];
 	};
 
 
-	inline SViewFrustum::SViewFrustum(const matrix4& mat)
+	inline SViewFrustum::SViewFrustum(const FMat4& mat)
 	{
 		setFrom ( mat );
 	}
 
 
-	inline void SViewFrustum::transform(const matrix4& mat)
+	inline void SViewFrustum::transform(const FMat4& mat)
 	{
 		for (uint32 i=0; i<VF_PLANE_COUNT; ++i)
-			mat.transformPlane(Planes[i]);
+			mat.TransformPlane(Planes[i]);
 
-		mat.transformVect(CameraPosition);
+		mat.TransformVect(CameraPosition);
 		recalculateBoundingBox();
 	}
 
@@ -245,25 +245,25 @@ namespace tix
 
 
 
-	inline const aabbox3d<float32> &SViewFrustum::getBoundingBox() const
+	inline const FAABBox<float32> &SViewFrustum::getBoundingBox() const
 	{
 		return BoundingBox;
 	}
 
 	inline void SViewFrustum::recalculateBoundingBox()
 	{
-		BoundingBox.reset ( CameraPosition );
+		BoundingBox.Reset ( CameraPosition );
 
-		BoundingBox.addInternalPoint(getFarLeftUp());
-		BoundingBox.addInternalPoint(getFarRightUp());
-		BoundingBox.addInternalPoint(getFarLeftDown());
-		BoundingBox.addInternalPoint(getFarRightDown());
+		BoundingBox.AddInternalPoint(getFarLeftUp());
+		BoundingBox.AddInternalPoint(getFarRightUp());
+		BoundingBox.AddInternalPoint(getFarLeftDown());
+		BoundingBox.AddInternalPoint(getFarRightDown());
 	}
 
 	/*
 	//! This constructor creates a view frustum based on a projection
 	//! and/or view matrix.
-	inline void SViewFrustum::setFrom(const matrix4& mat)
+	inline void SViewFrustum::setFrom(const FMat4& mat)
 	{
 		// left clipping plane
 		Planes[SViewFrustum::VF_LEFT_PLANE].Normal.X = -(mat(0,3) + mat(0,0));
@@ -315,7 +315,7 @@ namespace tix
 	}
 	*/
 
-	inline void SViewFrustum::setFrom(const matrix4& mat)
+	inline void SViewFrustum::setFrom(const FMat4& mat)
 	{
 		// left clipping plane
 		Planes[VF_LEFT_PLANE].Normal.X = mat[3 ] + mat[0];
@@ -372,7 +372,7 @@ namespace tix
 		switch ( state )
 		{
 			case ETS_VIEW:
-				Matrices[ETS_VIEW_PROJECTION_3].setbyproduct_nocheck(
+				Matrices[ETS_VIEW_PROJECTION_3].Setbyproduct_nocheck(
 					Matrices[ETS_PROJECTION],
 					Matrices[ETS_VIEW]);
 				//Matrices[ETS_VIEW_MODEL_INVERSE_3] = Matrices[ETS_VIEW];
@@ -389,14 +389,14 @@ namespace tix
 		}
 	}
 
-	inline bool SViewFrustum::testPlane(uint32 i, const aabbox3df& bbox) const
+	inline bool SViewFrustum::testPlane(uint32 i, const FBox& bbox) const
 	{
 		//http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes-ii/
 		// get the "nearest" corner to the frustum along Planes[i]'s normal
 		FFloat3
-			p(Planes[i].Normal.X >= 0 ? bbox.MinEdge.X : bbox.MaxEdge.X,
-			  Planes[i].Normal.Y >= 0 ? bbox.MinEdge.Y : bbox.MaxEdge.Y,
-			  Planes[i].Normal.Z >= 0 ? bbox.MinEdge.Z : bbox.MaxEdge.Z);
+			p(Planes[i].Normal.X >= 0 ? bbox.Min.X : bbox.Max.X,
+			  Planes[i].Normal.Y >= 0 ? bbox.Min.Y : bbox.Max.Y,
+			  Planes[i].Normal.Z >= 0 ? bbox.Min.Z : bbox.Max.Z);
 
 		// if the nearest corner to the frustum is outside, then the bbox is
 		// outside.
@@ -407,7 +407,7 @@ namespace tix
 		return true;
 	}
 
-	inline bool SViewFrustum::intersectsWithoutBoxTest(const aabbox3df& bbox) const
+	inline bool SViewFrustum::intersectsWithoutBoxTest(const FBox& bbox) const
 	{
 		for (uint32 i = 0; i < VF_PLANE_COUNT; ++i)
 		{
@@ -419,22 +419,22 @@ namespace tix
 		return true;
 	}
 
-	inline bool SViewFrustum::intersects(const aabbox3df& bbox) const
+	inline bool SViewFrustum::intersects(const FBox& bbox) const
 	{
-		if (BoundingBox.intersectsWithBox(bbox))
+		if (BoundingBox.IntersectsWithBox(bbox))
 		{
 			return intersectsWithoutBoxTest(bbox);
 		}
 		return false;
 	}
 
-	inline bool SViewFrustum::testInsidePlane(uint32 i, const aabbox3df& bbox) const
+	inline bool SViewFrustum::testInsidePlane(uint32 i, const FBox& bbox) const
 	{
 		// get the "farthest" corner to the frustum along Planes[i]'s normal
 		FFloat3
-			p(Planes[i].Normal.X >= 0 ? bbox.MaxEdge.X : bbox.MinEdge.X,
-			  Planes[i].Normal.Y >= 0 ? bbox.MaxEdge.Y : bbox.MinEdge.Y,
-			  Planes[i].Normal.Z >= 0 ? bbox.MaxEdge.Z : bbox.MinEdge.Z);
+			p(Planes[i].Normal.X >= 0 ? bbox.Max.X : bbox.Min.X,
+			  Planes[i].Normal.Y >= 0 ? bbox.Max.Y : bbox.Min.Y,
+			  Planes[i].Normal.Z >= 0 ? bbox.Max.Z : bbox.Min.Z);
 
 		// if the nearest corner to the frustum is outside, then the bbox is
 		// outside.
@@ -445,7 +445,7 @@ namespace tix
 		return true;
 	}
 
-	inline bool SViewFrustum::isFullInsideWithoutBoxTest(const aabbox3df& bbox) const
+	inline bool SViewFrustum::isFullInsideWithoutBoxTest(const FBox& bbox) const
 	{
 		for (uint32 i = 0; i < VF_PLANE_COUNT; ++i)
 		{
@@ -457,16 +457,16 @@ namespace tix
 		return true;
 	}
 
-	inline bool SViewFrustum::isFullInside(const aabbox3df& bbox) const
+	inline bool SViewFrustum::isFullInside(const FBox& bbox) const
 	{
-		if (bbox.isFullInside(BoundingBox))
+		if (bbox.IsFullInside(BoundingBox))
 		{
 			return isFullInsideWithoutBoxTest(bbox);
 		}
 		return false;
 	}
 
-	inline bool SViewFrustum::intersectsWithoutBoxTest3(const aabbox3df& bbox) const
+	inline bool SViewFrustum::intersectsWithoutBoxTest3(const FBox& bbox) const
 	{
 		if (testPlane(VF_LEFT_PLANE, bbox)
 			&& testPlane(VF_RIGHT_PLANE, bbox)
@@ -477,16 +477,16 @@ namespace tix
 		return false;
 	}
 
-	inline bool SViewFrustum::intersects3(const aabbox3df& bbox) const
+	inline bool SViewFrustum::intersects3(const FBox& bbox) const
 	{
-		if (BoundingBox.intersectsWithBox(bbox))
+		if (BoundingBox.IntersectsWithBox(bbox))
 		{
 			return intersectsWithoutBoxTest3(bbox);
 		}
 		return false;
 	}
 
-	inline E_CULLING_RESULT SViewFrustum::intersectsExWithoutBoxTest3(const aabbox3df& bbox) const
+	inline E_CULLING_RESULT SViewFrustum::intersectsExWithoutBoxTest3(const FBox& bbox) const
 	{
 		E_CULLING_RESULT result = ECR_INSIDE;
 		// p: "nearest" corner to the frustum along Planes[i]'s normal
@@ -498,35 +498,35 @@ namespace tix
 			const VFPLANES i = planes[j];
 			if (Planes[i].Normal.X >= 0)
 			{
-				p.X = bbox.MinEdge.X;
-				n.X = bbox.MaxEdge.X;
+				p.X = bbox.Min.X;
+				n.X = bbox.Max.X;
 			}
 			else
 			{
-				p.X = bbox.MaxEdge.X;
-				n.X = bbox.MinEdge.X;
+				p.X = bbox.Max.X;
+				n.X = bbox.Min.X;
 			}
 
 			if (Planes[i].Normal.Y >= 0)
 			{
-				p.Y = bbox.MinEdge.Y;
-				n.Y = bbox.MaxEdge.Y;
+				p.Y = bbox.Min.Y;
+				n.Y = bbox.Max.Y;
 			}
 			else
 			{
-				p.Y = bbox.MaxEdge.Y;
-				n.Y = bbox.MinEdge.Y;
+				p.Y = bbox.Max.Y;
+				n.Y = bbox.Min.Y;
 			}
 
 			if (Planes[i].Normal.Z >= 0)
 			{
-				p.Z = bbox.MinEdge.Z;
-				n.Z = bbox.MaxEdge.Z;
+				p.Z = bbox.Min.Z;
+				n.Z = bbox.Max.Z;
 			}
 			else
 			{
-				p.Z = bbox.MaxEdge.Z;
-				n.Z = bbox.MinEdge.Z;
+				p.Z = bbox.Max.Z;
+				n.Z = bbox.Min.Z;
 			}
 
 			// if the nearest point to the frustum is outside, then the bbox is
@@ -544,7 +544,7 @@ namespace tix
 		return result;
 	}
 
-	inline E_CULLING_RESULT SViewFrustum::intersectsExWithoutBoxTest(const aabbox3df& bbox) const
+	inline E_CULLING_RESULT SViewFrustum::intersectsExWithoutBoxTest(const FBox& bbox) const
 	{
 		E_CULLING_RESULT result = ECR_INSIDE;
 		// p: "nearest" corner to the frustum along Planes[i]'s normal
@@ -554,35 +554,35 @@ namespace tix
 		{
 			if (Planes[i].Normal.X >= 0)
 			{
-				p.X = bbox.MinEdge.X;
-				n.X = bbox.MaxEdge.X;
+				p.X = bbox.Min.X;
+				n.X = bbox.Max.X;
 			}
 			else
 			{
-				p.X = bbox.MaxEdge.X;
-				n.X = bbox.MinEdge.X;
+				p.X = bbox.Max.X;
+				n.X = bbox.Min.X;
 			}
 
 			if (Planes[i].Normal.Y >= 0)
 			{
-				p.Y = bbox.MinEdge.Y;
-				n.Y = bbox.MaxEdge.Y;
+				p.Y = bbox.Min.Y;
+				n.Y = bbox.Max.Y;
 			}
 			else
 			{
-				p.Y = bbox.MaxEdge.Y;
-				n.Y = bbox.MinEdge.Y;
+				p.Y = bbox.Max.Y;
+				n.Y = bbox.Min.Y;
 			}
 
 			if (Planes[i].Normal.Z >= 0)
 			{
-				p.Z = bbox.MinEdge.Z;
-				n.Z = bbox.MaxEdge.Z;
+				p.Z = bbox.Min.Z;
+				n.Z = bbox.Max.Z;
 			}
 			else
 			{
-				p.Z = bbox.MaxEdge.Z;
-				n.Z = bbox.MinEdge.Z;
+				p.Z = bbox.Max.Z;
+				n.Z = bbox.Min.Z;
 			}
 
 			// if the nearest point to the frustum is outside, then the bbox is
@@ -600,9 +600,9 @@ namespace tix
 		return result;
 	}
 
-	inline E_CULLING_RESULT SViewFrustum::intersectsEx(const aabbox3df& bbox) const
+	inline E_CULLING_RESULT SViewFrustum::intersectsEx(const FBox& bbox) const
 	{
-		if (BoundingBox.intersectsWithBox(bbox))
+		if (BoundingBox.IntersectsWithBox(bbox))
 		{
 			return intersectsExWithoutBoxTest(bbox);
 		}

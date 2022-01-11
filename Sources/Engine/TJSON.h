@@ -190,17 +190,17 @@ namespace tix
 			}
 		}
 
-		void operator << (aabbox3df& OutBBox) const
+		void operator << (FBox& OutBBox) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 6));
 			if (!IsNull())
 			{
-				(*this)[0] << OutBBox.MinEdge.X;
-				(*this)[1] << OutBBox.MinEdge.Y;
-				(*this)[2] << OutBBox.MinEdge.Z;
-				(*this)[3] << OutBBox.MaxEdge.X;
-				(*this)[4] << OutBBox.MaxEdge.Y;
-				(*this)[5] << OutBBox.MaxEdge.Z;
+				(*this)[0] << OutBBox.Min.X;
+				(*this)[1] << OutBBox.Min.Y;
+				(*this)[2] << OutBBox.Min.Z;
+				(*this)[3] << OutBBox.Max.X;
+				(*this)[4] << OutBBox.Max.Y;
+				(*this)[5] << OutBBox.Max.Z;
 			}
 		}
 

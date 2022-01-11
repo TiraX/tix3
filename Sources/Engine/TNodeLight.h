@@ -54,7 +54,7 @@ namespace tix
 		{
 			return LightColor;
 		}
-		const aabbox3df& GetAffectBox()
+		const FBox& GetAffectBox()
 		{
 			return	AffectBox;
 		}
@@ -68,7 +68,7 @@ namespace tix
 		SColor LightColor;
 		uint32 LightFlag;
 
-		aabbox3df AffectBox;
+		FBox AffectBox;
 	};
 } // end namespace tix
 

@@ -58,14 +58,14 @@ namespace tix
 		virtual void GetNodesByType(E_NODE_TYPE type, TVector<TNode*>& elements);
 		virtual TNode* GetNodeByPath(const TString& NodePath);
 		
-		virtual TNode* IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, FFloat3& outIntersection);
-		virtual TNode* IsIntersectWithPoint(const FFloat3& p, aabbox3df& outBBox, FFloat3& outIntersection);
+		virtual TNode* IsIntersectWithRay(const line3df& ray, FBox& outBBox, FFloat3& outIntersection);
+		virtual TNode* IsIntersectWithPoint(const FFloat3& p, FBox& outBBox, FFloat3& outIntersection);
 
 		virtual void Tick(float Dt);
 
 		// Update all note's transformation in game thread, since some tick need that
 		virtual void UpdateAllTransformation();
-		virtual const matrix4& GetAbsoluteTransformation() const;
+		virtual const FMat4& GetAbsoluteTransformation() const;
 
 		TNode* GetParent()
 		{
@@ -119,7 +119,7 @@ namespace tix
 
 		virtual FFloat3 GetAbsolutePosition()
 		{
-			return AbsoluteTransformation.getTranslation();
+			return AbsoluteTransformation.GetTranslation();
 		}
 
 		inline bool IsVisible()
@@ -141,7 +141,7 @@ namespace tix
 	protected:
 		virtual bool RemoveChild(TNode* child);
 		virtual void UpdateAbsoluteTransformation();
-		virtual const matrix4& GetRelativeTransformation();
+		virtual const FMat4& GetRelativeTransformation();
 
 	protected:
 		union {
@@ -160,8 +160,8 @@ namespace tix
 		FQuat RelativeRotate;
 		FFloat3 RelativeScale;
 
-		matrix4 AbsoluteTransformation;
-		matrix4 RelativeTransformation;
+		FMat4 AbsoluteTransformation;
+		FMat4 RelativeTransformation;
 	};
 
 } // end namespace tix

@@ -8,11 +8,11 @@
 
 namespace tix
 {
-	inline void MakeMatrix(matrix4& Mat, const FFloat3& Pos, const FQuat& Rot, const FFloat3& Scale)
+	inline void MakeMatrix(FMat4& Mat, const FFloat3& Pos, const FQuat& Rot, const FFloat3& Scale)
 	{
 		Rot.GetMatrix(Mat);
-		Mat.postScale(Scale);
-		Mat.setTranslation(Pos);
+		Mat.PostScale(Scale);
+		Mat.SetTranslation(Pos);
 	}
 
 	TSkeleton::TSkeleton()
@@ -45,7 +45,7 @@ namespace tix
 
 	void TSkeleton::ComputeInvBindMatrices()
 	{
-		TVector<matrix4> BindMatrix;
+		TVector<FMat4> BindMatrix;
 		BindMatrix.resize(Bones.size());
 
 		const int32 NumBones = (int32)Bones.size();
@@ -58,8 +58,8 @@ namespace tix
 			}
 			else
 			{
-				matrix4 ParentMat = BindMatrix[Bone.ParentIndex];
-				matrix4 Mat;
+				FMat4 ParentMat = BindMatrix[Bone.ParentIndex];
+				FMat4 Mat;
 				MakeMatrix(Mat, Bone.Pos, Bone.Rot, Bone.Scale);
 				BindMatrix[b] =  ParentMat * Mat;
 			}
@@ -68,7 +68,7 @@ namespace tix
 		InvBindMatrix.resize(Bones.size());
 		for (int32 b = 0; b < NumBones; b++)
 		{
-			BindMatrix[b].getInverse(InvBindMatrix[b]);
+			BindMatrix[b].GetInverse(InvBindMatrix[b]);
 		}
 	}
 
@@ -139,7 +139,7 @@ namespace tix
 			}
 			else
 			{
-				matrix4 Mat;
+				FMat4 Mat;
 				MakeMatrix(Mat, Bone.Pos, Bone.Rot, Bone.Scale);
 
 				GlobalPoses[b] = GlobalPoses[Bone.ParentIndex] * Mat;
@@ -161,7 +161,7 @@ namespace tix
 		for (int32 i = 0; i < (int32)BoneMap.size(); ++i)
 		{
 			const int32 Index = BoneMap[i];
-			const matrix4& Mat = GlobalPoses[Index];
+			const FMat4& Mat = GlobalPoses[Index];
 			BoneData[i * 4 * 3 + 0] = Mat[0];
 			BoneData[i * 4 * 3 + 1] = Mat[4];
 			BoneData[i * 4 * 3 + 2] = Mat[8];

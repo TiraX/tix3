@@ -647,16 +647,15 @@ namespace tix
 		}
 	}
 
-	inline void GetInstanceRotationScaleMatrix(FMatrix& OutMatrix, const FQuat& Rotation, const FFloat3& Scale)
+	inline void GetInstanceRotationScaleMatrix(FMat4& OutMatrix, const FQuat& Rotation, const FFloat3& Scale)
 	{
-		matrix4 MatInstanceTrans;
+		FMat4 MatInstanceTrans;
 		Rotation.GetMatrix(MatInstanceTrans);
-		MatInstanceTrans.postScale(Scale);
-		MatInstanceTrans = MatInstanceTrans.getTransposed();
+		MatInstanceTrans.PostScale(Scale);
 		OutMatrix = MatInstanceTrans;
 	}
 
-	inline void MatrixRotationScaleToHalf3(const FMatrix& Mat, FHalf4& Rot0, FHalf4& Rot1, FHalf4& Rot2)
+	inline void MatrixRotationScaleToHalf3(const FMat4& Mat, FHalf4& Rot0, FHalf4& Rot1, FHalf4& Rot2)
 	{
 		Rot0.X = Mat[0];
 		Rot0.Y = Mat[1];
@@ -672,7 +671,7 @@ namespace tix
 		Rot2.W = Mat[11];
 	}
 
-	inline void MatrixRotationScaleToFloat3(const FMatrix& Mat, FFloat4& Rot0, FFloat4& Rot1, FFloat4& Rot2)
+	inline void MatrixRotationScaleToFloat3(const FMat4& Mat, FFloat4& Rot0, FFloat4& Rot1, FFloat4& Rot2)
 	{
 		Rot0.X = Mat[0];
 		Rot0.Y = Mat[1];
@@ -831,7 +830,7 @@ namespace tix
 						const TResSMInstance& Instance = SMInstanceData[i + InstanceOffsetSrc];
 
 						FFloat4 Transition(Instance.Position.X, Instance.Position.Y, Instance.Position.Z, 0.f);
-						FMatrix RotationScaleMat;
+						FMat4 RotationScaleMat;
 						GetInstanceRotationScaleMatrix(RotationScaleMat, Instance.Rotation, Instance.Scale);
 						TI_TODO("Use FMatrix4x3 for instance transform, since RTX also need this 4x3 matrix");
 #if USE_HALF_FOR_INSTANCE_ROTATION

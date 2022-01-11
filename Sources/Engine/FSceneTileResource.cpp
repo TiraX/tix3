@@ -79,7 +79,7 @@ namespace tix
 			for (int32 Ins = 0; Ins < InstanceCount; ++Ins)
 			{
 				const FFloat4* InsData = InstanceData + (InstanceOffset + Ins) * 4;
-				FMatrix3x4 Mat3x4;
+				FMat34 Mat3x4;
 				Mat3x4.SetTranslation(FFloat3(InsData[0].X, InsData[0].Y, InsData[0].Z));
 				Mat3x4[0] = InsData[1].X;
 				Mat3x4[1] = InsData[1].Y;

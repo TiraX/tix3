@@ -39,10 +39,10 @@ namespace tix
 			// Calculate affect box
 			const float MinimumIntensity = 0.01f;
 			float AttenuationDistance = sqrt(Intensity / MinimumIntensity);
-			AffectBox.MinEdge = FFloat3(-AttenuationDistance, -AttenuationDistance, -AttenuationDistance);
-			AffectBox.MaxEdge = FFloat3(AttenuationDistance, AttenuationDistance, AttenuationDistance);
+			AffectBox.Min = FFloat3(-AttenuationDistance, -AttenuationDistance, -AttenuationDistance);
+			AffectBox.Max = FFloat3(AttenuationDistance, AttenuationDistance, AttenuationDistance);
 
-			AffectBox.move(AbsoluteTransformation.getTranslation());
+			AffectBox.Move(AbsoluteTransformation.GetTranslation());
 
 			// Update FLight Position in render thread
 			FLightPtr InLight = LightResource;

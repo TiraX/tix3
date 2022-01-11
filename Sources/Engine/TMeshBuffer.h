@@ -23,8 +23,8 @@ namespace tix
 
 	struct TMeshClusterData
 	{
-		FFloat4 MinEdge;
-		FFloat4 MaxEdge;
+		FFloat4 Min;
+		FFloat4 Max;
 		FFloat4 Cone;
 	};
 
@@ -91,12 +91,12 @@ namespace tix
 			return Stride;
 		}
 
-		const aabbox3df& GetBBox() const
+		const FBox& GetBBox() const
 		{
 			return BBox;
 		}
 
-		void SetBBox(const aabbox3df& bbox)
+		void SetBBox(const FBox& bbox)
 		{
 			BBox = bbox;
 		}
@@ -119,7 +119,7 @@ namespace tix
 
 	protected:
 		E_PRIMITIVE_TYPE PrimitiveType;
-		aabbox3df BBox;
+		FBox BBox;
 
 		uint8* VsData;
 		uint32 VsDataCount;

@@ -129,8 +129,8 @@ namespace tix
 		const TMeshClusterDef* InData = (const TMeshClusterDef*)InClusterData;
 		for (uint32 c = 0 ; c < InClusterCount ; ++ c)
 		{
-			ClusterData[c].MinEdge = InData[c].BBox.MinEdge;
-			ClusterData[c].MaxEdge = InData[c].BBox.MaxEdge;
+			ClusterData[c].Min = InData[c].BBox.Min;
+			ClusterData[c].Max = InData[c].BBox.Max;
 			ClusterData[c].Cone = InData[c].Cone;
 		}
 	}

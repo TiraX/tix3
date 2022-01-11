@@ -108,7 +108,7 @@ namespace tix
 			ViewUniformBuffer = ti_new FViewUniformBuffer();
 
 			const FViewProjectionInfo& VPInfo = GetViewProjection();
-			ViewUniformBuffer->UniformBufferData[0].ViewProjection = VPInfo.MatProj * VPInfo.MatView;
+			ViewUniformBuffer->UniformBufferData[0].VP = (VPInfo.MatProj * VPInfo.MatView).GetTransposed();
 			ViewUniformBuffer->UniformBufferData[0].ViewDir = VPInfo.CamDir;
 			ViewUniformBuffer->UniformBufferData[0].ViewPos = VPInfo.CamPos;
 
@@ -138,7 +138,7 @@ namespace tix
 				for (THMap<FInt2, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
 				{
 					FSceneTileResourcePtr Tile = it->second;
-					THMap<FMeshBufferPtr, TVector<FMatrix3x4>>& TileBLASInstances = Tile->GetBLASInstances();
+					THMap<FMeshBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
 					for (auto M : TileBLASInstances)
 					{
 						TotalInstances += (uint32)M.second.size();
@@ -152,7 +152,7 @@ namespace tix
 					FSceneTileResourcePtr Tile = it->second;
 
 					THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr>& TileBLASes = Tile->GetBLASes();
-					THMap<FMeshBufferPtr, TVector<FMatrix3x4>>& TileBLASInstances = Tile->GetBLASInstances();
+					THMap<FMeshBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
 
 					for (auto M : TileBLASes)
 					{
@@ -160,7 +160,7 @@ namespace tix
 						FBottomLevelAccelerationStructurePtr BLAS = M.second;
 						TI_ASSERT(TileBLASInstances.find(MB) != TileBLASInstances.end());
 
-						TVector<FMatrix3x4>& Instances = TileBLASInstances[MB];
+						TVector<FMat34>& Instances = TileBLASInstances[MB];
 						for (const auto& Ins : Instances)
 						{
 							SceneTLAS->AddBLASInstance(BLAS, Ins);

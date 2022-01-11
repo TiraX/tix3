@@ -55,7 +55,7 @@ namespace tix
 	public:
 		TString LevelName;
 		FInt2 Position;
-		aabbox3df BBox;
+		FBox BBox;
 
 		uint32 TotalEnvLights;
 		TVector<TAssetPtr> EnvLights;

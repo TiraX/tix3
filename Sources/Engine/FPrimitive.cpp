@@ -108,10 +108,10 @@ namespace tix
 		SkeletonResourceRef = InSkeletonResource;
 	}
 
-	void FPrimitive::SetLocalToWorld(const matrix4 InLocalToWorld)
+	void FPrimitive::SetLocalToWorld(const FMat4 InLocalToWorld)
 	{
 		TI_ASSERT(IsRenderThread());
-		PrimitiveUniformBuffer->UniformBufferData[0].LocalToWorld = InLocalToWorld;
+		PrimitiveUniformBuffer->UniformBufferData[0].LocalToWorld = InLocalToWorld.GetTransposed();
 		PrimitiveFlag |= PrimitiveUniformBufferDirty;
 	}
 

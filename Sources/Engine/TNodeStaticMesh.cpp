@@ -112,11 +112,11 @@ namespace tix
 		{
 			TI_ASSERT(LinkedPrimitive != nullptr);
 			TransformedBBox = LinkedPrimitive->GetMeshBuffer()->GetBBox();
-			AbsoluteTransformation.transformBoxEx(TransformedBBox);
+			AbsoluteTransformation.TransformBoxEx(TransformedBBox);
 
 			// Init uniform buffer resource in render thread
 			FPrimitivePtr Primitive = LinkedPrimitive;
-			matrix4 LocalToWorld = AbsoluteTransformation;
+			FMat4 LocalToWorld = AbsoluteTransformation;
 			ENQUEUE_RENDER_COMMAND(UpdatePrimitiveBuffer)(
 				[Primitive, LocalToWorld]()
 				{

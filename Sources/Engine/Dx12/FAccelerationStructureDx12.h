@@ -44,7 +44,7 @@ namespace tix
 
 		virtual void ClearAllInstances() override;
 		virtual void ReserveInstanceCount(uint32 Count) override;
-		virtual void AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMatrix3x4& Transform) override;
+		virtual void AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMat34& Transform) override;
 		virtual void Build() override;
 		virtual bool AlreadyBuilt() override;
 	private:

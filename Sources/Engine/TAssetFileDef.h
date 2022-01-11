@@ -143,7 +143,7 @@ namespace tix
 		int32 Sections;
 		uint16 Clusters, ClusterSize;
 		uint32 Flag;
-		aabbox3df BBox;
+		FBox BBox;
 
 		int32 RefSkeletonStrIndex;
 
@@ -186,7 +186,7 @@ namespace tix
 
 	struct TMeshClusterDef
 	{
-		aabbox3df BBox;
+		FBox BBox;
 		FFloat4 Cone;
 	};
 
@@ -317,7 +317,7 @@ namespace tix
 	{
 		int32 LevelNameIndex;
 		FHInt2 Position;
-		aabbox3df BBox;
+		FBox BBox;
 
 		// Dependency num
 		int32 NumEnvLights;

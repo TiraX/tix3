@@ -34,7 +34,7 @@ namespace tix
 		//! Determines if the triangle is totally inside a bounding box.
 		/** \param box Box to check.
 		\return True if triangle is within the box, otherwise false. */
-		bool isTotalInsideBox(const aabbox3d<T>& box) const
+		bool isTotalInsideBox(const FAABBox<T>& box) const
 		{
 			return (box.isPointInside(pointA) &&
 				box.isPointInside(pointB) &&
@@ -44,15 +44,15 @@ namespace tix
 		//! Determines if the triangle is totally outside a bounding box.
 		/** \param box Box to check.
 		\return True if triangle is outside the box, otherwise false. */
-		bool isTotalOutsideBox(const aabbox3d<T>& box) const
+		bool isTotalOutsideBox(const FAABBox<T>& box) const
 		{
-			return ((pointA.X > box.MaxEdge.X && pointB.X > box.MaxEdge.X && pointC.X > box.MaxEdge.X) ||
+			return ((pointA.X > box.Max.X && pointB.X > box.Max.X && pointC.X > box.Max.X) ||
 
-				(pointA.Y > box.MaxEdge.Y && pointB.Y > box.MaxEdge.Y && pointC.Y > box.MaxEdge.Y) ||
-				(pointA.Z > box.MaxEdge.Z && pointB.Z > box.MaxEdge.Z && pointC.Z > box.MaxEdge.Z) ||
-				(pointA.X < box.MinEdge.X && pointB.X < box.MinEdge.X && pointC.X < box.MinEdge.X) ||
-				(pointA.Y < box.MinEdge.Y && pointB.Y < box.MinEdge.Y && pointC.Y < box.MinEdge.Y) ||
-				(pointA.Z < box.MinEdge.Z && pointB.Z < box.MinEdge.Z && pointC.Z < box.MinEdge.Z));
+				(pointA.Y > box.Max.Y && pointB.Y > box.Max.Y && pointC.Y > box.Max.Y) ||
+				(pointA.Z > box.Max.Z && pointB.Z > box.Max.Z && pointC.Z > box.Max.Z) ||
+				(pointA.X < box.Min.X && pointB.X < box.Min.X && pointC.X < box.Min.X) ||
+				(pointA.Y < box.Min.Y && pointB.Y < box.Min.Y && pointC.Y < box.Min.Y) ||
+				(pointA.Z < box.Min.Z && pointB.Z < box.Min.Z && pointC.Z < box.Min.Z));
 		}
 
 		//! Determines if the triangle is intersect with a bounding box
@@ -65,7 +65,7 @@ namespace tix
 		//https://stackoverflow.com/questions/17458562/efficient-aabb-triangle-intersection-in-c-sharp
 		/** \param box Box to check.
 		\return True if triangle is intersect the box, otherwise false. */
-		bool isIntersectWithBox(const aabbox3d<T>& box) const
+		bool isIntersectWithBox(const FAABBox<T>& box) const
 		{
 			T TriangleMin, TriangleMax;
 			T BoxMin, BoxMax;
@@ -99,22 +99,22 @@ namespace tix
 						MaxValue = V;
 				}
 			};
-			auto ProjectBox = [](const aabbox3d<T>& Box, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
+			auto ProjecFAABBox = [](const FAABBox<T>& Box, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
 			{
 				MinValue = FLT_MAX;
 				MaxValue = FLT_MIN;
 
 				const FVec3<T> Points[] =
 				{
-					FVec3<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
-					FVec3<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
-					FVec3<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
-					FVec3<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
+					FVec3<T>(Box.Min.X, Box.Min.Y, Box.Min.Z),
+					FVec3<T>(Box.Max.X, Box.Min.Y, Box.Min.Z),
+					FVec3<T>(Box.Min.X, Box.Max.Y, Box.Min.Z),
+					FVec3<T>(Box.Max.X, Box.Max.Y, Box.Min.Z),
 
-					FVec3<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
-					FVec3<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
-					FVec3<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z),
-					FVec3<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z)
+					FVec3<T>(Box.Min.X, Box.Min.Y, Box.Max.Z),
+					FVec3<T>(Box.Max.X, Box.Min.Y, Box.Max.Z),
+					FVec3<T>(Box.Min.X, Box.Max.Y, Box.Max.Z),
+					FVec3<T>(Box.Max.X, Box.Max.Y, Box.Max.Z)
 				};
 
 				for (int32 i = 0; i < 8; ++i)
@@ -130,14 +130,14 @@ namespace tix
 			{
 				const FVec3<T>& N = BoxNormals[i];
 				ProjectTriangle(*this, BoxNormals[i], TriangleMin, TriangleMax);
-				if (TriangleMax < box.MinEdge[i] || TriangleMin > box.MaxEdge[i])
+				if (TriangleMax < box.Min[i] || TriangleMin > box.Max[i])
 					return false; // No intersection possible.
 			}
 
 			// Test the triangle normal
 			FVec3<T> TriN = getNormal().Normalize();
 			T TriangleOffset = TriN.Dot(pointA);
-			ProjectBox(box, TriN, BoxMin, BoxMax);
+			ProjecFAABBox(box, TriN, BoxMin, BoxMax);
 			if (BoxMax < TriangleOffset || BoxMin > TriangleOffset)
 				return false; // No intersection possible.
 
@@ -154,7 +154,7 @@ namespace tix
 				{
 					// The box normals are the same as it's edge tangents
 					FVec3<T> Axis = TriangleEdges[i].Cross(BoxNormals[j]);
-					ProjectBox(box, Axis, BoxMin, BoxMax);
+					ProjecFAABBox(box, Axis, BoxMin, BoxMax);
 					ProjectTriangle(*this, Axis, TriangleMin, TriangleMax);
 					if (BoxMax <= TriangleMin || BoxMin >= TriangleMax)
 						return false; // No intersection possible
@@ -359,9 +359,9 @@ namespace tix
 		}
 
 		//! Get the bounding box of this triangle
-		aabbox3d<T> getBoundingBox() const
+		FAABBox<T> getBoundingBox() const
 		{
-			aabbox3d<T> Box(pointA);
+			FAABBox<T> Box(pointA);
 			Box.addInternalPoint(pointB);
 			Box.addInternalPoint(pointC);
 			return Box;

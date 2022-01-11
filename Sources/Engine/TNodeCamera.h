@@ -9,8 +9,8 @@ namespace tix
 {
 	struct FViewProjectionInfo
 	{
-		matrix4 MatView;
-		matrix4 MatProj;
+		FMat4 MatView;
+		FMat4 MatProj;
 		FFloat3 CamPos;
 		FFloat3 CamDir;
 		FFloat3 HorVector;
@@ -40,22 +40,22 @@ namespace tix
 		virtual void UpdateAllTransformation() override;
 
 		//! Sets the projection matrix of the camera.
-		/** The matrix4 class has some methods
-			to build a projection matrix. e.g: matrix4::buildProjectionMatrixPerspectiveFov.
+		/** The FMat4 class has some methods
+			to build a projection matrix. e.g: FMat4::buildProjectionMatrixPerspectiveFov.
 			Note that the matrix will only stay as set by this method until one of
 			the following Methods are called: setNearValue, setFarValue, setAspectRatio, setFOV.
 			\param projection The newly projection matrix of the camera.
 			\param isOrthogonal Set this to true if the matrix is an orthogonal one (e.g.
-			from matrix4::buildProjectionMatrixOrtho(). */
-		virtual void SetProjectionMatrix(const matrix4& projection, bool isOrthogonal = false);
+			from FMat4::buildProjectionMatrixOrtho(). */
+		virtual void SetProjectionMatrix(const FMat4& projection, bool isOrthogonal = false);
 
 		//! Gets the current projection matrix of the camera
 		//! \return Returns the current projection matrix of the camera.
-		virtual const matrix4& GetProjectionMatrix() const;
+		virtual const FMat4& GetProjectionMatrix() const;
 
 		//! Gets the current view matrix of the camera
 		//! \return Returns the current view matrix of the camera.
-		virtual const matrix4& GetViewMatrix() const;
+		virtual const FMat4& GetViewMatrix() const;
 
 		//! sets the look at target of the camera
 		//! \param pos Look at target of the camera.

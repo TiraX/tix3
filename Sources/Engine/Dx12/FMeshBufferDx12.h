@@ -20,7 +20,7 @@ namespace tix
 			uint32 InVertexCount,
 			E_INDEX_TYPE InIndexType,
 			uint32 InIndexCount,
-			const aabbox3df& InBBox
+			const FBox& InBBox
 		);
 		virtual ~FMeshBufferDx12();
 	protected:

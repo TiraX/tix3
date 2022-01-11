@@ -144,7 +144,7 @@ namespace tix
 			return Current;
 	}
 
-	TNode* TNode::IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, FFloat3& outIntersection)
+	TNode* TNode::IsIntersectWithRay(const line3df& ray, FBox& outBBox, FFloat3& outIntersection)
 	{
 		// test children
 		VecRenderElements::const_iterator it = Children.begin();
@@ -160,7 +160,7 @@ namespace tix
 		return NULL;
 	}
 
-	TNode* TNode::IsIntersectWithPoint(const FFloat3& p, aabbox3df& outBBox, FFloat3& outIntersection)
+	TNode* TNode::IsIntersectWithPoint(const FFloat3& p, FBox& outBBox, FFloat3& outIntersection)
 	{
 		// test children
 		VecRenderElements::const_iterator it = Children.begin();
@@ -190,12 +190,12 @@ namespace tix
 		return nullptr;
 	}
 
-	const matrix4& TNode::GetAbsoluteTransformation() const
+	const FMat4& TNode::GetAbsoluteTransformation() const
 	{
 		return AbsoluteTransformation;
 	}
 
-	const matrix4& TNode::GetRelativeTransformation()
+	const FMat4& TNode::GetRelativeTransformation()
 	{
 		if ((NodeFlag & (ENF_DIRTY_TRANSFORM)) != 0)
 		{
@@ -204,13 +204,13 @@ namespace tix
 				RelativeRotate.GetMatrix(RelativeTransformation);
 				if (RelativeScale != FFloat3(1.f, 1.f, 1.f))
 				{
-					RelativeTransformation.postScale(RelativeScale);
+					RelativeTransformation.PostScale(RelativeScale);
 				}
-				RelativeTransformation.setTranslation(RelativePosition);
+				RelativeTransformation.SetTranslation(RelativePosition);
 			}
 			else
 			{
-				RelativeTransformation.setTranslation(RelativePosition);
+				RelativeTransformation.SetTranslation(RelativePosition);
 			}
 			NodeFlag &= ~ENF_DIRTY_TRANSFORM;
 		}
@@ -246,7 +246,7 @@ namespace tix
 			((Parent->NodeFlag & ENF_ABSOLUTETRANSFORMATION_UPDATED) ||
 			(NodeFlag & ENF_DIRTY_TRANSFORM)))
 		{
-			Parent->GetAbsoluteTransformation().mult34(GetRelativeTransformation(), AbsoluteTransformation);
+			Parent->GetAbsoluteTransformation().Mult34(GetRelativeTransformation(), AbsoluteTransformation);
 			NodeFlag |= ENF_ABSOLUTETRANSFORMATION_UPDATED;
 		}
 		else

@@ -133,7 +133,7 @@ namespace tix
 		InstanceDescs.reserve(Count);
 	}
 
-	void FTopLevelAccelerationStructureDx12::AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMatrix3x4& Transform)
+	void FTopLevelAccelerationStructureDx12::AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMat34& Transform)
 	{
 		FBottomLevelAccelerationStructureDx12* BLASDx12 = static_cast<FBottomLevelAccelerationStructureDx12*>(BLAS.get());
 

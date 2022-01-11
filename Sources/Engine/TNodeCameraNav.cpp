@@ -140,7 +140,7 @@ namespace tix
 #else
 			const float rot_speed = 1.f;
 #endif
-			matrix4 mat;
+			FMat4 mat;
 			FQuat rotX, rotY, rot;
 			FFloat3 tar_offset = OldPosition - OldTarget;
 			FFloat3 axis = UpVector.Cross(tar_offset);
@@ -150,7 +150,7 @@ namespace tix
 			rot = rotX * rotY;
 			rot.GetMatrix(mat);
 
-			mat.transformVect(tar_offset);
+			mat.TransformVect(tar_offset);
 			SetPosition(OldTarget + tar_offset);
 
 			CameraFlags |= ECAMF_MAT_VIEW_DIRTY;

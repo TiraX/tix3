@@ -75,10 +75,10 @@ namespace tix
 		}
 	}
 
-	//! Sets the projection matrix of the camera. The matrix4 class has some methods
-	//! to build a projection matrix. e.g: matrix4::buildProjectionMatrixPerspectiveFov
+	//! Sets the projection matrix of the camera. The FMat4 class has some methods
+	//! to build a projection matrix. e.g: FMat4::buildProjectionMatrixPerspectiveFov
 	//! \param projection The newly projection matrix of the camera.
-	void TNodeCamera::SetProjectionMatrix(const matrix4& projection, bool isOrthogonal)
+	void TNodeCamera::SetProjectionMatrix(const FMat4& projection, bool isOrthogonal)
 	{
 		//IsOrthogonal = isOrthogonal;
 		ViewArea.Matrices[ETS_PROJECTION] = projection;
@@ -87,14 +87,14 @@ namespace tix
 
 	//! Gets the current projection matrix of the camera
 	//! \return Returns the current projection matrix of the camera.
-	const matrix4& TNodeCamera::GetProjectionMatrix() const
+	const FMat4& TNodeCamera::GetProjectionMatrix() const
 	{
 		return ViewArea.Matrices[ETS_PROJECTION];
 	}
 
 	//! Gets the current view matrix of the camera
 	//! \return Returns the current view matrix of the camera.
-	const matrix4& TNodeCamera::GetViewMatrix() const
+	const FMat4& TNodeCamera::GetViewMatrix() const
 	{
 		return ViewArea.Matrices[ETS_VIEW];
 	}
@@ -202,7 +202,7 @@ namespace tix
 			up.X = up.X + 0.5f;
 		}
 
-		ViewArea.Matrices[ETS_VIEW] = buildCameraLookAtMatrix(pos, Target, up);;
+		ViewArea.Matrices[ETS_VIEW] = BuildCameraLookAtMatrix(pos, Target, up);;
 		ViewArea.setTransformState(ETS_VIEW);
 
 		RecalculateViewArea();
@@ -216,8 +216,8 @@ namespace tix
 
 	void TNodeCamera::RecalculateProjectionMatrix()
 	{
-		ViewArea.Matrices[ETS_PROJECTION] = buildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
-		//const matrix4& mat	= ViewArea.Matrices[ETS_PROJECTION];
+		ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+		//const FMat4& mat	= ViewArea.Matrices[ETS_PROJECTION];
 
 		ViewArea.setTransformState(ETS_PROJECTION);
 	}
@@ -238,10 +238,10 @@ namespace tix
 	{
 		TI_ASSERT(0);
 		//FFloat3 orig,dir;
-		//const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
-		//const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
+		//const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
+		//const FMat4& matView	= ViewArea.Matrices[ETS_VIEW];
 
-		//matrix4 m;
+		//FMat4 m;
 		//matView.getInverse(m);
 		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
@@ -252,8 +252,8 @@ namespace tix
 		//v.Z = 1.0f;
 
 		//FFloat3 pStart, pEnd;
-		//m.transformVect(pStart, v * 1.0f);
-		//m.transformVect(pEnd, v * length);
+		//m.TransformVect(pStart, v * 1.0f);
+		//m.TransformVect(pEnd, v * length);
 		//ray.start = pStart;
 		//ray.end = pEnd;
 	}
@@ -262,10 +262,10 @@ namespace tix
 	{
 		TI_ASSERT(0);
 		//FFloat3 orig,dir;
-		//const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
-		//const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
+		//const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
+		//const FMat4& matView	= ViewArea.Matrices[ETS_VIEW];
 
-		//matrix4 m;
+		//FMat4 m;
 		//matView.getInverse(m);
 		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
@@ -276,8 +276,8 @@ namespace tix
 		//v.Z = 1.0f;
 
 		//FFloat3 pStart, pEnd;
-		//m.transformVect(pStart, v * 1.0f);
-		//m.transformVect(pEnd, v * length);
+		//m.TransformVect(pStart, v * 1.0f);
+		//m.TransformVect(pEnd, v * length);
 		//ray.start = pStart;
 		//ray.end = pEnd;
 	}
@@ -285,11 +285,11 @@ namespace tix
 	void TNodeCamera::GetRayFrom2DPointWithViewport(const rectf& vp, const FFloat2& pos, line3df &ray, float length)
 	{
 		FFloat3 orig,dir;
-		const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
-		const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
+		const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
+		const FMat4& matView	= ViewArea.Matrices[ETS_VIEW];
 
-		matrix4 m;
-		matView.getInverse(m);
+		FMat4 m;
+		matView.GetInverse(m);
 
 		// Compute the vector of the Pick ray in screen space
 		FFloat3 v;
@@ -298,8 +298,8 @@ namespace tix
 		v.Z = 1.0f;
 
 		FFloat3 pStart, pEnd;
-		m.transformVect(pStart, v * 1.0f);
-		m.transformVect(pEnd, v * length);
+		m.TransformVect(pStart, v * 1.0f);
+		m.TransformVect(pEnd, v * length);
 		ray.start = pStart;
 		ray.end = pEnd;
 	}
@@ -310,8 +310,8 @@ namespace tix
 		FFloat2 _pos_2d;
 		//float _proj_pos[4];
 
-		//const matrix4& matVP	= ViewArea.Matrices[ETS_VP];
-		//matVP.transformVect(_proj_pos, pos);
+		//const FMat4& matVP	= ViewArea.Matrices[ETS_VP];
+		//matVP.TransformVect(_proj_pos, pos);
 
 		//_proj_pos[0]			/= _proj_pos[3];
 		//_proj_pos[1]			/= _proj_pos[3];

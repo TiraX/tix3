@@ -408,13 +408,13 @@ namespace tix
 		}
 		else
 		{
-			matrix4 RotMat;
+			FMat4 RotMat;
 			Rotation.GetMatrix(RotMat);
 
 			for (const auto& P : BoxPositions)
 			{
 				FFloat3 NewP;
-				RotMat.transformVect(NewP, P * Edges);
+				RotMat.TransformVect(NewP, P * Edges);
 				NewP += Center;
 				OutPositions.push_back(NewP);
 			}
@@ -476,13 +476,13 @@ namespace tix
 		}
 		else
 		{
-			matrix4 RotMat;
+			FMat4 RotMat;
 			Rotation.GetMatrix(RotMat);
 
 			for (const auto& P : CapsulePositions)
 			{
 				FFloat3 NewP;
-				RotMat.transformVect(NewP, P);
+				RotMat.TransformVect(NewP, P);
 				NewP += Center;
 				OutPositions.push_back(NewP);
 			}

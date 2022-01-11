@@ -56,7 +56,7 @@ namespace tix
 			uint32 InVertexCount,
 			E_INDEX_TYPE InIndexType,
 			uint32 InIndexCount,
-			const aabbox3df& InMeshBBox
+			const FBox& InMeshBBox
 		) override;
 		virtual FInstanceBufferPtr CreateInstanceBuffer() override;
 		virtual FInstanceBufferPtr CreateEmptyInstanceBuffer(uint32 InstanceCount, uint32 InstanceStride) override;

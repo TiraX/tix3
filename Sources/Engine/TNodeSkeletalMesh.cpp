@@ -39,7 +39,7 @@ namespace tix
 		{
 			// Update primtive uniform buffer
 			TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
-			matrix4 LocalToWorldMat = AbsoluteTransformation;
+			FMat4 LocalToWorldMat = AbsoluteTransformation;
 			ENQUEUE_RENDER_COMMAND(TNodeSkeletalMeshUpdatePrimitiveUniform)(
 				[Primitives, LocalToWorldMat]()
 				{

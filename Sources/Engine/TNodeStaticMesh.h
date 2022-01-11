@@ -38,7 +38,7 @@ namespace tix
 
 	protected:
 		FPrimitivePtr LinkedPrimitive;
-		aabbox3df TransformedBBox;
+		FBox TransformedBBox;
 		TVector<TNodeLight*> BindedLights;
 
 		TAssetPtr MeshAsset;

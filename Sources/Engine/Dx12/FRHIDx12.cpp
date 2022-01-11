@@ -584,7 +584,7 @@ namespace tix
 		uint32 InVertexCount,
 		E_INDEX_TYPE InIndexType,
 		uint32 InIndexCount,
-		const aabbox3df& InMeshBBox
+		const FBox& InMeshBBox
 	)
 	{
 		return ti_new FMeshBufferDx12(InPrimType, InVSFormat, InVertexCount, InIndexType, InIndexCount, InMeshBBox);

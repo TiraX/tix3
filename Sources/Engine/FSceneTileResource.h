@@ -19,7 +19,7 @@ namespace tix
 			return Position;
 		}
 
-		const aabbox3df& GetTileBBox() const
+		const FBox& GetTileBBox() const
 		{
 			return BBox;
 		}
@@ -60,14 +60,14 @@ namespace tix
 			return SceneTileBLASes;
 		}
 
-		THMap<FMeshBufferPtr, TVector<FMatrix3x4>>& GetBLASInstances()
+		THMap<FMeshBufferPtr, TVector<FMat34>>& GetBLASInstances()
 		{
 			return SceneTileBLASInstances;
 		}
 
 	private:
 		FInt2 Position;
-		aabbox3df BBox;
+		FBox BBox;
 		uint32 TotalStaticMeshes;
 		uint32 TotalSMInstances;
 		// X is Count, Y is Offset
@@ -80,6 +80,6 @@ namespace tix
 		THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr> SceneTileBLASes;
 
 		// Scene BLAS instances
-		THMap<FMeshBufferPtr, TVector<FMatrix3x4> > SceneTileBLASInstances;
+		THMap<FMeshBufferPtr, TVector<FMat34> > SceneTileBLASInstances;
 	};
 }
