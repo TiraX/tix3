@@ -7,6 +7,13 @@
 
 namespace tix
 {
+	struct FGPUResourceDesc
+	{
+		uint32 Flag;
+		uint32 Type;
+		uint32 BufferSize;
+	};
+
 	class FGPUResource : public IReferenceCounted
 	{
 	public:
@@ -14,6 +21,8 @@ namespace tix
 		{}
 		virtual ~FGPUResource()
 		{}
+
+		virtual void Init(const FGPUResourceDesc& Desc, TStreamPtr Data) = 0;
 
 	protected:
 	};

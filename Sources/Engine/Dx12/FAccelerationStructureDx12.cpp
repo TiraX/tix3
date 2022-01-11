@@ -57,8 +57,8 @@ namespace tix
 			return;
 
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
-		ID3D12Device5* DXRDevice = RHIDx12->GetDXRDevice().Get();
-		ID3D12GraphicsCommandList4* DXRCommandList = RHIDx12->GetDXRCommandList().Get();
+		ID3D12Device5* DXRDevice = RHIDx12->GetDXRDevice();
+		ID3D12GraphicsCommandList4* DXRCommandList = RHIDx12->GetDXRCommandList();
 
 		// Get the size requirements for the scratch and AS buffers.
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO PrebuildInfo = {};
@@ -175,9 +175,8 @@ namespace tix
 			return;
 
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
-		ID3D12Device* D3D12Device = RHIDx12->GetD3dDevice().Get();
-		ID3D12Device5* DXRDevice = RHIDx12->GetDXRDevice().Get();
-		ID3D12GraphicsCommandList4* DXRCommandList = RHIDx12->GetDXRCommandList().Get();
+		ID3D12Device5* DXRDevice = RHIDx12->GetDXRDevice();
+		ID3D12GraphicsCommandList4* DXRCommandList = RHIDx12->GetDXRCommandList();
 
 		// Get the size requirements for the scratch and AS buffers.
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO PrebuildInfo = {};

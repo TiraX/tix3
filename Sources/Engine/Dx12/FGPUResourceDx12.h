@@ -62,6 +62,11 @@ namespace tix
 
 		virtual ~FGPUResourceBufferDx12()
 		{}
+
+		virtual void Init(const FGPUResourceDesc& Desc, TStreamPtr Data) override;
+
+	private:
+		ComPtr<ID3D12Resource> Resource;
 	};
 
 	/////////////////////////////////////////////////////////////
@@ -74,6 +79,11 @@ namespace tix
 
 		virtual ~FGPUResourceTextureDx12()
 		{}
+
+		virtual void Init(const FGPUResourceDesc& Desc, TStreamPtr Data) override {};
+
+	private:
+		ComPtr<ID3D12Resource> Resource;
 	};
 }
 #endif	// COMPILE_WITH_RHI_DX12

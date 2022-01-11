@@ -26,7 +26,23 @@ namespace tix
 	void FMeshBuffer::CreateGPUResource(TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
-		TI_ASSERT(0);
+		TI_ASSERT(GPUResourceVB == nullptr && GPUResourceIB == nullptr);
+		FRHI* RHI = FRHI::Get();
+
+		FGPUResourceDesc VBDesc;
+		TI_ASSERT(0);	// todo: create gpu resource flag here. like uniform buffer flag
+		VBDesc.Flag = 0;
+		VBDesc.BufferSize = Desc.VertexCount * Desc.Stride;
+
+		GPUResourceVB = RHI->CreateGPUResourceBuffer();
+		GPUResourceVB->Init(VBDesc, Data);
+
+		FGPUResourceDesc IBDesc;
+		IBDesc.Flag = 0;
+		IBDesc.BufferSize = Desc.IndexCount * (Desc.IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
+
+		GPUResourceIB = RHI->CreateGPUResourceBuffer();
+		GPUResourceIB->Init(IBDesc, Data);
 	}
 
 	///////////////////////////////////////////////////////////

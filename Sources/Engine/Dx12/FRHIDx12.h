@@ -180,9 +180,14 @@ namespace tix
 		virtual void SetViewport(const FViewport& InViewport) override;
 		virtual void BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName = "UnnamedPass", uint32 MipLevel = 0, const SColor& ClearColor = SColor(0, 0, 0, 0)) override;
 
-		ComPtr<ID3D12Device> GetD3dDevice()
+		ID3D12Device* GetD3dDevice()
 		{
-			return D3dDevice;
+			return D3dDevice.Get();
+		}
+
+		ID3D12GraphicsCommandList* GetCommandList()
+		{
+			return DirectCommandList.Get();
 		}
 
 		ID3D12DescriptorHeap* GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type)
@@ -190,16 +195,17 @@ namespace tix
 			return DescriptorHeaps[Type].GetHeap();
 		}
 
-
-		ComPtr<ID3D12Device5> GetDXRDevice()
+		ID3D12Device5* GetDXRDevice()
 		{
-			return DXR->DXRDevice;
+			return DXR->DXRDevice.Get();
 		}
 
-		ComPtr<ID3D12GraphicsCommandList4> GetDXRCommandList()
+		ID3D12GraphicsCommandList4* GetDXRCommandList()
 		{
-			return DXR->DXRCommandList;
+			return DXR->DXRCommandList.Get();
 		}
+		void HoldResourceReference(FRenderResourcePtr InResource);
+		void HoldResourceReference(ComPtr<ID3D12Resource> InDxResource);
 
 		static uint32 GetUBSizeWithCounter(uint32 InBufferSize);
 	protected: 
@@ -211,8 +217,6 @@ namespace tix
 		void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
 		void CreateWindowsSizeDependentResources();
 		void MoveToNextFrame();
-		void HoldResourceReference(FRenderResourcePtr InResource);
-		void HoldResourceReference(ComPtr<ID3D12Resource> InDxResource);
 
 		FShaderBindingPtr CreateShaderBinding(const D3D12_ROOT_SIGNATURE_DESC& RSDesc);
 
