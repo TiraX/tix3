@@ -15,9 +15,9 @@ namespace tix
 
 		virtual bool Run() = 0;
 
-		vector2di GetDeviceSize()
+		FInt2 GetDeviceSize()
 		{
-			return vector2di(Width, Height);
+			return FInt2(Width, Height);
 		}
 
 		int32 GetWidth()

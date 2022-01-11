@@ -19,7 +19,7 @@ namespace tix
 	struct TStaticMeshInstanceInfo
 	{
 		uint32 NumInstances;	// Total static mesh instances
-		TVector<vector2di> InstanceCountAndOffset;	// X is Count, Y is Offset
+		TVector<FInt2> InstanceCountAndOffset;	// X is Count, Y is Offset
 		TInstanceBufferPtr InstanceBuffer;
 
 		TStaticMeshInstanceInfo()
@@ -31,9 +31,9 @@ namespace tix
 		TAssetPtr MeshAssetRef;
 		TAssetPtr SkeletonAsset;
 		TAssetPtr AnimAsset;
-		vector3df Pos;
+		FFloat3 Pos;
 		quaternion Rot;
-		vector3df Scale;
+		FFloat3 Scale;
 	};
 
 	// Hold all resources in a tile, like meshes, instances, etc
@@ -54,14 +54,14 @@ namespace tix
 
 	public:
 		TString LevelName;
-		vector2di Position;
+		FInt2 Position;
 		aabbox3df BBox;
 
 		uint32 TotalEnvLights;
 		TVector<TAssetPtr> EnvLights;
 		struct TEnvLightInfo
 		{
-			vector3df Position;
+			FFloat3 Position;
 			float Radius;
 
 			TEnvLightInfo()

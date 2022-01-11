@@ -38,16 +38,16 @@ namespace tix
 		};
 
 		E_CAM_ACTION Action;
-		vector3df OldTarget;
-		vector3df OldPosition;
+		FFloat3 OldTarget;
+		FFloat3 OldPosition;
 
 		float RotateSpeed;
 
 		float MoveSpeed;
 		float DollySpeed;
 
-		vector2di MouseStartPoint;
-		vector2di MouseCurrentPoint;
+		FInt2 MouseStartPoint;
+		FInt2 MouseCurrentPoint;
 
 		int32 HoldKey;
 	};

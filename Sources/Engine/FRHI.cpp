@@ -83,7 +83,7 @@ namespace tix
 	{
 		CurrentRenderTarget = RT;
         
-        const vector2di& d = RT->GetDemension();
+        const FInt2& d = RT->GetDemension();
 		RtViewport.Left = 0;
 		RtViewport.Top = 0;
 		RtViewport.Width = d.X >> MipLevel;

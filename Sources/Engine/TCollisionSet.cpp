@@ -27,7 +27,7 @@ namespace tix
 
 	TMeshBufferPtr TCollisionSet::ConvertToMesh() const
 	{
-		TVector<vector3df> Positions;
+		TVector<FFloat3> Positions;
 		TVector<uint32> Indices;
 		Positions.reserve(64 * 1024);
 		Indices.reserve(128 * 1024);

@@ -81,7 +81,7 @@ namespace tix
 			}
 		};
 
-		const vector2di& GetDemension() const
+		const FInt2& GetDemension() const
 		{
 			return Demension;
 		}
@@ -107,7 +107,7 @@ namespace tix
 		TI_API virtual void AddDepthStencilBuffer(FTexturePtr Texture, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction);
         
         // For metal tile shader
-        TI_API virtual void SetTileSize(const vector2di& InTileSize)
+        TI_API virtual void SetTileSize(const FInt2& InTileSize)
         {}
         TI_API virtual void SetThreadGroupMemoryLength(uint32 Length)
         {}
@@ -116,7 +116,7 @@ namespace tix
 	protected:
 
 	protected:
-		vector2di Demension;
+		FInt2 Demension;
 
 		RTBuffer RTColorBuffers[ERTC_COUNT];
 		RTBuffer RTDepthStencilBuffer;

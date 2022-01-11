@@ -18,10 +18,10 @@ namespace tix
 	{
 	}
 
-	void TNodeEnvironment::SetMainLightDirection(const vector3df& InDir)
+	void TNodeEnvironment::SetMainLightDirection(const FFloat3& InDir)
 	{
 		EnvInfo.MainLightDirection = InDir;
-		EnvInfo.MainLightDirection.normalize();
+		EnvInfo.MainLightDirection.Normalize();
 		EnvFlags |= ENVF_MAIN_LIGHT_DIRTY;
 	}
 

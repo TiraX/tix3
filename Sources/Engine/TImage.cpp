@@ -82,7 +82,7 @@ namespace tix
 		}
 	}
 
-	vector2di TImage::GetBlockSize(E_PIXEL_FORMAT Format)
+	FInt2 TImage::GetBlockSize(E_PIXEL_FORMAT Format)
 	{
 		TI_ASSERT(IsCompressedFormat(Format));
 		switch (Format)
@@ -94,20 +94,20 @@ namespace tix
 		case EPF_DDS_DXT5:
 		case EPF_DDS_DXT5_SRGB:
 		case EPF_DDS_BC5:
-			return vector2di(4, 4);
+			return FInt2(4, 4);
 
 			// ASTC formats 
 		case EPF_ASTC4x4:
 		case EPF_ASTC4x4_SRGB:
-			return vector2di(4, 4);
+			return FInt2(4, 4);
 		case EPF_ASTC6x6:
 		case EPF_ASTC6x6_SRGB:
-			return vector2di(6, 6);
+			return FInt2(6, 6);
 		case EPF_ASTC8x8:
 		case EPF_ASTC8x8_SRGB:
-			return vector2di(8, 8);
+			return FInt2(8, 8);
 		default:
-			return vector2di();
+			return FInt2();
 		}
 	}
 
@@ -127,7 +127,7 @@ namespace tix
 		{
 			int32 BlockSize = GetBlockSizeInBytes(Format);
 			TI_ASSERT(BlockSize != 0);
-			vector2di Block = GetBlockSize(Format);
+			FInt2 Block = GetBlockSize(Format);
 			int32 BlockW = GetBlockWidth(Width, Block.X);
 			int32 BlockH = GetBlockWidth(Height, Block.Y);
 			return (BlockSize * BlockW * BlockH);
@@ -146,7 +146,7 @@ namespace tix
 		{
 			int32 BlockSize = GetBlockSizeInBytes(Format);
 			TI_ASSERT(BlockSize != 0);
-			vector2di Block = GetBlockSize(Format);
+			FInt2 Block = GetBlockSize(Format);
 			int32 BlockW = GetBlockWidth(Width, Block.X);
 			return (BlockSize * BlockW);
 		}
@@ -165,7 +165,7 @@ namespace tix
 		Mip0.H = Height;
 		if (IsCompressedFormat(InPixelFormat))
 		{
-			vector2di Block = GetBlockSize(InPixelFormat);
+			FInt2 Block = GetBlockSize(InPixelFormat);
 			Mip0.BlockSize = GetBlockSizeInBytes(InPixelFormat);
 			int32 BlockW = GetBlockWidth(Width, Block.X);
 			Mip0.RowPitch = Mip0.BlockSize * BlockW;
@@ -396,7 +396,7 @@ namespace tix
 		float Bmdx;	// Bspline m-dx 
 		float Bndy;	// Bspline dy-n    
 
-		vector4df Result;
+		FFloat4 Result;
 		for (int32 m = -1; m <= 2; m++)
 		{
 			Bmdx = Cubic(m - dx);
@@ -405,7 +405,7 @@ namespace tix
 				Bndy = Cubic(dy - n);
 
 				SColor c = GetPixel(xi + m, yi + n);
-				vector4df r(c.R, c.G, c.B, c.A);
+				FFloat4 r(c.R, c.G, c.B, c.A);
 				Result += r * Bmdx * Bndy;
 			}
 		}
@@ -514,7 +514,7 @@ namespace tix
 		float Bmdx;	// Bspline m-dx 
 		float Bndy;	// Bspline dy-n    
 
-		vector4df Result;
+		FFloat4 Result;
 		for (int32 m = -1; m <= 2; m++)
 		{
 			Bmdx = Cubic(m - dx);
@@ -523,7 +523,7 @@ namespace tix
 				Bndy = Cubic(dy - n);
 
 				SColorf c = GetPixelFloat(xi + m, yi + n);
-				vector4df r(c.R, c.G, c.B, c.A);
+				FFloat4 r(c.R, c.G, c.B, c.A);
 				Result += r * Bmdx * Bndy;
 			}
 		}
@@ -577,7 +577,7 @@ namespace tix
 				MipData->H = H;
 				if (IsCompressed)
 				{
-					vector2di Block = GetBlockSize(PixelFormat);
+					FInt2 Block = GetBlockSize(PixelFormat);
 					MipData->BlockSize = GetBlockSizeInBytes(PixelFormat);
 					int32 BlockW = GetBlockWidth(W, Block.X);
 					MipData->RowPitch = MipData->BlockSize * BlockW;
@@ -777,7 +777,7 @@ namespace tix
 				static const float SInv = 1.f / S;
 				static const float Gamma = 2.2f;
 				SColor C = GetPixel(x, y);
-				vector4df R(C.R * SInv, C.G * SInv, C.B * SInv, C.A * SInv);
+				FFloat4 R(C.R * SInv, C.G * SInv, C.B * SInv, C.A * SInv);
 				R.X = pow(R.X, Gamma);
 				R.Y = pow(R.Y, Gamma);
 				R.Z = pow(R.Z, Gamma);
@@ -807,7 +807,7 @@ namespace tix
 				static const float Gamma = 2.2f;
 				static const float GammaInv = 1.f / Gamma;
 				SColor C = GetPixel(x, y);
-				vector4df R(C.R * SInv, C.G * SInv, C.B * SInv, C.A * SInv);
+				FFloat4 R(C.R * SInv, C.G * SInv, C.B * SInv, C.A * SInv);
 				R.X = pow(R.X, GammaInv);
 				R.Y = pow(R.Y, GammaInv);
 				R.Z = pow(R.Z, GammaInv);

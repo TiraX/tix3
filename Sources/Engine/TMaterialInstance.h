@@ -42,7 +42,7 @@ namespace tix
 
 		// For VT System
 		TVector<TString> ParamTextureNames;
-		TVector<vector2di> ParamTextureSizes;
+		TVector<FInt2> ParamTextureSizes;
 
 	protected:
 		friend class TAssetFile;

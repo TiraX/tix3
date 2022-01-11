@@ -71,7 +71,7 @@ namespace tix
 		// RTX
 		virtual bool UpdateHardwareResourceRtxPL(FRtxPipelinePtr Pipeline, TRtxPipelinePtr InPipelineDesc) override;
 		virtual void SetRtxPipeline(FRtxPipelinePtr RtxPipeline) override;
-		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const vector3di& Size) override;
+		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
 		// Graphics and Compute
 		virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) override;
@@ -162,7 +162,7 @@ namespace tix
 		// Tile, For Metal, dx12 has empty implementation
 		virtual void SetTilePipeline(FPipelinePtr InPipeline) override;
 		virtual void SetTileBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer) override;
-		virtual void DispatchTile(const vector3di& GroupSize) override;
+		virtual void DispatchTile(const FInt3& GroupSize) override;
 
 		// Compute
 		virtual void SetComputePipeline(FPipelinePtr InPipeline) override;
@@ -175,7 +175,7 @@ namespace tix
 		virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 		virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) override;
 
-		virtual void DispatchCompute(const vector3di& GroupSize, const vector3di& GroupCount) override;
+		virtual void DispatchCompute(const FInt3& GroupSize, const FInt3& GroupCount) override;
 		virtual void ComputeCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize) override;
 
 		// GPU Command buffer

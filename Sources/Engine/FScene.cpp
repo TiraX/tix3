@@ -135,7 +135,7 @@ namespace tix
 
 				// Calc all instances count
 				uint32 TotalInstances = 0;
-				for (THMap<vector2di, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
+				for (THMap<FInt2, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
 				{
 					FSceneTileResourcePtr Tile = it->second;
 					THMap<FMeshBufferPtr, TVector<FMatrix3x4>>& TileBLASInstances = Tile->GetBLASInstances();
@@ -147,7 +147,7 @@ namespace tix
 				SceneTLAS->ReserveInstanceCount(TotalInstances);
 
 				// Go through all tiles, add all BLAS instances
-				for (THMap<vector2di, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
+				for (THMap<FInt2, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
 				{
 					FSceneTileResourcePtr Tile = it->second;
 
@@ -220,7 +220,7 @@ namespace tix
 		}
 	}
 
-	void FScene::AddEnvLight(FTexturePtr CubeTexture, const vector3df& Position)
+	void FScene::AddEnvLight(FTexturePtr CubeTexture, const FFloat3& Position)
 	{
 		TI_TODO("Create quad-tree to fast find nearest Env Light.");
 		EnvLight = ti_new FEnvLight(CubeTexture, Position);

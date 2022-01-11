@@ -58,6 +58,12 @@ const float32 RECIPROCAL_PI	= 1.0f/PI;
 //! Constant for half of PI.
 const float32 HALF_PI	= PI/2.0f;
 
+//! 32bit Constant for converting from degrees to radians
+const float32 DEGTORAD = PI / 180.0f;
+
+//! 32bit constant for converting from radians to degrees (formally known as GRAD_PI)
+const float32 RADTODEG = 180.0f / PI;
+
 #ifdef PI64 // make sure we don't collide with a define
 #undef PI64
 #endif
@@ -66,18 +72,6 @@ const float64 PI64		= 3.1415926535897932384626433832795028841971693993751;
 
 //! Constant for 64bit reciprocal of PI.
 const float64 RECIPROCAL_PI64 = 1.0/PI64;
-
-//! 32bit Constant for converting from degrees to radians
-const float32 DEGTORAD = PI / 180.0f;
-
-//! 32bit constant for converting from radians to degrees (formally known as GRAD_PI)
-const float32 RADTODEG   = 180.0f / PI;
-
-//! 64bit constant for converting from degrees to radians (formally known as GRAD_PI2)
-const float64 DEGTORAD64 = PI64 / 180.0;
-
-//! 64bit constant for converting from radians to degrees
-const float64 RADTODEG64 = 180.0 / PI64;
 
 
 namespace tix
@@ -344,19 +338,17 @@ namespace tix
 
 
 
-#include "Math/Vector2d.h"
-#include "Math/Vector3d.h"
-#include "Math/Vector4d.h"
+#include "Math/Vec2.h"
+#include "Math/Vec3.h"
+#include "Math/Vec4.h"
 #include "Math/Line2d.h"
 #include "Math/Line3d.h"
 #include "Math/Rect.h"
 #include "Math/Aabbox3d.h"
 #include "Math/Plane3d.h"
-#include "Math/Matrix3x2.h"
 #include "Math/Matrix4.h"
 #include "Math/Quaternion.h"
 #include "Math/SViewFrustum.h"
 #include "Math/Triangle3d.h"
 #include "Math/FMatrix.h"
-#include "Math/FVector.h"
 #include "Math/FSHVector.h"

@@ -8,7 +8,7 @@
 
 namespace tix
 {
-	FEnvLight::FEnvLight(FTexturePtr InCubemap, const vector3df& InPosition)
+	FEnvLight::FEnvLight(FTexturePtr InCubemap, const FFloat3& InPosition)
 		: FRenderResource(RRT_ENV_LIGHT)
 		, EnvCubemap(InCubemap)
 		, Position(InPosition)

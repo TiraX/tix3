@@ -123,11 +123,11 @@ namespace tix
 			return *this;
 		}
 
-		void SetTranslation(const vector3df& translation)
+		void SetTranslation(const FFloat3& translation)
 		{
-			M[3] = translation.getX();
-			M[7] = translation.getY();
-			M[11] = translation.getZ();
+			M[3] = translation.X;
+			M[7] = translation.Y;
+			M[11] = translation.Z;
 		}
 
 		float& operator [] (uint32 Index)

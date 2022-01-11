@@ -147,7 +147,7 @@ namespace tix
 				OutFloat = JsonValue->GetFloat();
 		}
 
-		void operator << (vector2di& OutVec2) const
+		void operator << (FInt2& OutVec2) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 2));
 			if (!IsNull())
@@ -157,7 +157,7 @@ namespace tix
 			}
 		}
 
-		void operator << (vector2df& OutVec2) const
+		void operator << (FFloat2& OutVec2) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 2));
 			if (!IsNull())
@@ -167,7 +167,7 @@ namespace tix
 			}
 		}
 
-		void operator << (vector3df& OutVec3) const
+		void operator << (FFloat3& OutVec3) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 3));
 			if (!IsNull())

@@ -25,7 +25,7 @@ namespace tix
 		quaternion(float32 x, float32 y, float32 z);
 
 		//! Constructor which converts euler angles (radians) to a quaternion
-		quaternion(const vector3df& vec);
+		quaternion(const FFloat3& vec);
 
 		//! Constructor which converts a matrix to a quaternion
 		quaternion(const matrix4& mat);
@@ -67,13 +67,13 @@ namespace tix
 		quaternion& operator*=(float32 s);
 
 		//! Multiplication operator
-		vector3df operator*(const vector3df& v) const;
+		FFloat3 operator*(const FFloat3& v) const;
 
 		//! Multiplication operator
 		quaternion& operator*=(const quaternion& other);
 
 		//! Calculates the dot product
-		inline float32 dotProduct(const quaternion& other) const;
+		inline float32 Dot(const quaternion& other) const;
 
 		//! Sets newly quaternion
 		inline quaternion& set(float32 x, float32 y, float32 z, float32 w);
@@ -82,7 +82,7 @@ namespace tix
 		inline quaternion& set(float32 x, float32 y, float32 z);
 
 		//! Sets newly quaternion based on euler angles (radians)
-		inline quaternion& set(const vector3df& vec);
+		inline quaternion& set(const FFloat3& vec);
 
 		//! Normalizes the quaternion
 		inline quaternion& normalize();
@@ -92,16 +92,16 @@ namespace tix
 		matrix4 getMatrix_transposed() const;
 
 		//! Creates a matrix from this quaternion
-		void getMatrix( matrix4 &dest ) const;
+		void getMatrix(matrix4& dest) const;
 
 		//! Creates a matrix from this quaternion
-		void getMatrix_transposed( matrix4 &dest ) const;
+		void getMatrix_transposed(matrix4& dest) const;
 
 		//! Inverts this quaternion
 		quaternion& makeInverse();
 
 		//! Set this quaternion to the result of the interpolation between two quaternions
-		quaternion& slerp( quaternion q1, quaternion q2, float32 interpolate );
+		quaternion& slerp(quaternion q1, quaternion q2, float32 interpolate);
 
 		//! Create quaternion from rotation angle and rotation axis.
 		/** Axis must be unit length.
@@ -109,29 +109,24 @@ namespace tix
 			q = cos(A/2)+sin(A/2)*(x*i+y*j+z*k).
 			\param angle Rotation Angle in radians.
 			\param axis Rotation axis. */
-		quaternion& fromAngleAxis (float32 angle, const vector3df& axis);
+		quaternion& fromAngleAxis(float32 angle, const FFloat3& axis);
 
 		//! Fills an angle (radians) around an axis (unit vector)
-		void toAngleAxis (float32 &angle, vector3df& axis) const;
+		void toAngleAxis(float32& angle, FFloat3& axis) const;
 
 		//! Output this quaternion to an euler angle (radians)
-		void toEuler(vector3df& euler) const;
+		void toEuler(FFloat3& euler) const;
 
 		//! Output this quaternion to an euler angle (360 degree)
-		void toEulerDegree(vector3df& euler) const;
+		void toEulerDegree(FFloat3& euler) const;
 
 		//! Set quaternion to identity
 		quaternion& makeIdentity();
 
 		//! Set quaternion to represent a rotation from one vector to another.
-		quaternion& rotationFromTo(const vector3df& from, const vector3df& to);
+		quaternion& rotationFromTo(const FFloat3& from, const FFloat3& to);
 		//! parameters are normalized, do not need normalize in function
-		quaternion& rotationFromToFast(const vector3df& from_normalized, const vector3df& to_normalized);
-
-		float32 getX() const { return X; }
-		float32 getY() const { return Y; }
-		float32 getZ() const { return Z; }
-		float32 getW() const { return W; }
+		quaternion& rotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized);
 
 		void setX(float32 val) { X = val; }
 		void setY(float32 val) { Y = val; }
@@ -158,14 +153,14 @@ namespace tix
 	// Constructor which converts euler angles to a quaternion
 	inline quaternion::quaternion(float32 x, float32 y, float32 z)
 	{
-		set(x,y,z);
+		set(x, y, z);
 	}
 
 
 	// Constructor which converts euler angles to a quaternion
-	inline quaternion::quaternion(const vector3df& vec)
+	inline quaternion::quaternion(const FFloat3& vec)
 	{
-		set(vec.getX(),vec.getY(),vec.getZ());
+		set(vec.X, vec.Y, vec.Z);
 	}
 
 
@@ -179,27 +174,27 @@ namespace tix
 	// equal operator
 	inline bool quaternion::operator==(const quaternion& other) const
 	{
-		return ((X == other.getX()) &&
-				(Y == other.getY()) &&
-				(Z == other.getZ()) &&
-				(W == other.getW()));
+		return ((X == other.X) &&
+			(Y == other.Y) &&
+			(Z == other.Z) &&
+			(W == other.W));
 	}
 	inline bool quaternion::operator!=(const quaternion& other) const
 	{
-		return ((X != other.getX()) ||
-				(Y != other.getY()) ||
-				(Z != other.getZ()) ||
-				(W != other.getW()));
+		return ((X != other.X) ||
+			(Y != other.Y) ||
+			(Z != other.Z) ||
+			(W != other.W));
 	}
 
 
 	// assignment operator
 	inline quaternion& quaternion::operator=(const quaternion& other)
 	{
-		X = other.getX();
-		Y = other.getY();
-		Z = other.getZ();
-		W = other.getW();
+		X = other.X;
+		Y = other.Y;
+		Z = other.Z;
+		W = other.W;
 		return *this;
 	}
 
@@ -215,17 +210,17 @@ namespace tix
 
 		int biggestIndex = 0;
 		float fourBiggestSquaredMinus1 = fourWSquaredMinus1;
-		if (fourXSquaredMinus1 > fourBiggestSquaredMinus1) 
+		if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
 		{
 			fourBiggestSquaredMinus1 = fourXSquaredMinus1;
 			biggestIndex = 1;
 		}
-		if (fourYSquaredMinus1 > fourBiggestSquaredMinus1) 
+		if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
 		{
 			fourBiggestSquaredMinus1 = fourYSquaredMinus1;
 			biggestIndex = 2;
 		}
-		if (fourZSquaredMinus1 > fourBiggestSquaredMinus1) 
+		if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
 		{
 			fourBiggestSquaredMinus1 = fourZSquaredMinus1;
 			biggestIndex = 3;
@@ -235,90 +230,90 @@ namespace tix
 		float biggestVal = sqrt(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
 		float mult = 0.25f / biggestVal;
 		// Apply table to compute quaternion values
-		switch (biggestIndex) 
+		switch (biggestIndex)
 		{
 		case 0:
 			W = biggestVal;
 			X = (m(1, 2) - m(2, 1)) * mult;
 			Y = (m(2, 0) - m(0, 2)) * mult;
 			Z = (m(0, 1) - m(1, 0)) * mult;
-		break;
+			break;
 		case 1:
 			X = biggestVal;
 			W = (m(1, 2) - m(2, 1)) * mult;
 			Y = (m(0, 1) + m(1, 0)) * mult;
 			Z = (m(2, 0) + m(0, 2)) * mult;
-		break;
+			break;
 		case 2:
 			Y = biggestVal;
 			W = (m(2, 0) - m(0, 2)) * mult;
 			X = (m(0, 1) + m(1, 0)) * mult;
 			Z = (m(1, 2) + m(2, 1)) * mult;
-		break;
+			break;
 		case 3:
 			Z = biggestVal;
 			W = (m(0, 1) - m(1, 0)) * mult;
 			X = (m(2, 0) + m(0, 2)) * mult;
 			Y = (m(1, 2) + m(2, 1)) * mult;
-		break;
+			break;
 		}
 
 
-	//	const float32 diag = m(0,0) + m(1,1) + m(2,2);
+		//	const float32 diag = m(0,0) + m(1,1) + m(2,2);
 
-	//	if( diag > 0.0f )
-	//	{
-	//		float32 scale = sqrtf(1.0f + diag); // get scale from diagonal
+		//	if( diag > 0.0f )
+		//	{
+		//		float32 scale = sqrtf(1.0f + diag); // get scale from diagonal
 
-	//		// TODO: speed this up
-	//		W = 0.5f * scale;
-	//		scale = 0.5f / scale;
-	//		X = ( m(2,1) - m(1,2)) * scale;
-	//		Y = ( m(0,2) - m(2,0)) * scale;
-	//		Z = ( m(1,0) - m(0,1)) * scale;
-	//		
-	//	}
-	//	else if ( m(0,0) > m(1,1) && m(0,0) > m(2,2))
-	//	{
-	//		// 1st element of diag is greatest value
-	//		// find scale according to 1st element
-	//		float32 scale = sqrtf( 1.0f + m(0,0) - m(1,1) - m(2,2));
+		//		// TODO: speed this up
+		//		W = 0.5f * scale;
+		//		scale = 0.5f / scale;
+		//		X = ( m(2,1) - m(1,2)) * scale;
+		//		Y = ( m(0,2) - m(2,0)) * scale;
+		//		Z = ( m(1,0) - m(0,1)) * scale;
+		//		
+		//	}
+		//	else if ( m(0,0) > m(1,1) && m(0,0) > m(2,2))
+		//	{
+		//		// 1st element of diag is greatest value
+		//		// find scale according to 1st element
+		//		float32 scale = sqrtf( 1.0f + m(0,0) - m(1,1) - m(2,2));
 
-	//		X = 0.5f * scale;
-	//		scale = 0.5f / scale;
-	//		Y = (m(0,1) + m(1,0)) * scale;
-	//		Z = (m(2,0) + m(0,2)) * scale;
-	//		W = (m(2,1) - m(1,2)) * scale;
-	//	}
-	//	else if ( m(1,1) > m(2,2))
-	//	{
-	//		// 2nd element of diag is greatest value
-	//		// find scale according to 2nd element
-	//		float32 scale = sqrtf( 1.0f + m(1,1) - m(0,0) - m(2,2));
+		//		X = 0.5f * scale;
+		//		scale = 0.5f / scale;
+		//		Y = (m(0,1) + m(1,0)) * scale;
+		//		Z = (m(2,0) + m(0,2)) * scale;
+		//		W = (m(2,1) - m(1,2)) * scale;
+		//	}
+		//	else if ( m(1,1) > m(2,2))
+		//	{
+		//		// 2nd element of diag is greatest value
+		//		// find scale according to 2nd element
+		//		float32 scale = sqrtf( 1.0f + m(1,1) - m(0,0) - m(2,2));
 
-	//		// TODO: speed this up
-	//		Y = 0.5f * scale;
-	//		scale = 0.5f / scale;
-	//		X = (m(0,1) + m(1,0) ) * scale;
-	//		Z = (m(1,2) + m(2,1) ) * scale;
-	//		W = (m(0,2) - m(2,0) ) * scale;
-	//	}
-	//	else
-	//	{
-	//		// 3rd element of diag is greatest value
-	//		// find scale according to 3rd element
-	//		float32 scale = sqrtf( 1.0f + m(2,2) - m(0,0) - m(1,1));
+		//		// TODO: speed this up
+		//		Y = 0.5f * scale;
+		//		scale = 0.5f / scale;
+		//		X = (m(0,1) + m(1,0) ) * scale;
+		//		Z = (m(1,2) + m(2,1) ) * scale;
+		//		W = (m(0,2) - m(2,0) ) * scale;
+		//	}
+		//	else
+		//	{
+		//		// 3rd element of diag is greatest value
+		//		// find scale according to 3rd element
+		//		float32 scale = sqrtf( 1.0f + m(2,2) - m(0,0) - m(1,1));
 
-	//		// TODO: speed this up
-	//		Z = 0.5f * scale;
-	//		scale = 0.5f / scale;
-	//		X = (m(0,2) + m(2,0)) * scale;
-	//		Y = (m(1,2) + m(2,1)) * scale;
-	//		W = (m(1,0) - m(0,1)) * scale;
-	//	}
-	//#if !(TI_USE_RH)
-	//	makeInverse();
-	//#endif
+		//		// TODO: speed this up
+		//		Z = 0.5f * scale;
+		//		scale = 0.5f / scale;
+		//		X = (m(0,2) + m(2,0)) * scale;
+		//		Y = (m(1,2) + m(2,1)) * scale;
+		//		W = (m(1,0) - m(0,1)) * scale;
+		//	}
+		//#if !(TI_USE_RH)
+		//	makeInverse();
+		//#endif
 
 		return normalize();
 	}
@@ -328,17 +323,17 @@ namespace tix
 	inline quaternion quaternion::operator*(const quaternion& other) const
 	{
 		quaternion tmp;
-	#if TI_USE_RH
-		tmp.W = (other.getW() * W) - (other.getX() * X) - (other.getY() * Y) - (other.getZ() * Z);
-		tmp.X = (other.getW() * X) + (other.getX() * W) + (other.getY() * Z) - (other.getZ() * Y);
-		tmp.Y = (other.getW() * Y) + (other.getY() * W) + (other.getZ() * X) - (other.getX() * Z);
-		tmp.Z = (other.getW() * Z) + (other.getZ() * W) + (other.getX() * Y) - (other.getY() * X);
-	#else
-		tmp.W = (W * other.getW()) - (X * other.getX()) - (Y * other.getY()) - (Z * other.getZ());
-		tmp.X = (W * other.getX()) + (X * other.getW()) + (Y * other.getZ()) - (Z * other.getY());
-		tmp.Y = (W * other.getY()) + (Y * other.getW()) + (Z * other.getX()) - (X * other.getZ());
-		tmp.Z = (W * other.getZ()) + (Z * other.getW()) + (X * other.getY()) - (Y * other.getX());
-	#endif
+#if TI_USE_RH
+		tmp.W = (other.W * W) - (other.X * X) - (other.Y * Y) - (other.Z * Z);
+		tmp.X = (other.W * X) + (other.X * W) + (other.Y * Z) - (other.Z * Y);
+		tmp.Y = (other.W * Y) + (other.Y * W) + (other.Z * X) - (other.X * Z);
+		tmp.Z = (other.W * Z) + (other.Z * W) + (other.X * Y) - (other.Y * X);
+#else
+		tmp.W = (W * other.W) - (X * other.X) - (Y * other.Y) - (Z * other.Z);
+		tmp.X = (W * other.X) + (X * other.W) + (Y * other.Z) - (Z * other.Y);
+		tmp.Y = (W * other.Y) + (Y * other.W) + (Z * other.X) - (X * other.Z);
+		tmp.Z = (W * other.Z) + (Z * other.W) + (X * other.Y) - (Y * other.X);
+#endif
 		return tmp;
 	}
 
@@ -346,16 +341,16 @@ namespace tix
 	// multiplication operator
 	inline quaternion quaternion::operator*(float32 s) const
 	{
-		return quaternion(s*X, s*Y, s*Z, s*W);
+		return quaternion(s * X, s * Y, s * Z, s * W);
 	}
 
 	// multiplication operator
 	inline quaternion& quaternion::operator*=(float32 s)
 	{
-		X*=s;
-		Y*=s;
-		Z*=s;
-		W*=s;
+		X *= s;
+		Y *= s;
+		Z *= s;
+		W *= s;
 		return *this;
 	}
 
@@ -368,7 +363,7 @@ namespace tix
 	// add operator
 	inline quaternion quaternion::operator+(const quaternion& b) const
 	{
-		return quaternion(X+b.getX(), Y+b.getY(), Z+b.getZ(), W+b.getW());
+		return quaternion(X + b.X, Y + b.Y, Z + b.Z, W + b.W);
 	}
 
 
@@ -376,11 +371,11 @@ namespace tix
 	inline matrix4 quaternion::getMatrix() const
 	{
 		matrix4 m(matrix4::EM4CONST_NOTHING);
-	#if TI_USE_RH
+#if TI_USE_RH
 		getMatrix_transposed(m);
-	#else
+#else
 		getMatrix(m);
-	#endif
+#endif
 		return m;
 	}
 
@@ -392,17 +387,17 @@ namespace tix
 	}
 
 	// Creates a matrix from this quaternion
-	inline void quaternion::getMatrix( matrix4 &dest ) const
+	inline void quaternion::getMatrix(matrix4& dest) const
 	{
-		const float32 _2xx = 2.0f*X*X;
-		const float32 _2yy = 2.0f*Y*Y;
-		const float32 _2zz = 2.0f*Z*Z;
-		const float32 _2xy = 2.0f*X*Y;
-		const float32 _2xz = 2.0f*X*Z;
-		const float32 _2xw = 2.0f*X*W;
-		const float32 _2yz = 2.0f*Y*Z;
-		const float32 _2yw = 2.0f*Y*W;
-		const float32 _2zw = 2.0f*Z*W;
+		const float32 _2xx = 2.0f * X * X;
+		const float32 _2yy = 2.0f * Y * Y;
+		const float32 _2zz = 2.0f * Z * Z;
+		const float32 _2xy = 2.0f * X * Y;
+		const float32 _2xz = 2.0f * X * Z;
+		const float32 _2xw = 2.0f * X * W;
+		const float32 _2yz = 2.0f * Y * Z;
+		const float32 _2yw = 2.0f * Y * W;
+		const float32 _2zw = 2.0f * Z * W;
 
 		dest[0] = 1.0f - _2yy - _2zz;
 		dest[1] = _2xy + _2zw;
@@ -426,17 +421,17 @@ namespace tix
 	}
 
 	// Creates a matrix from this quaternion
-	inline void quaternion::getMatrix_transposed( matrix4 &dest ) const
+	inline void quaternion::getMatrix_transposed(matrix4& dest) const
 	{
-		const float32 _2xx = 2.0f*X*X;
-		const float32 _2yy = 2.0f*Y*Y;
-		const float32 _2zz = 2.0f*Z*Z;
-		const float32 _2xy = 2.0f*X*Y;
-		const float32 _2xz = 2.0f*X*Z;
-		const float32 _2xw = 2.0f*X*W;
-		const float32 _2yz = 2.0f*Y*Z;
-		const float32 _2yw = 2.0f*Y*W;
-		const float32 _2zw = 2.0f*Z*W;
+		const float32 _2xx = 2.0f * X * X;
+		const float32 _2yy = 2.0f * Y * Y;
+		const float32 _2zz = 2.0f * Z * Z;
+		const float32 _2xy = 2.0f * X * Y;
+		const float32 _2xz = 2.0f * X * Z;
+		const float32 _2xw = 2.0f * X * W;
+		const float32 _2yz = 2.0f * Y * Z;
+		const float32 _2yw = 2.0f * Y * W;
+		const float32 _2zw = 2.0f * Z * W;
 
 		dest[0] = 1.0f - _2yy - _2zz;
 		dest[4] = _2xy + _2zw;
@@ -510,28 +505,28 @@ namespace tix
 	}
 
 	// sets newly quaternion based on euler angles
-	inline quaternion& quaternion::set(const vector3df& vec)
+	inline quaternion& quaternion::set(const FFloat3& vec)
 	{
-		return set(vec.getX(), vec.getY(), vec.getZ());
+		return set(vec.X, vec.Y, vec.Z);
 	}
 
 	// normalizes the quaternion
 	inline quaternion& quaternion::normalize()
 	{
-		const float32 n = X*X + Y*Y + Z*Z + W*W;
+		const float32 n = X * X + Y * Y + Z * Z + W * W;
 
 		if (n == 1)
 			return *this;
 
 		//n = 1.0f / sqrtf(n);
-		return (*this *= TMath::ReciprocalSquareroot ( n ));
+		return (*this *= TMath::ReciprocalSquareroot(n));
 	}
 
 
 	// set this quaternion to the result of the interpolation between two quaternions
 	inline quaternion& quaternion::slerp(quaternion q1, quaternion q2, float32 time)
 	{
-		float32 angle = q1.dotProduct(q2);
+		float32 angle = q1.Dot(q2);
 
 		if (angle < 0.0f)
 		{
@@ -548,24 +543,24 @@ namespace tix
 			{
 				const float32 theta = acosf(angle);
 				const float32 invsintheta = 1.0f / (sinf(theta));
-				scale = sinf(theta * (1.0f-time)) * invsintheta;
+				scale = sinf(theta * (1.0f - time)) * invsintheta;
 				invscale = sinf(theta * time) * invsintheta;
-				*this = (q1*scale) + (q2*invscale);
+				*this = (q1 * scale) + (q2 * invscale);
 			}
 			else // linear interploation
 			{
 				scale = 1.0f - time;
 				invscale = time;
-				*this = (q1*scale) + (q2*invscale);
+				*this = (q1 * scale) + (q2 * invscale);
 				normalize();
 			}
 		}
 		else
 		{
-			q2.set(-q1.getY(), q1.getX(), -q1.getW(), q1.getZ());
+			q2.set(-q1.Y, q1.X, -q1.W, q1.Z);
 			scale = sinf(PI * (0.5f - time));
 			invscale = sinf(PI * time);
-			*this = (q1*scale) + (q2*invscale);
+			*this = (q1 * scale) + (q2 * invscale);
 		}
 
 		return *this;
@@ -573,54 +568,54 @@ namespace tix
 
 
 	// calculates the dot product
-	inline float32 quaternion::dotProduct(const quaternion& q2) const
+	inline float32 quaternion::Dot(const quaternion& q2) const
 	{
-		return (X * q2.getX()) + (Y * q2.getY()) + (Z * q2.getZ()) + (W * q2.getW());
+		return (X * q2.X) + (Y * q2.Y) + (Z * q2.Z) + (W * q2.W);
 	}
 
 
 	//! axis must be unit length
 	//! angle in radians
-	inline quaternion& quaternion::fromAngleAxis(float32 angle, const vector3df& axis)
+	inline quaternion& quaternion::fromAngleAxis(float32 angle, const FFloat3& axis)
 	{
-		const float32 fHalfAngle = 0.5f*angle;
+		const float32 fHalfAngle = 0.5f * angle;
 		const float32 fSin = sinf(fHalfAngle);
 		W = cosf(fHalfAngle);
-		X = fSin*axis.getX();
-		Y = fSin*axis.getY();
-		Z = fSin*axis.getZ();
+		X = fSin * axis.X;
+		Y = fSin * axis.Y;
+		Z = fSin * axis.Z;
 		return *this;
 	}
 
 
-	inline void quaternion::toAngleAxis(float32 &angle, vector3df &axis) const
+	inline void quaternion::toAngleAxis(float32& angle, FFloat3& axis) const
 	{
-		const float32 scale = sqrtf(X*X + Y*Y + Z*Z);
+		const float32 scale = sqrtf(X * X + Y * Y + Z * Z);
 
 		if (TMath::IsZero(scale) || W > 1.0f || W < -1.0f)
 		{
 			angle = 0.0f;
-			axis.setX(0.0f);
-			axis.setY(1.0f);
-			axis.setZ(0.0f);
+			axis.X = 0.0f;
+			axis.Y = 1.0f;
+			axis.Z = 0.0f;
 		}
 		else
 		{
 			const float32 invscale = 1.0f / (scale);
 			angle = 2.0f * acosf(W);
-			axis.setX(X * invscale);
-			axis.setY(Y * invscale);
-			axis.setZ(Z * invscale);
+			axis.X = X * invscale;
+			axis.Y = Y * invscale;
+			axis.Z = Z * invscale;
 		}
 	}
 
-	inline void quaternion::toEuler(vector3df& euler) const
+	inline void quaternion::toEuler(FFloat3& euler) const
 	{
 		toEulerDegree(euler);
 		euler *= DEGTORAD;
 	}
 
-	inline void quaternion::toEulerDegree(vector3df& euler) const
+	inline void quaternion::toEulerDegree(FFloat3& euler) const
 	{
 		matrix4 m;
 		m.makeIdentity();
@@ -628,14 +623,14 @@ namespace tix
 		euler = m.getRotationDegrees();
 	}
 
-	inline vector3df quaternion::operator* (const vector3df& v) const
+	inline FFloat3 quaternion::operator* (const FFloat3& v) const
 	{
 		// nVidia SDK implementation
 
-		vector3df uv, uuv;
-		vector3df qvec(X, Y, Z);
-		uv = qvec.crossProduct(v);
-		uuv = qvec.crossProduct(uv);
+		FFloat3 uv, uuv;
+		FFloat3 qvec(X, Y, Z);
+		uv = qvec.Cross(v);
+		uuv = qvec.Cross(uv);
 		uv *= (2.0f * W);
 		uuv *= 2.0f;
 
@@ -652,16 +647,16 @@ namespace tix
 		return *this;
 	}
 
-	inline quaternion& quaternion::rotationFromTo(const vector3df& from, const vector3df& to)
+	inline quaternion& quaternion::rotationFromTo(const FFloat3& from, const FFloat3& to)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
 		// Copy, since cannot modify local
-		vector3df v0 = from;
-		vector3df v1 = to;
-		v0.normalize();
-		v1.normalize();
+		FFloat3 v0 = from;
+		FFloat3 v1 = to;
+		v0.Normalize();
+		v1.Normalize();
 
-		const float32 d = v0.dotProduct(v1);
+		const float32 d = v0.Dot(v1);
 		if (d >= 1.0f) // If dot == 1, vectors are the same
 		{
 			return makeIdentity();
@@ -669,39 +664,39 @@ namespace tix
 
 		if (d <= -1.0f) // if dot == -1, vectors are opossite
 		{
-			vector3df axis(1, 0, 0);
-			axis = axis.crossProduct(from);
-			if (axis.getLengthSQ() == 0) // pick another if colinear
+			FFloat3 axis(1, 0, 0);
+			axis = axis.Cross(from);
+			if (axis.GetLengthSQ() == 0) // pick another if colinear
 			{
-				axis.set(0, 1, 0);
-				axis = axis.crossProduct(from);
+				axis = FFloat3(0, 1, 0);
+				axis = axis.Cross(from);
 			}
-			axis.normalize();
+			axis.Normalize();
 			return fromAngleAxis(PI, axis);
 		}
 
-		const float32 s = sqrtf( (1+d)*2 ); // optimize inv_sqrt
+		const float32 s = sqrtf((1 + d) * 2); // optimize inv_sqrt
 		const float32 invs = 1.f / s;
-		const vector3df c = // v0.crossProduct(v1)*invs;
-			vector3df(v0.getY() * v1.getZ() - v0.getZ() * v1.getY(), v0.getZ() * v1.getX() - v0.getX() * v1.getZ(), v0.getX() * v1.getY() - v0.getY() * v1.getX())*invs;
-			
+		const FFloat3 c = // v0.Cross(v1)*invs;
+			FFloat3(v0.Y * v1.Z - v0.Z * v1.Y, v0.Z * v1.X - v0.X * v1.Z, v0.X * v1.Y - v0.Y * v1.X) * invs;
 
-		X = c.getX();
-		Y = c.getY();
-		Z = c.getZ();
+
+		X = c.X;
+		Y = c.Y;
+		Z = c.Z;
 		W = s * 0.5f;
 
 		return *this;
 	}
 
-	inline quaternion& quaternion::rotationFromToFast(const vector3df& from_normalized, const vector3df& to_normalized)
+	inline quaternion& quaternion::rotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
 		// Copy, since cannot modify local
-		vector3df v0 = from_normalized;
-		vector3df v1 = to_normalized;
+		FFloat3 v0 = from_normalized;
+		FFloat3 v1 = to_normalized;
 
-		const float32 d = v0.dotProduct(v1);
+		const float32 d = v0.Dot(v1);
 		if (d >= 0.99f) // If dot == 1, vectors are the same
 		{
 			return makeIdentity();
@@ -709,26 +704,26 @@ namespace tix
 
 		if (d <= -0.99f) // if dot == -1, vectors are opossite
 		{
-			vector3df axis(1, 0, 0);
-			axis = axis.crossProduct(from_normalized);
-			if (axis.getLengthSQ() == 0) // pick another if colinear
+			FFloat3 axis(1, 0, 0);
+			axis = axis.Cross(from_normalized);
+			if (axis.GetLengthSQ() == 0) // pick another if colinear
 			{
-				axis.set(0, 1, 0);
-				axis = axis.crossProduct(from_normalized);
+				axis = FFloat3(0, 1, 0);
+				axis = axis.Cross(from_normalized);
 			}
-			axis.normalize();
+			axis.Normalize();
 			return fromAngleAxis(PI, axis);
 		}
 
-		const float32 s = sqrtf( (1+d)*2 ); // optimize inv_sqrt
+		const float32 s = sqrtf((1 + d) * 2); // optimize inv_sqrt
 		const float32 invs = 1.f / s;
-		const vector3df c = // v0.crossProduct(v1)*invs;
-			vector3df(v0.getY() * v1.getZ() - v0.getZ() * v1.getY(), v0.getZ() * v1.getX() - v0.getX() * v1.getZ(), v0.getX() * v1.getY() - v0.getY() * v1.getX())*invs;
+		const FFloat3 c = // v0.Cross(v1)*invs;
+			FFloat3(v0.Y * v1.Z - v0.Z * v1.Y, v0.Z * v1.X - v0.X * v1.Z, v0.X * v1.Y - v0.Y * v1.X) * invs;
 
 
-		X = c.getX();
-		Y = c.getY();
-		Z = c.getZ();
+		X = c.X;
+		Y = c.Y;
+		Z = c.Z;
 		W = s * 0.5f;
 
 		return *this;

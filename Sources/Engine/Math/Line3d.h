@@ -21,15 +21,15 @@ public:
 	//! Constructor with two points
 	line3d(T xa, T ya, T za, T xb, T yb, T zb) : start(xa, ya, za), end(xb, yb, zb) {}
 	//! Constructor with two points as vectors
-	line3d(const vector3d<T>& start, const vector3d<T>& end) : start(start), end(end) {}
+	line3d(const FVec3<T>& start, const FVec3<T>& end) : start(start), end(end) {}
 
 	// operators
 
-	line3d<T> operator+(const vector3d<T>& point) const { return line3d<T>(start + point, end + point); }
-	line3d<T>& operator+=(const vector3d<T>& point) { start += point; end += point; return *this; }
+	line3d<T> operator+(const FVec3<T>& point) const { return line3d<T>(start + point, end + point); }
+	line3d<T>& operator+=(const FVec3<T>& point) { start += point; end += point; return *this; }
 
-	line3d<T> operator-(const vector3d<T>& point) const { return line3d<T>(start - point, end - point); }
-	line3d<T>& operator-=(const vector3d<T>& point) { start -= point; end -= point; return *this; }
+	line3d<T> operator-(const FVec3<T>& point) const { return line3d<T>(start - point, end - point); }
+	line3d<T>& operator-=(const FVec3<T>& point) { start -= point; end -= point; return *this; }
 
 	bool operator==(const line3d<T>& other) const
 	{ return (start==other.start && end==other.end) || (end==other.start && start==other.end);}
@@ -41,7 +41,7 @@ public:
 	void setLine(const T& xa, const T& ya, const T& za, const T& xb, const T& yb, const T& zb)
 	{start.set(xa, ya, za); end.set(xb, yb, zb);}
 	//! Set this line to a newly line going through the two points.
-	void setLine(const vector3d<T>& nstart, const vector3d<T>& nend)
+	void setLine(const FVec3<T>& nstart, const FVec3<T>& nend)
 	{start.set(nstart); end.set(nend);}
 	//! Set this line to newly line given as parameter.
 	void setLine(const line3d<T>& line)
@@ -53,18 +53,18 @@ public:
 
 	//! Get squared length of line
 	/** \return Squared length of line. */
-	T getLengthSQ() const { return start.getDistanceFromSQ(end); }
+	T GetLengthSQ() const { return start.getDistanceFromSQ(end); }
 
 	//! Get middle of line
 	/** \return Center of line. */
-	vector3d<T> getMiddle() const
+	FVec3<T> getMiddle() const
 	{
 		return (start + end) * (T)0.5;
 	}
 
 	//! Get vector of line
 	/** \return vector of line. */
-	vector3d<T> getVector() const
+	FVec3<T> getVector() const
 	{
 		return end - start;
 	}
@@ -74,7 +74,7 @@ public:
 		\param point The point to test.
 		\return True if point is on the line between start and end, else false.
 	*/
-	bool isPointBetweenStartAndEnd(const vector3d<T>& point) const
+	bool isPointBetweenStartAndEnd(const FVec3<T>& point) const
 	{
 		return point.isBetweenPoints(start, end);
 	}
@@ -82,13 +82,13 @@ public:
 	//! Get the closest point on this line to a point
 	/** \param point The point to compare to.
 		\return The nearest point which is part of the line. */
-	vector3d<T> getClosestPoint(const vector3d<T>& point) const
+	FVec3<T> getClosestPoint(const FVec3<T>& point) const
 	{
-		vector3d<T> c = point - start;
-		vector3d<T> v = end - start;
+		FVec3<T> c = point - start;
+		FVec3<T> v = end - start;
 		T d = (T)v.getLength();
 		v /= d;
-		T t = v.dotProduct(c);
+		T t = v.Dot(c);
 
 		if (t < (T)0.0)
 			return start;
@@ -106,11 +106,11 @@ public:
 		\return True if there is an intersection.
 		If there is one, the distance to the first intersection point
 		is stored in outdistance. */
-	bool getIntersectionWithSphere(vector3d<T> sorigin, T sradius, float32& outdistance) const
+	bool getIntersectionWithSphere(FVec3<T> sorigin, T sradius, float32& outdistance) const
 	{
-		const vector3d<T> q = sorigin - start;
+		const FVec3<T> q = sorigin - start;
 		T c = q.getLength();
-		T v = q.dotProduct(getVector().normalize());
+		T v = q.Dot(getVector().Normalize());
 		T d = sradius * sradius - (c*c - v*v);
 
 		if (d < 0.0)
@@ -123,9 +123,9 @@ public:
 	// member variables
 
 	//! Start point of line
-	vector3d<T> start;
+	FVec3<T> start;
 	//! End point of line
-	vector3d<T> end;
+	FVec3<T> end;
 };
 
 //! Typedef for an float32 line.

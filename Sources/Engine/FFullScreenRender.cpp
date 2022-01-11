@@ -29,10 +29,10 @@ namespace tix
 		const float16 half0 = float16(0.f);
 		const float16 half1 = float16(1.f);
 		static const FullScreenVertex FullScreenQuadVertices[4] = {
-			{vector3df(-1.f, -1.f, 0.f), vector2df16(half0, half1)},
-			{vector3df(1.f, -1.f, 0.f), vector2df16(half1, half1)},
-			{vector3df(-1.f, 1.f, 0.f), vector2df16(half0, half0)},
-			{vector3df(1.f, 1.f, 0.f), vector2df16(half1, half0)}
+			{FFloat3(-1.f, -1.f, 0.f), FHalf2(half0, half1)},
+			{FFloat3(1.f, -1.f, 0.f), FHalf2(half1, half1)},
+			{FFloat3(-1.f, 1.f, 0.f), FHalf2(half0, half0)},
+			{FFloat3(1.f, 1.f, 0.f), FHalf2(half1, half0)}
 		};
 		static const uint16 FullScreenQuadIndices[6] = {
 			0, 2, 1, 1, 2, 3

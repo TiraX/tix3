@@ -168,92 +168,92 @@ namespace tix
 		inline CMatrix4<T>& makeIdentity();
 
 		//! Returns the c'th column of the matrix, without the lowest row.
-		vector3d<T> getColumn(uint32 c) const;
+		FVec3<T> getColumn(uint32 c) const;
 
 		//! Returns the c'th column of the matrix.
 		//vector4d<T> getFullColumn(uint32 c) const;
 
 		//! Sets the c'th column of the matrix, without the lowest row.
-		CMatrix4<T>& setColumn(uint32 c, const vector3d<T>& v);
+		CMatrix4<T>& setColumn(uint32 c, const FVec3<T>& v);
 
 		//! Sets the c'th column of the matrix.
 		//CMatrix4<T>& setFullColumn(uint32 c, const vector4d<T>& v);
 
 		//! Gets the current translation
-		vector3d<T> getTranslation() const;
+		FVec3<T> getTranslation() const;
 
 		//! Set the translation of the current matrix. Will erase any previous values.
-		CMatrix4<T>& setTranslation( const vector3d<T>& translation );
+		CMatrix4<T>& setTranslation( const FVec3<T>& translation );
 
 		//! Set the inverse translation of the current matrix. Will erase any previous values.
-		CMatrix4<T>& setInverseTranslation( const vector3d<T>& translation );
+		CMatrix4<T>& setInverseTranslation( const FVec3<T>& translation );
 
 		//! Make a rotation matrix from Euler angles. The 4th row and column are unmodified.
-		inline CMatrix4<T>& setRotationRadians( const vector3d<T>& rotation );
+		inline CMatrix4<T>& setRotationRadians( const FVec3<T>& rotation );
 
 		//! Make a rotation matrix from Euler angles. The 4th row and column are unmodified.
-		CMatrix4<T>& setRotationDegrees( const vector3d<T>& rotation );
+		CMatrix4<T>& setRotationDegrees( const FVec3<T>& rotation );
 
 		//! Returns the rotation, as set by setRotation().
 		/** This code was orginally written by by Chev. */
-		vector3d<T> getRotationDegrees() const;
+		FVec3<T> getRotationDegrees() const;
 
 		//! Make an inverted rotation matrix from Euler angles.
 		/** The 4th row and column are unmodified. */
-		inline CMatrix4<T>& setInverseRotationRadians( const vector3d<T>& rotation );
+		inline CMatrix4<T>& setInverseRotationRadians( const FVec3<T>& rotation );
 
 		//! Make an inverted rotation matrix from Euler angles.
 		/** The 4th row and column are unmodified. */
-		CMatrix4<T>& setInverseRotationDegrees( const vector3d<T>& rotation );
+		CMatrix4<T>& setInverseRotationDegrees( const FVec3<T>& rotation );
 
 		//! Set Scale
-		CMatrix4<T>& setScale( const vector3d<T>& scale );
+		CMatrix4<T>& setScale( const FVec3<T>& scale );
 
 		//! Set Scale
-		CMatrix4<T>& setScale( const T scale ) { return setScale(vector3d<T>(scale,scale,scale)); }
+		CMatrix4<T>& setScale( const T scale ) { return setScale(FVec3<T>(scale,scale,scale)); }
 
 		//! Apply scale to this matrix as if multiplication was on the left.
-		CMatrix4<T>& preScale( const vector3d<T>& scale );
+		CMatrix4<T>& preScale( const FVec3<T>& scale );
 
 		//! Apply scale to this matrix as if multiplication was on the right.
-		CMatrix4<T>& postScale( const vector3d<T>& scale );
+		CMatrix4<T>& postScale( const FVec3<T>& scale );
 
 		//! Get Scale
-		vector3d<T> getScale() const;
+		FVec3<T> getScale() const;
 
 		//! Translate a vector by the inverse of the translation part of this matrix.
-		void inverseTranslateVect( vector3d<T>& vect ) const;
+		void inverseTranslateVect( FVec3<T>& vect ) const;
 
 		//! Rotate a vector by the inverse of the rotation part of this matrix.
-		void inverseRotateVect( vector3d<T>& vect ) const;
+		void inverseRotateVect( FVec3<T>& vect ) const;
 
 		//! Rotate a vector by the rotation part of this matrix.
-		void rotateVect( vector3d<T>& vect ) const;
+		void rotateVect( FVec3<T>& vect ) const;
 
 		//! An alternate transform vector method, writing into a second vector
-		void rotateVect(vector3d<T>& out, const vector3d<T>& in) const;
+		void rotateVect(FVec3<T>& out, const FVec3<T>& in) const;
 
 		//! An alternate transform vector method, writing into an array of 3 floats
-		void rotateVect(T *out,const vector3d<T> &in) const;
+		void rotateVect(T *out,const FVec3<T> &in) const;
 
 		//! Transforms the vector by this matrix
-		void transformVect( vector3d<T>& vect) const;
+		void transformVect( FVec3<T>& vect) const;
 
 		//! Transforms input vector by this matrix and stores result in output vector
-		void transformVect( vector3d<T>& out, const vector3d<T>& in ) const;
-		void transformVect( vector3d<T>& out, const T* in ) const;
+		void transformVect( FVec3<T>& out, const FVec3<T>& in ) const;
+		void transformVect( FVec3<T>& out, const T* in ) const;
 
 		//! Transforms the vector by this matrix as though it was in 2D (Z ignored).
-		void transformVect2D( vector3d<T>& vect) const;
+		void transformVect2D( FVec3<T>& vect) const;
 
 		//! Transforms input vector by this matrix and stores result in output vector as though it was in 2D (Z ignored).
-		void transformVect2D( vector3d<T>& out, const vector3d<T>& in ) const;
+		void transformVect2D( FVec3<T>& out, const FVec3<T>& in ) const;
 
 		//! An alternate transform vector method, writing into an array of 4 floats
-		void transformVect(T *out,const vector3d<T> &in) const;
+		void transformVect(T *out,const FVec3<T> &in) const;
 
 		//! Translate a vector by the translation part of this matrix.
-		void translateVect( vector3d<T>& vect ) const;
+		void translateVect( FVec3<T>& vect ) const;
 
 		//! Transforms a plane by this matrix
 		void transformPlane( plane3d<T> &plane) const;
@@ -769,61 +769,61 @@ namespace tix
 	}
 
 	template <class T>
-	inline vector3d<T> CMatrix4<T>::getColumn(uint32 c) const
+	inline FVec3<T> CMatrix4<T>::getColumn(uint32 c) const
 	{
 		const T* v = &M[c * 4];
-		return vector3d<T>(v[0], v[1], v[2]);
+		return FVec3<T>(v[0], v[1], v[2]);
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setColumn(uint32 c, const vector3d<T>& v)
+	inline CMatrix4<T>& CMatrix4<T>::setColumn(uint32 c, const FVec3<T>& v)
 	{
 		T* dst = &M[c * 4];
-		dst[0] = v.getX();
-		dst[1] = v.getY();
-		dst[2] = v.getZ();
+		dst[0] = v.X;
+		dst[1] = v.Y;
+		dst[2] = v.Z;
 		return *this;
 	}
 
 	template <class T>
-	inline vector3d<T> CMatrix4<T>::getTranslation() const
+	inline FVec3<T> CMatrix4<T>::getTranslation() const
 	{
-		return vector3d<T>(M[12], M[13], M[14]);
+		return FVec3<T>(M[12], M[13], M[14]);
 	}
 
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setTranslation( const vector3d<T>& translation )
+	inline CMatrix4<T>& CMatrix4<T>::setTranslation( const FVec3<T>& translation )
 	{
-		M[12] = translation.getX();
-		M[13] = translation.getY();
-		M[14] = translation.getZ();
+		M[12] = translation.X;
+		M[13] = translation.Y;
+		M[14] = translation.Z;
 		definitelyIdentityMatrix=false;
 		return *this;
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setInverseTranslation( const vector3d<T>& translation )
+	inline CMatrix4<T>& CMatrix4<T>::setInverseTranslation( const FVec3<T>& translation )
 	{
-		M[12] = -translation.getX();
-		M[13] = -translation.getY();
-		M[14] = -translation.getZ();
+		M[12] = -translation.X;
+		M[13] = -translation.Y;
+		M[14] = -translation.Z;
 		definitelyIdentityMatrix=false;
 		return *this;
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setScale( const vector3d<T>& scale )
+	inline CMatrix4<T>& CMatrix4<T>::setScale( const FVec3<T>& scale )
 	{
-		M[0] = scale.getX();
-		M[5] = scale.getY();
-		M[10] = scale.getZ();
+		M[0] = scale.X;
+		M[5] = scale.Y;
+		M[10] = scale.Z;
 		definitelyIdentityMatrix=false;
 		return *this;
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::preScale( const vector3d<T>& scale )
+	inline CMatrix4<T>& CMatrix4<T>::preScale( const FVec3<T>& scale )
 	{
 		if (definitelyIdentityMatrix)
 		{
@@ -831,21 +831,21 @@ namespace tix
 		}
 		else
 		{
-			M[0] *= scale.getX();
-			M[1] *= scale.getY();
-			M[2] *= scale.getZ();
+			M[0] *= scale.X;
+			M[1] *= scale.Y;
+			M[2] *= scale.Z;
 
-			M[4] *= scale.getX();
-			M[5] *= scale.getY();
-			M[6] *= scale.getZ();
+			M[4] *= scale.X;
+			M[5] *= scale.Y;
+			M[6] *= scale.Z;
 
-			M[8] *= scale.getX();
-			M[9] *= scale.getY();
-			M[10] *= scale.getZ();
+			M[8] *= scale.X;
+			M[9] *= scale.Y;
+			M[10] *= scale.Z;
 
-			M[12] *= scale.getX();
-			M[13] *= scale.getY();
-			M[14] *= scale.getZ();
+			M[12] *= scale.X;
+			M[13] *= scale.Y;
+			M[14] *= scale.Z;
 
 			definitelyIdentityMatrix=false;
 		}
@@ -853,7 +853,7 @@ namespace tix
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::postScale( const vector3d<T>& scale )
+	inline CMatrix4<T>& CMatrix4<T>::postScale( const FVec3<T>& scale )
 	{
 		if (definitelyIdentityMatrix)
 		{
@@ -861,17 +861,17 @@ namespace tix
 		}
 		else
 		{
-			M[0] *= scale.getX();
-			M[1] *= scale.getX();
-			M[2] *= scale.getX();
+			M[0] *= scale.X;
+			M[1] *= scale.X;
+			M[2] *= scale.X;
 
-			M[4] *= scale.getY();
-			M[5] *= scale.getY();
-			M[6] *= scale.getY();
+			M[4] *= scale.Y;
+			M[5] *= scale.Y;
+			M[6] *= scale.Y;
 
-			M[8] *= scale.getZ();
-			M[9] *= scale.getZ();
-			M[10] *= scale.getZ();
+			M[8] *= scale.Z;
+			M[9] *= scale.Z;
+			M[10] *= scale.Z;
 
 			definitelyIdentityMatrix=false;
 		}
@@ -879,36 +879,24 @@ namespace tix
 	}
 
 	template <class T>
-	inline vector3d<T> CMatrix4<T>::getScale() const
+	inline FVec3<T> CMatrix4<T>::getScale() const
 	{
-		vector3d<T> vScale;
-		vScale.setX(vector3d<T>(M[0],M[1],M[2]).getLength());
-		vScale.setY(vector3d<T>(M[4],M[5],M[6]).getLength());
-		vScale.setZ(vector3d<T>(M[8],M[9],M[10]).getLength());
+		FVec3<T> vScale;
+		vScale.X = FVec3<T>(M[0],M[1],M[2]).getLength();
+		vScale.Y = FVec3<T>(M[4],M[5],M[6]).getLength();
+		vScale.Z = FVec3<T>(M[8],M[9],M[10]).getLength();
 		return vScale;
 	}
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setRotationDegrees( const vector3d<T>& rotation )
+	inline CMatrix4<T>& CMatrix4<T>::setRotationRadians( const FVec3<T>& rotation )
 	{
-		return setRotationRadians( rotation * DEGTORAD );
-	}
-
-	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setInverseRotationDegrees( const vector3d<T>& rotation )
-	{
-		return setInverseRotationRadians( rotation * DEGTORAD );
-	}
-
-	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setRotationRadians( const vector3d<T>& rotation )
-	{
-		const float64 cr = cos( rotation.getX() );
-		const float64 sr = sin( rotation.getX() );
-		const float64 cp = cos( rotation.getY() );
-		const float64 sp = sin( rotation.getY() );
-		const float64 cy = cos( rotation.getZ() );
-		const float64 sy = sin( rotation.getZ() );
+		const float64 cr = cos( rotation.X );
+		const float64 sr = sin( rotation.X );
+		const float64 cp = cos( rotation.Y );
+		const float64 sp = sin( rotation.Y );
+		const float64 cy = cos( rotation.Z );
+		const float64 sy = sin( rotation.Z );
 
 		M[0] = (T)( cp*cy );
 		M[1] = (T)( cp*sy );
@@ -932,32 +920,32 @@ namespace tix
 	//! Returns the rotation, as set by setRotation(). This code was sent
 	//! in by Chev.
 	template <class T>
-	inline vector3d<T> CMatrix4<T>::getRotationDegrees() const
+	inline FVec3<T> CMatrix4<T>::getRotationDegrees() const
 	{
 		const CMatrix4<T> &mat = *this;
 
-		float64 Y = -asin(mat(0,2));
-		const float64 C = cos(Y);
-		Y *= RADTODEG64;
+		float Y = -asin(mat(0,2));
+		const float C = cos(Y);
+		Y = TMath::RadToDeg(Y);
 
-		float64 rotx, roty, X, Z;
+		float rotx, roty, X, Z;
 
 		if (fabs(C)>ROUNDING_ERROR_64)
 		{
 			const T invC = (T)(1.0/C);
 			rotx = mat(2,2) * invC;
 			roty = mat(1,2) * invC;
-			X = atan2( roty, rotx ) * RADTODEG64;
+			X = TMath::RadToDeg(atan2( roty, rotx ));
 			rotx = mat(0,0) * invC;
 			roty = mat(0,1) * invC;
-			Z = atan2( roty, rotx ) * RADTODEG64;
+			Z = TMath::RadToDeg(atan2( roty, rotx ));
 		}
 		else
 		{
 			X = 0.0;
 			rotx = mat(1,1);
 			roty = -mat(1,0);
-			Z = atan2( roty, rotx ) * RADTODEG64;
+			Z = TMath::RadToDeg(atan2( roty, rotx ));
 		}
 
 		// fix values that get below zero
@@ -967,19 +955,19 @@ namespace tix
 		if (Y < 0.0) Y += 360.0;
 		if (Z < 0.0) Z += 360.0;
 
-		return vector3d<T>((T)X,(T)Y,(T)Z);
+		return FVec3<T>((T)X,(T)Y,(T)Z);
 	}
 
 
 	template <class T>
-	inline CMatrix4<T>& CMatrix4<T>::setInverseRotationRadians( const vector3d<T>& rotation )
+	inline CMatrix4<T>& CMatrix4<T>::setInverseRotationRadians( const FVec3<T>& rotation )
 	{
-		float64 cr = cos( rotation.getX() );
-		float64 sr = sin( rotation.getX() );
-		float64 cp = cos( rotation.getY() );
-		float64 sp = sin( rotation.getY() );
-		float64 cy = cos( rotation.getZ() );
-		float64 sy = sin( rotation.getZ() );
+		float64 cr = cos( rotation.X );
+		float64 sr = sin( rotation.X );
+		float64 cp = cos( rotation.Y );
+		float64 sp = sin( rotation.Y );
+		float64 cy = cos( rotation.Z );
+		float64 sy = sin( rotation.Z );
 
 		M[0] = (T)( cp*cy );
 		M[4] = (T)( cp*sy );
@@ -1013,97 +1001,97 @@ namespace tix
 
 
 	template <class T>
-	inline void CMatrix4<T>::rotateVect( vector3d<T>& vect ) const
+	inline void CMatrix4<T>::rotateVect( FVec3<T>& vect ) const
 	{
-		vector3d<T> tmp = vect;
-		vect.setX(tmp.getX()*M[0] + tmp.getY()*M[4] + tmp.getZ()*M[8]);
-		vect.setY(tmp.getX()*M[1] + tmp.getY()*M[5] + tmp.getZ()*M[9]);
-		vect.setZ(tmp.getX()*M[2] + tmp.getY()*M[6] + tmp.getZ()*M[10]);
+		FVec3<T> tmp = vect;
+		vect.X = tmp.X*M[0] + tmp.Y*M[4] + tmp.Z*M[8];
+		vect.Y = tmp.X*M[1] + tmp.Y*M[5] + tmp.Z*M[9];
+		vect.Z = tmp.X*M[2] + tmp.Y*M[6] + tmp.Z*M[10];
 	}
 
 	//! An alternate transform vector method, writing into a second vector
 	template <class T>
-	inline void CMatrix4<T>::rotateVect(vector3d<T>& out, const vector3d<T>& in) const
+	inline void CMatrix4<T>::rotateVect(FVec3<T>& out, const FVec3<T>& in) const
 	{
-		out.setX(in.getX()*M[0] + in.getY()*M[4] + in.getZ()*M[8]);
-		out.setY(in.getX()*M[1] + in.getY()*M[5] + in.getZ()*M[9]);
-		out.setZ(in.getX()*M[2] + in.getY()*M[6] + in.getZ()*M[10]);
+		out.X = in.X*M[0] + in.Y*M[4] + in.Z*M[8];
+		out.Y = in.X*M[1] + in.Y*M[5] + in.Z*M[9];
+		out.Z = in.X*M[2] + in.Y*M[6] + in.Z*M[10];
 	}
 
 	//! An alternate transform vector method, writing into an array of 3 floats
 	template <class T>
-	inline void CMatrix4<T>::rotateVect(T *out, const vector3d<T>& in) const
+	inline void CMatrix4<T>::rotateVect(T *out, const FVec3<T>& in) const
 	{
-		out[0] = in.getX()*M[0] + in.getY()*M[4] + in.getZ()*M[8];
-		out[1] = in.getX()*M[1] + in.getY()*M[5] + in.getZ()*M[9];
-		out[2] = in.getX()*M[2] + in.getY()*M[6] + in.getZ()*M[10];
+		out[0] = in.X*M[0] + in.Y*M[4] + in.Z*M[8];
+		out[1] = in.X*M[1] + in.Y*M[5] + in.Z*M[9];
+		out[2] = in.X*M[2] + in.Y*M[6] + in.Z*M[10];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::inverseRotateVect( vector3d<T>& vect ) const
+	inline void CMatrix4<T>::inverseRotateVect( FVec3<T>& vect ) const
 	{
-		vector3d<T> tmp = vect;
-		vect.setX(tmp.getX()*M[0] + tmp.getY()*M[1] + tmp.getZ()*M[2]);
-		vect.setY(tmp.getX()*M[4] + tmp.getY()*M[5] + tmp.getZ()*M[6]);
-		vect.setZ(tmp.getX()*M[8] + tmp.getY()*M[9] + tmp.getZ()*M[10]);
+		FVec3<T> tmp = vect;
+		vect.X = tmp.X*M[0] + tmp.Y*M[1] + tmp.Z*M[2];
+		vect.Y = tmp.X*M[4] + tmp.Y*M[5] + tmp.Z*M[6];
+		vect.Z = tmp.X*M[8] + tmp.Y*M[9] + tmp.Z*M[10];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect( vector3d<T>& vect) const
+	inline void CMatrix4<T>::transformVect( FVec3<T>& vect) const
 	{
 		T vector[3];
 
-		vector[0] = vect.getX()*M[0] + vect.getY()*M[4] + vect.getZ()*M[8] + M[12];
-		vector[1] = vect.getX()*M[1] + vect.getY()*M[5] + vect.getZ()*M[9] + M[13];
-		vector[2] = vect.getX()*M[2] + vect.getY()*M[6] + vect.getZ()*M[10] + M[14];
+		vector[0] = vect.X*M[0] + vect.Y*M[4] + vect.Z*M[8] + M[12];
+		vector[1] = vect.X*M[1] + vect.Y*M[5] + vect.Z*M[9] + M[13];
+		vector[2] = vect.X*M[2] + vect.Y*M[6] + vect.Z*M[10] + M[14];
 
-		vect.setX(vector[0]);
-		vect.setY(vector[1]);
-		vect.setZ(vector[2]);
+		vect.X = vector[0];
+		vect.Y = vector[1];
+		vect.Z = vector[2];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect2D( vector3d<T>& vect) const
+	inline void CMatrix4<T>::transformVect2D( FVec3<T>& vect) const
 	{
 		T vector[2];
 
-		vector[0] = vect.getX()*M[0] + vect.getY()*M[4] + M[12];
-		vector[1] = vect.getX()*M[1] + vect.getY()*M[5] + M[13];
+		vector[0] = vect.X*M[0] + vect.Y*M[4] + M[12];
+		vector[1] = vect.X*M[1] + vect.Y*M[5] + M[13];
 
-		vect.setX(vector[0]);
-		vect.setY(vector[1]);
+		vect.X = vector[0];
+		vect.Y = vector[1];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect2D( vector3d<T>& out, const vector3d<T>& in) const
+	inline void CMatrix4<T>::transformVect2D( FVec3<T>& out, const FVec3<T>& in) const
 	{
-		out.setX(in.getX()*M[0] + in.getY()*M[4] + M[12]);
-		out.setY(in.getX()*M[1] + in.getY()*M[5] + M[13]);
+		out.X = in.X*M[0] + in.Y*M[4] + M[12];
+		out.Y = in.X*M[1] + in.Y*M[5] + M[13];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect( vector3d<T>& out, const vector3d<T>& in) const
+	inline void CMatrix4<T>::transformVect( FVec3<T>& out, const FVec3<T>& in) const
 	{
-		out.setX(in.getX()*M[0] + in.getY()*M[4] + in.getZ()*M[8] + M[12]);
-		out.setY(in.getX()*M[1] + in.getY()*M[5] + in.getZ()*M[9] + M[13]);
-		out.setZ(in.getX()*M[2] + in.getY()*M[6] + in.getZ()*M[10] + M[14]);
+		out.X = in.X*M[0] + in.Y*M[4] + in.Z*M[8] + M[12];
+		out.Y = in.X*M[1] + in.Y*M[5] + in.Z*M[9] + M[13];
+		out.Z = in.X*M[2] + in.Y*M[6] + in.Z*M[10] + M[14];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect( vector3d<T>& out, const T* in) const
+	inline void CMatrix4<T>::transformVect( FVec3<T>& out, const T* in) const
 	{
-		out.setX(in[0]*M[0] + in[1]*M[4] + in[2]*M[8] + M[12]);
-		out.setY(in[0]*M[1] + in[1]*M[5] + in[2]*M[9] + M[13]);
-		out.setZ(in[0]*M[2] + in[1]*M[6] + in[2]*M[10] + M[14]);
+		out.X = in[0]*M[0] + in[1]*M[4] + in[2]*M[8] + M[12];
+		out.Y = in[0]*M[1] + in[1]*M[5] + in[2]*M[9] + M[13];
+		out.Z = in[0]*M[2] + in[1]*M[6] + in[2]*M[10] + M[14];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::transformVect(T *out, const vector3d<T> &in) const
+	inline void CMatrix4<T>::transformVect(T *out, const FVec3<T> &in) const
 	{
-		out[0] = in.getX()*M[0] + in.getY()*M[4] + in.getZ()*M[8] + M[12];
-		out[1] = in.getX()*M[1] + in.getY()*M[5] + in.getZ()*M[9] + M[13];
-		out[2] = in.getX()*M[2] + in.getY()*M[6] + in.getZ()*M[10] + M[14];
-		out[3] = in.getX()*M[3] + in.getY()*M[7] + in.getZ()*M[11] + M[15];
+		out[0] = in.X*M[0] + in.Y*M[4] + in.Z*M[8] + M[12];
+		out[1] = in.X*M[1] + in.Y*M[5] + in.Z*M[9] + M[13];
+		out[2] = in.X*M[2] + in.Y*M[6] + in.Z*M[10] + M[14];
+		out[3] = in.X*M[3] + in.Y*M[7] + in.Z*M[11] + M[15];
 	}
 
 	//! Transforms a axis aligned bounding box
@@ -1122,8 +1110,8 @@ namespace tix
 	template <class T>
 	inline void CMatrix4<T>::transformBoxEx(aabbox3d<T>& box) const
 	{
-		const T Amin[3] = {box.MinEdge.getX(), box.MinEdge.getY(), box.MinEdge.getZ()};
-		const T Amax[3] = {box.MaxEdge.getX(), box.MaxEdge.getY(), box.MaxEdge.getZ()};
+		const T Amin[3] = {box.MinEdge.X, box.MinEdge.Y, box.MinEdge.Z};
+		const T Amax[3] = {box.MaxEdge.X, box.MaxEdge.Y, box.MaxEdge.Z};
 
 		T Bmin[3];
 		T Bmax[3];
@@ -1154,19 +1142,19 @@ namespace tix
 			}
 		}
 
-		box.MinEdge.setX(Bmin[0]);
-		box.MinEdge.setY(Bmin[1]);
-		box.MinEdge.setZ(Bmin[2]);
+		box.MinEdge.X = Bmin[0];
+		box.MinEdge.Y = Bmin[1];
+		box.MinEdge.Z = Bmin[2];
 
-		box.MaxEdge.setX(Bmax[0]);
-		box.MaxEdge.setY(Bmax[1]);
-		box.MaxEdge.setZ(Bmax[2]);
+		box.MaxEdge.X = Bmax[0];
+		box.MaxEdge.Y = Bmax[1];
+		box.MaxEdge.Z = Bmax[2];
 	}
 
 	template<typename T>
-	inline vector3d<T> ti_vec_abs(const vector3d<T>& vec)
+	inline FVec3<T> ti_vec_abs(const FVec3<T>& vec)
 	{
-		vector3d<T> new_vec;
+		FVec3<T> new_vec;
 		new_vec.X = TMath::Abs(vec.X);
 		new_vec.Y = TMath::Abs(vec.Y);
 		new_vec.Z = TMath::Abs(vec.Z);
@@ -1177,22 +1165,22 @@ namespace tix
 	template <class T>
 	inline void CMatrix4<T>::transformBoxUE4(aabbox3d<T>& box) const
 	{
-		vector3d<T> Origin = box.getCenter();
-		vector3d<T> Extent = box.getExtent() * 0.5f;
+		FVec3<T> Origin = box.getCenter();
+		FVec3<T> Extent = box.getExtent() * 0.5f;
 
-		vector3d<T> Rot0(M[0], M[1], M[2]);
-		vector3d<T> Rot1(M[4], M[5], M[6]);
-		vector3d<T> Rot2(M[8], M[9], M[10]);
-		vector3d<T> Trans(M[12], M[13], M[14]);
+		FVec3<T> Rot0(M[0], M[1], M[2]);
+		FVec3<T> Rot1(M[4], M[5], M[6]);
+		FVec3<T> Rot2(M[8], M[9], M[10]);
+		FVec3<T> Trans(M[12], M[13], M[14]);
 
-		vector3d<T> NewOrigin = vector3d<T>(Origin.X, Origin.X, Origin.X) * Rot0;
-		NewOrigin = vector3d<T>(Origin.Y, Origin.Y, Origin.Y) * Rot1 + NewOrigin;
-		NewOrigin = vector3d<T>(Origin.Z, Origin.Z, Origin.Z) * Rot2 + NewOrigin;
+		FVec3<T> NewOrigin = FVec3<T>(Origin.X, Origin.X, Origin.X) * Rot0;
+		NewOrigin = FVec3<T>(Origin.Y, Origin.Y, Origin.Y) * Rot1 + NewOrigin;
+		NewOrigin = FVec3<T>(Origin.Z, Origin.Z, Origin.Z) * Rot2 + NewOrigin;
 		NewOrigin = NewOrigin + Trans;
 
-		vector3d<T> NewExtent = ti_vec_abs<T>(vector3d<T>(Extent.X, Extent.X, Extent.X) * Rot0);
-		NewExtent = NewExtent + ti_vec_abs<T>(vector3d<T>(Extent.Y, Extent.Y, Extent.Y) * Rot1);
-		NewExtent = NewExtent + ti_vec_abs<T>(vector3d<T>(Extent.Z, Extent.Z, Extent.Z) * Rot2);
+		FVec3<T> NewExtent = ti_vec_abs<T>(FVec3<T>(Extent.X, Extent.X, Extent.X) * Rot0);
+		NewExtent = NewExtent + ti_vec_abs<T>(FVec3<T>(Extent.Y, Extent.Y, Extent.Y) * Rot1);
+		NewExtent = NewExtent + ti_vec_abs<T>(FVec3<T>(Extent.Z, Extent.Z, Extent.Z) * Rot2);
 
 		box.MinEdge = NewOrigin - NewExtent;
 		box.MaxEdge = NewOrigin + NewExtent;
@@ -1222,34 +1210,34 @@ namespace tix
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::inverseTranslateVect( vector3d<T>& vect ) const
+	inline void CMatrix4<T>::inverseTranslateVect( FVec3<T>& vect ) const
 	{
-		vect.setX(vect.getX()-M[12]);
-		vect.setY(vect.getY()-M[13]);
-		vect.setZ(vect.getZ()-M[14]);
+		vect.X = vect.X-M[12];
+		vect.Y = vect.Y-M[13];
+		vect.Z = vect.Z-M[14];
 	}
 
 	template <class T>
-	inline void CMatrix4<T>::translateVect( vector3d<T>& vect ) const
+	inline void CMatrix4<T>::translateVect( FVec3<T>& vect ) const
 	{
-		vect.setX(vect.getX()+M[12]);
-		vect.setY(vect.getY()+M[13]);
-		vect.setZ(vect.getZ()+M[14]);
+		vect.X = vect.X+M[12];
+		vect.Y = vect.Y+M[13];
+		vect.Z = vect.Z+M[14];
 	}
 
 	//! Transforms a plane by this matrix
 	template <class T>
 	inline void CMatrix4<T>::transformPlane( plane3d<T> &plane) const
 	{
-		vector3d<T> member;
+		FVec3<T> member;
 		transformVect(member, plane.getMemberPoint());
 
-		vector3d<T> origin(0,0,0);
+		FVec3<T> origin(0,0,0);
 		transformVect(plane.Normal);
 		transformVect(origin);
 
 		plane.Normal -= origin;
-		plane.D = - member.dotProduct(plane.Normal);
+		plane.D = - member.Dot(plane.Normal);
 	}
 
 	//! Transforms a plane by this matrix
@@ -1257,16 +1245,16 @@ namespace tix
 	inline void CMatrix4<T>::transformPlane_new( plane3d<T> &plane) const
 	{
 		// rotate normal -> rotateVect ( plane.n );
-		vector3d<T> n;
-		n.setX(plane.Normal.getX()*M[0] + plane.Normal.getY()*M[4] + plane.Normal.getZ()*M[8]);
-		n.setY(plane.Normal.getX()*M[1] + plane.Normal.getY()*M[5] + plane.Normal.getZ()*M[9]);
-		n.setZ(plane.Normal.getX()*M[2] + plane.Normal.getY()*M[6] + plane.Normal.getZ()*M[10]);
+		FVec3<T> n;
+		n.X = plane.Normal.X*M[0] + plane.Normal.Y*M[4] + plane.Normal.Z*M[8];
+		n.Y = plane.Normal.X*M[1] + plane.Normal.Y*M[5] + plane.Normal.Z*M[9];
+		n.Z = plane.Normal.X*M[2] + plane.Normal.Y*M[6] + plane.Normal.Z*M[10];
 
 		// compute newly d. -> getTranslation(). dotproduct ( plane.n )
-		plane.D -= M[12] * n.getX() + M[13] * n.getY() + M[14] * n.getZ();
-		plane.Normal.setX(n.getX());
-		plane.Normal.setY(n.getY());
-		plane.Normal.setZ(n.getZ());
+		plane.D -= M[12] * n.X + M[13] * n.Y + M[14] * n.Z;
+		plane.Normal.X = n.X;
+		plane.Normal.Y = n.Y;
+		plane.Normal.Z = n.Z;
 	}
 
 	//! Transforms a plane by this matrix
@@ -1882,42 +1870,42 @@ namespace tix
 	//! Builds a right-handed look-at matrix.
 	template <typename T>
 	CMatrix4<T> buildCameraLookAtMatrix(
-		const vector3d<T>& position,
-		const vector3d<T>& target,
-		const vector3d<T>& upVector)
+		const FVec3<T>& position,
+		const FVec3<T>& target,
+		const FVec3<T>& upVector)
 	{
-		vector3d<T> zaxis = target - position;
-		zaxis.normalize();
+		FVec3<T> zaxis = target - position;
+		zaxis.Normalize();
 
 		// Keep the same look at matrix with UE4
-		//vector3d<T> xaxis = upVector.crossProduct(zaxis);
-		vector3d<T> xaxis = zaxis.crossProduct(upVector);
-		xaxis.normalize();
+		//FVec3<T> xaxis = upVector.Cross(zaxis);
+		FVec3<T> xaxis = zaxis.Cross(upVector);
+		xaxis.Normalize();
 
-		//vector3d<T> yaxis = zaxis.crossProduct(xaxis);
-		vector3d<T> yaxis = xaxis.crossProduct(zaxis);
-		yaxis.normalize();
+		//FVec3<T> yaxis = zaxis.Cross(xaxis);
+		FVec3<T> yaxis = xaxis.Cross(zaxis);
+		yaxis.Normalize();
 
 		CMatrix4<T> m(CMatrix4<T>::EM4CONST_NOTHING);
 
-		m(0,0) = (T)xaxis.getX();
-		m(0,1) = (T)yaxis.getX();
-		m(0,2) = (T)zaxis.getX();
+		m(0,0) = (T)xaxis.X;
+		m(0,1) = (T)yaxis.X;
+		m(0,2) = (T)zaxis.X;
 		m(0,3) = 0;
 
-		m(1,0) = (T)xaxis.getY();
-		m(1,1) = (T)yaxis.getY();
-		m(1,2) = (T)zaxis.getY();
+		m(1,0) = (T)xaxis.Y;
+		m(1,1) = (T)yaxis.Y;
+		m(1,2) = (T)zaxis.Y;
 		m(1,3) = 0;
 
-		m(2,0) = (T)xaxis.getZ();
-		m(2,1) = (T)yaxis.getZ();
-		m(2,2) = (T)zaxis.getZ();
+		m(2,0) = (T)xaxis.Z;
+		m(2,1) = (T)yaxis.Z;
+		m(2,2) = (T)zaxis.Z;
 		m(2,3) = 0;
 
-		m(3,0) = (T)-xaxis.dotProduct(position);
-		m(3,1) = (T)-yaxis.dotProduct(position);
-		m(3,2) = (T)-zaxis.dotProduct(position);
+		m(3,0) = (T)-xaxis.Dot(position);
+		m(3,1) = (T)-yaxis.Dot(position);
+		m(3,2) = (T)-zaxis.Dot(position);
 		m(3,3) = 1;
 
 		return m;
@@ -1929,31 +1917,31 @@ namespace tix
 	//	\param point: value between 0 and 1, describing the light source.
 	//	If this is 1, it is a point light, if it is 0, it is a directional light. */
 	template<typename T>
-	CMatrix4<T> buildShadowMatrix(const vector3d<T>& light, plane3d<T> plane, T point=1.0f)
+	CMatrix4<T> buildShadowMatrix(const FVec3<T>& light, plane3d<T> plane, T point=1.0f)
 	{
 		CMatrix4<T> m(CMatrix4<T>::EM4CONST_NOTHING);
 
-		plane.Normal.normalize();
-		const T d = plane.Normal.dotProduct(light);
+		plane.Normal.Normalize();
+		const T d = plane.Normal.Dot(light);
 
-		m(0,0) = (T)(-plane.Normal.getX() * light.getX() + d);
-		m(0,1) = (T)(-plane.Normal.getX() * light.getY());
-		m(0,2) = (T)(-plane.Normal.getX() * light.getZ());
-		m(0,3) = (T)(-plane.Normal.getX() * point);
+		m(0,0) = (T)(-plane.Normal.X * light.X + d);
+		m(0,1) = (T)(-plane.Normal.X * light.Y);
+		m(0,2) = (T)(-plane.Normal.X * light.Z);
+		m(0,3) = (T)(-plane.Normal.X * point);
 
-		m(1,0) = (T)(-plane.Normal.getY() * light.getX());
-		m(1,1) = (T)(-plane.Normal.getY() * light.getY() + d);
-		m(1,2) = (T)(-plane.Normal.getY() * light.getZ());
-		m(1,3) = (T)(-plane.Normal.getY() * point); 
+		m(1,0) = (T)(-plane.Normal.Y * light.X);
+		m(1,1) = (T)(-plane.Normal.Y * light.Y + d);
+		m(1,2) = (T)(-plane.Normal.Y * light.Z);
+		m(1,3) = (T)(-plane.Normal.Y * point); 
 
-		m(2,0) = (T)(-plane.Normal.getZ() * light.getX());
-		m(2,1) = (T)(-plane.Normal.getZ() * light.getY());
-		m(2,2) = (T)(-plane.Normal.getZ() * light.getZ() + d);
-		m(2,3) = (T)(-plane.Normal.getZ() * point);
+		m(2,0) = (T)(-plane.Normal.Z * light.X);
+		m(2,1) = (T)(-plane.Normal.Z * light.Y);
+		m(2,2) = (T)(-plane.Normal.Z * light.Z + d);
+		m(2,3) = (T)(-plane.Normal.Z * point);
 
-		m(3,0) = (T)(-plane.D * light.getX());
-		m(3,1) = (T)(-plane.D * light.getY());
-		m(3,2) = (T)(-plane.D * light.getZ());
+		m(3,0) = (T)(-plane.D * light.X);
+		m(3,1) = (T)(-plane.D * light.Y);
+		m(3,2) = (T)(-plane.D * light.Z);
 		m(3,3) = (T)(-plane.D * point + d);
 
 		return m;

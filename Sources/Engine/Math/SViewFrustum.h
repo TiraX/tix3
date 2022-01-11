@@ -61,35 +61,35 @@ namespace tix
 
 		//! returns the point which is on the far left upper corner inside the the
 		//! view frustum.
-		vector3df getFarLeftUp() const;
+		FFloat3 getFarLeftUp() const;
 
 		//! returns the point which is on the far left bottom corner inside the the
 		//! view frustum.
-		vector3df getFarLeftDown() const;
+		FFloat3 getFarLeftDown() const;
 
 		//! returns the point which is on the far right top corner inside the the
 		//! view frustum.
-		vector3df getFarRightUp() const;
+		FFloat3 getFarRightUp() const;
 
 		//! returns the point which is on the far right bottom corner inside the the
 		//! view frustum.
-		vector3df getFarRightDown() const;
+		FFloat3 getFarRightDown() const;
 
 		//! returns the point which is on the far left upper corner inside the the
 		//! view frustum.
-		vector3df getNearLeftUp() const;
+		FFloat3 getNearLeftUp() const;
 
 		//! returns the point which is on the far left bottom corner inside the the
 		//! view frustum.
-		vector3df getNearLeftDown() const;
+		FFloat3 getNearLeftDown() const;
 
 		//! returns the point which is on the far right top corner inside the the
 		//! view frustum.
-		vector3df getNearRightUp() const;
+		FFloat3 getNearRightUp() const;
 
 		//! returns the point which is on the far right bottom corner inside the the
 		//! view frustum.
-		vector3df getNearRightDown() const;
+		FFloat3 getNearRightDown() const;
 
 		//! returns a bounding box enclosing the whole view frustum
 		const aabbox3d<float32> &getBoundingBox() const;
@@ -134,7 +134,7 @@ namespace tix
 		E_CULLING_RESULT intersectsEx(const aabbox3df& bbox) const;
 
 		//! the position of the camera
-		vector3df CameraPosition;
+		FFloat3 CameraPosition;
 
 		//! all planes enclosing the view frustum.
 		plane3d<float32> Planes[VF_PLANE_COUNT];
@@ -163,9 +163,9 @@ namespace tix
 	}
 
 
-	inline vector3df SViewFrustum::getFarLeftUp() const
+	inline FFloat3 SViewFrustum::getFarLeftUp() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_FAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_TOP_PLANE],
 			Planes[SViewFrustum::VF_LEFT_PLANE], p);
@@ -173,9 +173,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getFarLeftDown() const
+	inline FFloat3 SViewFrustum::getFarLeftDown() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_FAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_BOTTOM_PLANE],
 			Planes[SViewFrustum::VF_LEFT_PLANE], p);
@@ -183,9 +183,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getFarRightUp() const
+	inline FFloat3 SViewFrustum::getFarRightUp() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_FAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_TOP_PLANE],
 			Planes[SViewFrustum::VF_RIGHT_PLANE], p);
@@ -193,9 +193,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getFarRightDown() const
+	inline FFloat3 SViewFrustum::getFarRightDown() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_FAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_BOTTOM_PLANE],
 			Planes[SViewFrustum::VF_RIGHT_PLANE], p);
@@ -203,9 +203,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getNearLeftUp() const
+	inline FFloat3 SViewFrustum::getNearLeftUp() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_NEAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_TOP_PLANE],
 			Planes[SViewFrustum::VF_LEFT_PLANE], p);
@@ -213,9 +213,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getNearLeftDown() const
+	inline FFloat3 SViewFrustum::getNearLeftDown() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_NEAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_BOTTOM_PLANE],
 			Planes[SViewFrustum::VF_LEFT_PLANE], p);
@@ -223,9 +223,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getNearRightUp() const
+	inline FFloat3 SViewFrustum::getNearRightUp() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_NEAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_TOP_PLANE],
 			Planes[SViewFrustum::VF_RIGHT_PLANE], p);
@@ -233,9 +233,9 @@ namespace tix
 		return p;
 	}
 
-	inline vector3df SViewFrustum::getNearRightDown() const
+	inline FFloat3 SViewFrustum::getNearRightDown() const
 	{
-		vector3df p;
+		FFloat3 p;
 		Planes[SViewFrustum::VF_NEAR_PLANE].getIntersectionWithPlanes(
 			Planes[SViewFrustum::VF_BOTTOM_PLANE],
 			Planes[SViewFrustum::VF_RIGHT_PLANE], p);
@@ -305,7 +305,7 @@ namespace tix
 		for (s32 i=0; i<6; ++i)
 		{
 			const float32 len = reciprocal_squareroot(
-				Planes[i].Normal.getLengthSQ() );
+				Planes[i].Normal.GetLengthSQ() );
 			Planes[i].Normal *= len;
 			Planes[i].D *= len;
 		}
@@ -318,39 +318,39 @@ namespace tix
 	inline void SViewFrustum::setFrom(const matrix4& mat)
 	{
 		// left clipping plane
-		Planes[VF_LEFT_PLANE].Normal.setX(mat[3 ] + mat[0]);
-		Planes[VF_LEFT_PLANE].Normal.setY(mat[7 ] + mat[4]);
-		Planes[VF_LEFT_PLANE].Normal.setZ(mat[11] + mat[8]);
+		Planes[VF_LEFT_PLANE].Normal.X = mat[3 ] + mat[0];
+		Planes[VF_LEFT_PLANE].Normal.Y = mat[7 ] + mat[4];
+		Planes[VF_LEFT_PLANE].Normal.Z = mat[11] + mat[8];
 		Planes[VF_LEFT_PLANE].D =        mat[15] + mat[12];
 
 		// right clipping plane
-		Planes[VF_RIGHT_PLANE].Normal.setX(mat[3 ] - mat[0]);
-		Planes[VF_RIGHT_PLANE].Normal.setY(mat[7 ] - mat[4]);
-		Planes[VF_RIGHT_PLANE].Normal.setZ(mat[11] - mat[8]);
+		Planes[VF_RIGHT_PLANE].Normal.X = mat[3 ] - mat[0];
+		Planes[VF_RIGHT_PLANE].Normal.Y = mat[7 ] - mat[4];
+		Planes[VF_RIGHT_PLANE].Normal.Z = mat[11] - mat[8];
 		Planes[VF_RIGHT_PLANE].D =        mat[15] - mat[12];
 
 		// top clipping plane
-		Planes[VF_TOP_PLANE].Normal.setX(mat[3 ] - mat[1]);
-		Planes[VF_TOP_PLANE].Normal.setY(mat[7 ] - mat[5]);
-		Planes[VF_TOP_PLANE].Normal.setZ(mat[11] - mat[9]);
+		Planes[VF_TOP_PLANE].Normal.X = mat[3 ] - mat[1];
+		Planes[VF_TOP_PLANE].Normal.Y = mat[7 ] - mat[5];
+		Planes[VF_TOP_PLANE].Normal.Z = mat[11] - mat[9];
 		Planes[VF_TOP_PLANE].D =        mat[15] - mat[13];
 
 		// bottom clipping plane
-		Planes[VF_BOTTOM_PLANE].Normal.setX(mat[3 ] + mat[1]);
-		Planes[VF_BOTTOM_PLANE].Normal.setY(mat[7 ] + mat[5]);
-		Planes[VF_BOTTOM_PLANE].Normal.setZ(mat[11] + mat[9]);
+		Planes[VF_BOTTOM_PLANE].Normal.X = mat[3 ] + mat[1];
+		Planes[VF_BOTTOM_PLANE].Normal.Y = mat[7 ] + mat[5];
+		Planes[VF_BOTTOM_PLANE].Normal.Z = mat[11] + mat[9];
 		Planes[VF_BOTTOM_PLANE].D =        mat[15] + mat[13];
 
 		// far clipping plane
-		Planes[VF_FAR_PLANE].Normal.setX(mat[3 ] - mat[2]);
-		Planes[VF_FAR_PLANE].Normal.setY(mat[7 ] - mat[6]);
-		Planes[VF_FAR_PLANE].Normal.setZ(mat[11] - mat[10]);
+		Planes[VF_FAR_PLANE].Normal.X = mat[3 ] - mat[2];
+		Planes[VF_FAR_PLANE].Normal.Y = mat[7 ] - mat[6];
+		Planes[VF_FAR_PLANE].Normal.Z = mat[11] - mat[10];
 		Planes[VF_FAR_PLANE].D =        mat[15] - mat[14];
 
 		// near clipping plane
-		Planes[VF_NEAR_PLANE].Normal.setX(mat[2]);
-		Planes[VF_NEAR_PLANE].Normal.setY(mat[6]);
-		Planes[VF_NEAR_PLANE].Normal.setZ(mat[10]);
+		Planes[VF_NEAR_PLANE].Normal.X = mat[2];
+		Planes[VF_NEAR_PLANE].Normal.Y = mat[6];
+		Planes[VF_NEAR_PLANE].Normal.Z = mat[10];
 		Planes[VF_NEAR_PLANE].D =        mat[14];
 
 		// normalize normals
@@ -358,7 +358,7 @@ namespace tix
 		for ( i=0; i != VF_PLANE_COUNT; ++i)
 		{
 			const float32 len = -TMath::ReciprocalSquareroot(
-				Planes[i].Normal.getLengthSQ());
+				Planes[i].Normal.GetLengthSQ());
 			Planes[i].Normal *= len;
 			Planes[i].D *= len;
 		}
@@ -393,10 +393,10 @@ namespace tix
 	{
 		//http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes-ii/
 		// get the "nearest" corner to the frustum along Planes[i]'s normal
-		vector3df
-			p(Planes[i].Normal.getX() >= 0 ? bbox.MinEdge.getX() : bbox.MaxEdge.getX(),
-			  Planes[i].Normal.getY() >= 0 ? bbox.MinEdge.getY() : bbox.MaxEdge.getY(),
-			  Planes[i].Normal.getZ() >= 0 ? bbox.MinEdge.getZ() : bbox.MaxEdge.getZ());
+		FFloat3
+			p(Planes[i].Normal.X >= 0 ? bbox.MinEdge.X : bbox.MaxEdge.X,
+			  Planes[i].Normal.Y >= 0 ? bbox.MinEdge.Y : bbox.MaxEdge.Y,
+			  Planes[i].Normal.Z >= 0 ? bbox.MinEdge.Z : bbox.MaxEdge.Z);
 
 		// if the nearest corner to the frustum is outside, then the bbox is
 		// outside.
@@ -431,10 +431,10 @@ namespace tix
 	inline bool SViewFrustum::testInsidePlane(uint32 i, const aabbox3df& bbox) const
 	{
 		// get the "farthest" corner to the frustum along Planes[i]'s normal
-		vector3df
-			p(Planes[i].Normal.getX() >= 0 ? bbox.MaxEdge.getX() : bbox.MinEdge.getX(),
-			  Planes[i].Normal.getY() >= 0 ? bbox.MaxEdge.getY() : bbox.MinEdge.getY(),
-			  Planes[i].Normal.getZ() >= 0 ? bbox.MaxEdge.getZ() : bbox.MinEdge.getZ());
+		FFloat3
+			p(Planes[i].Normal.X >= 0 ? bbox.MaxEdge.X : bbox.MinEdge.X,
+			  Planes[i].Normal.Y >= 0 ? bbox.MaxEdge.Y : bbox.MinEdge.Y,
+			  Planes[i].Normal.Z >= 0 ? bbox.MaxEdge.Z : bbox.MinEdge.Z);
 
 		// if the nearest corner to the frustum is outside, then the bbox is
 		// outside.
@@ -491,42 +491,42 @@ namespace tix
 		E_CULLING_RESULT result = ECR_INSIDE;
 		// p: "nearest" corner to the frustum along Planes[i]'s normal
 		// n: farthest
-		vector3df p, n;
+		FFloat3 p, n;
 		static const VFPLANES planes[] = {VF_FAR_PLANE, VF_LEFT_PLANE, VF_RIGHT_PLANE};
 		for (int j = 0; j < 3; ++j)
 		{
 			const VFPLANES i = planes[j];
-			if (Planes[i].Normal.getX() >= 0)
+			if (Planes[i].Normal.X >= 0)
 			{
-				p.setX(bbox.MinEdge.getX());
-				n.setX(bbox.MaxEdge.getX());
+				p.X = bbox.MinEdge.X;
+				n.X = bbox.MaxEdge.X;
 			}
 			else
 			{
-				p.setX(bbox.MaxEdge.getX());
-				n.setX(bbox.MinEdge.getX());
+				p.X = bbox.MaxEdge.X;
+				n.X = bbox.MinEdge.X;
 			}
 
-			if (Planes[i].Normal.getY() >= 0)
+			if (Planes[i].Normal.Y >= 0)
 			{
-				p.setY(bbox.MinEdge.getY());
-				n.setY(bbox.MaxEdge.getY());
+				p.Y = bbox.MinEdge.Y;
+				n.Y = bbox.MaxEdge.Y;
 			}
 			else
 			{
-				p.setY(bbox.MaxEdge.getY());
-				n.setY(bbox.MinEdge.getY());
+				p.Y = bbox.MaxEdge.Y;
+				n.Y = bbox.MinEdge.Y;
 			}
 
-			if (Planes[i].Normal.getZ() >= 0)
+			if (Planes[i].Normal.Z >= 0)
 			{
-				p.setZ(bbox.MinEdge.getZ());
-				n.setZ(bbox.MaxEdge.getZ());
+				p.Z = bbox.MinEdge.Z;
+				n.Z = bbox.MaxEdge.Z;
 			}
 			else
 			{
-				p.setZ(bbox.MaxEdge.getZ());
-				n.setZ(bbox.MinEdge.getZ());
+				p.Z = bbox.MaxEdge.Z;
+				n.Z = bbox.MinEdge.Z;
 			}
 
 			// if the nearest point to the frustum is outside, then the bbox is
@@ -549,40 +549,40 @@ namespace tix
 		E_CULLING_RESULT result = ECR_INSIDE;
 		// p: "nearest" corner to the frustum along Planes[i]'s normal
 		// n: farthest
-		vector3df p, n;
+		FFloat3 p, n;
 		for (uint32 i = 0; i < VF_PLANE_COUNT; ++i)
 		{
-			if (Planes[i].Normal.getX() >= 0)
+			if (Planes[i].Normal.X >= 0)
 			{
-				p.setX(bbox.MinEdge.getX());
-				n.setX(bbox.MaxEdge.getX());
+				p.X = bbox.MinEdge.X;
+				n.X = bbox.MaxEdge.X;
 			}
 			else
 			{
-				p.setX(bbox.MaxEdge.getX());
-				n.setX(bbox.MinEdge.getX());
+				p.X = bbox.MaxEdge.X;
+				n.X = bbox.MinEdge.X;
 			}
 
-			if (Planes[i].Normal.getY() >= 0)
+			if (Planes[i].Normal.Y >= 0)
 			{
-				p.setY(bbox.MinEdge.getY());
-				n.setY(bbox.MaxEdge.getY());
+				p.Y = bbox.MinEdge.Y;
+				n.Y = bbox.MaxEdge.Y;
 			}
 			else
 			{
-				p.setY(bbox.MaxEdge.getY());
-				n.setY(bbox.MinEdge.getY());
+				p.Y = bbox.MaxEdge.Y;
+				n.Y = bbox.MinEdge.Y;
 			}
 
-			if (Planes[i].Normal.getZ() >= 0)
+			if (Planes[i].Normal.Z >= 0)
 			{
-				p.setZ(bbox.MinEdge.getZ());
-				n.setZ(bbox.MaxEdge.getZ());
+				p.Z = bbox.MinEdge.Z;
+				n.Z = bbox.MaxEdge.Z;
 			}
 			else
 			{
-				p.setZ(bbox.MaxEdge.getZ());
-				n.setZ(bbox.MinEdge.getZ());
+				p.Z = bbox.MaxEdge.Z;
+				n.Z = bbox.MinEdge.Z;
 			}
 
 			// if the nearest point to the frustum is outside, then the bbox is

@@ -52,7 +52,7 @@ namespace tix
 			return SceneTileResource->GetInstanceBuffer();
 		}
 
-		const vector2di& GetTilePosition() const
+		const FInt2& GetTilePosition() const
 		{
 			return SceneTileResource->Position;
 		}

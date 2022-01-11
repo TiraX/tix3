@@ -14,14 +14,14 @@ namespace tix
 		~TImage();
 		static int32 GetPixelSizeInBytes(E_PIXEL_FORMAT Format);
 		static int32 GetBlockSizeInBytes(E_PIXEL_FORMAT Format);
-		static vector2di GetBlockSize(E_PIXEL_FORMAT Format);
+		static FInt2 GetBlockSize(E_PIXEL_FORMAT Format);
 		static int32 GetDataSize(E_PIXEL_FORMAT Format, int32 Width, int32 Height);
 		static int32 GetRowPitch(E_PIXEL_FORMAT Format, int32 Width);
 		static bool IsCompressedFormat(E_PIXEL_FORMAT Format);
 		static int32 CalcMipCount(int32 Width, int32 Height);
 
 		static TImagePtr LoadImageTGA(TFile& FileInput, int32* PixelDepth = nullptr);
-		static vector2di LoadImageTGADimension(const TString& TgaName);
+		static FInt2 LoadImageTGADimension(const TString& TgaName);
 		bool SaveToTGA(const char* filename, int32 MipIndex = 0);
 
 		static TImagePtr LoadImagePNG(TFile& FileInput);

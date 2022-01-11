@@ -138,13 +138,13 @@ namespace tix
 
 			const float* TrackKeys = FrameData + Track.KeyDataOffset;
 
-			const vector3df* PosKeys = (vector3df*)TrackKeys;
+			const FFloat3* PosKeys = (FFloat3*)TrackKeys;
 			const quaternion* RotKeys = (quaternion*)(TrackKeys + Track.NumPosKeys * 3);
-			const vector3df* ScaleKeys = (vector3df*)(TrackKeys + Track.NumPosKeys * 3 + Track.NumRotKeys * 4);
+			const FFloat3* ScaleKeys = (FFloat3*)(TrackKeys + Track.NumPosKeys * 3 + Track.NumRotKeys * 4);
 
-			vector3df Pos;
+			FFloat3 Pos;
 			quaternion Rot;
-			vector3df Scale(1, 1, 1);
+			FFloat3 Scale(1, 1, 1);
 
 			if (Track.NumPosKeys > 0)
 			{

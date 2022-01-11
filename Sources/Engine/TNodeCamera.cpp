@@ -17,15 +17,15 @@ namespace tix
 		, Fovy(PI / 4.0f)
 		, Aspect(1280.f / 720.f)
 	{
-		SetPosition(vector3df(-1, 2, 1.0));
-		SetTarget(vector3df(0, 0, 0.25f));
+		SetPosition(FFloat3(-1, 2, 1.0));
+		SetTarget(FFloat3(0, 0, 0.25f));
 	}
 
 	TNodeCamera::~TNodeCamera()
 	{
 	}
 
-	void TNodeCamera::SetPosition(const vector3df& pos)
+	void TNodeCamera::SetPosition(const FFloat3& pos)
 	{
 		TNode::SetPosition(pos);
 		CameraFlags |= ECAMF_MAT_VIEW_DIRTY;
@@ -101,7 +101,7 @@ namespace tix
 
 	//! Sets the look at tarGet of the camera
 	//! \param pos Look at tarGet of the camera.
-	void TNodeCamera::SetTarget(const vector3df& pos)
+	void TNodeCamera::SetTarget(const FFloat3& pos)
 	{
 		Target = pos;
 		CameraFlags |= ECAMF_MAT_VIEW_DIRTY;
@@ -109,7 +109,7 @@ namespace tix
 
 	//! sets the Rotator of camera in radian
 	//! \param rotator include Pitch Yaw Roll in Radian.
-	void TNodeCamera::SetRotator(const vector3df& rotator)
+	void TNodeCamera::SetRotator(const FFloat3& rotator)
 	{
 		Rotator = rotator;
 		CameraFlags |= ECAMF_MAT_VIEW_DIRTY;
@@ -117,21 +117,21 @@ namespace tix
 
 	//! Gets the current look at tarGet of the camera
 	//! \return Returns the current look at tarGet of the camera
-	const vector3df& TNodeCamera::GetTarget() const
+	const FFloat3& TNodeCamera::GetTarget() const
 	{
 		return Target;
 	}
 
 	//! Sets the up vector of the camera
 	//! \param pos New upvector of the camera.
-	void TNodeCamera::SetUpVector(const vector3df& pos)
+	void TNodeCamera::SetUpVector(const FFloat3& pos)
 	{
 		UpVector = pos;
 	}
 
 	//! Gets the up vector of the camera.
 	//! \return Returns the up vector of the camera.
-	const vector3df& TNodeCamera::GetUpVector() const
+	const FFloat3& TNodeCamera::GetUpVector() const
 	{
 		return UpVector;
 	}
@@ -188,18 +188,18 @@ namespace tix
 
 	void TNodeCamera::RecalculateViewMatrix()
 	{
-		vector3df pos = GetAbsolutePosition();
+		FFloat3 pos = GetAbsolutePosition();
 		CamDir = Target - pos;
-		CamDir.normalize();
+		CamDir.Normalize();
 
-		vector3df up = UpVector;
-		up.normalize();
+		FFloat3 up = UpVector;
+		up.Normalize();
 
-		float32 dp = CamDir.dotProduct(up);
+		float32 dp = CamDir.Dot(up);
 
 		if (TMath::Equals(fabs(dp), 1.f))
 		{
-			up.setX(up.getX() + 0.5f);
+			up.X = up.X + 0.5f;
 		}
 
 		ViewArea.Matrices[ETS_VIEW] = buildCameraLookAtMatrix(pos, Target, up);;
@@ -208,10 +208,10 @@ namespace tix
 		RecalculateViewArea();
 
 		// calculate hor and ver vector for billboard
-		HorVector	= CamDir.crossProduct(UpVector);
-		HorVector.normalize();
-		VerVector	= HorVector.crossProduct(CamDir);
-		VerVector.normalize();
+		HorVector	= CamDir.Cross(UpVector);
+		HorVector.Normalize();
+		VerVector	= HorVector.Cross(CamDir);
+		VerVector.Normalize();
 	}
 
 	void TNodeCamera::RecalculateProjectionMatrix()
@@ -234,10 +234,10 @@ namespace tix
 		ViewArea.setFrom(ViewArea.Matrices[SViewFrustum::ETS_VIEW_PROJECTION_3]);
 	}
 
-	void TNodeCamera::GetRayFrom2DPoint(const vector2di& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPoint(const FInt2& pos, line3df &ray, float length)
 	{
 		TI_ASSERT(0);
-		//vector3df orig,dir;
+		//FFloat3 orig,dir;
 		//const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
 		//const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
 
@@ -246,22 +246,22 @@ namespace tix
 		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
 		//// Compute the vector of the Pick ray in screen space
-		//vector3df v;
+		//FFloat3 v;
 		//v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
 		//v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
 		//v.Z = 1.0f;
 
-		//vector3df pStart, pEnd;
+		//FFloat3 pStart, pEnd;
 		//m.transformVect(pStart, v * 1.0f);
 		//m.transformVect(pEnd, v * length);
 		//ray.start = pStart;
 		//ray.end = pEnd;
 	}
 
-	void TNodeCamera::GetRayFrom2DPoint(const vector2df& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPoint(const FFloat2& pos, line3df &ray, float length)
 	{
 		TI_ASSERT(0);
-		//vector3df orig,dir;
+		//FFloat3 orig,dir;
 		//const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
 		//const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
 
@@ -270,21 +270,21 @@ namespace tix
 		//const recti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
 
 		//// Compute the vector of the Pick ray in screen space
-		//vector3df v;
+		//FFloat3 v;
 		//v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
 		//v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
 		//v.Z = 1.0f;
 
-		//vector3df pStart, pEnd;
+		//FFloat3 pStart, pEnd;
 		//m.transformVect(pStart, v * 1.0f);
 		//m.transformVect(pEnd, v * length);
 		//ray.start = pStart;
 		//ray.end = pEnd;
 	}
 
-	void TNodeCamera::GetRayFrom2DPointWithViewport(const rectf& vp, const vector2df& pos, line3df &ray, float length)
+	void TNodeCamera::GetRayFrom2DPointWithViewport(const rectf& vp, const FFloat2& pos, line3df &ray, float length)
 	{
-		vector3df orig,dir;
+		FFloat3 orig,dir;
 		const matrix4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
 		const matrix4& matView	= ViewArea.Matrices[ETS_VIEW];
 
@@ -292,22 +292,22 @@ namespace tix
 		matView.getInverse(m);
 
 		// Compute the vector of the Pick ray in screen space
-		vector3df v;
+		FFloat3 v;
 		v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
 		v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
 		v.Z = 1.0f;
 
-		vector3df pStart, pEnd;
+		FFloat3 pStart, pEnd;
 		m.transformVect(pStart, v * 1.0f);
 		m.transformVect(pEnd, v * length);
 		ray.start = pStart;
 		ray.end = pEnd;
 	}
 
-	vector2df TNodeCamera::Convert3Dto2D(const vector3df& pos)
+	FFloat2 TNodeCamera::Convert3Dto2D(const FFloat3& pos)
 	{
 		TI_ASSERT(0);
-		vector2df _pos_2d;
+		FFloat2 _pos_2d;
 		//float _proj_pos[4];
 
 		//const matrix4& matVP	= ViewArea.Matrices[ETS_VP];

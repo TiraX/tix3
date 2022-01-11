@@ -42,7 +42,7 @@ namespace tix
 
 	inline int	GetEventDistance(const _DeviceEvent& e1, const _DeviceEvent& e2)
 	{
-		return (e1.pos - e2.pos).getLengthSQ();
+		return (e1.pos - e2.pos).GetLengthSQ();
 	}
 
 	E_KEYEVENT_TYPE GetKeycode(int vk_code)
@@ -100,7 +100,7 @@ namespace tix
 	{
 		if (Start.type != EET_INVALID && End.type != EET_INVALID)
 		{
-			int dis_sq		= (End.pos - Start.pos).getLengthSQ();
+			int dis_sq		= (End.pos - Start.pos).GetLengthSQ();
 			int time_dis	= (int)(End.time_stamp - Start.time_stamp);
 			if (time_dis < 500)
 			{

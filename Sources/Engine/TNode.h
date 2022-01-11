@@ -50,16 +50,16 @@ namespace tix
 		virtual void AddChild(TNode* child);		// add child at the end of children
 		virtual void Remove();
 		
-		virtual void SetPosition(const vector3df& pos);
-		virtual void SetScale(const vector3df& scale);
+		virtual void SetPosition(const FFloat3& pos);
+		virtual void SetScale(const FFloat3& scale);
 		virtual void SetRotate(const quaternion& rotate);
 		
 		virtual TNode* GetNodeById(const TString& uid);
 		virtual void GetNodesByType(E_NODE_TYPE type, TVector<TNode*>& elements);
 		virtual TNode* GetNodeByPath(const TString& NodePath);
 		
-		virtual TNode* IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, vector3df& outIntersection);
-		virtual TNode* IsIntersectWithPoint(const vector3df& p, aabbox3df& outBBox, vector3df& outIntersection);
+		virtual TNode* IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, FFloat3& outIntersection);
+		virtual TNode* IsIntersectWithPoint(const FFloat3& p, aabbox3df& outBBox, FFloat3& outIntersection);
 
 		virtual void Tick(float Dt);
 
@@ -102,7 +102,7 @@ namespace tix
 			return (uint32)Children.size();
 		}
 
-		virtual const vector3df& GetRelativePosition() const
+		virtual const FFloat3& GetRelativePosition() const
 		{
 			return RelativePosition;
 		}
@@ -112,12 +112,12 @@ namespace tix
 			return RelativeRotate;
 		}
 
-		virtual const vector3df& GetRelativeScale() const
+		virtual const FFloat3& GetRelativeScale() const
 		{
 			return RelativeScale;
 		}
 
-		virtual vector3df GetAbsolutePosition()
+		virtual FFloat3 GetAbsolutePosition()
 		{
 			return AbsoluteTransformation.getTranslation();
 		}
@@ -156,9 +156,9 @@ namespace tix
 
 		uint32 NodeFlag;
 
-		vector3df RelativePosition;
+		FFloat3 RelativePosition;
 		quaternion RelativeRotate;
-		vector3df RelativeScale;
+		FFloat3 RelativeScale;
 
 		matrix4 AbsoluteTransformation;
 		matrix4 RelativeTransformation;

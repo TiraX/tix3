@@ -62,10 +62,10 @@ namespace tix
 
 	void FDefaultRenderer::DrawSceneTiles(FRHI* RHI, FScene* Scene)
 	{
-		const THMap<vector2di, FSceneTileResourcePtr>& SceneTileResources = Scene->GetSceneTiles();
+		const THMap<FInt2, FSceneTileResourcePtr>& SceneTileResources = Scene->GetSceneTiles();
 		for (auto& TileIter : SceneTileResources)
 		{
-			const vector2di& TilePos = TileIter.first;
+			const FInt2& TilePos = TileIter.first;
 			FSceneTileResourcePtr TileRes = TileIter.second;
 
 			const TVector<FPrimitivePtr>& TilePrimitives = TileRes->GetPrimitives();
@@ -120,7 +120,7 @@ namespace tix
 		case ARGUMENT_EB_ENV_CUBE:
 		{
 			TI_TODO("Env Light should use the nearest with Primitive, associate with Primitive Buffer. Remove ARGUMENT_EB_ENV_CUBE in future");
-			FEnvLightPtr EnvLight = Scene->FindNearestEnvLight(vector3df());
+			FEnvLightPtr EnvLight = Scene->FindNearestEnvLight(FFloat3());
 			RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
 			break;

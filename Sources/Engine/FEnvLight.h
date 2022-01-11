@@ -12,7 +12,7 @@ namespace tix
 	class FEnvLight : public FRenderResource
 	{
 	public:
-		FEnvLight(FTexturePtr InCubemap, const vector3df& InPosition);
+		FEnvLight(FTexturePtr InCubemap, const FFloat3& InPosition);
 		virtual ~FEnvLight();
 
 		FTexturePtr GetEnvCubemap()
@@ -27,7 +27,7 @@ namespace tix
 
 	private:
 		FTexturePtr EnvCubemap;
-		vector3df Position;
+		FFloat3 Position;
 
 		FRenderResourceTablePtr ResourceTable;
 	};

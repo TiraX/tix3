@@ -25,13 +25,13 @@ namespace tix
 
 		void reset(T x, T y)
 		{
-			Left	= x;
-			Right	= x;
-			Upper	= y;
-			Lower	= y;
+			Left = x;
+			Right = x;
+			Upper = y;
+			Lower = y;
 		}
 
-		void reset(const vector2d<T>& p)
+		void reset(const FVec2<T>& p)
 		{
 			reset(p.X, p.Y);
 		}
@@ -39,18 +39,18 @@ namespace tix
 		bool operator==(const rect<T>& other) const
 		{
 			return (Upper == other.Upper &&
-					Left == other.Left &&
-					Lower == other.Lower &&
-					Right == other.Right);
+				Left == other.Left &&
+				Lower == other.Lower &&
+				Right == other.Right);
 		}
 
 
 		bool operator!=(const rect<T>& other) const
 		{
 			return (Upper != other.Upper ||
-					Left != other.Left ||
-					Lower != other.Lower ||
-					Right != other.Right);
+				Left != other.Left ||
+				Lower != other.Lower ||
+				Right != other.Right);
 		}
 
 		rect<T>& operator+=(const rect<T>& other)
@@ -63,10 +63,10 @@ namespace tix
 		rect<T> operator * (T num) const
 		{
 			rect<T> rc;
-			rc.Left			= this->Left * num;
-			rc.Right		= this->Right * num;
-			rc.Upper		= this->Upper * num;
-			rc.Lower		= this->Lower * num;
+			rc.Left = this->Left * num;
+			rc.Right = this->Right * num;
+			rc.Upper = this->Upper * num;
+			rc.Lower = this->Lower * num;
 
 			return rc;
 		}
@@ -74,10 +74,10 @@ namespace tix
 		rect<T> operator * (const rect<T>& other) const
 		{
 			rect<T> rc;
-			rc.Left			= Left * other.Left;
-			rc.Right		= Right * other.Right;
-			rc.Upper		= Upper * other.Upper;
-			rc.Lower		= Lower * other.Lower;
+			rc.Left = Left * other.Left;
+			rc.Right = Right * other.Right;
+			rc.Upper = Upper * other.Upper;
+			rc.Lower = Lower * other.Lower;
 
 			return rc;
 		}
@@ -99,22 +99,22 @@ namespace tix
 		bool isPointInside(T x, T y) const
 		{
 			return (x >= Left && x <= Right &&
-					y >= Upper && y <= Lower);
+				y >= Upper && y <= Lower);
 		}
 
 		//! Returns if the rectangle collides with another rectangle.
 		bool isRectCollided(const rect<T>& other) const
 		{
 			return (Lower > other.Upper &&
-					Upper < other.Lower &&
-					Right > other.Left &&
-					Left < other.Right);
+				Upper < other.Lower&&
+				Right > other.Left &&
+				Left < other.Right);
 		}
 
 		//! Returns if the rectangle collides with a circle
-		bool isRectCollidedWithCircle(const vector2d<T>& point, T radius) const
+		bool isRectCollidedWithCircle(const FVec2<T>& point, T radius) const
 		{
-			vector2d<T> center	= getCenter();
+			FVec2<T> center = getCenter();
 			return	abs(center.X - point.X) < radius + getWidth() / 2 &&
 				abs(center.Y - point.Y) < radius + getHeight() / 2;
 		}
@@ -124,15 +124,15 @@ namespace tix
 			T tmp;
 			if (max0 < min0)
 			{
-				tmp		= max0;
-				max0	= min0;
-				min0	= tmp;
+				tmp = max0;
+				max0 = min0;
+				min0 = tmp;
 			}
 			if (max1 < min1)
 			{
-				tmp		= max1;
-				max1	= min1;
-				min1	= tmp;
+				tmp = max1;
+				max1 = min1;
+				min1 = tmp;
 			}
 
 			if (max1 < min0 || min1 > max0)
@@ -152,20 +152,20 @@ namespace tix
 			{
 				// accurate test, test line across 2 lines
 				line2d<T> l;
-				l.start.X			= Left;
-				l.start.Y			= Upper;
-				l.end.X				= Right;
-				l.end.Y				= Lower;
+				l.start.X = Left;
+				l.start.Y = Upper;
+				l.end.X = Right;
+				l.end.Y = Lower;
 
 				if (l.isIntersectWithLine2d(line))
 				{
 					return true;
 				}
 
-				l.start.X			= Right;
-				l.start.Y			= Upper;
-				l.end.X				= Left;
-				l.end.Y				= Lower;
+				l.start.X = Right;
+				l.start.Y = Upper;
+				l.end.X = Left;
+				l.end.Y = Lower;
 				if (l.isIntersectWithLine2d(line))
 				{
 					return true;
@@ -269,29 +269,29 @@ namespace tix
 		bool isValid() const
 		{
 			return ((Right >= Left) &&
-					(Lower >= Upper));
+				(Lower >= Upper));
 		}
 
 		//! Returns the center of the rectangle
-		vector2d<T> getCenter() const
+		FVec2<T> getCenter() const
 		{
-			return vector2d<T>((Left + Right) / 2,
-							   (Upper + Lower) / 2);
+			return FVec2<T>((Left + Right) / 2,
+				(Upper + Lower) / 2);
 		}
 
 		//! Returns the dimensions of the rectangle
-		vector2d<T> getSize() const
+		FVec2<T> getSize() const
 		{
-			return vector2d<T>(getWidth(), getHeight());
+			return FVec2<T>(getWidth(), getHeight());
 		}
 
 
 		//! Adds a point to the rectangle, causing it to grow bigger,
 		//! if point is outside of the box
 		//! \param p Point to add into the box.
-		void addInternalPoint(const vector2d<T>& p)
+		void addInternalPoint(const FVec2<T>& p)
 		{
-			addInternalPoint(p.getX(), p.getY());
+			addInternalPoint(p.X, p.Y);
 		}
 
 		//! Adds a point to the bounding rectangle, causing it to grow bigger,
@@ -320,18 +320,18 @@ namespace tix
 
 		void move(T x, T y)
 		{
-			Left	+= x;
-			Right	+= x;
-			Upper	+= y;
-			Lower	+= y;
+			Left += x;
+			Right += x;
+			Upper += y;
+			Lower += y;
 		}
 
-		void move(const vector2d<T>& off)
+		void move(const FVec2<T>& off)
 		{
-			Left	+= off.X;
-			Right	+= off.X;
-			Upper	+= off.Y;
-			Lower	+= off.Y;
+			Left += off.X;
+			Right += off.X;
+			Upper += off.Y;
+			Lower += off.Y;
 		}
 
 		void scale(T w, T h)
@@ -344,13 +344,13 @@ namespace tix
 
 		void scaleFromCenter(float w, float h)
 		{
-			vector2d<T> center	= getCenter();
-			T w_h				= (T)(getWidth() * w / 2);
-			T h_h				= (T)(getHeight() * h / 2);
-			Left				= center.X - w_h;
-			Right				= center.X + w_h;
-			Upper				= center.Y - h_h;
-			Lower				= center.Y + h_h;
+			FVec2<T> center = getCenter();
+			T w_h = (T)(getWidth() * w / 2);
+			T h_h = (T)(getHeight() * h / 2);
+			Left = center.X - w_h;
+			Right = center.X + w_h;
+			Upper = center.Y - h_h;
+			Lower = center.Y + h_h;
 		}
 
 

@@ -11,10 +11,10 @@ namespace tix
 	{
 		matrix4 MatView;
 		matrix4 MatProj;
-		vector3df CamPos;
-		vector3df CamDir;
-		vector3df HorVector;
-		vector3df VerVector;
+		FFloat3 CamPos;
+		FFloat3 CamDir;
+		FFloat3 HorVector;
+		FFloat3 VerVector;
 		float Fov;
 	};
 
@@ -36,7 +36,7 @@ namespace tix
 	public:
 		virtual ~TNodeCamera();
 
-		virtual void SetPosition(const vector3df& pos) override;
+		virtual void SetPosition(const FFloat3& pos) override;
 		virtual void UpdateAllTransformation() override;
 
 		//! Sets the projection matrix of the camera.
@@ -59,23 +59,23 @@ namespace tix
 
 		//! sets the look at target of the camera
 		//! \param pos Look at target of the camera.
-		virtual void SetTarget(const vector3df& pos);
+		virtual void SetTarget(const FFloat3& pos);
 
 		//! sets the Rotator of camera in radian
 		//! \param rotator include Pitch Yaw Roll in Radian.
-		virtual void SetRotator(const vector3df& rotator);
+		virtual void SetRotator(const FFloat3& rotator);
 
 		//! Gets the current look at target of the camera
 		//! \return Returns the current look at target of the camera
-		virtual const vector3df& GetTarget() const;
+		virtual const FFloat3& GetTarget() const;
 
 		//! Sets the up vector of the camera.
 		//! \param pos New upvector of the camera.
-		virtual void SetUpVector(const vector3df& pos);
+		virtual void SetUpVector(const FFloat3& pos);
 
 		//! Gets the up vector of the camera.
 		//! \return Returns the up vector of the camera.
-		virtual const vector3df& GetUpVector() const;
+		virtual const FFloat3& GetUpVector() const;
 
 		//! Gets distance from the camera to the near plane.
 		//! \return Value of the near plane of the camera.
@@ -93,15 +93,15 @@ namespace tix
 		//! \return Field of view of the camera
 		virtual float32 GetFOV() const;
 
-		virtual const vector3df& GetCamDir()
+		virtual const FFloat3& GetCamDir()
 		{
 			return	CamDir;
 		}
-		virtual const vector3df& GetHorVector()
+		virtual const FFloat3& GetHorVector()
 		{
 			return	HorVector;
 		}
-		virtual const vector3df& GetVerVector()
+		virtual const FFloat3& GetVerVector()
 		{
 			return	VerVector;
 		}
@@ -125,12 +125,12 @@ namespace tix
 		virtual const SViewFrustum* GetViewFrustum() const;
 
 		//! Get a ray from the screen coord.
-		virtual void GetRayFrom2DPoint(const vector2di& pos, line3df &ray, float length = 1000.f);
-		virtual void GetRayFrom2DPoint(const vector2df& pos, line3df &ray, float length = 1000.f);
-		virtual void GetRayFrom2DPointWithViewport(const rectf& vp, const vector2df& pos, line3df &ray, float length = 1000.f);
+		virtual void GetRayFrom2DPoint(const FInt2& pos, line3df &ray, float length = 1000.f);
+		virtual void GetRayFrom2DPoint(const FFloat2& pos, line3df &ray, float length = 1000.f);
+		virtual void GetRayFrom2DPointWithViewport(const rectf& vp, const FFloat2& pos, line3df &ray, float length = 1000.f);
 
 		//! Convert 3d position into 2d screen space
-		TI_API	vector2df	Convert3Dto2D(const vector3df& pos);
+		TI_API FFloat2 Convert3Dto2D(const FFloat3& pos);
 
 		const SViewFrustum&	GetFrustum()
 		{
@@ -150,13 +150,13 @@ namespace tix
 	protected:
 		uint32 CameraFlags;
 
-		vector3df Target;
-		vector3df UpVector;
-		vector3df Rotator;
+		FFloat3 Target;
+		FFloat3 UpVector;
+		FFloat3 Rotator;
 
-		vector3df CamDir;
-		vector3df HorVector;
-		vector3df VerVector;
+		FFloat3 CamDir;
+		FFloat3 HorVector;
+		FFloat3 VerVector;
 
 		float32 Fovy;	// Field of view, in radians. 
 

@@ -187,7 +187,7 @@ namespace tix
 	struct TMeshClusterDef
 	{
 		aabbox3df BBox;
-		vector4df Cone;
+		FFloat4 Cone;
 	};
 
 	struct THeaderCollisionSet
@@ -271,7 +271,7 @@ namespace tix
 
 		// Environment
 		//   Sun light
-		vector3df MainLightDirection;
+		FFloat3 MainLightDirection;
 		SColorf MainLightColor;
 		float MainLightIntensity;
 		//   Sky light
@@ -306,17 +306,17 @@ namespace tix
 
 	struct THeaderCameraInfo
 	{
-		vector3df Location;
-		vector3df Target;
+		FFloat3 Location;
+		FFloat3 Target;
 		float FOV;
-		vector3df Rotate;	// Pitch, Yaw, Roll in degrees
+		FFloat3 Rotate;	// Pitch, Yaw, Roll in degrees
 		float Aspect;
 	};
 
 	struct THeaderSceneTile
 	{
 		int32 LevelNameIndex;
-		vector2di16 Position;
+		FHInt2 Position;
 		aabbox3df BBox;
 
 		// Dependency num
@@ -336,14 +336,14 @@ namespace tix
 	{
 		int32 NameIndex;
 		int32 LinkedCubemapIndex;
-		vector3df Position;
+		FFloat3 Position;
 	};
 
 	struct TResSMInstance
 	{
-		vector3df Position;
+		FFloat3 Position;
 		quaternion Rotation;
-		vector3df Scale;
+		FFloat3 Scale;
 	};
 
 	struct TResSKMActor
@@ -352,9 +352,9 @@ namespace tix
 		int32 SKIndex;	// Index to dependency.skeletons[]
 		int32 AnimIndex;	// Index to dependency.anims[]
 
-		vector3df Position;
+		FFloat3 Position;
 		quaternion Rotation;
-		vector3df Scale;
+		FFloat3 Scale;
 	};
 
 	struct THeaderSkeleton

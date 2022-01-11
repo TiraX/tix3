@@ -40,7 +40,7 @@ namespace tix
 		FRenderThread::Get()->GetRenderScene()->GetSceneLights()->RemoveLight(this);
 	}
 
-	void FLight::UpdateLightPosition_RenderThread(const vector3df& InPosition)
+	void FLight::UpdateLightPosition_RenderThread(const FFloat3& InPosition)
 	{
 		Position = InPosition;
 		FRenderThread::Get()->GetRenderScene()->GetSceneLights()->UpdateLight(this);

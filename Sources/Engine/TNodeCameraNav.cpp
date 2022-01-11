@@ -130,8 +130,8 @@ namespace tix
 
 	void TNodeCameraNav::UpdateCameraAction()
 	{
-		const vector2di& mouseStart = MouseStartPoint;
-		const vector2di& mouseCurrent = MouseCurrentPoint;
+		const FInt2& mouseStart = MouseStartPoint;
+		const FInt2& mouseCurrent = MouseCurrentPoint;
 
 		if (Action == ECA_ROLL)
 		{
@@ -142,9 +142,9 @@ namespace tix
 #endif
 			matrix4 mat;
 			quaternion rotX, rotY, rot;
-			vector3df tar_offset = OldPosition - OldTarget;
-			vector3df axis = UpVector.crossProduct(tar_offset);
-			axis.normalize();
+			FFloat3 tar_offset = OldPosition - OldTarget;
+			FFloat3 axis = UpVector.Cross(tar_offset);
+			axis.Normalize();
 			rotX.fromAngleAxis(-TMath::DegToRad(float(mouseCurrent.X - mouseStart.X)) * rot_speed, UpVector);
 			rotY.fromAngleAxis(TMath::DegToRad(float(mouseCurrent.Y - mouseStart.Y)) * rot_speed, axis);
 			rot = rotX * rotY;
@@ -157,17 +157,17 @@ namespace tix
 		}
 		else if (Action == ECA_DOLLY)
 		{
-			vector3df p2t = Target - RelativePosition;
-			float dis = p2t.getLength();
+			FFloat3 p2t = Target - RelativePosition;
+			float dis = p2t.GetLength();
 			float speed_adjust = 1.f;
 			if (dis < 2.f)
 				speed_adjust = 0.2f;
-			p2t.normalize();
-			vector3df speed = p2t * float(MouseCurrentPoint.X) * DollySpeed * speed_adjust;
+			p2t.Normalize();
+			FFloat3 speed = p2t * float(MouseCurrentPoint.X) * DollySpeed * speed_adjust;
 			RelativePosition += speed;
 
-			vector3df p2t1 = Target - RelativePosition;
-			if (p2t1.dotProduct(p2t) < 0.f)
+			FFloat3 p2t1 = Target - RelativePosition;
+			if (p2t1.Dot(p2t) < 0.f)
 			{
 				Target += speed;
 			}
@@ -182,13 +182,13 @@ namespace tix
 		
 		if (Action == ECA_MOVE)
 		{
-			vector3df p2t = Target - RelativePosition;
-			vector3df dirx = p2t.crossProduct(UpVector);
-			dirx.normalize();
-			vector3df diry = dirx.crossProduct(p2t);
-			diry.normalize();
+			FFloat3 p2t = Target - RelativePosition;
+			FFloat3 dirx = p2t.Cross(UpVector);
+			dirx.Normalize();
+			FFloat3 diry = dirx.Cross(p2t);
+			diry.Normalize();
 
-			vector3df move_offset = dirx * (float)(mouseCurrent.X - mouseStart.X) + diry * (float)(mouseCurrent.Y - mouseStart.Y);
+			FFloat3 move_offset = dirx * (float)(mouseCurrent.X - mouseStart.X) + diry * (float)(mouseCurrent.Y - mouseStart.Y);
 			move_offset *= MoveSpeed;
 			Target = OldTarget + move_offset;
 			RelativePosition = OldPosition + move_offset;

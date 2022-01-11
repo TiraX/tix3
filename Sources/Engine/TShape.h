@@ -12,31 +12,31 @@ namespace tix
 	public:
 		static void CreateICOSphere(
 			uint32 Frequency,
-			const vector3df& Center, 
+			const FFloat3& Center, 
 			float Radius, 
-			TVector<vector3df>& OutPositions, 
+			TVector<FFloat3>& OutPositions, 
 			TVector<uint32>& OutIndices);
 
 		static void CreateBox(
-			const vector3df& Center, 
-			const vector3df& Edges, 
+			const FFloat3& Center, 
+			const FFloat3& Edges, 
 			const quaternion& Rotation, 
-			TVector<vector3df>& OutPositions, 
+			TVector<FFloat3>& OutPositions, 
 			TVector<uint32>& OutIndices);
 
 		static void CreateCapsule(
 			uint32 Latitude,
 			uint32 Longitude,
-			const vector3df& Center, 
+			const FFloat3& Center, 
 			float Radius, 
 			float Length, 
 			const quaternion& Rotation, 
-			TVector<vector3df>& OutPositions, 
+			TVector<FFloat3>& OutPositions, 
 			TVector<uint32>& OutIndices);
 
 		static void RecalcNormal(
-			const TVector<vector3df>& Positions,
+			const TVector<FFloat3>& Positions,
 			const TVector<uint32>& Indices,
-			TVector<vector3df>& OutNormals);
+			TVector<FFloat3>& OutNormals);
 	};
 }

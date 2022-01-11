@@ -17,40 +17,40 @@ namespace tix
 	{
 	public:
 		//! Default Constructor.
-		aabbox3d(): MinEdge(T(-1),T(-1),T(-1)), MaxEdge(1,1,1) {}
+		aabbox3d() : MinEdge(T(-1), T(-1), T(-1)), MaxEdge(1, 1, 1) {}
 		//! Constructor with min edge and max edge.
-		aabbox3d(const vector3d<T>& min, const vector3d<T>& max): MinEdge(min), MaxEdge(max) {}
+		aabbox3d(const FVec3<T>& min, const FVec3<T>& max) : MinEdge(min), MaxEdge(max) {}
 		//! Constructor with only one point.
-		explicit aabbox3d(const vector3d<T>& init): MinEdge(init), MaxEdge(init) {}
+		explicit aabbox3d(const FVec3<T>& init) : MinEdge(init), MaxEdge(init) {}
 		//! Constructor with min edge and max edge as single values, not vectors.
-		aabbox3d(T minx, T miny, T minz, T maxx, T maxy, T maxz): MinEdge(minx, miny, minz), MaxEdge(maxx, maxy, maxz) {}
+		aabbox3d(T minx, T miny, T minz, T maxx, T maxy, T maxz) : MinEdge(minx, miny, minz), MaxEdge(maxx, maxy, maxz) {}
 
 		// operators
 		//! Equality operator
 		/** \param other box to compare with.
 			\return True if both boxes are equal, else false. */
-		inline bool operator==(const aabbox3d<T>& other) const { return (MinEdge == other.MinEdge && other.MaxEdge == MaxEdge);}
+		inline bool operator==(const aabbox3d<T>& other) const { return (MinEdge == other.MinEdge && other.MaxEdge == MaxEdge); }
 		//! Inequality operator
 		/** \param other box to compare with.
 			\return True if both boxes are different, else false. */
-		inline bool operator!=(const aabbox3d<T>& other) const { return !(MinEdge == other.MinEdge && other.MaxEdge == MaxEdge);}
+		inline bool operator!=(const aabbox3d<T>& other) const { return !(MinEdge == other.MinEdge && other.MaxEdge == MaxEdge); }
 		//! Translate the whole bounding box
-		inline aabbox3d<T>& operator+=(const vector3d<T>& other) 
-		{ 
+		inline aabbox3d<T>& operator+=(const FVec3<T>& other)
+		{
 			MinEdge += other;
 			MaxEdge += other;
 			return *this;
 		}
-		
+
 
 		// functions
 
 		//! Adds a point to the bounding box
 		/** The box grows bigger, if point was outside of the box.
 			\param p Point to add into the box. */
-		void addInternalPoint(const vector3d<T>& p)
+		void addInternalPoint(const FVec3<T>& p)
 		{
-			addInternalPoint(p.getX(), p.getY(), p.getZ());
+			addInternalPoint(p.X, p.Y, p.Z);
 		}
 
 		//! Adds another bounding box
@@ -68,7 +68,7 @@ namespace tix
 			\param z Z coord of the point. */
 		void reset(T x, T y, T z)
 		{
-			MaxEdge.set(x,y,z);
+			MaxEdge.set(x, y, z);
 			MinEdge = MaxEdge;
 		}
 
@@ -81,22 +81,22 @@ namespace tix
 
 		//! Resets the bounding box to a one-point box.
 		/** \param initValue New point. */
-		void reset(const vector3d<T>& initValue)
+		void reset(const FVec3<T>& initValue)
 		{
 			MaxEdge = initValue;
 			MinEdge = initValue;
 		}
-	#undef max
-	#undef min
+#undef max
+#undef min
 		//! Invalidate bounding box
 		void invalidate()
 		{
-			MaxEdge = vector3d<T>(std::numeric_limits<T>::min(),
-								  std::numeric_limits<T>::min(),
-								  std::numeric_limits<T>::min());
-			MinEdge = vector3d<T>(std::numeric_limits<T>::max(),
-								  std::numeric_limits<T>::max(),
-								  std::numeric_limits<T>::max());
+			MaxEdge = FVec3<T>(std::numeric_limits<T>::min(),
+				std::numeric_limits<T>::min(),
+				std::numeric_limits<T>::min());
+			MinEdge = FVec3<T>(std::numeric_limits<T>::max(),
+				std::numeric_limits<T>::max(),
+				std::numeric_limits<T>::max());
 		}
 
 		//! Adds a point to the bounding box
@@ -106,33 +106,33 @@ namespace tix
 			\param z Z coordinate of the point to add to this box. */
 		void addInternalPoint(T x, T y, T z)
 		{
-			if (x>MaxEdge.getX()) MaxEdge.setX(x);
-			if (y>MaxEdge.getY()) MaxEdge.setY(y);
-			if (z>MaxEdge.getZ()) MaxEdge.setZ(z);
+			if (x > MaxEdge.X) MaxEdge.X = x;
+			if (y > MaxEdge.Y) MaxEdge.Y = y;
+			if (z > MaxEdge.Z) MaxEdge.Z = z;
 
-			if (x<MinEdge.getX()) MinEdge.setX(x);
-			if (y<MinEdge.getY()) MinEdge.setY(y);
-			if (z<MinEdge.getZ()) MinEdge.setZ(z);
+			if (x < MinEdge.X) MinEdge.X = x;
+			if (y < MinEdge.Y) MinEdge.Y = y;
+			if (z < MinEdge.Z) MinEdge.Z = z;
 		}
 
 		//! Determines if a point is within this box.
 		/** \param p Point to check.
 			\return True if the point is within the box and false if not */
-		bool isPointInside(const vector3d<T>& p) const
+		bool isPointInside(const FVec3<T>& p) const
 		{
-			return (p.getX() >= MinEdge.getX() && p.getX() <= MaxEdge.getX() &&
-					p.getY() >= MinEdge.getY() && p.getY() <= MaxEdge.getY() &&
-					p.getZ() >= MinEdge.getZ() && p.getZ() <= MaxEdge.getZ());
+			return (p.X >= MinEdge.X && p.X <= MaxEdge.X &&
+				p.Y >= MinEdge.Y && p.Y <= MaxEdge.Y &&
+				p.Z >= MinEdge.Z && p.Z <= MaxEdge.Z);
 		}
 
 		//! Determines if a point is within this box and its borders.
 		/** \param p Point to check.
 			\return True if the point is within the box and false if not. */
-		bool isPointTotalInside(const vector3d<T>& p) const
+		bool isPointTotalInside(const FVec3<T>& p) const
 		{
-			return (p.getX() > MinEdge.getX() && p.getX() < MaxEdge.getX() &&
-					p.getY() > MinEdge.getY() && p.getY() < MaxEdge.getY() &&
-					p.getZ() > MinEdge.getZ() && p.getZ() < MaxEdge.getZ());
+			return (p.X > MinEdge.X && p.X < MaxEdge.X &&
+				p.Y > MinEdge.Y && p.Y < MaxEdge.Y &&
+				p.Z > MinEdge.Z && p.Z < MaxEdge.Z);
 		}
 
 		//! Determines if the box intersects with another box.
@@ -156,12 +156,12 @@ namespace tix
 		//! Tests if the box intersects with a point
 		/** \param point Point to test intersection with.
 			\return True if there is an intersection , else false. */
-		bool intersectsWithPoint(const vector3d<T>& point) const
+		bool intersectsWithPoint(const FVec3<T>& point) const
 		{
 			bool r;
-			r =  (MinEdge.getX() <= point.getX() && point.getX() <= MaxEdge.getX());
-			r &= (MinEdge.getY() <= point.getY() && point.getY() <= MaxEdge.getY());
-			r &= (MinEdge.getZ() <= point.getZ() && point.getZ() <= MaxEdge.getZ());
+			r = (MinEdge.X <= point.X && point.X <= MaxEdge.X);
+			r &= (MinEdge.Y <= point.Y && point.Y <= MaxEdge.Y);
+			r &= (MinEdge.Z <= point.Z && point.Z <= MaxEdge.Z);
 			return r;
 		}
 
@@ -170,28 +170,28 @@ namespace tix
 			\param linevect Vector of the line.
 			\param halflength Half length of the line.
 			\return True if there is an intersection, else false. */
-		bool intersectsWithLine_impl_irr(const vector3d<T>& linemiddle,
-										 const vector3d<T>& linevect,
-										 T halflength) const
+		bool intersectsWithLine_impl_irr(const FVec3<T>& linemiddle,
+			const FVec3<T>& linevect,
+			T halflength) const
 		{
-			const vector3d<T> e = getExtent() * (T)0.5;
-			const vector3d<T> t = getCenter() - linemiddle;
+			const FVec3<T> e = getExtent() * (T)0.5;
+			const FVec3<T> t = getCenter() - linemiddle;
 
-			if ((fabs(t.getX()) > e.getX() + halflength * fabs(linevect.getX())) ||
-				(fabs(t.getY()) > e.getY() + halflength * fabs(linevect.getY())) ||
-				(fabs(t.getZ()) > e.getZ() + halflength * fabs(linevect.getZ())) )
+			if ((fabs(t.X) > e.X + halflength * fabs(linevect.X)) ||
+				(fabs(t.Y) > e.Y + halflength * fabs(linevect.Y)) ||
+				(fabs(t.Z) > e.Z + halflength * fabs(linevect.Z)))
 				return false;
 
-			T r = e.getY() * (T)fabs(linevect.getZ()) + e.getZ() * (T)fabs(linevect.getY());
-			if (fabs(t.getY()*linevect.getZ() - t.getZ()*linevect.getY()) > r )
+			T r = e.Y * (T)fabs(linevect.Z) + e.Z * (T)fabs(linevect.Y);
+			if (fabs(t.Y * linevect.Z - t.Z * linevect.Y) > r)
 				return false;
 
-			r = e.getX() * (T)fabs(linevect.getZ()) + e.getZ() * (T)fabs(linevect.getX());
-			if (fabs(t.getZ()*linevect.getX() - t.getX()*linevect.getZ()) > r )
+			r = e.X * (T)fabs(linevect.Z) + e.Z * (T)fabs(linevect.X);
+			if (fabs(t.Z * linevect.X - t.X * linevect.Z) > r)
 				return false;
 
-			r = e.getX() * (T)fabs(linevect.getY()) + e.getY() * (T)fabs(linevect.getX());
-			if (fabs(t.getX()*linevect.getY() - t.getY()*linevect.getX()) > r)
+			r = e.X * (T)fabs(linevect.Y) + e.Y * (T)fabs(linevect.X);
+			if (fabs(t.X * linevect.Y - t.Y * linevect.X) > r)
 				return false;
 
 			return true;
@@ -199,74 +199,74 @@ namespace tix
 
 		//! Tests if the box intersects with a line segment in 1D
 		/** \return True if there is an intersection , else false. */
-		bool intersectsWithLine_impl_1d (T  bmin,		// min value of the bounding box
-										 T  bmax,		// max value of the bounding box
-										 T  si,		    // start of the line segment
-										 T  ei,         // end of the line segment
-										 T& fst,        // given start value to compare (start with 0)
-										 T& fet         // given end value to compare (start with 1)
-										) const
+		bool intersectsWithLine_impl_1d(T  bmin,		// min value of the bounding box
+			T  bmax,		// max value of the bounding box
+			T  si,		    // start of the line segment
+			T  ei,         // end of the line segment
+			T& fst,        // given start value to compare (start with 0)
+			T& fet         // given end value to compare (start with 1)
+		) const
 		{
 			// The algorithm need to know which of the start or the end of the 
 			// segment is smaller; the variable could be swapped, but it's faster
 			// to duplicate the code.
 			T   st, et;
-			T   di = ei - si;  
+			T   di = ei - si;
 
-			if (si < ei) 
-			{  
-				if (si > bmax || ei < bmin) 
+			if (si < ei)
+			{
+				if (si > bmax || ei < bmin)
 					return false;   // outside AABB
-				st = (si < bmin) ? (bmin - si) / di: 0; // cut / inclusion 
-				et = (ei > bmax) ? (bmax - si) / di: 1; // cut / inclusion 
-			} 
-			else 
-			{  
-				if (ei > bmax || si < bmin)  
+				st = (si < bmin) ? (bmin - si) / di : 0; // cut / inclusion 
+				et = (ei > bmax) ? (bmax - si) / di : 1; // cut / inclusion 
+			}
+			else
+			{
+				if (ei > bmax || si < bmin)
 					return false;   //  outside AABB
-				st = (si > bmax)? (bmax - si) / di: 0;  // cut / inclusion  
-				et = (ei < bmin)? (bmin - si) / di: 1;  // cut / inclusion
+				st = (si > bmax) ? (bmax - si) / di : 0;  // cut / inclusion  
+				et = (ei < bmin) ? (bmin - si) / di : 1;  // cut / inclusion
 			}
 
 			if (st > fst)   // Compare with prev results - the furthest the start, the better
-				fst = st;  
+				fst = st;
 			if (et < fet)   // Compare with prev results - the closest the end, the better
 				fet = et;
 
 			if (fet < fst)  // result turned to be outside.
-				return false;   
+				return false;
 
 			return true;    // collision exist
 		}
 
-	
+
 		//! Tests if the box intersects with a line
 		/** \param line Line to test intersection with.
 			\return True if there is an intersection , else false. */
 		bool intersectsWithLine(const line3d<T>& line) const
 		{
 			T   fst, fet;
-			return intersectsWithSegment( line, fst, fet );
+			return intersectsWithSegment(line, fst, fet);
 		}
 
 		//! Tests if the box intersects with a segment
 		/** \param line Line to test intersection with.
-			\return True if there is an intersection , else false. 
-			Also returns two values which are the relative distance to the collision with the 
+			\return True if there is an intersection , else false.
+			Also returns two values which are the relative distance to the collision with the
 			nearest plane (steping in) and the relative distance to the far plane (steping out).
 			*/
-		bool intersectsWithSegment( const line3d<T>& line, T& fst, T& fet ) const
+		bool intersectsWithSegment(const line3d<T>& line, T& fst, T& fet) const
 		{
 			fst = 0;
 			fet = 1;
-			return intersectsWithLine_impl_1d (MinEdge.getX(), MaxEdge.getX(), line.start.getX(), line.end.getX(), fst, fet)
-				&& intersectsWithLine_impl_1d (MinEdge.getY(), MaxEdge.getY(), line.start.getY(), line.end.getY(), fst, fet)
-				&& intersectsWithLine_impl_1d (MinEdge.getZ(), MaxEdge.getZ(), line.start.getZ(), line.end.getZ(), fst, fet);
+			return intersectsWithLine_impl_1d(MinEdge.X, MaxEdge.X, line.start.X, line.end.X, fst, fet)
+				&& intersectsWithLine_impl_1d(MinEdge.Y, MaxEdge.Y, line.start.Y, line.end.Y, fst, fet)
+				&& intersectsWithLine_impl_1d(MinEdge.Z, MaxEdge.Z, line.start.Z, line.end.Z, fst, fet);
 		}
 
 		//! Get center of the bounding box
 		/** \return Center of the bounding box. */
-		vector3d<T> getCenter() const
+		FVec3<T> getCenter() const
 		{
 			return (MinEdge + MaxEdge) / 2;
 		}
@@ -274,36 +274,36 @@ namespace tix
 
 		//! Get extent of the box
 		/** \return Extent of the bounding box. */
-		vector3d<T> getExtent() const
+		FVec3<T> getExtent() const
 		{
 			return MaxEdge - MinEdge;
 		}
 
 		void extend(float ratio)
 		{
-			vector3d<T> center	= getCenter();
-			vector3d<T> extent	= getExtent();
-			extent				*= ratio * 0.5f;
-			MaxEdge				= center + extent;
-			MinEdge				= center - extent;
+			FVec3<T> center = getCenter();
+			FVec3<T> extent = getExtent();
+			extent *= ratio * 0.5f;
+			MaxEdge = center + extent;
+			MinEdge = center - extent;
 		}
 
 		void extend(float x, float y, float z)
 		{
-			vector3d<T> center	= getCenter();
-			vector3d<T> extent	= getExtent();
-			extent				*= vector3df(x, y, z) * 0.5f;
-			MaxEdge				= center + extent;
-			MinEdge				= center - extent;
+			FVec3<T> center = getCenter();
+			FVec3<T> extent = getExtent();
+			extent *= FFloat3(x, y, z) * 0.5f;
+			MaxEdge = center + extent;
+			MinEdge = center - extent;
 		}
 
 
 		//! Stores all 8 edges of the box into an array
 		/** \param edges Pointer to array of 8 edges. */
-		void getEdges(vector3d<T> *edges) const
+		void getEdges(FVec3<T>* edges) const
 		{
-			const vector3d<T> middle = getCenter();
-			const vector3d<T> diag = middle - MaxEdge;
+			const FVec3<T> middle = getCenter();
+			const FVec3<T> diag = middle - MaxEdge;
 
 			/*
 			  Edges are stored in this way:
@@ -318,14 +318,14 @@ namespace tix
 			  0---------4/
 			*/
 
-			edges[0].set(middle.getX() + diag.getX(), middle.getY() + diag.getY(), middle.getZ() + diag.getZ());
-			edges[1].set(middle.getX() + diag.getX(), middle.getY() - diag.getY(), middle.getZ() + diag.getZ());
-			edges[2].set(middle.getX() + diag.getX(), middle.getY() + diag.getY(), middle.getZ() - diag.getZ());
-			edges[3].set(middle.getX() + diag.getX(), middle.getY() - diag.getY(), middle.getZ() - diag.getZ());
-			edges[4].set(middle.getX() - diag.getX(), middle.getY() + diag.getY(), middle.getZ() + diag.getZ());
-			edges[5].set(middle.getX() - diag.getX(), middle.getY() - diag.getY(), middle.getZ() + diag.getZ());
-			edges[6].set(middle.getX() - diag.getX(), middle.getY() + diag.getY(), middle.getZ() - diag.getZ());
-			edges[7].set(middle.getX() - diag.getX(), middle.getY() - diag.getY(), middle.getZ() - diag.getZ());
+			edges[0].set(middle.X + diag.X, middle.Y + diag.Y, middle.Z + diag.Z);
+			edges[1].set(middle.X + diag.X, middle.Y - diag.Y, middle.Z + diag.Z);
+			edges[2].set(middle.X + diag.X, middle.Y + diag.Y, middle.Z - diag.Z);
+			edges[3].set(middle.X + diag.X, middle.Y - diag.Y, middle.Z - diag.Z);
+			edges[4].set(middle.X - diag.X, middle.Y + diag.Y, middle.Z + diag.Z);
+			edges[5].set(middle.X - diag.X, middle.Y - diag.Y, middle.Z + diag.Z);
+			edges[6].set(middle.X - diag.X, middle.Y + diag.Y, middle.Z - diag.Z);
+			edges[7].set(middle.X - diag.X, middle.Y - diag.Y, middle.Z - diag.Z);
 		}
 
 
@@ -335,7 +335,7 @@ namespace tix
 			\return True if box is empty, else false. */
 		bool isEmpty() const
 		{
-			return MinEdge.equals ( MaxEdge );
+			return MinEdge.equals(MaxEdge);
 		}
 
 
@@ -345,12 +345,18 @@ namespace tix
 		{
 			T t;
 
-			if (MinEdge.getX() > MaxEdge.getX())
-			{ t=MinEdge.getX(); MinEdge.setX(MaxEdge.getX()); MaxEdge.setX(t); }
-			if (MinEdge.getY() > MaxEdge.getY())
-			{ t=MinEdge.getY(); MinEdge.setY(MaxEdge.getY()); MaxEdge.setY(t); }
-			if (MinEdge.getZ() > MaxEdge.getZ())
-			{ t=MinEdge.getZ(); MinEdge.setZ(MaxEdge.getZ()); MaxEdge.setZ(t); }
+			if (MinEdge.X > MaxEdge.X)
+			{
+				t = MinEdge.X; MinEdge.setX(MaxEdge.X); MaxEdge.setX(t);
+			}
+			if (MinEdge.Y > MaxEdge.Y)
+			{
+				t = MinEdge.Y; MinEdge.setY(MaxEdge.Y); MaxEdge.setY(t);
+			}
+			if (MinEdge.Z > MaxEdge.Z)
+			{
+				t = MinEdge.Z; MinEdge.setZ(MaxEdge.Z); MaxEdge.setZ(t);
+			}
 		}
 
 		//! Calculates a newly interpolated bounding box.
@@ -360,34 +366,34 @@ namespace tix
 		aabbox3d<T> getInterpolated(const aabbox3d<T>& other, float32 d) const
 		{
 			float32 inv = 1.0f - d;
-			return aabbox3d<T>((other.MinEdge*inv) + (MinEdge*d),
-							   (other.MaxEdge*inv) + (MaxEdge*d));
+			return aabbox3d<T>((other.MinEdge * inv) + (MinEdge * d),
+				(other.MaxEdge * inv) + (MaxEdge * d));
 		}
 
 		//! Get the volume enclosed by the box in cubed units
 		T getVolume() const
 		{
-			const vector3d<T> e = getExtent();
-			return e.getX() * e.getY() * e.getZ();
+			const FVec3<T> e = getExtent();
+			return e.X * e.Y * e.Z;
 		}
 
 		//! Get the surface area of the box in squared units
 		T getArea() const
 		{
-			const vector3d<T> e = getExtent();
-			return 2*(e.getX()*e.getY() + e.getX()*e.getZ() + e.getY()*e.getZ());
+			const FVec3<T> e = getExtent();
+			return 2 * (e.X * e.Y + e.X * e.Z + e.Y * e.Z);
 		}
 
-		void move(const vector3d<T>& pos)
+		void move(const FVec3<T>& pos)
 		{
-			MinEdge		+= pos;
-			MaxEdge		+= pos;
+			MinEdge += pos;
+			MaxEdge += pos;
 		}
 
 		//! The near edge
-		vector3d<T> MinEdge;
+		FVec3<T> MinEdge;
 		//! The far edge
-		vector3d<T> MaxEdge;
+		FVec3<T> MaxEdge;
 	};
 
 	//! Typedef for a float32 3d bounding box.

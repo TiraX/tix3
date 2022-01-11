@@ -35,8 +35,8 @@ namespace tix
 		// Common Resources
 		struct FullScreenVertex
 		{
-			vector3df Position;
-			vector2df16 UV;
+			FFloat3 Position;
+			FHalf2 UV;
 		};
 		FMeshBufferPtr FullScreenQuad;
 		FPipelinePtr FullScreenPipeline;

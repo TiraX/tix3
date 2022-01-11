@@ -10,9 +10,9 @@ namespace tix
 	struct TBoneInfo
 	{
 		int32 ParentIndex;
-		vector3df Pos;
+		FFloat3 Pos;
 		quaternion Rot;
-		vector3df Scale;
+		FFloat3 Scale;
 	};
 
 	// TSkeleton, hold skeleton info for skeletal mesh
@@ -25,13 +25,13 @@ namespace tix
 		TSkeleton(int32 NumBones);
 		~TSkeleton();
 
-		void AddBone(int32 ParentIndex, const vector3df& InvTrans, const quaternion& InvRot, const vector3df& InvScale);
+		void AddBone(int32 ParentIndex, const FFloat3& InvTrans, const quaternion& InvRot, const FFloat3& InvScale);
 		void AddBone(const TBoneInfo& Bone);
 		void ComputeInvBindMatrices();
 
-		void SetBonePos(int32 BoneIndex, const vector3df& InPos);
+		void SetBonePos(int32 BoneIndex, const FFloat3& InPos);
 		void SetBoneRot(int32 BoneIndex, const quaternion& InRot);
-		void SetBoneScale(int32 BoneIndex, const vector3df& InScale);
+		void SetBoneScale(int32 BoneIndex, const FFloat3& InScale);
 
 		void BuildGlobalPoses();
 		void GatherBoneData(TVector<float>& BoneData, const TVector<uint32>& BoneMap);

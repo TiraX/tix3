@@ -68,7 +68,7 @@ namespace tix
 
 		TI_API TNodeStaticMesh* AddStaticMesh(TStaticMeshPtr InStaticMesh, TMaterialInstancePtr InMInstance, bool bCastShadow, bool bReceiveShadow);
 		TI_API void AddStaticMeshNode(TNodeStaticMesh * MeshNode);
-		TI_API TNodeLight* AddLight(const vector3df& Position, float Intensity, const SColor& Color);
+		TI_API TNodeLight* AddLight(const FFloat3& Position, float Intensity, const SColor& Color);
 
 		void ResetActiveLists();
 		void AddToActiveList(E_SCENE_LIST_TYPE List, TNode * ActiveNode);

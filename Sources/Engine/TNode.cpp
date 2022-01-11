@@ -65,13 +65,13 @@ namespace tix
 		Children.clear();
 	}
 
-	void TNode::SetPosition(const vector3df& pos)
+	void TNode::SetPosition(const FFloat3& pos)
 	{
 		RelativePosition	= pos;
 		NodeFlag		|= ENF_DIRTY_POS;
 	}
 
-	void TNode::SetScale(const vector3df& scale)
+	void TNode::SetScale(const FFloat3& scale)
 	{
 		RelativeScale		= scale;
 		NodeFlag		|= ENF_DIRTY_SCALE;
@@ -144,7 +144,7 @@ namespace tix
 			return Current;
 	}
 
-	TNode* TNode::IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, vector3df& outIntersection)
+	TNode* TNode::IsIntersectWithRay(const line3df& ray, aabbox3df& outBBox, FFloat3& outIntersection)
 	{
 		// test children
 		VecRenderElements::const_iterator it = Children.begin();
@@ -160,7 +160,7 @@ namespace tix
 		return NULL;
 	}
 
-	TNode* TNode::IsIntersectWithPoint(const vector3df& p, aabbox3df& outBBox, vector3df& outIntersection)
+	TNode* TNode::IsIntersectWithPoint(const FFloat3& p, aabbox3df& outBBox, FFloat3& outIntersection)
 	{
 		// test children
 		VecRenderElements::const_iterator it = Children.begin();
@@ -202,7 +202,7 @@ namespace tix
 			if (NodeFlag & (ENF_DIRTY_SCALE | ENF_DIRTY_ROT))
 			{
 				RelativeRotate.getMatrix(RelativeTransformation);
-				if (RelativeScale != vector3df(1.f, 1.f, 1.f))
+				if (RelativeScale != FFloat3(1.f, 1.f, 1.f))
 				{
 					RelativeTransformation.postScale(RelativeScale);
 				}

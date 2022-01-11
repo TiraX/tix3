@@ -17,7 +17,7 @@ namespace tix
 		//! Constructor for an all 0 triangle
 		triangle3d() {}
 		//! Constructor for triangle with given three vertices
-		triangle3d(vector3d<T> v1, vector3d<T> v2, vector3d<T> v3) : pointA(v1), pointB(v2), pointC(v3) {}
+		triangle3d(FVec3<T> v1, FVec3<T> v2, FVec3<T> v3) : pointA(v1), pointB(v2), pointC(v3) {}
 
 		//! Equality operator
 		bool operator==(const triangle3d<T>& other) const
@@ -71,19 +71,19 @@ namespace tix
 			T BoxMin, BoxMax;
 
 			// Test the box normals (x-, y- and z-axes)
-			vector3d<T> BoxNormals[3] =
+			FVec3<T> BoxNormals[3] =
 			{
-				vector3d<T>(1,0,0),
-				vector3d<T>(0,1,0),
-				vector3d<T>(0,0,1)
+				FVec3<T>(1,0,0),
+				FVec3<T>(0,1,0),
+				FVec3<T>(0,0,1)
 			};
 
-			auto ProjectTriangle = [](const triangle3d<T>& Tri, const vector3d<T>& Axis, T& MinValue, T& MaxValue)
+			auto ProjectTriangle = [](const triangle3d<T>& Tri, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
 			{
 				MinValue = FLT_MAX;
 				MaxValue = FLT_MIN;
 
-				const vector3d<T> Points[] =
+				const FVec3<T> Points[] =
 				{
 					Tri.pointA,
 					Tri.pointB,
@@ -92,34 +92,34 @@ namespace tix
 
 				for (int32 i = 0; i < 3; ++i)
 				{
-					T V = Axis.dotProduct(Points[i]);
+					T V = Axis.Dot(Points[i]);
 					if (V < MinValue)
 						MinValue = V;
 					if (V > MaxValue)
 						MaxValue = V;
 				}
 			};
-			auto ProjectBox = [](const aabbox3d<T>& Box, const vector3d<T>& Axis, T& MinValue, T& MaxValue)
+			auto ProjectBox = [](const aabbox3d<T>& Box, const FVec3<T>& Axis, T& MinValue, T& MaxValue)
 			{
 				MinValue = FLT_MAX;
 				MaxValue = FLT_MIN;
 
-				const vector3d<T> Points[] =
+				const FVec3<T> Points[] =
 				{
-					vector3d<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
-					vector3d<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
-					vector3d<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
-					vector3d<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
+					FVec3<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
+					FVec3<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MinEdge.Z),
+					FVec3<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
+					FVec3<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z),
 
-					vector3d<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
-					vector3d<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
-					vector3d<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z),
-					vector3d<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z)
+					FVec3<T>(Box.MinEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
+					FVec3<T>(Box.MaxEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z),
+					FVec3<T>(Box.MinEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z),
+					FVec3<T>(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z)
 				};
 
 				for (int32 i = 0; i < 8; ++i)
 				{
-					T V = Axis.dotProduct(Points[i]);
+					T V = Axis.Dot(Points[i]);
 					if (V < MinValue)
 						MinValue = V;
 					if (V > MaxValue)
@@ -128,21 +128,21 @@ namespace tix
 			};
 			for (int32 i = 0; i < 3; i++)
 			{
-				const vector3d<T>& N = BoxNormals[i];
+				const FVec3<T>& N = BoxNormals[i];
 				ProjectTriangle(*this, BoxNormals[i], TriangleMin, TriangleMax);
 				if (TriangleMax < box.MinEdge[i] || TriangleMin > box.MaxEdge[i])
 					return false; // No intersection possible.
 			}
 
 			// Test the triangle normal
-			vector3d<T> TriN = getNormal().normalize();
-			T TriangleOffset = TriN.dotProduct(pointA);
+			FVec3<T> TriN = getNormal().Normalize();
+			T TriangleOffset = TriN.Dot(pointA);
 			ProjectBox(box, TriN, BoxMin, BoxMax);
 			if (BoxMax < TriangleOffset || BoxMin > TriangleOffset)
 				return false; // No intersection possible.
 
 			// Test the nine edge cross-products
-			vector3d<T> TriangleEdges[] =
+			FVec3<T> TriangleEdges[] =
 			{
 				pointA - pointB,
 				pointB - pointC,
@@ -153,7 +153,7 @@ namespace tix
 				for (int j = 0; j < 3; j++)
 				{
 					// The box normals are the same as it's edge tangents
-					vector3d<T> Axis = TriangleEdges[i].crossProduct(BoxNormals[j]);
+					FVec3<T> Axis = TriangleEdges[i].Cross(BoxNormals[j]);
 					ProjectBox(box, Axis, BoxMin, BoxMax);
 					ProjectTriangle(*this, Axis, TriangleMin, TriangleMax);
 					if (BoxMax <= TriangleMin || BoxMin >= TriangleMax)
@@ -168,11 +168,11 @@ namespace tix
 		//! Get the closest point on a triangle to a point on the same plane.
 		/** \param p Point which must be on the same plane as the triangle.
 		\return The closest point of the triangle */
-		vector3d<T> closestPointOnTriangle(const vector3d<T>& p) const
+		FVec3<T> closestPointOnTriangle(const FVec3<T>& p) const
 		{
-			const vector3d<T> rab = line3d<T>(pointA, pointB).getClosestPoint(p);
-			const vector3d<T> rbc = line3d<T>(pointB, pointC).getClosestPoint(p);
-			const vector3d<T> rca = line3d<T>(pointC, pointA).getClosestPoint(p);
+			const FVec3<T> rab = line3d<T>(pointA, pointB).getClosestPoint(p);
+			const FVec3<T> rbc = line3d<T>(pointB, pointC).getClosestPoint(p);
+			const FVec3<T> rca = line3d<T>(pointC, pointA).getClosestPoint(p);
 
 			const T d1 = rab.getDistanceFrom(p);
 			const T d2 = rbc.getDistanceFrom(p);
@@ -190,7 +190,7 @@ namespace tix
 		\param p Point to test. Assumes that this point is already
 		on the plane of the triangle.
 		\return True if the point is inside the triangle, otherwise false. */
-		bool isPointInside(const vector3d<T>& p) const
+		bool isPointInside(const FVec3<T>& p) const
 		{
 			return (isOnSameSide(p, pointA, pointB, pointC) &&
  				isOnSameSide(p, pointB, pointA, pointC) &&
@@ -205,17 +205,17 @@ namespace tix
 		\param p Point to test. Assumes that this point is already
 		on the plane of the triangle.
 		\return True if point is inside the triangle, otherwise false. */
-		bool isPointInsideFast(const vector3d<T>& p) const
+		bool isPointInsideFast(const FVec3<T>& p) const
 		{
-			const vector3d<T> a = pointC - pointA;
-			const vector3d<T> b = pointB - pointA;
-			const vector3d<T> c = p - pointA;
+			const FVec3<T> a = pointC - pointA;
+			const FVec3<T> b = pointB - pointA;
+			const FVec3<T> c = p - pointA;
 			
-			const float64 dotAA = a.dotProduct( a);
-			const float64 dotAB = a.dotProduct( b);
-			const float64 dotAC = a.dotProduct( c);
-			const float64 dotBB = b.dotProduct( b);
-			const float64 dotBC = b.dotProduct( c);
+			const float64 dotAA = a.Dot( a);
+			const float64 dotAB = a.Dot( b);
+			const float64 dotAC = a.Dot( c);
+			const float64 dotBB = b.Dot( b);
+			const float64 dotBC = b.Dot( c);
 			 
 			// get coordinates in barycentric coordinate system
 			const float64 invDenom =  1/(dotAA * dotBB - dotAB * dotAB); 
@@ -234,7 +234,7 @@ namespace tix
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, false if not. */
 		bool getIntersectionWithLimitedLine(const line3d<T>& line,
-			vector3d<T>& outIntersection) const
+			FVec3<T>& outIntersection) const
 		{
 			return getIntersectionWithLine(line.start,
 				line.getVector(), outIntersection) &&
@@ -251,8 +251,8 @@ namespace tix
 		\param lineVect Vector of the line to intersect with.
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, false if there was not. */
-		bool getIntersectionWithLine(const vector3d<T>& linePoint,
-			const vector3d<T>& lineVect, vector3d<T>& outIntersection) const
+		bool getIntersectionWithLine(const FVec3<T>& linePoint,
+			const FVec3<T>& lineVect, FVec3<T>& outIntersection) const
 		{
 			if (getIntersectionOfPlaneWithLine(linePoint, lineVect, outIntersection))
 				return isPointInside(outIntersection);
@@ -260,20 +260,20 @@ namespace tix
 			return false;
 		}
 
-		bool getIntersectionWithLine( const vector3d<T>& linePoint, 
-			const vector3d<T>& lineVect, float* t, float* u, float* v) const
+		bool getIntersectionWithLine( const FVec3<T>& linePoint, 
+			const FVec3<T>& lineVect, float* t, float* u, float* v) const
 		{
 			// Find vectors for two edges sharing vert0
-			vector3d<T> edge1 = pointB - pointA;
-			vector3d<T> edge2 = pointC - pointA;
+			FVec3<T> edge1 = pointB - pointA;
+			FVec3<T> edge2 = pointC - pointA;
 
 			// Begin calculating determinant - also used to calculate U parameter
-			vector3d<T> pvec = lineVect.crossProduct(edge2);
+			FVec3<T> pvec = lineVect.Cross(edge2);
 
 			// If determinant is near zero, ray lies in plane of triangle
-			float32 det = edge1.dotProduct(pvec);
+			float32 det = edge1.Dot(pvec);
 
-			vector3d<T> tvec;
+			FVec3<T> tvec;
 			if( det > 0 )
 			{
 				tvec = linePoint - pointA;
@@ -288,20 +288,20 @@ namespace tix
 				return false;
 
 			// Calculate U parameter and test bounds
-			*u = tvec.dotProduct(pvec);
+			*u = tvec.Dot(pvec);
 			if( *u < 0.0f || *u > det )
 				return false;
 
 			// Prepare to test V parameter
-			vector3d<T> qvec = tvec.crossProduct(edge1);
+			FVec3<T> qvec = tvec.Cross(edge1);
 
 			// Calculate V parameter and test bounds
-			*v = lineVect.dotProduct(qvec);
+			*v = lineVect.Dot(qvec);
 			if( *v < 0.0f || *u + *v > det )
 				return false;
 
 			// Calculate t, scale parameters, ray intersects triangle
-			*t = edge2.dotProduct(qvec);
+			*t = edge2.Dot(qvec);
 			float32 fInvDet = 1.0f / det;
 			*t *= fInvDet;
 			*u *= fInvDet;
@@ -316,17 +316,17 @@ namespace tix
 		\param linePoint Point of the line to intersect with.
 		\param outIntersection Place to store the intersection point, if there is one.
 		\return True if there was an intersection, else false. */
-		bool getIntersectionOfPlaneWithLine(const vector3d<T>& linePoint,
-			const vector3d<T>& lineVect, vector3d<T>& outIntersection) const
+		bool getIntersectionOfPlaneWithLine(const FVec3<T>& linePoint,
+			const FVec3<T>& lineVect, FVec3<T>& outIntersection) const
 		{
-			const vector3d<T> normal = getNormal().normalize();
+			const FVec3<T> normal = getNormal().Normalize();
 			T t2;
 
-			if ( iszero ( t2 = normal.dotProduct(lineVect) ) )
+			if ( iszero ( t2 = normal.Dot(lineVect) ) )
 				return false;
 
-			T d = pointA.dotProduct(normal);
-			T t = -(normal.dotProduct(linePoint) - d) / t2;
+			T d = pointA.Dot(normal);
+			T t = -(normal.Dot(linePoint) - d) / t2;
 			outIntersection = linePoint + (lineVect * t);
 			return true;
 		}
@@ -334,9 +334,9 @@ namespace tix
 
 		//! Get the normal of the triangle.
 		/** Please note: The normal is not always normalized. */
-		vector3d<T> getNormal() const
+		FVec3<T> getNormal() const
 		{
-			return (pointB - pointA).crossProduct(pointC - pointA);
+			return (pointB - pointA).Cross(pointC - pointA);
 		}
 
 		//! Test if the triangle would be front or backfacing from any point.
@@ -345,10 +345,10 @@ namespace tix
 		Do not use this method with points as it will give wrong results!
 		\param lookDirection Look direction.
 		\return True if the plane is front facing and false if it is backfacing. */
-		bool isFrontFacing(const vector3d<T>& lookDirection) const
+		bool isFrontFacing(const FVec3<T>& lookDirection) const
 		{
-			const vector3d<T> n = getNormal().normalize();
-			const float32 d = (float32)n.dotProduct(lookDirection);
+			const FVec3<T> n = getNormal().Normalize();
+			const float32 d = (float32)n.Dot(lookDirection);
 			return F32_LOWER_EQUAL_0(d);
 		}
 
@@ -370,7 +370,7 @@ namespace tix
 		//! Get the area of the triangle
 		T getArea() const
 		{
-			return (pointB - pointA).crossProduct(pointC - pointA).getLength() * 0.5f;
+			return (pointB - pointA).Cross(pointC - pointA).getLength() * 0.5f;
 
 		}
 
@@ -387,7 +387,7 @@ namespace tix
 		}
 
 		//! sets the triangle's points
-		void set(const vector3d<T>& a, const vector3d<T>& b, const vector3d<T>& c)
+		void set(const FVec3<T>& a, const FVec3<T>& b, const FVec3<T>& c)
 		{
 			pointA = a;
 			pointB = b;
@@ -395,18 +395,18 @@ namespace tix
 		}
 
 		//! the three points of the triangle
-		vector3d<T> pointA;
-		vector3d<T> pointB;
-		vector3d<T> pointC;
+		FVec3<T> pointA;
+		FVec3<T> pointB;
+		FVec3<T> pointC;
 
 	private:
-		bool isOnSameSide(const vector3d<T>& p1, const vector3d<T>& p2,
-			const vector3d<T>& a, const vector3d<T>& b) const
+		bool isOnSameSide(const FVec3<T>& p1, const FVec3<T>& p2,
+			const FVec3<T>& a, const FVec3<T>& b) const
 		{
-			vector3d<T> bminusa = b - a;
-			vector3d<T> cp1 = bminusa.crossProduct(p1 - a);
-			vector3d<T> cp2 = bminusa.crossProduct(p2 - a);
-			return (cp1.dotProduct(cp2) >= 0.0f);
+			FVec3<T> bminusa = b - a;
+			FVec3<T> cp1 = bminusa.Cross(p1 - a);
+			FVec3<T> cp2 = bminusa.Cross(p2 - a);
+			return (cp1.Dot(cp2) >= 0.0f);
 		}
 	};
 

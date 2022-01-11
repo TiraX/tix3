@@ -9,7 +9,7 @@ namespace tix
 {
 	struct FEnvironmentInfo
 	{
-		vector3df MainLightDirection;
+		FFloat3 MainLightDirection;
 		SColorf MainLightColor;
 		float MainLightIntensity;
 		FSHVectorRGB3 SkyIrradiance;
@@ -34,12 +34,12 @@ namespace tix
 
 		virtual void UpdateAllTransformation() override;
 
-		TI_API void SetMainLightDirection(const vector3df& InDir);
+		TI_API void SetMainLightDirection(const FFloat3& InDir);
 		TI_API void SetMainLightColor(const SColorf& InColor);
 		TI_API void SetMainLightIntensity(float InIntensity);
 		TI_API void SetSkyLightSH3(const float* SH3Data);
 
-		const vector3df& GetMainLightDirection() const
+		const FFloat3& GetMainLightDirection() const
 		{
 			return EnvInfo.MainLightDirection;
 		}

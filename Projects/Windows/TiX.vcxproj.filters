@@ -384,15 +384,6 @@
     <ClInclude Include="..\..\Sources\Engine\math\Triangle3d.h">
       <Filter>Sources\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\math\Vector2d.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\math\Vector3d.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\math\Vector4d.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TDevice.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
@@ -409,9 +400,6 @@
       <Filter>Sources\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TStream.h">
-      <Filter>Sources\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\TMath.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TLog.h">
@@ -573,9 +561,6 @@
     <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\math\FVector.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TNodeLight.h">
       <Filter>Sources\Scene</Filter>
     </ClInclude>
@@ -735,9 +720,6 @@
     <ClInclude Include="..\..\Sources\Engine\TPlatformHeader.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Math\Matrix3x2.h">
-      <Filter>Sources\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FEnvLight.h">
       <Filter>Sources\Scene</Filter>
     </ClInclude>
@@ -770,6 +752,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TMath.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\Vec2.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\Vec3.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\Vec4.h">
+      <Filter>Sources\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

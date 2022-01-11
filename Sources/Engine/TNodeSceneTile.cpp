@@ -276,7 +276,7 @@ namespace tix
 
 						// Add Env Light to FScene
 						FTexturePtr CubeTextureResource = CubeTexture->TextureResource;
-						vector3df Position = EnvLightInfo.Position;
+						FFloat3 Position = EnvLightInfo.Position;
 						ENQUEUE_RENDER_COMMAND(AddEnvLightToFScene)(
 							[CubeTextureResource, Position]()
 							{

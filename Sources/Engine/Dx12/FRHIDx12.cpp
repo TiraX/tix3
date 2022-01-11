@@ -324,7 +324,7 @@ namespace tix
 		}
 
 		// Use windows' device size directly.
-		vector2di WindowSize = TEngine::Get()->GetDevice()->GetDeviceSize();
+		FInt2 WindowSize = TEngine::Get()->GetDevice()->GetDeviceSize();
 
 		// The width and height of the swap chain must be based on the window's
 		// natively-oriented width and height. If the window is not in the native
@@ -2050,7 +2050,7 @@ namespace tix
 		DXR->DXRCommandList->SetComputeRootSignature(GlobalRSDx12->Get());
 	}
 
-	void FRHIDx12::TraceRays(FRtxPipelinePtr RtxPipeline, const vector3di& Size)
+	void FRHIDx12::TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size)
 	{
 		FRtxPipelineDx12* RtxPipelineDx12 = static_cast<FRtxPipelineDx12*>(RtxPipeline.get());
 		FUniformBufferDx12* UB_ShaderTable = static_cast<FUniformBufferDx12*>(RtxPipelineDx12->ShaderTable.get());
@@ -3523,7 +3523,7 @@ namespace tix
 		TI_ASSERT(0);
 	}
 
-	void FRHIDx12::DispatchCompute(const vector3di& GroupSize, const vector3di& GroupCount)
+	void FRHIDx12::DispatchCompute(const FInt3& GroupSize, const FInt3& GroupCount)
 	{
 		DirectCommandList->Dispatch(GroupCount.X, GroupCount.Y, GroupCount.Z);
 	}
@@ -3672,7 +3672,7 @@ namespace tix
 		TI_ASSERT(0);
 	}
 
-	void FRHIDx12::DispatchTile(const vector3di& GroupSize)
+	void FRHIDx12::DispatchTile(const FInt3& GroupSize)
 	{
 		TI_ASSERT(0);
 	}

@@ -27,10 +27,10 @@ namespace tix
 
 		// Constructors
 
-		plane3d(): Normal(0,1,0) { recalculateD(vector3d<T>(0,0,0)); }
-		plane3d(const vector3d<T>& MPoint, const vector3d<T>& Normal) : Normal(Normal) { recalculateD(MPoint); }
-		plane3d(T px, T py, T pz, T nx, T ny, T nz) : Normal(nx, ny, nz) { recalculateD(vector3d<T>(px, py, pz)); }
-		plane3d(const vector3d<T>& point1, const vector3d<T>& point2, const vector3d<T>& point3)
+		plane3d(): Normal(0,1,0) { recalculateD(FVec3<T>(0,0,0)); }
+		plane3d(const FVec3<T>& MPoint, const FVec3<T>& Normal) : Normal(Normal) { recalculateD(MPoint); }
+		plane3d(T px, T py, T pz, T nx, T ny, T nz) : Normal(nx, ny, nz) { recalculateD(FVec3<T>(px, py, pz)); }
+		plane3d(const FVec3<T>& point1, const FVec3<T>& point2, const FVec3<T>& point3)
 		{ setPlane(point1, point2, point3); }
 
 		// operators
@@ -40,23 +40,23 @@ namespace tix
 
 		// functions
 
-		void setPlane(const vector3d<T>& point, const vector3d<T>& nvector)
+		void setPlane(const FVec3<T>& point, const FVec3<T>& nvector)
 		{
 			Normal = nvector;
 			recalculateD(point);
 		}
 
-		void setPlane(const vector3d<T>& nvect, T d)
+		void setPlane(const FVec3<T>& nvect, T d)
 		{
 			Normal = nvect;
 			D = d;
 		}
 
-		void setPlane(const vector3d<T>& point1, const vector3d<T>& point2, const vector3d<T>& point3)
+		void setPlane(const FVec3<T>& point1, const FVec3<T>& point2, const FVec3<T>& point3)
 		{
 			// creates the plane from 3 memberpoints
-			Normal = (point2 - point1).crossProduct(point3 - point1);
-			Normal.normalize();
+			Normal = (point2 - point1).Cross(point3 - point1);
+			Normal.Normalize();
 
 			recalculateD(point1);
 		}
@@ -68,16 +68,16 @@ namespace tix
 			\param outIntersection Place to store the intersection point, if there is one.
 			\return True if there was an intersection, false if there was not.
 		*/
-		bool getIntersectionWithLine(const vector3d<T>& linePoint,
-									 const vector3d<T>& lineVect,
-									 vector3d<T>& outIntersection) const
+		bool getIntersectionWithLine(const FVec3<T>& linePoint,
+									 const FVec3<T>& lineVect,
+									 FVec3<T>& outIntersection) const
 		{
-			T t2 = Normal.dotProduct(lineVect);
+			T t2 = Normal.Dot(lineVect);
 
 			if (t2 == 0)
 				return false;
 
-			T t =- (Normal.dotProduct(linePoint) + D) / t2;
+			T t =- (Normal.Dot(linePoint) + D) / t2;
 			outIntersection = linePoint + (lineVect * t);
 			return true;
 		}
@@ -89,12 +89,12 @@ namespace tix
 			\return Where on a line between two points an intersection with this plane happened.
 			For example, 0.5 is returned if the intersection happened exactly in the middle of the two points.
 		*/
-		float32 getKnownIntersectionWithLine(const vector3d<T>& linePoint1,
-										 const vector3d<T>& linePoint2) const
+		float32 getKnownIntersectionWithLine(const FVec3<T>& linePoint1,
+										 const FVec3<T>& linePoint2) const
 		{
-			vector3d<T> vect = linePoint2 - linePoint1;
-			T t2 = (float32)Normal.dotProduct(vect);
-			return (float32)-((Normal.dotProduct(linePoint1) + D) / t2);
+			FVec3<T> vect = linePoint2 - linePoint1;
+			T t2 = (float32)Normal.Dot(vect);
+			return (float32)-((Normal.Dot(linePoint1) + D) / t2);
 		}
 
 		//! Get an intersection with a 3d line, limited between two 3d points.
@@ -104,9 +104,9 @@ namespace tix
 			\return True if there was an intersection, false if there was not.
 		*/
 		bool getIntersectionWithLimitedLine(
-			const vector3d<T>& linePoint1,
-			const vector3d<T>& linePoint2,
-			vector3d<T>& outIntersection) const
+			const FVec3<T>& linePoint1,
+			const FVec3<T>& linePoint2,
+			FVec3<T>& outIntersection) const
 		{
 			return (getIntersectionWithLine(linePoint1, linePoint2 - linePoint1, outIntersection) &&
 					outIntersection.isBetweenPoints(linePoint1, linePoint2));
@@ -117,9 +117,9 @@ namespace tix
 			\return ISREL3D_FRONT if the point is in front of the plane,
 			ISREL3D_BACK if the point is behind of the plane, and
 			ISREL3D_PLANAR if the point is within the plane. */
-		EIntersectionRelation3D classifyPointRelation(const vector3d<T>& point) const
+		EIntersectionRelation3D classifyPointRelation(const FVec3<T>& point) const
 		{
-			const T d = Normal.dotProduct(point) + D;
+			const T d = Normal.Dot(point) + D;
 
 			if (d < -ROUNDING_ERROR_32)
 				return ISREL3D_BACK;
@@ -131,13 +131,13 @@ namespace tix
 		}
 
 		//! Recalculates the distance from origin by applying a newly member point to the plane.
-		void recalculateD(const vector3d<T>& MPoint)
+		void recalculateD(const FVec3<T>& MPoint)
 		{
-			D = - MPoint.dotProduct(Normal);
+			D = - MPoint.Dot(Normal);
 		}
 
 		//! Gets a member point of the plane.
-		vector3d<T> getMemberPoint() const
+		FVec3<T> getMemberPoint() const
 		{
 			return Normal * -D;
 		}
@@ -146,7 +146,7 @@ namespace tix
 		/** \return True if there is a intersection. */
 		bool existsIntersection(const plane3d<T>& other) const
 		{
-			vector3d<T> cross = other.Normal.crossProduct(Normal);
+			FVec3<T> cross = other.Normal.Cross(Normal);
 			return cross.getLength() > ROUNDING_ERROR_32;
 		}
 
@@ -156,12 +156,12 @@ namespace tix
 			\param outLineVect Vector of intersection.
 			\return True if there is a intersection, false if not. */
 		bool getIntersectionWithPlane(const plane3d<T>& other,
-									  vector3d<T>& outLinePoint,
-									  vector3d<T>& outLineVect) const
+									  FVec3<T>& outLinePoint,
+									  FVec3<T>& outLineVect) const
 		{
-			const T fn00 = Normal.getLength();
-			const T fn01 = Normal.dotProduct(other.Normal);
-			const T fn11 = other.Normal.getLength();
+			const T fn00 = Normal.GetLength();
+			const T fn01 = Normal.Dot(other.Normal);
+			const T fn11 = other.Normal.GetLength();
 			const float64 det = fn00*fn11 - fn01*fn01;
 
 			if (fabs(det) < ROUNDING_ERROR_64 )
@@ -171,16 +171,16 @@ namespace tix
 			const float64 fc0 = (fn11*-D + fn01*other.D) * invdet;
 			const float64 fc1 = (fn00*-other.D + fn01*D) * invdet;
 
-			outLineVect = Normal.crossProduct(other.Normal);
+			outLineVect = Normal.Cross(other.Normal);
 			outLinePoint = Normal*(T)fc0 + other.Normal*(T)fc1;
 			return true;
 		}
 
 		//! Get the intersection point with two other planes if there is one.
 		bool getIntersectionWithPlanes(const plane3d<T>& o1,
-									   const plane3d<T>& o2, vector3d<T>& outPoint) const
+									   const plane3d<T>& o2, FVec3<T>& outPoint) const
 		{
-			vector3d<T> linePoint, lineVect;
+			FVec3<T> linePoint, lineVect;
 			if (getIntersectionWithPlane(o1, linePoint, lineVect))
 				return o2.getIntersectionWithLine(linePoint, lineVect, outPoint);
 
@@ -196,21 +196,21 @@ namespace tix
 			\param lookDirection Look direction.
 			\return True if the plane is front facing and
 			false if it is backfacing. */
-		bool isFrontFacing(const vector3d<T>& lookDirection) const
+		bool isFrontFacing(const FVec3<T>& lookDirection) const
 		{
-			const float32 d = Normal.dotProduct(lookDirection);
+			const float32 d = Normal.Dot(lookDirection);
 			return F32_LOWER_EQUAL_0 ( d );
 		}
 
 		//! Get the distance to a point.
 		/** Note that this only works if the normal is normalized. */
-		T getDistanceTo(const vector3d<T>& point) const
+		T getDistanceTo(const FVec3<T>& point) const
 		{
-			return point.dotProduct(Normal) + D;
+			return point.Dot(Normal) + D;
 		}
 
 		//! Normal vector of the plane.
-		vector3d<T> Normal;
+		FVec3<T> Normal;
 		//! Distance from origin.
 		T D;
 	};

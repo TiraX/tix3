@@ -15,7 +15,7 @@ namespace tix
 
 		void AddToSceneLights_RenderThread();
 		void RemoveFromSceneLights_RenderThread();
-		void UpdateLightPosition_RenderThread(const vector3df& InPosition);
+		void UpdateLightPosition_RenderThread(const FFloat3& InPosition);
 
 		void SetLightIndex(uint32 Index)
 		{
@@ -25,7 +25,7 @@ namespace tix
 		{
 			return LightIndex;
 		}
-		const vector3df& GetLightPosition() const
+		const FFloat3& GetLightPosition() const
 		{
 			return Position;
 		}
@@ -38,7 +38,7 @@ namespace tix
 
 	protected:
 		uint32 LightIndex;	// The index light allocated in FSceneLights
-		vector3df Position;
+		FFloat3 Position;
 		SColorf Color;
 	};
 } // end namespace tix

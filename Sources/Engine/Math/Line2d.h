@@ -78,13 +78,13 @@ public:
 		//	v3.X	= other.end.X - x;
 		//	v3.Y	= other.end.Y - y;
 
-		//	T l0	= (start - end).getLengthSQ();
-		//	T l1	= (other.start - other.end).getLengthSQ();
+		//	T l0	= (start - end).GetLengthSQ();
+		//	T l1	= (other.start - other.end).GetLengthSQ();
 
-		//	return	v0.getLengthSQ() <= l0 &&
-		//			v1.getLengthSQ() <= l0 &&
-		//			v2.getLengthSQ() <= l1 &&
-		//			v3.getLengthSQ() <= l1;
+		//	return	v0.GetLengthSQ() <= l0 &&
+		//			v1.GetLengthSQ() <= l0 &&
+		//			v2.GetLengthSQ() <= l1 &&
+		//			v3.GetLengthSQ() <= l1;
 		//}
 	}
 
@@ -92,9 +92,9 @@ public:
 	// member variables
 
 	//! Start point of line
-	vector2d<T> start;
+	FVec2<T> start;
 	//! End point of line
-	vector2d<T> end;
+	FVec2<T> end;
 };
 
 //! Typedef for an float32 line.

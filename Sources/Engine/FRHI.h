@@ -113,7 +113,7 @@ namespace tix
 		// RTX
 		virtual bool UpdateHardwareResourceRtxPL(FRtxPipelinePtr Pipeline, TRtxPipelinePtr InPipelineDesc) = 0;
 		virtual void SetRtxPipeline(FRtxPipelinePtr RtxPipeline) = 0;
-		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const vector3di& Size) = 0;
+		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) = 0;
 
 		// Graphics and Compute
 		virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) = 0;
@@ -203,7 +203,7 @@ namespace tix
         // Tile
         virtual void SetTilePipeline(FPipelinePtr InPipeline) = 0;
         virtual void SetTileBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
-        virtual void DispatchTile(const vector3di& GroupSize) = 0;
+        virtual void DispatchTile(const FInt3& GroupSize) = 0;
 
 		// Compute
 		virtual void SetComputePipeline(FPipelinePtr InPipeline) = 0;
@@ -216,7 +216,7 @@ namespace tix
         virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
         virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) = 0;
         
-		virtual void DispatchCompute(const vector3di& GroupSize, const vector3di& GroupCount) = 0;
+		virtual void DispatchCompute(const FInt3& GroupSize, const FInt3& GroupCount) = 0;
 		virtual void ComputeCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize) = 0;
 
 		// GPU Command buffer

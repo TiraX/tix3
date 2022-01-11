@@ -303,12 +303,12 @@ namespace tix
 			const int8* CollisionBoxData = CollisionSphereData + HeaderCollision->SpheresSizeInBytes;
 			const int8* CollisionCapsuleData = CollisionBoxData + HeaderCollision->BoxesSizeInBytes;
 			const int8* CollisionConvexCount = CollisionCapsuleData + HeaderCollision->CapsulesSizeInBytes;
-			const int8* CollisionConvexData = CollisionConvexCount + sizeof(vector2du) * HeaderCollision->NumConvexes;
+			const int8* CollisionConvexData = CollisionConvexCount + sizeof(FUInt2) * HeaderCollision->NumConvexes;
 
 			TI_ASSERT(sizeof(TCollisionSet::TSphere) * HeaderCollision->NumSpheres == HeaderCollision->SpheresSizeInBytes);
 			TI_ASSERT(sizeof(TCollisionSet::TBox) * HeaderCollision->NumBoxes == HeaderCollision->BoxesSizeInBytes);
 			TI_ASSERT(sizeof(TCollisionSet::TCapsule) * HeaderCollision->NumCapsules == HeaderCollision->CapsulesSizeInBytes);
-			TI_ASSERT(sizeof(vector2du) * HeaderCollision->NumConvexes == HeaderCollision->ConvexesSizeInBytes);
+			TI_ASSERT(sizeof(FUInt2) * HeaderCollision->NumConvexes == HeaderCollision->ConvexesSizeInBytes);
 
 			TCollisionSetPtr CollisionSet = ti_new TCollisionSet;
 			CollisionSet->Spheres.resize(HeaderCollision->NumSpheres);
@@ -331,7 +331,7 @@ namespace tix
 			{
 				CollisionSet->Capsules[i] = CapsuleData[i];
 			}
-			const vector2du * ConvexDataCount = (const vector2du*)CollisionConvexCount;
+			const FUInt2* ConvexDataCount = (const FUInt2*)CollisionConvexCount;
 			uint32 ConvexDataOffset = 0;
 			for (uint32 i = 0 ; i < HeaderCollision->NumConvexes ; ++i)
 			{
@@ -341,8 +341,8 @@ namespace tix
 				CollisionSet->Convexes[i].VertexData.resize(VertexCount);
 				CollisionSet->Convexes[i].IndexData.resize(IndexCount);
 
-				memcpy(CollisionSet->Convexes[i].VertexData.data(), CollisionConvexData + ConvexDataOffset, VertexCount * sizeof(vector3df));
-				ConvexDataOffset += VertexCount * sizeof(vector3df);
+				memcpy(CollisionSet->Convexes[i].VertexData.data(), CollisionConvexData + ConvexDataOffset, VertexCount * sizeof(FFloat3));
+				ConvexDataOffset += VertexCount * sizeof(FFloat3);
 				memcpy(CollisionSet->Convexes[i].IndexData.data(), CollisionConvexData + ConvexDataOffset, IndexCount * sizeof(uint16));
 				ConvexDataOffset += TMath::Align4(uint32(IndexCount * sizeof(uint16)));
 			}
@@ -557,7 +557,7 @@ namespace tix
 					const int16 * TextureSize = (const int16*)(ParamValueOffset + ValueOffset + sizeof(int32));
 					TString TextureName = GetString(TextureNameIndex);
 					MInstance->ParamTextureNames.push_back(TextureName);
-					vector2di Size = vector2di(TextureSize[0], TextureSize[1]);
+					FInt2 Size = FInt2(TextureSize[0], TextureSize[1]);
 					MInstance->ParamTextureSizes.push_back(Size);
 				}
 				else
@@ -617,11 +617,11 @@ namespace tix
 				// UE4 exported fov in horizontal direction.
 				Camera->SetFOVX(TMath::DegToRad(CamInfo.FOV));
 				Camera->SetAspectRatio(CamInfo.Aspect);
-				Camera->SetRotator(vector3df(TMath::DegToRad(CamInfo.Rotate.X), TMath::DegToRad(CamInfo.Rotate.Y), TMath::DegToRad(CamInfo.Rotate.Z)));
+				Camera->SetRotator(FFloat3(TMath::DegToRad(CamInfo.Rotate.X), TMath::DegToRad(CamInfo.Rotate.Y), TMath::DegToRad(CamInfo.Rotate.Z)));
 			}
 
 			// Load assets names
-			const vector2di16* AssetsTiles = (const vector2di16*)(SceneDataStart + sizeof(THeaderCameraInfo) * Header->NumCameras);
+			const FHInt2* AssetsTiles = (const FHInt2*)(SceneDataStart + sizeof(THeaderCameraInfo) * Header->NumCameras);
 
 			TAssetLibrary * AssetLib = TAssetLibrary::Get();
 			
@@ -635,7 +635,7 @@ namespace tix
 			int8 TileFileName[128];
 			for (int32 t = 0; t < Header->NumTiles; ++t)
 			{
-				const vector2di16& Point = AssetsTiles[t];
+				const FHInt2& Point = AssetsTiles[t];
 				sprintf(TileFileName, "t%d_%d", Point.X, Point.Y);
 				TString TileName = TileFileName;
 				sprintf(TileFileName, "%s/t%d_%d.tasset", LevelName.c_str(), Point.X, Point.Y);
@@ -647,7 +647,7 @@ namespace tix
 		}
 	}
 
-	inline void GetInstanceRotationScaleMatrix(FMatrix& OutMatrix, const quaternion& Rotation, const vector3df& Scale)
+	inline void GetInstanceRotationScaleMatrix(FMatrix& OutMatrix, const quaternion& Rotation, const FFloat3& Scale)
 	{
 		matrix4 MatInstanceTrans;
 		Rotation.getMatrix(MatInstanceTrans);
@@ -849,7 +849,7 @@ namespace tix
 					}
 					const int32 InstanceDataLength = DataOffset - InstanceDataStart;
 					// Save instance offset and count
-					SceneTile->SMInstances.InstanceCountAndOffset.push_back(vector2di(InstanceCount, InstanceOffsetDst));
+					SceneTile->SMInstances.InstanceCountAndOffset.push_back(FInt2(InstanceCount, InstanceOffsetDst));
 					InstanceOffsetSrc += InstanceCount;
 					InstanceOffsetDst += InstanceCount;
 				}

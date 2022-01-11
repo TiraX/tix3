@@ -97,7 +97,7 @@ namespace tix
 		NodeRoot->AddChild(MeshNode);
 	}
 
-	TNodeLight* TScene::AddLight(const vector3df& Position, float Intensity, const SColor& Color)
+	TNodeLight* TScene::AddLight(const FFloat3& Position, float Intensity, const SColor& Color)
 	{
 		TNodeLight* Light = TNodeFactory::CreateNode<TNodeLight>(NodeRoot);
 		Light->SetPosition(Position);

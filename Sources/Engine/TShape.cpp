@@ -8,7 +8,7 @@
 
 namespace tix
 {
-	void _CreateICOSphere(uint32 Frequency, TVector<vector3df>& OutPositions, TVector<uint32>& OutIndices)
+	void _CreateICOSphere(uint32 Frequency, TVector<FFloat3>& OutPositions, TVector<uint32>& OutIndices)
 	{
 		TI_ASSERT(Frequency >= 1 && Frequency < 80);
 
@@ -20,68 +20,68 @@ namespace tix
 		OutIndices.reserve(FacesByFrequency[FreqIndex] * 3);
 
 		const float T = (1.f + 2.236f) / 2.f;
-		static const vector3df BasePos[] =
+		static const FFloat3 BasePos[] =
 		{
-			vector3df(-1.f, T, 0.f).normalize(),
-			vector3df(1.f, T, 0.f).normalize(),
-			vector3df(-1.f, -T, 0.f).normalize(),
-			vector3df(1.f, -T, 0.f).normalize(),
+			FFloat3(-1.f, T, 0.f).Normalize(),
+			FFloat3(1.f, T, 0.f).Normalize(),
+			FFloat3(-1.f, -T, 0.f).Normalize(),
+			FFloat3(1.f, -T, 0.f).Normalize(),
 
-			vector3df(0.f, -1.f, T).normalize(),
-			vector3df(0.f, 1.f, T).normalize(),
-			vector3df(0.f, -1.f, -T).normalize(),
-			vector3df(0.f, 1.f, -T).normalize(),
+			FFloat3(0.f, -1.f, T).Normalize(),
+			FFloat3(0.f, 1.f, T).Normalize(),
+			FFloat3(0.f, -1.f, -T).Normalize(),
+			FFloat3(0.f, 1.f, -T).Normalize(),
 
-			vector3df(T, 0.f, -1.f).normalize(),
-			vector3df(T, 0.f, 1.f).normalize(),
-			vector3df(-T, 0.f, -1.f).normalize(),
-			vector3df(-T, 0.f, 1.f).normalize()
+			FFloat3(T, 0.f, -1.f).Normalize(),
+			FFloat3(T, 0.f, 1.f).Normalize(),
+			FFloat3(-T, 0.f, -1.f).Normalize(),
+			FFloat3(-T, 0.f, 1.f).Normalize()
 		};
 
-		static const vector3di BaseFaces[] =
+		static const FInt3 BaseFaces[] =
 		{
-			vector3di(0, 11, 5),
-			vector3di(0, 5, 1),
-			vector3di(0, 1, 7),
-			vector3di(0, 7, 10),
-			vector3di(0, 10, 11),
+			FInt3(0, 11, 5),
+			FInt3(0, 5, 1),
+			FInt3(0, 1, 7),
+			FInt3(0, 7, 10),
+			FInt3(0, 10, 11),
 
-			vector3di(1, 5, 9),
-			vector3di(5, 11, 4),
-			vector3di(11, 10, 2),
-			vector3di(10, 7, 6),
-			vector3di(7, 1, 8),
+			FInt3(1, 5, 9),
+			FInt3(5, 11, 4),
+			FInt3(11, 10, 2),
+			FInt3(10, 7, 6),
+			FInt3(7, 1, 8),
 
-			vector3di(3, 9, 4),
-			vector3di(3, 4, 2),
-			vector3di(3, 2, 6),
-			vector3di(3, 6, 8),
-			vector3di(3, 8, 9),
+			FInt3(3, 9, 4),
+			FInt3(3, 4, 2),
+			FInt3(3, 2, 6),
+			FInt3(3, 6, 8),
+			FInt3(3, 8, 9),
 
-			vector3di(4, 9, 5),
-			vector3di(2, 4, 11),
-			vector3di(6, 2, 10),
-			vector3di(8, 6, 7),
-			vector3di(9, 8, 1)
+			FInt3(4, 9, 5),
+			FInt3(2, 4, 11),
+			FInt3(6, 2, 10),
+			FInt3(8, 6, 7),
+			FInt3(9, 8, 1)
 		};
 
-		const uint32 Faces = sizeof(BaseFaces) / sizeof(vector3di);
+		const uint32 Faces = sizeof(BaseFaces) / sizeof(FInt3);
 		const float FreqInv = 1.f / Frequency;
 		const float Tolerance = 1.f / Frequency * 0.4f;
 		// Key.X = StartPoint, Key.Y = EndPoint, Key.Z = Step
-		THMap<vector3di, uint32> PointsMap;
+		THMap<FInt3, uint32> PointsMap;
 		TVector<uint32> IndicesMap;
 		IndicesMap.reserve(64);
 
-		auto MakeKey = [](const vector3df& Pos, float Tolerance)
+		auto MakeKey = [](const FFloat3& Pos, float Tolerance)
 		{
-			vector3di Key;
+			FInt3 Key;
 			Key.X = TMath::Round(Pos.X / Tolerance);
 			Key.Y = TMath::Round(Pos.Y / Tolerance);
 			Key.Z = TMath::Round(Pos.Z / Tolerance);
 			return Key;
 		};
-		auto AddSharedPoint = [](const vector3di& Key, const vector3df& Pos, THMap<vector3di, uint32>& PointsMap, TVector<vector3df>& OutPositions)
+		auto AddSharedPoint = [](const FInt3& Key, const FFloat3& Pos, THMap<FInt3, uint32>& PointsMap, TVector<FFloat3>& OutPositions)
 		{
 			// Return shared point index
 			if (PointsMap.find(Key) == PointsMap.end())
@@ -96,19 +96,19 @@ namespace tix
 		const uint32 TesselationPoints = (1 + (Frequency + 1)) * (Frequency + 1) / 2;
 		for (uint32 f = 0; f < Faces; ++f)
 		{
-			const vector3di Face = BaseFaces[f];
+			const FInt3 Face = BaseFaces[f];
 			const uint32 PointsOffset = TesselationPoints * f;
 			//   p0
 			//  /  \
 		    // p1---p2
-			const vector3df& P0 = BasePos[Face.X];
-			const vector3df& P1 = BasePos[Face.Y];
-			const vector3df& P2 = BasePos[Face.Z];
+			const FFloat3& P0 = BasePos[Face.X];
+			const FFloat3& P1 = BasePos[Face.Y];
+			const FFloat3& P2 = BasePos[Face.Z];
 
-			vector3di Key = MakeKey(P0, Tolerance);
+			FInt3 Key = MakeKey(P0, Tolerance);
 
-			vector3df StepLeft = (P1 - P0) * FreqInv;
-			vector3df StepRight = (P2 - P0) * FreqInv;
+			FFloat3 StepLeft = (P1 - P0) * FreqInv;
+			FFloat3 StepRight = (P2 - P0) * FreqInv;
 
 			// Generate points
 			uint32 PointIndex = AddSharedPoint(Key, P0, PointsMap, OutPositions);
@@ -116,20 +116,20 @@ namespace tix
 
 			for (uint32 StepY = 0; StepY < Frequency; ++StepY)
 			{
-				vector3df PointLeft = (P0 + StepLeft * float(StepY + 1)).normalize();
-				vector3df PointRight = (P0 + StepRight * float(StepY + 1)).normalize();
+				FFloat3 PointLeft = (P0 + StepLeft * float(StepY + 1)).Normalize();
+				FFloat3 PointRight = (P0 + StepRight * float(StepY + 1)).Normalize();
 
 				float FreqHorizonInv = 1.f / (StepY + 1);
-				vector3df StepHorizon = (PointRight - PointLeft) * FreqHorizonInv;
+				FFloat3 StepHorizon = (PointRight - PointLeft) * FreqHorizonInv;
 
-				vector3di KeyLeft = MakeKey(PointLeft, Tolerance);
-				vector3di KeyRight = MakeKey(PointRight, Tolerance);
+				FInt3 KeyLeft = MakeKey(PointLeft, Tolerance);
+				FInt3 KeyRight = MakeKey(PointRight, Tolerance);
 				PointIndex = AddSharedPoint(KeyLeft, PointLeft, PointsMap, OutPositions);
 				IndicesMap.push_back(PointIndex);
 				for (uint32 StepX = 0; StepX < StepY; ++StepX)
 				{
-					vector3df P = (PointLeft + StepHorizon * float(StepX + 1)).normalize();
-					vector3di KeyP = MakeKey(P, Tolerance);
+					FFloat3 P = (PointLeft + StepHorizon * float(StepX + 1)).Normalize();
+					FInt3 KeyP = MakeKey(P, Tolerance);
 					PointIndex = AddSharedPoint(KeyP, P, PointsMap, OutPositions);
 					IndicesMap.push_back(PointIndex);
 				}
@@ -145,7 +145,7 @@ namespace tix
 
 				for (uint32 StepX = 0; StepX < PointCount; ++StepX)
 				{
-					vector3di NewFace;
+					FInt3 NewFace;
 					NewFace.X = Index + StepX;	// Current Point
 					NewFace.Y = Index + StepX + PointCount + 1;	// Next Row Right
 					NewFace.Z = Index + StepX + PointCount;	// Next Row Left
@@ -168,7 +168,7 @@ namespace tix
 		}
 	}
 
-	void _CreateLongLatitudeSphere(uint32 Longitude, uint32 Latitude, TVector<vector3df>& OutPositions, TVector<uint32>& OutIndices)
+	void _CreateLongLatitudeSphere(uint32 Longitude, uint32 Latitude, TVector<FFloat3>& OutPositions, TVector<uint32>& OutIndices)
 	{
 		//(x, y, z) = (sin(Pi * m/M) cos(2Pi * n/N), sin(Pi * m/M) sin(2Pi * n/N), cos(Pi * m/M))
 		OutPositions.clear();
@@ -177,19 +177,19 @@ namespace tix
 		OutIndices.reserve(Longitude * (Latitude - 2) * 6 + Longitude * 2 * 3);
 
 		// Calculate positions
-		OutPositions.push_back(vector3df(0, 0, 1.f));
+		OutPositions.push_back(FFloat3(0, 0, 1.f));
 		for (uint32 Lat = 1 ; Lat < Latitude; ++ Lat)
 		{
 			for (uint32 Long = 0 ; Long < Longitude ; ++ Long)
 			{
-				vector3df Pos;
+				FFloat3 Pos;
 				Pos.X = sin(PI * Lat / Latitude) * cos(PI * 2.f * Long / Longitude);
 				Pos.Y = sin(PI * Lat / Latitude) * sin(PI * 2.f * Long / Longitude);
 				Pos.Z = cos(PI * Lat / Latitude);
 				OutPositions.push_back(Pos);
 			}
 		}
-		OutPositions.push_back(vector3df(0, 0, -1.f));
+		OutPositions.push_back(FFloat3(0, 0, -1.f));
 
 		// Create indices
 		// First Latitude
@@ -233,18 +233,18 @@ namespace tix
 		}
 	}
 
-	void _CreateUnitBox(TVector<vector3df>& OutPositions, TVector<uint32>& OutIndices)
+	void _CreateUnitBox(TVector<FFloat3>& OutPositions, TVector<uint32>& OutIndices)
 	{
-		static const vector3df Points[] =
+		static const FFloat3 Points[] =
 		{ 
-			vector3df(-0.5f, -0.5f, -0.5f),
-			vector3df( 0.5f, -0.5f, -0.5f),
-			vector3df( 0.5f, -0.5f, 0.5f),
-			vector3df(-0.5f, -0.5f, 0.5f),
-			vector3df(-0.5f, 0.5f, -0.5f),
-			vector3df( 0.5f, 0.5f, -0.5f),
-			vector3df( 0.5f, 0.5f, 0.5f),
-			vector3df(-0.5f, 0.5f, 0.5f)
+			FFloat3(-0.5f, -0.5f, -0.5f),
+			FFloat3( 0.5f, -0.5f, -0.5f),
+			FFloat3( 0.5f, -0.5f, 0.5f),
+			FFloat3(-0.5f, -0.5f, 0.5f),
+			FFloat3(-0.5f, 0.5f, -0.5f),
+			FFloat3( 0.5f, 0.5f, -0.5f),
+			FFloat3( 0.5f, 0.5f, 0.5f),
+			FFloat3(-0.5f, 0.5f, 0.5f)
 		};
 		static const uint32 Faces[] =
 		{
@@ -273,7 +273,7 @@ namespace tix
 		memcpy(OutIndices.data(), Faces, sizeof(Faces));
 	}
 
-	void _CreateCapsule(uint32 Latitude, uint32 Longitude, TVector<vector3df>& OutPositions, TVector<uint32>& OutIndices)
+	void _CreateCapsule(uint32 Latitude, uint32 Longitude, TVector<FFloat3>& OutPositions, TVector<uint32>& OutIndices)
 	{
 		//(x, y, z) = (sin(Pi * m/M) cos(2Pi * n/N), sin(Pi * m/M) sin(2Pi * n/N), cos(Pi * m/M))
 		OutPositions.clear();
@@ -282,12 +282,12 @@ namespace tix
 		OutIndices.reserve(Longitude * (Latitude - 1) * 6 + Longitude * 2 * 3);
 
 		// Calculate positions
-		OutPositions.push_back(vector3df(0, 0, 1.f));
+		OutPositions.push_back(FFloat3(0, 0, 1.f));
 		for (uint32 Lat = 1; Lat < Latitude; ++Lat)
 		{
 			for (uint32 Long = 0; Long < Longitude; ++Long)
 			{
-				vector3df Pos;
+				FFloat3 Pos;
 				Pos.X = sin(PI * Lat / Latitude) * cos(PI * 2.f * Long / Longitude);
 				Pos.Y = sin(PI * Lat / Latitude) * sin(PI * 2.f * Long / Longitude);
 				Pos.Z = cos(PI * Lat / Latitude);
@@ -298,7 +298,7 @@ namespace tix
 				// duplicate middle latitude
 				for (uint32 Long = 0; Long < Longitude; ++Long)
 				{
-					vector3df Pos;
+					FFloat3 Pos;
 					Pos.X = sin(PI * Lat / Latitude) * cos(PI * 2.f * Long / Longitude);
 					Pos.Y = sin(PI * Lat / Latitude) * sin(PI * 2.f * Long / Longitude);
 					Pos.Z = cos(PI * Lat / Latitude);
@@ -306,7 +306,7 @@ namespace tix
 				}
 			}
 		}
-		OutPositions.push_back(vector3df(0, 0, -1.f));
+		OutPositions.push_back(FFloat3(0, 0, -1.f));
 
 		// Create indices
 		// First Latitude
@@ -354,12 +354,12 @@ namespace tix
 
 	void TShape::CreateICOSphere(
 		uint32 Frequency,
-		const vector3df& Center, 
+		const FFloat3& Center, 
 		float Radius, 
-		TVector<vector3df>& OutPositions, 
+		TVector<FFloat3>& OutPositions, 
 		TVector<uint32>& OutIndices)
 	{
-		static TVector<vector3df> SpherePositions;
+		static TVector<FFloat3> SpherePositions;
 		static TVector<uint32> SphereIndices;
 		static uint32 LastFrequency = 0;
 		if (LastFrequency != Frequency)
@@ -373,7 +373,7 @@ namespace tix
 		const uint32 IndexOffset = (uint32)(OutPositions.size());
 		for (const auto& P : SpherePositions)
 		{
-			vector3df NewP = P * Radius + Center;
+			FFloat3 NewP = P * Radius + Center;
 			OutPositions.push_back(NewP);
 		}
 		for (const auto& I : SphereIndices)
@@ -384,13 +384,13 @@ namespace tix
 	} 
 
 	void TShape::CreateBox(
-		const vector3df& Center,
-		const vector3df& Edges,
+		const FFloat3& Center,
+		const FFloat3& Edges,
 		const quaternion& Rotation,
-		TVector<vector3df>& OutPositions,
+		TVector<FFloat3>& OutPositions,
 		TVector<uint32>& OutIndices)
 	{
-		static TVector<vector3df> BoxPositions;
+		static TVector<FFloat3> BoxPositions;
 		static TVector<uint32> BoxIndices;
 		if (BoxPositions.size() == 0)
 		{
@@ -402,7 +402,7 @@ namespace tix
 		{
 			for (const auto& P : BoxPositions)
 			{
-				vector3df NewP = P * Edges + Center;
+				FFloat3 NewP = P * Edges + Center;
 				OutPositions.push_back(NewP);
 			}
 		}
@@ -413,7 +413,7 @@ namespace tix
 
 			for (const auto& P : BoxPositions)
 			{
-				vector3df NewP;
+				FFloat3 NewP;
 				RotMat.transformVect(NewP, P * Edges);
 				NewP += Center;
 				OutPositions.push_back(NewP);
@@ -429,22 +429,22 @@ namespace tix
 	void TShape::CreateCapsule(
 		uint32 Latitude,
 		uint32 Longitude,
-		const vector3df& Center,
+		const FFloat3& Center,
 		float Radius,
 		float Length,
 		const quaternion& Rotation,
-		TVector<vector3df>& OutPositions,
+		TVector<FFloat3>& OutPositions,
 		TVector<uint32>& OutIndices)
 	{
-		static TVector<vector3df> CapsulePositions;
+		static TVector<FFloat3> CapsulePositions;
 		static TVector<uint32> CapsuleIndices;
-		static vector2di LatLong;
-		if (LatLong != vector2di(Latitude, Longitude))
+		static FInt2 LatLong;
+		if (LatLong != FInt2(Latitude, Longitude))
 		{
 			CapsulePositions.clear();
 			CapsuleIndices.clear();
 			_CreateCapsule(Latitude, Longitude, CapsulePositions, CapsuleIndices);
-			LatLong = vector2di(Latitude, Longitude);
+			LatLong = FInt2(Latitude, Longitude);
 		}
 
 		// Apply radius and length
@@ -453,13 +453,13 @@ namespace tix
 		const float HalfLength = Length * 0.5f;
 		for (uint32 i = 0 ; i < HalfPoints ; ++ i)
 		{
-			vector3df& P = CapsulePositions[i];
+			FFloat3& P = CapsulePositions[i];
 			P = P * Radius;
 			P.Z += HalfLength;
 		}
 		for (uint32 i = HalfPoints ; i < TotalPoints ; ++ i)
 		{
-			vector3df& P = CapsulePositions[i];
+			FFloat3& P = CapsulePositions[i];
 			P = P * Radius;
 			P.Z -= HalfLength;
 		}
@@ -470,7 +470,7 @@ namespace tix
 		{
 			for (const auto& P : CapsulePositions)
 			{
-				vector3df NewP = P + Center;
+				FFloat3 NewP = P + Center;
 				OutPositions.push_back(NewP);
 			}
 		}
@@ -481,7 +481,7 @@ namespace tix
 
 			for (const auto& P : CapsulePositions)
 			{
-				vector3df NewP;
+				FFloat3 NewP;
 				RotMat.transformVect(NewP, P);
 				NewP += Center;
 				OutPositions.push_back(NewP);
@@ -495,9 +495,9 @@ namespace tix
 	}
 
 	void TShape::RecalcNormal(
-		const TVector<vector3df>& Positions,
+		const TVector<FFloat3>& Positions,
 		const TVector<uint32>& Indices,
-		TVector<vector3df>& OutNormals)
+		TVector<FFloat3>& OutNormals)
 	{
 		OutNormals.clear();
 		OutNormals.resize(Positions.size());
@@ -509,26 +509,26 @@ namespace tix
 			uint32 i1 = Indices[i + 1];
 			uint32 i2 = Indices[i + 2];
 
-			const vector3df& P0 = Positions[i0];
-			const vector3df& P1 = Positions[i1];
-			const vector3df& P2 = Positions[i2];
+			const FFloat3& P0 = Positions[i0];
+			const FFloat3& P1 = Positions[i1];
+			const FFloat3& P2 = Positions[i2];
 
-			vector3df& N0 = OutNormals[i0];
-			vector3df& N1 = OutNormals[i1];
-			vector3df& N2 = OutNormals[i2];
+			FFloat3& N0 = OutNormals[i0];
+			FFloat3& N1 = OutNormals[i1];
+			FFloat3& N2 = OutNormals[i2];
 
-			vector3df N;
-			N = (P1 - P0).crossProduct(P2 - P0);
-			N0 += N.normalize();
-			N = (P2 - P1).crossProduct(P0 - P1);
-			N1 += N.normalize();
-			N = (P0 - P2).crossProduct(P1 - P2);
-			N2 += N.normalize();
+			FFloat3 N;
+			N = (P1 - P0).Cross(P2 - P0);
+			N0 += N.Normalize();
+			N = (P2 - P1).Cross(P0 - P1);
+			N1 += N.Normalize();
+			N = (P0 - P2).Cross(P1 - P2);
+			N2 += N.Normalize();
 		}
 
 		for (auto& N : OutNormals)
 		{
-			N.normalize();
+			N.Normalize();
 		}
 	}
 }

@@ -17,14 +17,14 @@ namespace tix
 				: Radius(1.f)
 			{}
 
-			vector3df Center;
+			FFloat3 Center;
 			float Radius;
 		};
 		struct TBox
 		{
-			vector3df Center;
+			FFloat3 Center;
 			quaternion Rotation;
-			vector3df Edge;
+			FFloat3 Edge;
 		};
 		struct TCapsule
 		{
@@ -33,14 +33,14 @@ namespace tix
 				, Length(1.f)
 			{}
 
-			vector3df Center;
+			FFloat3 Center;
 			quaternion Rotation;
 			float Radius;
 			float Length;
 		};
 		struct TConvex
 		{
-			TVector<vector3df> VertexData;
+			TVector<FFloat3> VertexData;
 			TVector<uint16> IndexData;
 		};
 

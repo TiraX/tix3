@@ -14,7 +14,7 @@ namespace tix
 		FSceneTileResource(const TSceneTileResource& InSceneTileResource);
 		virtual ~FSceneTileResource();
 
-		const vector2di& GetTilePosition() const
+		const FInt2& GetTilePosition() const
 		{
 			return Position;
 		}
@@ -24,7 +24,7 @@ namespace tix
 			return BBox;
 		}
 
-		const TVector<vector2di>& GetInstanceCountAndOffset() const
+		const TVector<FInt2>& GetInstanceCountAndOffset() const
 		{
 			return InstanceCountAndOffset;
 		}
@@ -66,12 +66,12 @@ namespace tix
 		}
 
 	private:
-		vector2di Position;
+		FInt2 Position;
 		aabbox3df BBox;
 		uint32 TotalStaticMeshes;
 		uint32 TotalSMInstances;
 		// X is Count, Y is Offset
-		TVector<vector2di> InstanceCountAndOffset;
+		TVector<FInt2> InstanceCountAndOffset;
 		FInstanceBufferPtr InstanceBuffer;
 
 		TVector<FPrimitivePtr> Primitives;

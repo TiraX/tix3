@@ -39,14 +39,14 @@ namespace tix
 			// Calculate affect box
 			const float MinimumIntensity = 0.01f;
 			float AttenuationDistance = sqrt(Intensity / MinimumIntensity);
-			AffectBox.MinEdge = vector3df(-AttenuationDistance, -AttenuationDistance, -AttenuationDistance);
-			AffectBox.MaxEdge = vector3df(AttenuationDistance, AttenuationDistance, AttenuationDistance);
+			AffectBox.MinEdge = FFloat3(-AttenuationDistance, -AttenuationDistance, -AttenuationDistance);
+			AffectBox.MaxEdge = FFloat3(AttenuationDistance, AttenuationDistance, AttenuationDistance);
 
 			AffectBox.move(AbsoluteTransformation.getTranslation());
 
 			// Update FLight Position in render thread
 			FLightPtr InLight = LightResource;
-			vector3df InPosition = GetAbsolutePosition();
+			FFloat3 InPosition = GetAbsolutePosition();
 			ENQUEUE_RENDER_COMMAND(UpdateFLightPosition)(
 				[InLight, InPosition]()
 				{
@@ -65,7 +65,7 @@ namespace tix
 		// keep this empty, light do not need rotate
 	}
 
-	void TNodeLight::SetScale(const vector3df& scale)
+	void TNodeLight::SetScale(const FFloat3& scale)
 	{
 		// keep this empty, light do not need scale
 	}

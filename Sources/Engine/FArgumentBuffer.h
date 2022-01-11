@@ -22,7 +22,7 @@ namespace tix
 			TextureNames = InTextureNames;
 		}
 
-		void SetTextureSizes(const TVector<vector2di>& InSizes)
+		void SetTextureSizes(const TVector<FInt2>& InSizes)
 		{
 			TextureSizes = InSizes;
 		}
@@ -37,7 +37,7 @@ namespace tix
 			return TextureNames;
 		}
 
-		const TVector<vector2di>& GetTextureSizes() const
+		const TVector<FInt2>& GetTextureSizes() const
 		{
 			return TextureSizes;
 		}
@@ -49,6 +49,6 @@ namespace tix
 
 		// For VT System
 		TVector<TString> TextureNames;
-		TVector<vector2di> TextureSizes;
+		TVector<FInt2> TextureSizes;
 	};
 }

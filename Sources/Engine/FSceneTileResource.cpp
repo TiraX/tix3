@@ -80,7 +80,7 @@ namespace tix
 			{
 				const FFloat4* InsData = InstanceData + (InstanceOffset + Ins) * 4;
 				FMatrix3x4 Mat3x4;
-				Mat3x4.SetTranslation(vector3df(InsData[0].X, InsData[0].Y, InsData[0].Z));
+				Mat3x4.SetTranslation(FFloat3(InsData[0].X, InsData[0].Y, InsData[0].Z));
 				Mat3x4[0] = InsData[1].X;
 				Mat3x4[1] = InsData[1].Y;
 				Mat3x4[2] = InsData[1].Z;
