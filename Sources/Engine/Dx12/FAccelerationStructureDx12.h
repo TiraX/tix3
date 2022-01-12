@@ -20,7 +20,7 @@ namespace tix
 		FBottomLevelAccelerationStructureDx12();
 		virtual ~FBottomLevelAccelerationStructureDx12();
 
-		virtual void AddMeshBuffer(FMeshBufferPtr InMeshBuffer) override;
+		virtual void AddMeshBuffer(FVertexBufferPtr InVB, FIndexBufferPtr InIB) override;
 		virtual void Build() override;
 		virtual bool AlreadyBuilt() override;
 

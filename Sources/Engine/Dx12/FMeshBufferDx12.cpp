@@ -11,40 +11,40 @@
 
 namespace tix
 {
-	static const char* SemanticName[ESSI_TOTAL] =
-	{
-		"POSITION",	// ESSI_POSITION,
-		"NORMAL",	// ESSI_NORMAL,
-		"COLOR",	// ESSI_COLOR,
-		"TEXCOORD0",	// ESSI_TEXCOORD0,
-		"TEXCOORD1",	// ESSI_TEXCOORD1,
-		"TANGENT",	// ESSI_TANGENT,
-		"BLENDINDEX",	// ESSI_BLENDINDEX,
-		"BLENDWEIGHT",	// ESSI_BLENDWEIGHT,
-	};
-	FMeshBufferDx12::FMeshBufferDx12()
-	{
-	}
+	//static const char* SemanticName[ESSI_TOTAL] =
+	//{
+	//	"POSITION",	// ESSI_POSITION,
+	//	"NORMAL",	// ESSI_NORMAL,
+	//	"COLOR",	// ESSI_COLOR,
+	//	"TEXCOORD0",	// ESSI_TEXCOORD0,
+	//	"TEXCOORD1",	// ESSI_TEXCOORD1,
+	//	"TANGENT",	// ESSI_TANGENT,
+	//	"BLENDINDEX",	// ESSI_BLENDINDEX,
+	//	"BLENDWEIGHT",	// ESSI_BLENDWEIGHT,
+	//};
+	//FMeshBufferDx12::FMeshBufferDx12()
+	//{
+	//}
 
-	FMeshBufferDx12::~FMeshBufferDx12()
-	{
-		TI_ASSERT(IsRenderThread());
-	}
+	//FMeshBufferDx12::~FMeshBufferDx12()
+	//{
+	//	TI_ASSERT(IsRenderThread());
+	//}
 
-	/////////////////////////////////////////////////////////////
-	FInstanceBufferDx12::FInstanceBufferDx12()
-	{
-	}
+	///////////////////////////////////////////////////////////////
+	//FInstanceBufferDx12::FInstanceBufferDx12()
+	//{
+	//}
 
-	FInstanceBufferDx12::FInstanceBufferDx12(uint32 TotalInstancesCount, uint32 InstanceStride)
-		: FInstanceBuffer(TotalInstancesCount, InstanceStride)
-	{
-	}
+	//FInstanceBufferDx12::FInstanceBufferDx12(uint32 TotalInstancesCount, uint32 InstanceStride)
+	//	: FInstanceBuffer(TotalInstancesCount, InstanceStride)
+	//{
+	//}
 
-	FInstanceBufferDx12::~FInstanceBufferDx12()
-	{
-		TI_ASSERT(IsRenderThread());
-	}
+	//FInstanceBufferDx12::~FInstanceBufferDx12()
+	//{
+	//	TI_ASSERT(IsRenderThread());
+	//}
 }
 
 #endif	// COMPILE_WITH_RHI_DX12

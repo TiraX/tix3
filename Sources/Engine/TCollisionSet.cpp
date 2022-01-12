@@ -25,7 +25,7 @@ namespace tix
 	{
 	}
 
-	TMeshBufferPtr TCollisionSet::ConvertToMesh() const
+	TStaticMeshPtr TCollisionSet::ConvertToStaticMesh() const
 	{
 		TVector<FFloat3> Positions;
 		TVector<uint32> Indices;
@@ -60,10 +60,21 @@ namespace tix
 		TI_ASSERT(Positions.size() < 65535);
 		if (Positions.size() > 0)
 		{
-			TMeshBufferPtr Mesh = ti_new TMeshBuffer;
-			Mesh->SetVertexStreamData(EVSSEG_POSITION, Positions.data(), (uint32)Positions.size(), EIT_32BIT, Indices.data(), (uint32)Indices.size());
+			TVertexBufferPtr VB = ti_new TVertexBuffer;
+			TIndexBufferPtr IB = ti_new TIndexBuffer;
 
-			return Mesh;
+			FBox Box;
+			Box.Reset(Positions[0]);
+			for (const auto& P : Positions)
+			{
+				Box.AddInternalPoint(P);
+			}
+
+			VB->SetVertexData(EVSSEG_POSITION, Positions.data(), (uint32)Positions.size(), Box);
+			IB->SetIndexData(EIT_32BIT, Indices.data(), (uint32)Indices.size());
+
+			TStaticMeshPtr SM = ti_new TStaticMesh(VB, IB);
+			return SM;
 		}
 		else
 		{

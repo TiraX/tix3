@@ -163,7 +163,7 @@ namespace tix
 	void TAssetFile::CreateResource(TVector<TResourcePtr>& OutResources)
 	{
 		if (ChunkHeader[EChunkLib::Mesh] != nullptr)
-			CreateMeshBuffer(OutResources);
+			CreateStaticMesh(OutResources);
 
 		if (ChunkHeader[EChunkLib::Texture] != nullptr)
 			CreateTexture(OutResources);
@@ -195,7 +195,7 @@ namespace tix
 		}
 	}
 
-	void TAssetFile::CreateMeshBuffer(TVector<TResourcePtr>& OutResources)
+	void TAssetFile::CreateStaticMesh(TVector<TResourcePtr>& OutResources)
 	{
 		if (ChunkHeader[EChunkLib::Mesh] == nullptr)
 			return;
@@ -237,18 +237,19 @@ namespace tix
 			sizeof(THeaderCollisionSet);
 
 		// Create mesh buffer resource
-		TMeshBufferPtr MeshBuffer = ti_new TMeshBuffer();
-		MeshBuffer->SetResourceName(Filename + "-MB");
-		TStaticMeshPtr StaticMesh = ti_new TStaticMesh(MeshBuffer);
+		TVertexBufferPtr VB = ti_new TVertexBuffer();
+		VB->SetResourceName(Filename + "-VB");
+		TIndexBufferPtr IB = ti_new TIndexBuffer();
+		IB->SetResourceName(Filename + "-IB");
+		TStaticMeshPtr StaticMesh = ti_new TStaticMesh(VB, IB);
 
 		// Load vertex data and index data
 		const int32 IndexStride = (Header->IndexType == EIT_16BIT) ? sizeof(uint16) : sizeof(uint32);
-		const int32 VertexStride = TMeshBuffer::GetStrideFromFormat(Header->VertexFormat);
+		const int32 VertexStride = TVertexBuffer::GetStrideFromFormat(Header->VertexFormat);
 		const int8* VertexData = VertexDataStart;
 		const int8* IndexData = VertexDataStart + TMath::Align4(Header->VertexCount * VertexStride);
-		const int8* ClusterData = IndexData + TMath::Align4(Header->PrimitiveCount * 3 * IndexStride);
-		MeshBuffer->SetVertexStreamData(Header->VertexFormat, VertexData, Header->VertexCount, (E_INDEX_TYPE)Header->IndexType, IndexData, Header->PrimitiveCount * 3);
-		MeshBuffer->SetBBox(Header->BBox);
+		VB->SetVertexData(Header->VertexFormat, VertexData, Header->VertexCount, Header->BBox);
+		IB->SetIndexData((E_INDEX_TYPE)Header->IndexType, IndexData, Header->PrimitiveCount * 3);
 		TI_ASSERT(Header->ClusterSize == 0 || (Header->PrimitiveCount == Header->Clusters * Header->ClusterSize));
 
 		FStats::Stats.VertexDataInBytes += Header->VertexCount * VertexStride;

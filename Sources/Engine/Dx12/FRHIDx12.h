@@ -53,8 +53,6 @@ namespace tix
 		virtual FTexturePtr CreateTexture() override;
 		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) override;
 		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = 0) override;
-		virtual FInstanceBufferPtr CreateInstanceBuffer() override;
-		virtual FInstanceBufferPtr CreateEmptyInstanceBuffer(uint32 InstanceCount, uint32 InstanceStride) override;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) override;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) override;
 		virtual FShaderPtr CreateShader(const TShaderNames& InNames, E_SHADER_TYPE Type) override;
@@ -69,15 +67,15 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
 		// Graphics and Compute
-		virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) override;
-		virtual bool UpdateHardwareResourceMesh(
-			FMeshBufferPtr MeshBuffer, 
-			uint32 VertexDataSize, 
-			uint32 VertexDataStride, 
-			uint32 IndexDataSize,
-			E_INDEX_TYPE IndexType,
-			const TString& BufferName) override;
-		virtual bool UpdateHardwareResourceIB(FInstanceBufferPtr InstanceBuffer, TInstanceBufferPtr InInstanceData) override;
+		//virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) override;
+		//virtual bool UpdateHardwareResourceMesh(
+		//	FMeshBufferPtr MeshBuffer, 
+		//	uint32 VertexDataSize, 
+		//	uint32 VertexDataStride, 
+		//	uint32 IndexDataSize,
+		//	E_INDEX_TYPE IndexType,
+		//	const TString& BufferName) override;
+		//virtual bool UpdateHardwareResourceIB(FInstanceBufferPtr InstanceBuffer, TInstanceBufferPtr InInstanceData) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InTexData) override;
@@ -91,36 +89,38 @@ namespace tix
 		virtual bool UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer) override;
 		virtual void PrepareDataForCPU(FTexturePtr Texture) override;
 		virtual void PrepareDataForCPU(FUniformBufferPtr UniformBuffer) override;
-		virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) override;
-		virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) override;
-		virtual bool CopyBufferRegion(
-			FMeshBufferPtr DstBuffer,
-			uint32 DstVertexOffset,
-			uint32 DstIndexOffset,
-			FMeshBufferPtr SrcBuffer,
-			uint32 SrcVertexOffset,
-			uint32 VertexLengthInBytes,
-			uint32 SrcIndexOffset,
-			uint32 IndexLengthInBytes) override;
-		virtual bool CopyBufferRegion(
-			FInstanceBufferPtr DstBuffer,
-			uint32 DstInstanceOffset,
-			FInstanceBufferPtr SrcBuffer,
-			uint32 SrcInstanceOffset,
-			uint32 InstanceCount) override;
-		virtual bool CopyBufferRegion(
-			FMeshBufferPtr DstBuffer,
-			uint32 DstOffsetInBytes,
-			FUniformBufferPtr SrcBuffer,
-			uint32 SrcOffsetInBytes,
-			uint32 Bytes) override;
+
+		//virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) override;
+		//virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) override;
+		//virtual bool CopyBufferRegion(
+		//	FMeshBufferPtr DstBuffer,
+		//	uint32 DstVertexOffset,
+		//	uint32 DstIndexOffset,
+		//	FMeshBufferPtr SrcBuffer,
+		//	uint32 SrcVertexOffset,
+		//	uint32 VertexLengthInBytes,
+		//	uint32 SrcIndexOffset,
+		//	uint32 IndexLengthInBytes) override;
+		//virtual bool CopyBufferRegion(
+		//	FInstanceBufferPtr DstBuffer,
+		//	uint32 DstInstanceOffset,
+		//	FInstanceBufferPtr SrcBuffer,
+		//	uint32 SrcInstanceOffset,
+		//	uint32 InstanceCount) override;
+		//virtual bool CopyBufferRegion(
+		//	FMeshBufferPtr DstBuffer,
+		//	uint32 DstOffsetInBytes,
+		//	FUniformBufferPtr SrcBuffer,
+		//	uint32 SrcOffsetInBytes,
+		//	uint32 Bytes) override;
 
 		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
 		virtual void PutTextureInHeap(FTexturePtr InTexture, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
 		virtual void PutRWTextureInHeap(FTexturePtr InTexture, uint32 InMipLevel, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
 		virtual void PutUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
 		virtual void PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
-		virtual void PutMeshBufferInHeap(FMeshBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InVBHeapSlot, int32 InIBHeapSlot) override;
+		virtual void PutVertexBufferInHeap(FVertexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InVBHeapSlot) override;
+		virtual void PutIndexBufferInHeap(FIndexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InIBHeapSlot) override;
 		virtual void PutInstanceBufferInHeap(FInstanceBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) override;
 		virtual void PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot) override;
 		virtual void PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot) override;
@@ -128,30 +128,27 @@ namespace tix
 
 		// Graphics
 		virtual void SetGraphicsPipeline(FPipelinePtr InPipeline) override;
-		virtual void SetMeshBuffer(FMeshBufferPtr InMeshBuffer, FInstanceBufferPtr InInstanceBuffer) override;
-		virtual void SetMeshBufferAtSlot(uint32 StartSlot, FMeshBufferPtr InMeshBuffer) override;
-		virtual void SetVertexBufferAtSlot(uint32 StartSlot, FMeshBufferPtr InMeshBuffer) override;
-		virtual void SetIndexBufferFromMeshBuffer(FMeshBufferPtr InMeshBuffer) override;
-		virtual void SetIndexBufferFromUniformBuffer(FUniformBufferPtr InIndexBuffer) override;
-		virtual void SetInstanceBufferAtSlot(uint32 StartSlot, FInstanceBufferPtr InInstanceBuffer) override;
+		virtual void SetVertexBuffer(FVertexBufferPtr InVertexBuffer, FInstanceBufferPtr InInstanceBuffer) override;
+		virtual void SetIndexBuffer(FIndexBufferPtr InIndexBuffer) override;
+
 		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) override;
 		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
 		virtual void SetShaderTexture(int32 BindIndex, FTexturePtr InTexture) override;
 		virtual void SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 
 				void UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS);
-		virtual void SetResourceStateAS(FTopLevelAccelerationStructurePtr InAS, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		virtual void SetResourceStateTexture(FTexturePtr InTexture, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		virtual void SetResourceStateUB(FUniformBufferPtr InUniformBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		virtual void SetResourceStateCB(FGPUCommandBufferPtr InCommandBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		virtual void SetResourceStateInsB(FInstanceBufferPtr InInstanceBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		virtual void SetResourceStateMB(FMeshBufferPtr InMeshBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateAS(FTopLevelAccelerationStructurePtr InAS, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateTexture(FTexturePtr InTexture, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateUB(FUniformBufferPtr InUniformBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateCB(FGPUCommandBufferPtr InCommandBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateInsB(FInstanceBufferPtr InInstanceBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		//virtual void SetResourceStateMB(FMeshBufferPtr InMeshBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
 		virtual void FlushResourceStateChange() override;
 
 		virtual void SetStencilRef(uint32 InRefValue) override;
-		virtual void DrawPrimitiveInstanced(FMeshBufferPtr MeshBuffer, uint32 InstanceCount, uint32 InstanceOffset) override;
-		virtual void DrawPrimitiveIndexedInstanced(FMeshBufferPtr MeshBuffer, uint32 InstanceCount, uint32 InstanceOffset) override;
-		virtual void DrawPrimitiveIndexedInstanced(FMeshBufferPtr MeshBuffer, uint32 IndicesCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) override;
+		virtual void DrawPrimitiveInstanced(uint32 VertexCount, uint32 InstanceCount, uint32 InstanceOffset) override;
+		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 InstanceOffset) override;
+		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) override;
 		virtual void GraphicsCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize) override;
 
 		// Tile, For Metal, dx12 has empty implementation
@@ -165,7 +162,6 @@ namespace tix
 		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) override;
 		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
 		virtual void SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
-		virtual void SetComputeShaderResource(int32 VertexBindIndex, int32 IndexBindIndex, FMeshBufferPtr InMeshBuffer, uint32 VertexBufferOffset = 0, uint32 IndexBufferOffset = 0) override;
 		virtual void SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
 		virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 		virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) override;

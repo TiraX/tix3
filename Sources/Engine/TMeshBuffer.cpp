@@ -9,16 +9,16 @@
 
 namespace tix
 {
-	TMeshBuffer::TMeshBuffer()
-		: TResource(ERES_MESH_BUFFER)
+	TVertexBuffer::TVertexBuffer()
+		: TResource(ERES_VERTEX_BUFFER)
 	{
 	}
 
-	TMeshBuffer::~TMeshBuffer()
+	TVertexBuffer::~TVertexBuffer()
 	{
 	}
 
-	uint32 TMeshBuffer::GetStrideFromFormat(uint32 Format)
+	uint32 TVertexBuffer::GetStrideFromFormat(uint32 Format)
 	{
 		// Calculate stride
 		uint32 Stride = 0;
@@ -26,13 +26,13 @@ namespace tix
 		{
 			if ((Format & seg) != 0)
 			{
-				Stride += TMeshBuffer::SemanticSize[i];
+				Stride += TVertexBuffer::SemanticSize[i];
 			}
 		}
 		return Stride;
 	}
 
-	TVector<E_MESH_STREAM_INDEX> TMeshBuffer::GetSteamsFromFormat(uint32 Format)
+	TVector<E_MESH_STREAM_INDEX> TVertexBuffer::GetSteamsFromFormat(uint32 Format)
 	{
 		TVector<E_MESH_STREAM_INDEX> Streams;
 		for (uint32 seg = 1, i = 0; seg <= EVSSEG_TOTAL; seg <<= 1, ++i)
@@ -45,60 +45,109 @@ namespace tix
 		return Streams;
 	}
 
-	void TMeshBuffer::InitRenderThreadResource()
+	void TVertexBuffer::InitRenderThreadResource()
 	{
-		TI_ASSERT(MeshBufferResource == nullptr);
-		MeshBufferResource = ti_new FMeshBuffer(Desc);
+		TI_ASSERT(VertexBufferResource == nullptr);
+		VertexBufferResource = ti_new FVertexBuffer(Desc);
 
-		FMeshBufferPtr MeshBuffer = MeshBufferResource;
+		FVertexBufferPtr VertexBuffer = VertexBufferResource;
 		TStreamPtr InData = Data;
-		ENQUEUE_RENDER_COMMAND(TMeshBufferUpdateFMeshBuffer)(
-			[MeshBuffer, InData]()
+		ENQUEUE_RENDER_COMMAND(TVertexBufferUpdateFVertexBuffer)(
+			[VertexBuffer, InData]()
 			{
-				MeshBuffer->CreateGPUResource(InData);
+				VertexBuffer->CreateGPUResource(InData);
 			});
 
 		// release CPU memory after create render resource
 		Data = nullptr;	
 	}
 
-	void TMeshBuffer::DestroyRenderThreadResource()
+	void TVertexBuffer::DestroyRenderThreadResource()
 	{
-		TI_ASSERT(MeshBufferResource != nullptr);
+		TI_ASSERT(VertexBufferResource != nullptr);
 
-		FMeshBufferPtr MeshBuffer = MeshBufferResource;
-		ENQUEUE_RENDER_COMMAND(TMeshBufferDestroyFMeshBuffer)(
-			[MeshBuffer]()
+		FVertexBufferPtr VertexBuffer = VertexBufferResource;
+		ENQUEUE_RENDER_COMMAND(TVertexBufferDestroyFVertexBuffer)(
+			[VertexBuffer]()
 			{
-				//MeshBuffer = nullptr;
+				//VertexBuffer = nullptr;
 			});
-		MeshBuffer = nullptr;
-		MeshBufferResource = nullptr;
+		VertexBuffer = nullptr;
+		VertexBufferResource = nullptr;
 	}
 
-	void TMeshBuffer::SetVertexStreamData(
+	void TVertexBuffer::SetVertexData(
 		uint32 InFormat,
 		const void* InVertexData, uint32 InVertexCount,
-		E_INDEX_TYPE InIndexType,
-		const void* InIndexData, uint32 InIndexCount)
+		const FBox& InBox)
 	{
 		Desc.VsFormat = InFormat;
 		Desc.VertexCount = InVertexCount;
-
-		Desc.IndexType = InIndexType;
-		Desc.IndexCount = InIndexCount;
 
 		Desc.Stride = GetStrideFromFormat(InFormat);
 
 		// Copy data
 		TI_ASSERT(Data == nullptr);
 		const int32 VertexDataSize = InVertexCount * Desc.Stride;
-		const int32 IndexDataSize = InIndexCount * (InIndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
 		const uint32 VertexBufferSize = TMath::Align4(VertexDataSize);
 		TI_ASSERT(VertexBufferSize == VertexDataSize); // vertex always 4 bytes aligned
-		const uint32 IndexBufferSize = TMath::Align4(IndexDataSize);
-		Data = ti_new TStream(VertexBufferSize + IndexBufferSize);
+		Data = ti_new TStream(VertexBufferSize);
 		Data->Put(InVertexData, VertexDataSize);
+	}
+	///////////////////////////////////////////////////////////
+
+	TIndexBuffer::TIndexBuffer()
+		: TResource(ERES_INDEX_BUFFER)
+	{
+	}
+
+	TIndexBuffer::~TIndexBuffer()
+	{
+	}
+
+	void TIndexBuffer::InitRenderThreadResource()
+	{
+		TI_ASSERT(IndexBufferResource == nullptr);
+		IndexBufferResource = ti_new FIndexBuffer(Desc);
+
+		FIndexBufferPtr IndexBuffer = IndexBufferResource;
+		TStreamPtr InData = Data;
+		ENQUEUE_RENDER_COMMAND(TIndexBufferUpdateFIndexBuffer)(
+			[IndexBuffer, InData]()
+			{
+				IndexBuffer->CreateGPUResource(InData);
+			});
+
+		// release CPU memory after create render resource
+		Data = nullptr;
+	}
+
+	void TIndexBuffer::DestroyRenderThreadResource()
+	{
+		TI_ASSERT(IndexBufferResource != nullptr);
+
+		FIndexBufferPtr IndexBuffer = IndexBufferResource;
+		ENQUEUE_RENDER_COMMAND(TIndexBufferDestroyFIndexBuffer)(
+			[IndexBuffer]()
+			{
+				//IndexBuffer = nullptr;
+			});
+		IndexBuffer = nullptr;
+		IndexBufferResource = nullptr;
+	}
+
+	void TIndexBuffer::SetIndexData(
+		E_INDEX_TYPE InIndexType,
+		const void* InIndexData, uint32 InIndexCount)
+	{
+		Desc.IndexType = InIndexType;
+		Desc.IndexCount = InIndexCount;
+
+		// Copy data
+		TI_ASSERT(Data == nullptr);
+		const int32 IndexDataSize = InIndexCount * (InIndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
+		const uint32 IndexBufferSize = TMath::Align4(IndexDataSize);
+		Data = ti_new TStream(IndexBufferSize);
 		Data->Put(InIndexData, IndexDataSize);
 	}
 
@@ -166,22 +215,23 @@ namespace tix
 
 	void TInstanceBuffer::InitRenderThreadResource()
 	{
-		TI_ASSERT(InstanceResource == nullptr);
-		InstanceResource = FRHI::Get()->CreateInstanceBuffer();
-		// Set Instance Resource Usage to USAGE_COPY_SOURCE, 
-		// as GPU Driven pipeline need to copy these instance buffer into a merged instance buffer
-		TI_TODO("Add gpu driven CVAR to check here.");
-		//InstanceResource->SetUsage(FRenderResource::USAGE_COPY_SOURCE);
-		TI_ASSERT(Desc.InstanceCount != 0);
+		TI_ASSERT(0);
+		//TI_ASSERT(InstanceResource == nullptr);
+		//InstanceResource = FRHI::Get()->CreateInstanceBuffer();
+		//// Set Instance Resource Usage to USAGE_COPY_SOURCE, 
+		//// as GPU Driven pipeline need to copy these instance buffer into a merged instance buffer
+		//TI_TODO("Add gpu driven CVAR to check here.");
+		////InstanceResource->SetUsage(FRenderResource::USAGE_COPY_SOURCE);
+		//TI_ASSERT(Desc.InstanceCount != 0);
 
-		FInstanceBufferPtr InstanceBuffer = InstanceResource;
-		TInstanceBufferPtr InInstanceData = this;
-		ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
-			[InstanceBuffer, InInstanceData]()
-			{
-				InstanceBuffer->SetFromTInstanceBuffer(InInstanceData);
-				FRHI::Get()->UpdateHardwareResourceIB(InstanceBuffer, InInstanceData);
-			});
+		//FInstanceBufferPtr InstanceBuffer = InstanceResource;
+		//TInstanceBufferPtr InInstanceData = this;
+		//ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
+		//	[InstanceBuffer, InInstanceData]()
+		//	{
+		//		InstanceBuffer->SetFromTInstanceBuffer(InInstanceData);
+		//		FRHI::Get()->UpdateHardwareResourceIB(InstanceBuffer, InInstanceData);
+		//	});
 	}
 
 	void TInstanceBuffer::DestroyRenderThreadResource()

@@ -31,7 +31,7 @@ namespace tix
 		TSkeletonPtr Skeleton;
 		TAnimSequencePtr Animation;
 
-		TVector<FPrimitivePtr> LinkedPrimitives;
+		FPrimitivePtr LinkedPrimitive;
 		TVector<FUniformBufferPtr> SkeletonResources;
 		enum {
 			SKMatrixDirty = 1 << 0,

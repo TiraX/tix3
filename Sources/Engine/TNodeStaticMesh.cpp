@@ -67,6 +67,7 @@ namespace tix
 		bool bCastShadow, 
 		bool bReceiveShadow)
 	{
+		TI_ASSERT(0);	// Static mesh node never created here anymore
 		// Create Primitives
 		LinkedPrimitive = nullptr;
 
@@ -111,7 +112,7 @@ namespace tix
 		if (HasFlag(ENF_ABSOLUTETRANSFORMATION_UPDATED))
 		{
 			TI_ASSERT(LinkedPrimitive != nullptr);
-			TransformedBBox = LinkedPrimitive->GetMeshBuffer()->GetDesc().BBox;
+			TransformedBBox = LinkedPrimitive->GetVertexBuffer()->GetDesc().BBox;
 			AbsoluteTransformation.TransformBoxEx(TransformedBBox);
 
 			// Init uniform buffer resource in render thread

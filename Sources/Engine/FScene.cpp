@@ -138,7 +138,7 @@ namespace tix
 				for (THMap<FInt2, FSceneTileResourcePtr>::iterator it = SceneTiles.begin(); it != SceneTiles.end(); it++)
 				{
 					FSceneTileResourcePtr Tile = it->second;
-					THMap<FMeshBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
+					THMap<FVertexBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
 					for (auto M : TileBLASInstances)
 					{
 						TotalInstances += (uint32)M.second.size();
@@ -151,16 +151,16 @@ namespace tix
 				{
 					FSceneTileResourcePtr Tile = it->second;
 
-					THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr>& TileBLASes = Tile->GetBLASes();
-					THMap<FMeshBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
+					THMap<FVertexBufferPtr, FBottomLevelAccelerationStructurePtr>& TileBLASes = Tile->GetBLASes();
+					THMap<FVertexBufferPtr, TVector<FMat34>>& TileBLASInstances = Tile->GetBLASInstances();
 
 					for (auto M : TileBLASes)
 					{
-						FMeshBufferPtr MB = M.first;
+						FVertexBufferPtr VB = M.first;
 						FBottomLevelAccelerationStructurePtr BLAS = M.second;
-						TI_ASSERT(TileBLASInstances.find(MB) != TileBLASInstances.end());
+						TI_ASSERT(TileBLASInstances.find(VB) != TileBLASInstances.end());
 
-						TVector<FMat34>& Instances = TileBLASInstances[MB];
+						TVector<FMat34>& Instances = TileBLASInstances[VB];
 						for (const auto& Ins : Instances)
 						{
 							SceneTLAS->AddBLASInstance(BLAS, Ins);
@@ -189,35 +189,6 @@ namespace tix
 	{
 		TI_TODO("Add scene tile unregister.");
 		TI_ASSERT(0);
-	}
-
-	void FScene::AddSceneMeshBuffer(FMeshBufferPtr InMesh, FMeshBufferPtr InOccludeMesh, FUniformBufferPtr InClusterData)
-	{
-		// Add mesh buffer to scene
-		{
-			THMap<FMeshBufferPtr, FSceneMeshInfo>::iterator It = SceneMeshes.find(InMesh);
-			if (It != SceneMeshes.end())
-			{
-				TI_ASSERT(It->second.OccludeMesh == InOccludeMesh && It->second.ClusterData == InClusterData);
-				++It->second.References;
-			}
-			else
-			{
-				SceneMeshes[InMesh] = FSceneMeshInfo(1, InOccludeMesh, InClusterData);
-			}
-		}
-	}
-
-	void FScene::RemoveSceneMeshBuffer(FMeshBufferPtr InMesh)
-	{
-		THMap<FMeshBufferPtr, FSceneMeshInfo>::iterator It = SceneMeshes.find(InMesh);
-		TI_ASSERT(It != SceneMeshes.end() && It->second.References > 0);
-
-		--It->second.References;
-		if (It->second.References == 0)
-		{
-			SceneMeshes.erase(It);
-		}
 	}
 
 	void FScene::AddEnvLight(FTexturePtr CubeTexture, const FFloat3& Position)

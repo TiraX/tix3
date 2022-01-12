@@ -22,7 +22,7 @@ namespace tix
 		virtual void EncodeSetVertexBuffer(
 			uint32 CommandIndex,
 			uint32 ArgumentIndex,
-			FMeshBufferPtr MeshBuffer
+			FVertexBufferPtr VertexBuffer
 		) override;
 		virtual void EncodeSetInstanceBuffer(
 			uint32 CommandIndex,
@@ -32,7 +32,7 @@ namespace tix
 		virtual void EncodeSetIndexBuffer(
 			uint32 CommandIndex,
 			uint32 ArgumentIndex,
-			FMeshBufferPtr MeshBuffer
+			FIndexBufferPtr IndexBuffer
 		) override;
 		virtual void EncodeSetDrawIndexed(
 			uint32 CommandIndex,

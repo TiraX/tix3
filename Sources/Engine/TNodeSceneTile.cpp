@@ -109,7 +109,6 @@ namespace tix
 						TI_ASSERT(MeshResources[0]->GetType() == ERES_STATIC_MESH);
 						TStaticMeshPtr StaticMesh = static_cast<TStaticMesh*>(MeshResources[0].get());
 						// MeshResources Include static mesh, mesh sections and 1 collision set
-						TI_ASSERT(StaticMesh->GetMeshBuffer()->MeshBufferResource != nullptr);
 						LinkedPrimitive = ti_new FPrimitive;
 						LinkedPrimitive->SetInstancedStaticMesh(
 							StaticMesh,
@@ -117,19 +116,6 @@ namespace tix
 							SceneTileResource->SMInstances.InstanceCountAndOffset[m].X,
 							SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y
 						);
-
-						// Add static mesh to scene
-						FMeshBufferPtr OccludeMeshBufferResource = StaticMesh->GetOccludeMesh() == nullptr ? nullptr : StaticMesh->GetOccludeMesh()->MeshBufferResource;
-						FMeshBufferPtr StaticMeshResource = StaticMesh->GetMeshBuffer()->MeshBufferResource;
-						ENQUEUE_RENDER_COMMAND(AddTSceneTileStaticMeshToFScene)(
-							[StaticMeshResource, OccludeMeshBufferResource]()
-							{
-								FRenderThread::Get()->GetRenderScene()->AddSceneMeshBuffer(
-									StaticMeshResource, 
-									OccludeMeshBufferResource, 
-									nullptr);
-							});
-
 
 						// Add primitive to scene
 						FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResource->RenderThreadTileResource;
@@ -144,11 +130,13 @@ namespace tix
 						TInstanceBufferPtr InstanceBufferData = SceneTileResource->SMInstances.InstanceBuffer;
 						const int32 InstanceCount = SceneTileResource->SMInstances.InstanceCountAndOffset[m].X;
 						const int32 InstanceOffset = SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y;
+						FVertexBufferPtr VB = StaticMesh->GetVertexBuffer()->VertexBufferResource;
+						FIndexBufferPtr IB = StaticMesh->GetIndexBuffer()->IndexBufferResource;
 						ENQUEUE_RENDER_COMMAND(CreateBLASAndInstances)(
-							[RenderThreadSceneTileResource, StaticMeshResource, InstanceBufferData, InstanceCount, InstanceOffset]()
+							[RenderThreadSceneTileResource, VB, IB, InstanceBufferData, InstanceCount, InstanceOffset]()
 							{
 								RenderThreadSceneTileResource->CreateBLASAndInstances(
-									StaticMeshResource,
+									VB, IB,
 									InstanceBufferData,
 									InstanceCount,
 									InstanceOffset

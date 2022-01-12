@@ -7,90 +7,32 @@
 
 namespace tix
 {
-	// TMeshSection, hold mesh section info
-	struct TMeshSection
-	{
-		TMeshSection()
-			: IndexStart(0)
-			, Triangles(0)
-		{}
-
-		TMaterialInstancePtr DefaultMaterial;
-		uint32 IndexStart;
-		uint32 Triangles;
-		TVector<uint32> BoneMap;
-	};
-
-	struct TMeshBufferDesc
+	struct TVertexBufferDesc
 	{
 		E_PRIMITIVE_TYPE PrimitiveType;
 		FBox BBox;
 		uint32 VertexCount;
 
-		E_INDEX_TYPE IndexType;
-		uint32 IndexCount;
-
 		uint32 VsFormat;
 		uint32 Stride;
 
-		TMeshBufferDesc()
+		TVertexBufferDesc()
 			: PrimitiveType(EPT_TRIANGLELIST)
 			, VertexCount(0)
-			, IndexType(EIT_16BIT)
-			, IndexCount(0)
 			, VsFormat(0)
 			, Stride(0)
 		{}
 	};
-
-	// TMeshBuffer, hold mesh vertex and index data memory in game thread
-	class TI_API TMeshBuffer : public TResource
+	struct TIndexBufferDesc
 	{
-	public:
-		TMeshBuffer();
-		~TMeshBuffer();
+		E_INDEX_TYPE IndexType;
+		uint32 IndexCount;
 
-		static const int32 SemanticSize[ESSI_TOTAL];
-		static const int8* SemanticName[ESSI_TOTAL];
-		static const int32 SemanticIndex[ESSI_TOTAL];
-	public:
-		FMeshBufferPtr MeshBufferResource;
-
-		static uint32 GetStrideFromFormat(uint32 Format);
-		static TVector<E_MESH_STREAM_INDEX> GetSteamsFromFormat(uint32 Format);
-
-		virtual void InitRenderThreadResource() override;
-		virtual void DestroyRenderThreadResource() override;
-
-		void SetVertexStreamData(
-			uint32 InFormat,
-			const void* InVertexData, uint32 InVertexCount,
-			E_INDEX_TYPE InIndexType,
-			const void* InIndexData, uint32 InIndexCount);
-
-		const TMeshBufferDesc& GetDesc() const
-		{
-			return Desc;
-		}
-
-		void SetPrimitiveType(E_PRIMITIVE_TYPE type)
-		{
-			Desc.PrimitiveType = type;
-		}
-
-		void SetBBox(const FBox& bbox)
-		{
-			Desc.BBox = bbox;
-		}
-	protected:
-
-	protected:
-		TMeshBufferDesc Desc;
-		TStreamPtr Data;
+		TIndexBufferDesc()
+			: IndexType(EIT_16BIT)
+			, IndexCount(0)
+		{}
 	};
-
-	///////////////////////////////////////////////////////////
-
 	struct TInstanceBufferDesc
 	{
 		uint32 InsFormat;
@@ -103,6 +45,72 @@ namespace tix
 			, Stride(0)
 		{}
 	};
+
+	// TVertexBuffer, hold vertex data
+	class TI_API TVertexBuffer : public TResource
+	{
+	public:
+		TVertexBuffer();
+		virtual ~TVertexBuffer();
+
+		static const int32 SemanticSize[ESSI_TOTAL];
+		static const int8* SemanticName[ESSI_TOTAL];
+		static const int32 SemanticIndex[ESSI_TOTAL];
+	public:
+		FVertexBufferPtr VertexBufferResource;
+
+		static uint32 GetStrideFromFormat(uint32 Format);
+		static TVector<E_MESH_STREAM_INDEX> GetSteamsFromFormat(uint32 Format);
+
+		virtual void InitRenderThreadResource() override;
+		virtual void DestroyRenderThreadResource() override;
+
+		void SetVertexData(
+			uint32 InFormat,
+			const void* InVertexData, uint32 InVertexCount,
+			const FBox& InBox);
+
+		const TVertexBufferDesc& GetDesc() const
+		{
+			return Desc;
+		}
+	protected:
+
+	protected:
+		TVertexBufferDesc Desc;
+		TStreamPtr Data;
+	};
+
+	///////////////////////////////////////////////////////////
+	// TIndexBuffer, hold index data
+	class TI_API TIndexBuffer : public TResource
+	{
+	public:
+		TIndexBuffer();
+		virtual ~TIndexBuffer();
+
+		FIndexBufferPtr IndexBufferResource;
+
+		virtual void InitRenderThreadResource() override;
+		virtual void DestroyRenderThreadResource() override;
+
+		void SetIndexData(
+			E_INDEX_TYPE InIndexType,
+			const void* InIndexData, uint32 InIndexCount);
+
+		const TIndexBufferDesc& GetDesc() const
+		{
+			return Desc;
+		}
+	protected:
+
+	protected:
+		TIndexBufferDesc Desc;
+		TStreamPtr Data;
+	};
+
+	///////////////////////////////////////////////////////////
+
 	// TInstanceBuffer, hold instance data
 	class TI_API TInstanceBuffer : public TResource
 	{

@@ -52,15 +52,15 @@ namespace tix
 			return Primitives;
 		}
 
-		void CreateBLASAndInstances(FMeshBufferPtr MB, TInstanceBufferPtr InstanceData, const int32 InstanceCount, const int32 InstanceOffset);
+		void CreateBLASAndInstances(FVertexBufferPtr VB, FIndexBufferPtr IB, TInstanceBufferPtr InstanceData, const int32 InstanceCount, const int32 InstanceOffset);
 		void BuildBLAS();
 
-		THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr>& GetBLASes()
+		THMap<FVertexBufferPtr, FBottomLevelAccelerationStructurePtr>& GetBLASes()
 		{
 			return SceneTileBLASes;
 		}
 
-		THMap<FMeshBufferPtr, TVector<FMat34>>& GetBLASInstances()
+		THMap<FVertexBufferPtr, TVector<FMat34>>& GetBLASInstances()
 		{
 			return SceneTileBLASInstances;
 		}
@@ -77,9 +77,9 @@ namespace tix
 		TVector<FPrimitivePtr> Primitives;
 
 		// Scene BLAS, store by tiles. Each meshbuffer in this tile has a BLAS
-		THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr> SceneTileBLASes;
+		THMap<FVertexBufferPtr, FBottomLevelAccelerationStructurePtr> SceneTileBLASes;
 
 		// Scene BLAS instances
-		THMap<FMeshBufferPtr, TVector<FMat34> > SceneTileBLASInstances;
+		THMap<FVertexBufferPtr, TVector<FMat34> > SceneTileBLASInstances;
 	};
 }

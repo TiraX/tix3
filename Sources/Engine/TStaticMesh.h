@@ -8,29 +8,47 @@
 
 namespace tix
 {
+	// TMeshSection, hold mesh section info
+	struct TMeshSection
+	{
+		TMeshSection()
+			: IndexStart(0)
+			, Triangles(0)
+		{}
+
+		TMaterialInstancePtr DefaultMaterial;
+		uint32 IndexStart;
+		uint32 Triangles;
+		TVector<uint32> BoneMap;
+	};
 	// TStaticMesh, hold static mesh components like mesh buffer, mesh sections, collisions, occluders
 	class TI_API TStaticMesh : public TResource
 	{
 	public:
-		TStaticMesh(TMeshBufferPtr InMB);
+		TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB);
 		virtual ~TStaticMesh();
 
 		virtual void InitRenderThreadResource();
 		virtual void DestroyRenderThreadResource();
 
-		TMeshBufferPtr GetMeshBuffer()
+		TVertexBufferPtr GetVertexBuffer()
 		{
-			return MeshBuffer;
+			return VertexBuffer;
 		}
 
-		TMeshBufferPtr GetOccludeMesh()
+		TIndexBufferPtr GetIndexBuffer()
+		{
+			return IndexBuffer;
+		}
+
+		TStaticMeshPtr GetOccludeMesh()
 		{
 			return OccludeMesh;
 		}
 
 		void AddMeshSection(const TMeshSection& InSection)
 		{
-			TI_ASSERT(InSection.Triangles <= MeshBuffer->GetDesc().IndexCount / 3);
+			TI_ASSERT(InSection.Triangles <= IndexBuffer->GetDesc().IndexCount / 3);
 			MeshSections.push_back(InSection);
 		}
 
@@ -39,7 +57,7 @@ namespace tix
 			CollisionSet = InCollision;
 		}
 
-		void SetOccludeMesh(TMeshBufferPtr InOcclude)
+		void SetOccludeMesh(TStaticMeshPtr InOcclude)
 		{
 			OccludeMesh = InOcclude;
 		}
@@ -57,9 +75,10 @@ namespace tix
 		void CreateOccludeMeshFromCollision();
 
 	private:
-		TMeshBufferPtr MeshBuffer;
+		TVertexBufferPtr VertexBuffer;
+		TIndexBufferPtr IndexBuffer;
 		TVector<TMeshSection> MeshSections;
 		TCollisionSetPtr CollisionSet;
-		TMeshBufferPtr OccludeMesh;
+		TStaticMeshPtr OccludeMesh;
 	};
 }

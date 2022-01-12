@@ -41,7 +41,7 @@ namespace tix
 		FBottomLevelAccelerationStructure();
 		virtual ~FBottomLevelAccelerationStructure();
 
-		virtual void AddMeshBuffer(FMeshBufferPtr InMeshBuffer) = 0;
+		virtual void AddMeshBuffer(FVertexBufferPtr InVB, FIndexBufferPtr InIB) = 0;
 	protected:
 	};
 

@@ -47,14 +47,14 @@ namespace tix
 		FRenderThread::Get()->GetRenderScene()->SetSceneFlag(FScene::ScenePrimitivesDirty);
 	}
 
-	void FSceneTileResource::CreateBLASAndInstances(FMeshBufferPtr MB, TInstanceBufferPtr InInstanceData, const int32 InstanceCount, const int32 InstanceOffset)
+	void FSceneTileResource::CreateBLASAndInstances(FVertexBufferPtr VB, FIndexBufferPtr IB, TInstanceBufferPtr InInstanceData, const int32 InstanceCount, const int32 InstanceOffset)
 	{
 		if (FRHI::RHIConfig.IsRaytracingEnabled())
 		{
 			FBottomLevelAccelerationStructurePtr BLAS = nullptr;
 
 			// Find BLAS for this mesh, if not found, create ONE.
-			THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr>::iterator Found = SceneTileBLASes.find(MB);
+			THMap<FVertexBufferPtr, FBottomLevelAccelerationStructurePtr>::iterator Found = SceneTileBLASes.find(VB);
 			if (Found == SceneTileBLASes.end())
 			{
 				BLAS = FRHI::Get()->CreateBottomLevelAccelerationStructure();
@@ -63,11 +63,11 @@ namespace tix
 				sprintf_s(Name, 128, "BLAS_%d_%d-%s",
 					Position.X,
 					Position.Y,
-					MB->GetResourceName().c_str());
+					VB->GetResourceName().c_str());
 				BLAS->SetResourceName(Name);
-				BLAS->AddMeshBuffer(MB);
+				BLAS->AddMeshBuffer(VB, IB);
 
-				SceneTileBLASes[MB] = BLAS;
+				SceneTileBLASes[VB] = BLAS;
 			}
 			else
 			{
@@ -93,7 +93,7 @@ namespace tix
 				Mat3x4[9] = InsData[3].Y;
 				Mat3x4[10] = InsData[3].Z;
 
-				SceneTileBLASInstances[MB].push_back(Mat3x4);
+				SceneTileBLASInstances[VB].push_back(Mat3x4);
 
 			}
 		}
@@ -101,7 +101,7 @@ namespace tix
 
 	void FSceneTileResource::BuildBLAS()
 	{
-		for (THMap<FMeshBufferPtr, FBottomLevelAccelerationStructurePtr>::iterator it = SceneTileBLASes.begin(); it != SceneTileBLASes.end(); it ++)
+		for (THMap<FVertexBufferPtr, FBottomLevelAccelerationStructurePtr>::iterator it = SceneTileBLASes.begin(); it != SceneTileBLASes.end(); it ++)
 		{
 			it->second->Build();
 		}

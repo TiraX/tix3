@@ -30,12 +30,10 @@ namespace tix
 			uint32 InInstanceOffset
 		);
 		void SetSkeletalMesh(
-			FMeshBufferPtr InMeshBuffer,
-			uint32 InIndexStart,
-			uint32 InTriangles,
-			TMaterialInstancePtr InMInstance
+			TStaticMeshPtr InStaticMesh
 		);
 		void SetSkeletonResource(
+			int32 SectionIndex,
 			FUniformBufferPtr InSkeletonResource
 		);
 
@@ -51,6 +49,7 @@ namespace tix
 			FPipelinePtr Pipeline;
 			FArgumentBufferPtr Argument;
 			E_DRAWLIST_TYPE DrawList;
+			FUniformBufferPtr SkeletonResourceRef;
 		};
 		int32 GetNumSections() const
 		{
@@ -62,9 +61,13 @@ namespace tix
 			return Sections[Index];
 		}
 
-		FMeshBufferPtr GetMeshBuffer()
+		FVertexBufferPtr GetVertexBuffer()
 		{
-			return MeshBuffer;
+			return VertexBuffer;
+		}
+		FIndexBufferPtr GetIndexBuffer()
+		{
+			return IndexBuffer;
 		}
 		FInstanceBufferPtr GetInstanceBuffer()
 		{
@@ -82,10 +85,6 @@ namespace tix
 		{
 			return PrimitiveUniformBuffer;
 		}
-		FUniformBufferPtr GetSkeletonUniform()
-		{
-			return SkeletonResourceRef;
-		}
 		bool IsPrimitiveBufferDirty() const
 		{
 			return (PrimitiveFlag & PrimitiveUniformBufferDirty) != 0;
@@ -98,12 +97,11 @@ namespace tix
 	private:
 		uint32 PrimitiveFlag;
 
-		FMeshBufferPtr MeshBuffer;
+		FVertexBufferPtr VertexBuffer;
+		FIndexBufferPtr IndexBuffer;
 		FInstanceBufferPtr InstanceBuffer;
 		uint32 InstanceCount;
 		uint32 InstanceOffset;
-
-		FUniformBufferPtr SkeletonResourceRef;
 
 		TVector<FSection> Sections;
 

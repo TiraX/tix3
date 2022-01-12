@@ -38,7 +38,8 @@ namespace tix
 			FFloat3 Position;
 			FHalf2 UV;
 		};
-		FMeshBufferPtr FullScreenQuad;
+		FVertexBufferPtr FullScreenVB;
+		FIndexBufferPtr FullScreenIB;
 		FPipelinePtr FullScreenPipeline;
 		FShaderPtr FullScreenShader;
 	};

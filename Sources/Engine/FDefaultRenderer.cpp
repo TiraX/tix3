@@ -76,15 +76,16 @@ namespace tix
 				if (Primitive != nullptr)
 				{
 					FInstanceBufferPtr InstanceBuffer = Primitive->GetInstanceBuffer();
-					FMeshBufferPtr MeshBuffer = Primitive->GetMeshBuffer();
+					FVertexBufferPtr VB = Primitive->GetVertexBuffer();
+					FIndexBufferPtr IB = Primitive->GetIndexBuffer();
 					for (int32 S = 0; S < Primitive->GetNumSections(); S++)
 					{
 						const FPrimitive::FSection& Section = Primitive->GetSection(S);
 						RHI->SetGraphicsPipeline(Section.Pipeline);
-						RHI->SetMeshBuffer(MeshBuffer, InstanceBuffer);
+						RHI->SetVertexBuffer(VB, InstanceBuffer);
+						RHI->SetIndexBuffer(IB);
 						ApplyShaderParameter(RHI, Scene, Primitive, S);
 						RHI->DrawPrimitiveIndexedInstanced(
-							MeshBuffer,
 							Section.Triangles * 3,
 							InstanceBuffer == nullptr ? 1 : Primitive->GetInstanceCount(),
 							Section.IndexStart,
@@ -110,9 +111,8 @@ namespace tix
 			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetPrimitiveUniform()->UniformBuffer);
 			break;
 		case ARGUMENT_EB_BONES:
-			TI_ASSERT(Primitive->GetSkeletonUniform() != nullptr);
-			//if (Primitive->GetSkeletonUniform() != nullptr)
-				RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSkeletonUniform());
+			TI_ASSERT(Primitive->GetSection(SectionIndex).SkeletonResourceRef != nullptr);
+			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
 			break;
 		case ARGUMENT_EB_LIGHTS:
 			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Scene->GetSceneLights()->GetSceneLightsUniform()->UniformBuffer);

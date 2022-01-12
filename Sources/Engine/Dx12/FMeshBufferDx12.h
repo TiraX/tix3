@@ -10,42 +10,42 @@
 
 namespace tix
 {
-	class FMeshBufferDx12 : public FMeshBuffer
-	{
-	public:
-		FMeshBufferDx12();
-		virtual ~FMeshBufferDx12();
-	protected:
+	//class FMeshBufferDx12 : public FMeshBuffer
+	//{
+	//public:
+	//	FMeshBufferDx12();
+	//	virtual ~FMeshBufferDx12();
+	//protected:
 
-	private:
-		FGPUResourceDx12 VertexBuffer;
-		FGPUResourceDx12 IndexBuffer;
+	//private:
+	//	FGPUResourceDx12 VertexBuffer;
+	//	FGPUResourceDx12 IndexBuffer;
 
-		D3D12_VERTEX_BUFFER_VIEW VertexBufferView;
-		D3D12_INDEX_BUFFER_VIEW IndexBufferView;
+	//	D3D12_VERTEX_BUFFER_VIEW VertexBufferView;
+	//	D3D12_INDEX_BUFFER_VIEW IndexBufferView;
 
-		friend class FRHIDx12;
-		friend class FBottomLevelAccelerationStructureDx12;
-		friend class FGPUCommandBufferDx12;
-	};
+	//	friend class FRHIDx12;
+	//	friend class FBottomLevelAccelerationStructureDx12;
+	//	friend class FGPUCommandBufferDx12;
+	//};
 
-	/////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////
 
-	class FInstanceBufferDx12 : public FInstanceBuffer
-	{
-	public:
-		FInstanceBufferDx12();
-		FInstanceBufferDx12(uint32 TotalInstancesCount, uint32 InstanceStride);
-		virtual ~FInstanceBufferDx12();
-	protected:
+	//class FInstanceBufferDx12 : public FInstanceBuffer
+	//{
+	//public:
+	//	FInstanceBufferDx12();
+	//	FInstanceBufferDx12(uint32 TotalInstancesCount, uint32 InstanceStride);
+	//	virtual ~FInstanceBufferDx12();
+	//protected:
 
-	private:
-		FGPUResourceDx12 InstanceBuffer;
-		D3D12_VERTEX_BUFFER_VIEW InstanceBufferView;
+	//private:
+	//	FGPUResourceDx12 InstanceBuffer;
+	//	D3D12_VERTEX_BUFFER_VIEW InstanceBufferView;
 
-		friend class FRHIDx12;
-		friend class FGPUCommandBufferDx12;
-	};
+	//	friend class FRHIDx12;
+	//	friend class FGPUCommandBufferDx12;
+	//};
 }
 
 #endif	// COMPILE_WITH_RHI_DX12

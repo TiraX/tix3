@@ -15,7 +15,8 @@ namespace tix
 
 	FFullScreenRender::~FFullScreenRender()
 	{
-		FullScreenQuad = nullptr;
+		FullScreenVB = nullptr;
+		FullScreenIB = nullptr;
 		FullScreenPipeline = nullptr;
 		FullScreenShader = nullptr;
 	}
@@ -38,12 +39,17 @@ namespace tix
 			0, 2, 1, 1, 2, 3
 		};
 
-		TMeshBufferPtr MBData = ti_new TMeshBuffer();
-		MBData->SetResourceName("FullScreenQuad");
-		MBData->SetVertexStreamData(EVSSEG_POSITION | EVSSEG_TEXCOORD0, FullScreenQuadVertices, 4, EIT_16BIT, FullScreenQuadIndices, 6);
-		FullScreenQuad = ti_new FMeshBuffer(MBData->GetDesc());
-		RHI->UpdateHardwareResourceMesh(FullScreenQuad, MBData);
-		MBData = nullptr;
+		TVertexBufferPtr VBData = ti_new TVertexBuffer();
+		VBData->SetResourceName("FullScreenVB");
+		VBData->SetVertexData(EVSSEG_POSITION | EVSSEG_TEXCOORD0, FullScreenQuadVertices, 4, FBox());
+		TIndexBufferPtr IBData = ti_new TIndexBuffer();
+		IBData->SetResourceName("FullScreenIB");
+		IBData->SetIndexData(EIT_16BIT, FullScreenQuadIndices, 6);
+		FullScreenVB = ti_new FVertexBuffer(VBData->GetDesc());
+		FullScreenIB = ti_new FIndexBuffer(IBData->GetDesc());
+		TI_ASSERT(0);
+		VBData = nullptr;
+		IBData = nullptr;
 
 		// Create full screen render pipeline
 		TMaterialPtr FSMaterial = ti_new TMaterial();
@@ -64,7 +70,7 @@ namespace tix
         FSMaterial->EnableTwoSides(true);
 		FSMaterial->EnableDepthWrite(false);
 		FSMaterial->EnableDepthTest(false);
-		FSMaterial->SetShaderVsFormat(FullScreenQuad->GetDesc().VsFormat);
+		FSMaterial->SetShaderVsFormat(FullScreenVB->GetDesc().VsFormat);
 		FSMaterial->SetRTColor(FRHIConfig::DefaultBackBufferFormat, ERTC_COLOR0);
 
 		// Pipeline
@@ -79,36 +85,40 @@ namespace tix
 	{
 		TI_ASSERT(bInited);
         RHI->SetGraphicsPipeline(FullScreenPipeline);
-        RHI->SetMeshBuffer(FullScreenQuad, nullptr);
+		RHI->SetVertexBuffer(FullScreenVB, nullptr);
+		RHI->SetIndexBuffer(FullScreenIB);
         RHI->SetShaderTexture(0, Texture);
         
-        RHI->DrawPrimitiveIndexedInstanced(FullScreenQuad, 1, 0);
+        RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 
 	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FRenderResourceTablePtr TextureTable)
 	{
 		TI_ASSERT(bInited);
-		RHI->SetMeshBuffer(FullScreenQuad, nullptr);
+		RHI->SetVertexBuffer(FullScreenVB, nullptr);
+		RHI->SetIndexBuffer(FullScreenIB);
 		RHI->SetGraphicsPipeline(FullScreenPipeline);
 		RHI->SetRenderResourceTable(0, TextureTable);
 
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenQuad, 1, 0);
+		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 
 	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FArgumentBufferPtr ArgumentBuffer)
 	{
 		TI_ASSERT(bInited);
         RHI->SetGraphicsPipeline(FullScreenPipeline);
-		RHI->SetMeshBuffer(FullScreenQuad, nullptr);
+		RHI->SetVertexBuffer(FullScreenVB, nullptr);
+		RHI->SetIndexBuffer(FullScreenIB);
 		RHI->SetArgumentBuffer(0, ArgumentBuffer);
 
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenQuad, 1, 0);
+		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 
 	void FFullScreenRender::DrawFullScreenQuad(FRHI* RHI)
 	{
 		TI_ASSERT(bInited);
-		RHI->SetMeshBuffer(FullScreenQuad, nullptr);
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenQuad, 1, 0);
+		RHI->SetVertexBuffer(FullScreenVB, nullptr);
+		RHI->SetIndexBuffer(FullScreenIB);
+		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 }

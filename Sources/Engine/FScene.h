@@ -9,31 +9,6 @@
 
 namespace tix
 {
-	struct FSceneMeshInfo
-	{
-		FSceneMeshInfo()
-			: References(0)
-		{
-		}
-
-		FSceneMeshInfo(int32 InRef, FMeshBufferPtr InOccMesh, FUniformBufferPtr InClusterData)
-			: References(InRef)
-			, OccludeMesh(InOccMesh)
-			, ClusterData(InClusterData)
-		{
-		}
-
-		~FSceneMeshInfo()
-		{
-			OccludeMesh = nullptr;
-			ClusterData = nullptr;
-		}
-
-		int32 References;
-		FMeshBufferPtr OccludeMesh;
-		FUniformBufferPtr ClusterData;
-	};
-
 	class FSceneLights;
 	class FScene
 	{
@@ -60,9 +35,6 @@ namespace tix
 
 		void AddSceneTileInfo(FSceneTileResourcePtr SceneTileResource);
 		void RemoveSceneTileInfo(FSceneTileResourcePtr SceneTileResource);
-
-		void AddSceneMeshBuffer(FMeshBufferPtr InMesh, FMeshBufferPtr InOccludeMesh, FUniformBufferPtr InClusterData);
-		void RemoveSceneMeshBuffer(FMeshBufferPtr InMesh);
 
 		void AddEnvLight(FTexturePtr CubeTexture, const FFloat3& Position);
 		void RemoveEnvLight(FEnvLightPtr InEnvLight);
@@ -107,11 +79,6 @@ namespace tix
 			return ViewUniformBuffer;
 		}
 
-		const THMap<FMeshBufferPtr, FSceneMeshInfo>& GetSceneMeshes() const
-		{
-			return SceneMeshes;
-		}
-
 		FEnvLightPtr FindNearestEnvLight(const FFloat3& Pos)
 		{
 			return EnvLight;
@@ -136,9 +103,6 @@ namespace tix
 
 		// Uniform buffers
 		FViewUniformBufferPtr ViewUniformBuffer;
-
-		// Scene meshes
-		THMap<FMeshBufferPtr, FSceneMeshInfo> SceneMeshes;
 
 		// Scene tiles
 		THMap<FInt2, FSceneTileResourcePtr> SceneTiles;

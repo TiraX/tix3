@@ -30,8 +30,9 @@ namespace tix
 	{
 		TI_ASSERT(IsGameThread());
 		// Add mesh buffer
-		MeshBuffer = InStaticMesh->GetMeshBuffer()->MeshBufferResource;
-		TI_ASSERT(MeshBuffer != nullptr);
+		VertexBuffer = InStaticMesh->GetVertexBuffer()->VertexBufferResource;
+		IndexBuffer = InStaticMesh->GetIndexBuffer()->IndexBufferResource;
+		TI_ASSERT(VertexBuffer != nullptr && IndexBuffer != nullptr);
 
 		// Add instance buffer
 		InstanceBuffer = InInstanceBuffer;
@@ -70,42 +71,49 @@ namespace tix
 		}
 	}
 
-	void FPrimitive::SetSkeletalMesh(
-		FMeshBufferPtr InMeshBuffer,
-		uint32 InIndexStart,
-		uint32 InTriangles,
-		TMaterialInstancePtr InMInstance)
+	void FPrimitive::SetSkeletalMesh(TStaticMeshPtr InStaticMesh)
 	{
-		TI_ASSERT(0);
-		//// Add mesh buffer
-		//MeshBuffer = InMeshBuffer;
+		TI_ASSERT(IsGameThread());
+		// Add mesh buffer
+		VertexBuffer = InStaticMesh->GetVertexBuffer()->VertexBufferResource;
+		IndexBuffer = InStaticMesh->GetIndexBuffer()->IndexBufferResource;
+		TI_ASSERT(VertexBuffer != nullptr && IndexBuffer != nullptr);
 
-		//// Add pipeline
-		//TMaterialPtr Material = InMInstance->LinkedMaterial;
-		//TI_ASSERT(Material->PipelineResource != nullptr);
-		//Pipeline = Material->PipelineResource;
+		// Add sections here.
+		uint32 NumSections = InStaticMesh->GetMeshSectionCount();
+		Sections.reserve(NumSections);
+		for (uint32 S = 0; S < NumSections; S++)
+		{
+			const TMeshSection& Section = InStaticMesh->GetMeshSection(S);
 
-		//// Instance material argument buffer
-		//Argument = InMInstance->ArgumentBuffer;
+			FSection PrimitiveSection;
+			PrimitiveSection.IndexStart = Section.IndexStart;
+			PrimitiveSection.Triangles = Section.Triangles;
 
-		//// Draw List
-		//if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
-		//{
-		//	DrawList = LIST_OPAQUE;
-		//}
-		//else if (Material->GetBlendMode() == BLEND_MODE_MASK)
-		//{
-		//	DrawList = LIST_MASK;
-		//}
-		//else
-		//{
-		//	DrawList = LIST_TRANSLUCENT;
-		//}
+			TMaterialPtr Material = Section.DefaultMaterial->LinkedMaterial;
+			TI_ASSERT(Material->PipelineResource != nullptr);
+			PrimitiveSection.Pipeline = Material->PipelineResource;
+			PrimitiveSection.Argument = Section.DefaultMaterial->ArgumentBuffer;
+
+			if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
+			{
+				PrimitiveSection.DrawList = LIST_OPAQUE;
+			}
+			else if (Material->GetBlendMode() == BLEND_MODE_MASK)
+			{
+				PrimitiveSection.DrawList = LIST_MASK;
+			}
+			else
+			{
+				PrimitiveSection.DrawList = LIST_TRANSLUCENT;
+			}
+			Sections.push_back(PrimitiveSection);
+		}
 	}
 
-	void FPrimitive::SetSkeletonResource(FUniformBufferPtr InSkeletonResource)
+	void FPrimitive::SetSkeletonResource(int32 SectionIndex, FUniformBufferPtr InSkeletonResource)
 	{
-		SkeletonResourceRef = InSkeletonResource;
+		Sections[SectionIndex].SkeletonResourceRef = InSkeletonResource;
 	}
 
 	void FPrimitive::SetLocalToWorld(const FMat4 InLocalToWorld)

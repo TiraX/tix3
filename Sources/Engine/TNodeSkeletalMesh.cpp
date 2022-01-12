@@ -35,19 +35,16 @@ namespace tix
 		TNode::UpdateAllTransformation();
 
 		// Temp solution, use LocalToWorld matrix, use instance transform in futher for GPU Driven
-		if (LinkedPrimitives.size() > 0)
+		if (LinkedPrimitive != nullptr)
 		{
 			// Update primtive uniform buffer
-			TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
+			FPrimitivePtr Primitive = LinkedPrimitive;
 			FMat4 LocalToWorldMat = AbsoluteTransformation;
 			ENQUEUE_RENDER_COMMAND(TNodeSkeletalMeshUpdatePrimitiveUniform)(
-				[Primitives, LocalToWorldMat]()
+				[Primitive, LocalToWorldMat]()
 				{
-					for (FPrimitivePtr P : Primitives)
-					{
-						P->SetLocalToWorld(LocalToWorldMat);
-						P->UpdatePrimitiveBuffer_RenderThread();
-					}
+					Primitive->SetLocalToWorld(LocalToWorldMat);
+					Primitive->UpdatePrimitiveBuffer_RenderThread();
 				});
 		}
 	}
@@ -64,37 +61,18 @@ namespace tix
 		TI_ASSERT(Skeleton->GetBones() <= TSkeleton::MaxBones);
 
 		// Generate primitives and send to render thread
-		LinkedPrimitives.clear();
-		LinkedPrimitives.reserve(InMesh->GetMeshSectionCount());
+		LinkedPrimitive = ti_new FPrimitive;
+		LinkedPrimitive->SetSkeletalMesh(InMesh);
 
-		for (uint32 s = 0; s < InMesh->GetMeshSectionCount(); ++s)
-		{
-			const TMeshSection& MeshSection = InMesh->GetMeshSection(s);
-			TI_ASSERT(InMesh->GetMeshBuffer()->MeshBufferResource != nullptr);
-			FPrimitivePtr Primitive = ti_new FPrimitive;
-			Primitive->SetSkeletalMesh(
-				InMesh->GetMeshBuffer()->MeshBufferResource,
-				MeshSection.IndexStart,
-				MeshSection.Triangles,
-				MeshSection.DefaultMaterial
-			);
-			LinkedPrimitives.push_back(Primitive);
-		}
-		SkeletonResources.resize(LinkedPrimitives.size());
-
-		TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
+		FPrimitivePtr Primitive = LinkedPrimitive;
 		if (SceneTileResourceRef != nullptr)
 		{
 			// Add primitive to scene tile
 			FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResourceRef->RenderThreadTileResource;
 			ENQUEUE_RENDER_COMMAND(AddTNodeSkeletalMeshPrimitivesToFSceneTile)(
-				[RenderThreadSceneTileResource, Primitives]()
+				[RenderThreadSceneTileResource, Primitive]()
 				{
-					const uint32 TotalPrimitives = (uint32)Primitives.size();
-					for (uint32 p = 0; p < TotalPrimitives; ++p)
-					{
-						RenderThreadSceneTileResource->AppendPrimitive(Primitives[p]);
-					}
+					RenderThreadSceneTileResource->AppendPrimitive(Primitive);
 				});
 		}
 		else
@@ -198,9 +176,9 @@ namespace tix
 			Skeleton->BuildGlobalPoses();
 
 			TVector< TVector<float> > BoneDatas;
-			BoneDatas.resize(LinkedPrimitives.size());
+			BoneDatas.resize(LinkedPrimitive->GetNumSections());
 
-			for (int32 p = 0; p < (int32)LinkedPrimitives.size(); p++)
+			for (int32 p = 0; p < LinkedPrimitive->GetNumSections(); p++)
 			{
 				const TMeshSection& MeshSection = StaticMesh->GetMeshSection(p);
 
@@ -221,15 +199,14 @@ namespace tix
 				});
 
 			// Link skeleton resource to primitives
-			TVector<FPrimitivePtr> Primitives = LinkedPrimitives;
+			FPrimitivePtr Primitive = LinkedPrimitive;
 			ENQUEUE_RENDER_COMMAND(PrimitiveSetSkeleton)(
-				[Primitives, SkeletonDataResources]()
+				[Primitive, SkeletonDataResources]()
 				{
-					TI_ASSERT(Primitives.size() == SkeletonDataResources.size());
-					const uint32 TotalPrimitives = (uint32)Primitives.size();
-					for (uint32 p = 0; p < TotalPrimitives; ++p)
+					TI_ASSERT(Primitive->GetNumSections() == SkeletonDataResources.size());
+					for (int32 p = 0; p < Primitive->GetNumSections(); ++p)
 					{
-						Primitives[p]->SetSkeletonResource(SkeletonDataResources[p]);
+						Primitive->SetSkeletonResource(p, SkeletonDataResources[p]);
 					}
 				});
 

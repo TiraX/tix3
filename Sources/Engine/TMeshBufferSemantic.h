@@ -8,7 +8,7 @@
 namespace tix
 {
 	// Define in a single file for reference in different project.
-	const int32 TMeshBuffer::SemanticSize[ESSI_TOTAL] =
+	const int32 TVertexBuffer::SemanticSize[ESSI_TOTAL] =
 	{
 		12,	// ESSI_POSITION,
 		4,	// ESSI_NORMAL,
@@ -20,7 +20,7 @@ namespace tix
 		4,	// ESSI_BLENDWEIGHT,
 	};
 
-	const int8* TMeshBuffer::SemanticName[ESSI_TOTAL] =
+	const int8* TVertexBuffer::SemanticName[ESSI_TOTAL] =
 	{
 		"POSITION",		// ESSI_POSITION,
 		"NORMAL",		// ESSI_NORMAL,
@@ -32,7 +32,7 @@ namespace tix
 		"BLENDWEIGHT",	// ESSI_BLENDWEIGHT,
 	};
 
-	const int32 TMeshBuffer::SemanticIndex[ESSI_TOTAL] =
+	const int32 TVertexBuffer::SemanticIndex[ESSI_TOTAL] =
 	{
 		0,		// ESSI_POSITION,
 		0,		// ESSI_NORMAL,

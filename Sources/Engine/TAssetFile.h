@@ -27,7 +27,7 @@ namespace tix
 		bool ParseFile();
 
 	private:
-		void CreateMeshBuffer(TVector<TResourcePtr>& OutResources);
+		void CreateStaticMesh(TVector<TResourcePtr>& OutResources);
 		void CreateTexture(TVector<TResourcePtr>& OutResources);
 		void CreateMaterial(TVector<TResourcePtr>& OutResources);
 		void CreateMaterialInstance(TVector<TResourcePtr>& OutResources);

@@ -7,27 +7,46 @@
 
 namespace tix
 {
-	// FMeshBuffer, hold vertex buffer and index buffer render resource
-	class FMeshBuffer : public FRenderResource
+	class FVertexBuffer : public FRenderResource
 	{
 	public:
-		FMeshBuffer();
-		FMeshBuffer(const TMeshBufferDesc& InDesc);
-		virtual ~FMeshBuffer();
+		FVertexBuffer();
+		FVertexBuffer(const TVertexBufferDesc& InDesc);
+		virtual ~FVertexBuffer();
 
 		virtual void CreateGPUResource(TStreamPtr Data) override;
 
-		const TMeshBufferDesc& GetDesc() const
+		const TVertexBufferDesc& GetDesc() const
 		{
 			return Desc;
 		}
 	protected:
 
 	protected:
-		TMeshBufferDesc Desc;
+		TVertexBufferDesc Desc;
+		FGPUResourceBufferPtr GPUResourceVertexBuffer;
+	};
 
-		FGPUResourceBufferPtr GPUResourceVB;
-		FGPUResourceBufferPtr GPUResourceIB;
+	///////////////////////////////////////////////////////////
+
+	class FIndexBuffer : public FRenderResource
+	{
+	public:
+		FIndexBuffer();
+		FIndexBuffer(const TIndexBufferDesc& InDesc);
+		virtual ~FIndexBuffer();
+
+		virtual void CreateGPUResource(TStreamPtr Data) override;
+
+		const TIndexBufferDesc& GetDesc() const
+		{
+			return Desc;
+		}
+	protected:
+
+	protected:
+		TIndexBufferDesc Desc;
+		FGPUResourceBufferPtr GPUResourceIndexBuffer;
 	};
 
 	///////////////////////////////////////////////////////////

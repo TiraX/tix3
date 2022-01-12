@@ -47,7 +47,7 @@ namespace tix
 		TCollisionSet();
 		~TCollisionSet();
 
-		TMeshBufferPtr ConvertToMesh() const;
+		TStaticMeshPtr ConvertToStaticMesh() const;
 
 	public:
 		virtual void InitRenderThreadResource() override;

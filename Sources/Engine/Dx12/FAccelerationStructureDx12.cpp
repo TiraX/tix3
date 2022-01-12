@@ -20,27 +20,26 @@ namespace tix
 	FBottomLevelAccelerationStructureDx12::~FBottomLevelAccelerationStructureDx12()
 	{}
 
-	void FBottomLevelAccelerationStructureDx12::AddMeshBuffer(FMeshBufferPtr MeshBuffer)
+	void FBottomLevelAccelerationStructureDx12::AddMeshBuffer(FVertexBufferPtr InVB, FIndexBufferPtr InIB)
 	{
-		FMeshBufferDx12* MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
+		TI_ASSERT(0);
+		//// Create Geometry Desc
+		//D3D12_RAYTRACING_GEOMETRY_DESC GeometryDesc = {};
+		//GeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+		//GeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-		// Create Geometry Desc
-		D3D12_RAYTRACING_GEOMETRY_DESC GeometryDesc = {};
-		GeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-		GeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+		//GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(InIB->GetDesc().IndexType);
+		//GeometryDesc.Triangles.IndexBuffer = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
+		//GeometryDesc.Triangles.IndexCount = MBDx12->GetDesc().IndexCount;
 
-		GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(MBDx12->GetDesc().IndexType);
-		GeometryDesc.Triangles.IndexBuffer = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
-		GeometryDesc.Triangles.IndexCount = MBDx12->GetDesc().IndexCount;
+		//GeometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;	// Position always be RGB32F
+		//GeometryDesc.Triangles.VertexBuffer.StartAddress = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
+		//GeometryDesc.Triangles.VertexBuffer.StrideInBytes = MBDx12->GetDesc().Stride;
+		//GeometryDesc.Triangles.VertexCount = MBDx12->GetDesc().VertexCount;
 
-		GeometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;	// Position always be RGB32F
-		GeometryDesc.Triangles.VertexBuffer.StartAddress = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
-		GeometryDesc.Triangles.VertexBuffer.StrideInBytes = MBDx12->GetDesc().Stride;
-		GeometryDesc.Triangles.VertexCount = MBDx12->GetDesc().VertexCount;
+		//GeometryDesc.Triangles.Transform3x4 = NULL;
 
-		GeometryDesc.Triangles.Transform3x4 = NULL;
-
-		GeometryDescs.push_back(GeometryDesc); 
+		//GeometryDescs.push_back(GeometryDesc); 
 		MarkDirty();
 	}
 

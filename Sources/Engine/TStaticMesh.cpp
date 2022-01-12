@@ -9,9 +9,10 @@
 
 namespace tix
 {
-	TStaticMesh::TStaticMesh(TMeshBufferPtr InMB)
+	TStaticMesh::TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB)
 		: TResource(ERES_STATIC_MESH)
-		, MeshBuffer(InMB)
+		, VertexBuffer(InVB)
+		, IndexBuffer(InIB)
 	{
 	}
 
@@ -21,7 +22,8 @@ namespace tix
 
 	void TStaticMesh::InitRenderThreadResource()
 	{
-		MeshBuffer->InitRenderThreadResource();
+		VertexBuffer->InitRenderThreadResource();
+		IndexBuffer->InitRenderThreadResource();
 		if (OccludeMesh != nullptr)
 		{
 			OccludeMesh->InitRenderThreadResource();
@@ -30,7 +32,8 @@ namespace tix
 
 	void TStaticMesh::DestroyRenderThreadResource()
 	{
-		MeshBuffer->DestroyRenderThreadResource();
+		VertexBuffer->DestroyRenderThreadResource();
+		IndexBuffer->DestroyRenderThreadResource();
 		if (OccludeMesh != nullptr)
 		{
 			OccludeMesh->DestroyRenderThreadResource();
@@ -40,11 +43,10 @@ namespace tix
 	void TStaticMesh::CreateOccludeMeshFromCollision()
 	{
 		TI_ASSERT(OccludeMesh == nullptr);
-		OccludeMesh = CollisionSet->ConvertToMesh();
+		OccludeMesh = CollisionSet->ConvertToStaticMesh();
 		if (OccludeMesh != nullptr)
 		{
-			OccludeMesh->SetBBox(MeshBuffer->GetDesc().BBox);
-			OccludeMesh->SetResourceName(MeshBuffer->GetResourceName() + "-Occluder");
+			OccludeMesh->SetResourceName(VertexBuffer->GetResourceName() + "-Occluder");
 		}
 	}
 }

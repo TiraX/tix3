@@ -55,26 +55,27 @@ namespace tix
 	void FGPUCommandBufferDx12::EncodeSetVertexBuffer(
 		uint32 CommandIndex,
 		uint32 ArgumentIndex,
-		FMeshBufferPtr MeshBuffer)
+		FVertexBufferPtr VertexBuffer)
 	{
-		FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
-		TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
-		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
+		TI_ASSERT(0);
+		//FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
+		//TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
+		//FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
 
-		// Only support indexed triangle list.
-		TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
+		//// Only support indexed triangle list.
+		//TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
 
-		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
-		E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
-		TI_ASSERT(CommandType == GPU_COMMAND_SET_VERTEX_BUFFER);
-		uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
-		
-		// Vertex buffer
-		CommandBufferData->Seek(CommandPos);
-		CommandBufferData->Set(&MBDx12->VertexBufferView, sizeof(D3D12_VERTEX_BUFFER_VIEW));
+		//const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
+		//E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
+		//TI_ASSERT(CommandType == GPU_COMMAND_SET_VERTEX_BUFFER);
+		//uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
+		//
+		//// Vertex buffer
+		//CommandBufferData->Seek(CommandPos);
+		//CommandBufferData->Set(&MBDx12->VertexBufferView, sizeof(D3D12_VERTEX_BUFFER_VIEW));
 
-		// Remember commands encoded
-		CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
+		//// Remember commands encoded
+		//CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
 	}
 
 	void FGPUCommandBufferDx12::EncodeSetInstanceBuffer(
@@ -82,48 +83,50 @@ namespace tix
 		uint32 ArgumentIndex,
 		FInstanceBufferPtr InstanceBuffer)
 	{
-		FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
-		TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
-		FInstanceBufferDx12 * IBDx12 = static_cast<FInstanceBufferDx12*>(InstanceBuffer.get());
+		TI_ASSERT(0);
+		//FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
+		//TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
+		//FInstanceBufferDx12 * IBDx12 = static_cast<FInstanceBufferDx12*>(InstanceBuffer.get());
 
-		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
-		E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
-		TI_ASSERT(CommandType == GPU_COMMAND_SET_INSTANCE_BUFFER);
-		uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
+		//const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
+		//E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
+		//TI_ASSERT(CommandType == GPU_COMMAND_SET_INSTANCE_BUFFER);
+		//uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
 
-		// Instance buffer
-		CommandBufferData->Seek(CommandPos);
-		CommandBufferData->Set(&IBDx12->InstanceBufferView, sizeof(D3D12_VERTEX_BUFFER_VIEW));
-		
-		// Remember commands encoded
-		CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
+		//// Instance buffer
+		//CommandBufferData->Seek(CommandPos);
+		//CommandBufferData->Set(&IBDx12->InstanceBufferView, sizeof(D3D12_VERTEX_BUFFER_VIEW));
+		//
+		//// Remember commands encoded
+		//CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
 	}
 
 	void FGPUCommandBufferDx12::EncodeSetIndexBuffer(
 		uint32 CommandIndex,
 		uint32 ArgumentIndex,
-		FMeshBufferPtr MeshBuffer)
+		FIndexBufferPtr IndexBuffer)
 	{
-		FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
-		TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
-		FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
+		TI_ASSERT(0);
+		//FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
+		//TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
+		//FMeshBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(MeshBuffer.get());
 
-		// Only support indexed triangle list.
-		TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
+		//// Only support indexed triangle list.
+		//TI_ASSERT(MeshBuffer->GetDesc().PrimitiveType == EPT_TRIANGLELIST);
 
-		// Mesh Buffer will encode 3 D3D12 commands, set vertex buffer, set instance buffer, set index buffer
-		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
-		E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
-		TI_ASSERT(CommandType == GPU_COMMAND_SET_INDEX_BUFFER);
-		uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
+		//// Mesh Buffer will encode 3 D3D12 commands, set vertex buffer, set instance buffer, set index buffer
+		//const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
+		//E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];
+		//TI_ASSERT(CommandType == GPU_COMMAND_SET_INDEX_BUFFER);
+		//uint32 CommandPos = CommandIndex * GPUCommandSignatureDx12->GetCommandStrideInBytes() + GPUCommandSignatureDx12->GetArgumentStrideOffset(ArgumentIndex);
 
-		// Index buffer
+		//// Index buffer
 
-		CommandBufferData->Seek(CommandPos);
-		CommandBufferData->Set(&MBDx12->IndexBufferView, sizeof(D3D12_INDEX_BUFFER_VIEW));
-		
-		// Remember commands encoded
-		CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
+		//CommandBufferData->Seek(CommandPos);
+		//CommandBufferData->Set(&MBDx12->IndexBufferView, sizeof(D3D12_INDEX_BUFFER_VIEW));
+		//
+		//// Remember commands encoded
+		//CommandsEncoded = TMath::Max(CommandsEncoded, CommandIndex + 1);
 	}
 
 	void FGPUCommandBufferDx12::EncodeSetDrawIndexed(

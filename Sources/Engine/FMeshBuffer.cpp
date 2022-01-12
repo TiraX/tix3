@@ -7,26 +7,26 @@
 
 namespace tix
 {
-	FMeshBuffer::FMeshBuffer()
+	FVertexBuffer::FVertexBuffer()
 		: FRenderResource(RRT_VERTEX_BUFFER)
 	{
 	}
 
-	FMeshBuffer::FMeshBuffer(const TMeshBufferDesc& InDesc)
+	FVertexBuffer::FVertexBuffer(const TVertexBufferDesc& InDesc)
 		: FRenderResource(RRT_VERTEX_BUFFER)
 		, Desc(InDesc)
 	{
-		Desc.Stride = TMeshBuffer::GetStrideFromFormat(InDesc.VsFormat);
+		Desc.Stride = TVertexBuffer::GetStrideFromFormat(InDesc.VsFormat);
 	}
 
-	FMeshBuffer::~FMeshBuffer()
+	FVertexBuffer::~FVertexBuffer()
 	{
 	}
 
-	void FMeshBuffer::CreateGPUResource(TStreamPtr Data)
+	void FVertexBuffer::CreateGPUResource(TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
-		TI_ASSERT(GPUResourceVB == nullptr && GPUResourceIB == nullptr);
+		TI_ASSERT(GPUResourceVertexBuffer == nullptr);
 		FRHI* RHI = FRHI::Get();
 
 		FGPUResourceDesc VBDesc;
@@ -34,15 +34,39 @@ namespace tix
 		VBDesc.Flag = 0;
 		VBDesc.BufferSize = Desc.VertexCount * Desc.Stride;
 
-		GPUResourceVB = RHI->CreateGPUResourceBuffer();
-		GPUResourceVB->Init(VBDesc, Data);
+		GPUResourceVertexBuffer = RHI->CreateGPUResourceBuffer();
+		GPUResourceVertexBuffer->Init(VBDesc, Data);
+	}
 
+	///////////////////////////////////////////////////////////
+	FIndexBuffer::FIndexBuffer()
+		: FRenderResource(RRT_INDEX_BUFFER)
+	{
+	}
+
+	FIndexBuffer::FIndexBuffer(const TIndexBufferDesc& InDesc)
+		: FRenderResource(RRT_INDEX_BUFFER)
+		, Desc(InDesc)
+	{
+	}
+
+	FIndexBuffer::~FIndexBuffer()
+	{
+	}
+
+	void FIndexBuffer::CreateGPUResource(TStreamPtr Data)
+	{
+		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(GPUResourceIndexBuffer == nullptr);
+		FRHI* RHI = FRHI::Get();
+
+		TI_ASSERT(0);	// todo: create gpu resource flag here. like uniform buffer flag
 		FGPUResourceDesc IBDesc;
 		IBDesc.Flag = 0;
 		IBDesc.BufferSize = Desc.IndexCount * (Desc.IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
 
-		GPUResourceIB = RHI->CreateGPUResourceBuffer();
-		GPUResourceIB->Init(IBDesc, Data);
+		GPUResourceIndexBuffer = RHI->CreateGPUResourceBuffer();
+		GPUResourceIndexBuffer->Init(IBDesc, Data);
 	}
 
 	///////////////////////////////////////////////////////////
