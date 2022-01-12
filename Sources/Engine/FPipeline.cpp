@@ -9,7 +9,7 @@
 namespace tix
 {
 	FPipeline::FPipeline(FShaderPtr InShader)
-		: FRenderResource(RRT_PIPELINE)
+		: FRenderResource(ERenderResourceType::Pipeline)
 		, Shader(InShader)
 	{
 	}

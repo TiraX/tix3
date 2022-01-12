@@ -58,6 +58,7 @@ namespace tix
 	{
 	public:
 		FGPUResourceBufferDx12()
+			: ResourceState(EGPUResourceState::Common)
 		{}
 
 		virtual ~FGPUResourceBufferDx12()
@@ -67,6 +68,9 @@ namespace tix
 
 	private:
 		ComPtr<ID3D12Resource> Resource;
+		EGPUResourceState ResourceState;
+
+		friend class FRHIDx12;
 	};
 
 	/////////////////////////////////////////////////////////////
@@ -75,6 +79,7 @@ namespace tix
 	{
 	public:
 		FGPUResourceTextureDx12()
+			: ResourceState(EGPUResourceState::Common)
 		{}
 
 		virtual ~FGPUResourceTextureDx12()
@@ -84,6 +89,9 @@ namespace tix
 
 	private:
 		ComPtr<ID3D12Resource> Resource;
+		EGPUResourceState ResourceState;
+
+		friend class FRHIDx12;
 	};
 }
 #endif	// COMPILE_WITH_RHI_DX12

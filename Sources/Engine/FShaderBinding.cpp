@@ -9,7 +9,7 @@
 namespace tix
 {
 	FShaderBinding::FShaderBinding(uint32 InNumBindings)
-		: FRenderResource(RRT_SHADER_BINDING)
+		: FRenderResource(ERenderResourceType::ShaderBinding)
 		, NumBindings(InNumBindings)
 	{
 #if DEBUG_SHADER_BINDING_TYPE

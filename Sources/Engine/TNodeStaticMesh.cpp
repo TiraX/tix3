@@ -77,7 +77,7 @@ namespace tix
 		LinkedPrimitive = ti_new FPrimitive;
 		LinkedPrimitive->SetInstancedStaticMesh(
 			InStaticMesh,
-			InInstanceBuffer != nullptr ? InInstanceBuffer->InstanceResource : nullptr,
+			InInstanceBuffer != nullptr ? InInstanceBuffer->InstanceBufferResource : nullptr,
 			InInstanceCount,
 			InInstanceOffset
 		);

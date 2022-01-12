@@ -9,7 +9,7 @@
 namespace tix
 {
 	FAccelerationStructure::FAccelerationStructure()
-		: FRenderResource(RRT_ACCELERATION_STRUCTURE)
+		: FRenderResource(ERenderResourceType::AccelerationStructure)
 		, Dirty(true)
 	{
 	}

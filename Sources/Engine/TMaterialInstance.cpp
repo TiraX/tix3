@@ -30,7 +30,7 @@ namespace tix
 
 			if (ParamValueBuffer != nullptr)
 			{
-				uint32 UBFlag = ParamValueBuffer->GetLength() < 4096 ? UB_FLAG_INTERMEDIATE : 0;
+				uint32 UBFlag = (uint32)(ParamValueBuffer->GetLength() < 4096 ? EGPUResourceFlag::Intermediate : EGPUResourceFlag::None);
 #if COMPILE_WITH_RHI_DX12
 				// Dx12 constant buffers need alignment of 256
 				uint32 Alignment = 256;

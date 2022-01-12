@@ -9,7 +9,6 @@
 
 #include <dxgi1_6.h>
 #include <d3d12.h>
-#include "d3dx12.h"
 #include "FRHIDescriptorHeapDx12.h"
 #include "FRootSignatureDx12.h"
 #include "FRHIDXR.h"
@@ -67,15 +66,6 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
 		// Graphics and Compute
-		//virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) override;
-		//virtual bool UpdateHardwareResourceMesh(
-		//	FMeshBufferPtr MeshBuffer, 
-		//	uint32 VertexDataSize, 
-		//	uint32 VertexDataStride, 
-		//	uint32 IndexDataSize,
-		//	E_INDEX_TYPE IndexType,
-		//	const TString& BufferName) override;
-		//virtual bool UpdateHardwareResourceIB(FInstanceBufferPtr InstanceBuffer, TInstanceBufferPtr InInstanceData) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData) override;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InTexData) override;
@@ -137,12 +127,8 @@ namespace tix
 		virtual void SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 
 				void UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS);
-		//virtual void SetResourceStateAS(FTopLevelAccelerationStructurePtr InAS, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		//virtual void SetResourceStateTexture(FTexturePtr InTexture, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		//virtual void SetResourceStateUB(FUniformBufferPtr InUniformBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		//virtual void SetResourceStateCB(FGPUCommandBufferPtr InCommandBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		//virtual void SetResourceStateInsB(FInstanceBufferPtr InInstanceBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
-		//virtual void SetResourceStateMB(FMeshBufferPtr InMeshBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) override;
+		virtual void SetGPUResourceBufferName(FGPUResourceBufferPtr GPUResourceBuffer, const TString& Name) override;
+		virtual void SetGPUResourceBufferState(FGPUResourceBufferPtr GPUResourceBuffer, EGPUResourceState NewState) override;
 		virtual void FlushResourceStateChange() override;
 
 		virtual void SetStencilRef(uint32 InRefValue) override;
@@ -176,15 +162,20 @@ namespace tix
 		virtual void SetViewport(const FViewport& InViewport) override;
 		virtual void BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName = "UnnamedPass", uint32 MipLevel = 0, const SColor& ClearColor = SColor(0, 0, 0, 0)) override;
 
-		ID3D12Device* GetD3dDevice()
-		{
-			return D3dDevice.Get();
-		}
 
-		ID3D12GraphicsCommandList* GetCommandList()
-		{
-			return DirectCommandList.Get();
-		}
+		// Direct12 Specified Functions
+		void CreateD3D12Resource(
+			D3D12_HEAP_TYPE HeapType,
+			const D3D12_RESOURCE_DESC* pDesc,
+			D3D12_RESOURCE_STATES InitState,
+			const D3D12_CLEAR_VALUE* pOptimizedClearValue,
+			ComPtr<ID3D12Resource>& OutResource
+		);
+		void UpdateD3D12Resource(
+			_In_ ID3D12Resource* pDestinationResource,
+			_In_ ID3D12Resource* pIntermediate,
+			const uint8* pSrcData,
+			int64 DataLength);
 
 		ID3D12DescriptorHeap* GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type)
 		{

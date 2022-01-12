@@ -19,27 +19,6 @@ namespace tix
 		ERHI_NUM,
 	};
 
-	enum E_RESOURCE_STATE
-	{
-		RESOURCE_STATE_COMMON,
-		RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-		RESOURCE_STATE_INDEX_BUFFER,
-		RESOURCE_STATE_RENDER_TARGET,
-		RESOURCE_STATE_UNORDERED_ACCESS,
-		RESOURCE_STATE_DEPTH_WRITE,
-		RESOURCE_STATE_DEPTH_READ,
-		RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-		RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-		RESOURCE_STATE_STREAM_OUT,
-		RESOURCE_STATE_INDIRECT_ARGUMENT,
-		RESOURCE_STATE_COPY_DEST,
-		RESOURCE_STATE_COPY_SOURCE,
-		RESOURCE_STATE_MESHBUFFER,	// For TiX to set VertexBuffer state and IndexBuffer state
-		RESOURCE_STATE_RAYTRACING_AS,
-
-		RESOURCE_STATE_NUM,
-	};
-
 	struct FBoundResource
 	{
 		FPipelinePtr Pipeline;
@@ -93,7 +72,7 @@ namespace tix
 		// Create Graphics and Compute related resources
 		virtual FTexturePtr CreateTexture() = 0;
 		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) = 0;
-		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = 0) = 0;
+		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = (uint32)EGPUResourceFlag::None) = 0;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) = 0;
 		virtual FRenderResourceTablePtr CreateRenderResourceTable(uint32 InSize, E_RENDER_RESOURCE_HEAP_TYPE InHeap);
@@ -109,15 +88,6 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) = 0;
 
 		// Graphics and Compute
-		//virtual bool UpdateHardwareResourceMesh(FMeshBufferPtr MeshBuffer, TMeshBufferPtr InMeshData) = 0;
-		//virtual bool UpdateHardwareResourceMesh(
-		//	FMeshBufferPtr MeshBuffer, 
-		//	uint32 VertexDataSize, 
-		//	uint32 VertexDataStride, 
-		//	uint32 IndexDataSize, 
-		//	E_INDEX_TYPE IndexType,
-		//	const TString& BufferName) = 0;
-		//virtual bool UpdateHardwareResourceIB(FInstanceBufferPtr InstanceBuffer, TInstanceBufferPtr InInstanceData) = 0;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture) = 0;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData) = 0;
 		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InTexData) = 0;
@@ -178,12 +148,8 @@ namespace tix
 		virtual void SetShaderTexture(int32 BindIndex, FTexturePtr InTexture) = 0;
 		virtual void SetArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
 
-		//virtual void SetResourceStateAS(FTopLevelAccelerationStructurePtr InAS, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
-		//virtual void SetResourceStateTexture(FTexturePtr InTexture, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
-		//virtual void SetResourceStateUB(FUniformBufferPtr InUniformBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
-		//virtual void SetResourceStateCB(FGPUCommandBufferPtr InCommandBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
-		//virtual void SetResourceStateInsB(FInstanceBufferPtr InInstanceBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
-		//virtual void SetResourceStateMB(FMeshBufferPtr InMeshBuffer, E_RESOURCE_STATE NewState, bool Immediate = true) = 0;
+		virtual void SetGPUResourceBufferName(FGPUResourceBufferPtr GPUResourceBuffer, const TString& Name) = 0;
+		virtual void SetGPUResourceBufferState(FGPUResourceBufferPtr GPUResourceBuffer, EGPUResourceState NewState) = 0;
 		virtual void FlushResourceStateChange() = 0;
 
 		virtual void SetStencilRef(uint32 InRefValue) = 0;

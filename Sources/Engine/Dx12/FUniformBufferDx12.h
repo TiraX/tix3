@@ -24,7 +24,7 @@ namespace tix
 
 		virtual uint32 GetCounterOffset() const override
 		{
-			if ((Flag & UB_FLAG_COMPUTE_WITH_COUNTER) != 0)
+			if ((Flag & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
 			{
 				return AlignForUavCounter(GetElements() * GetStructureSizeInBytes());
 			}

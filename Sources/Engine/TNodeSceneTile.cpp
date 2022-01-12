@@ -112,7 +112,7 @@ namespace tix
 						LinkedPrimitive = ti_new FPrimitive;
 						LinkedPrimitive->SetInstancedStaticMesh(
 							StaticMesh,
-							SceneTileResource->SMInstances.InstanceBuffer->InstanceResource,
+							SceneTileResource->SMInstances.InstanceBuffer->InstanceBufferResource,
 							SceneTileResource->SMInstances.InstanceCountAndOffset[m].X,
 							SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y
 						);

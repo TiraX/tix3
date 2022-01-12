@@ -79,22 +79,6 @@ namespace tix
 #define BEGIN_UNIFORM_BUFFER_STRUCT_ARRAY(StructTypeName, ArrayElements) BEGIN_UNIFORM_BUFFER_STRUCT_FIX_SIZE(StructTypeName, ArrayElements)
 #define BEGIN_UNIFORM_BUFFER_STRUCT_ARRAY_DYNAMIC(StructTypeName) BEGIN_UNIFORM_BUFFER_STRUCT_DYNAMIC_SIZE(StructTypeName)
 	
-	enum E_UNIFORMBUFFER_FLAG
-	{
-		UB_FLAG_COMPUTE_WRITABLE = 1 << 0,
-		UB_FLAG_COMPUTE_WITH_COUNTER = 1 << 1,
-		UB_FLAG_READBACK = 1 << 2,
-
-		// For metal, do not create buffer (usually less than 4k bytes), bind raw memory to gpu as apple doc recommended.
-		// https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/BufferBindings.html
-		// For Dx12, use a D3D12_HEAP_TYPE_UPLOAD heap to manage data directly
-		UB_FLAG_INTERMEDIATE = 1 << 3,	
-
-		// For Dx12, transition the resource state to D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
-		UB_FLAG_GPU_COMMAND_BUFFER = 1 << 4,
-		// For Dx12, transition the resource state to D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-		UB_FLAG_GPU_COMMAND_BUFFER_RESOURCE = 1 << 5,
-	};
 	class FUniformBuffer : public FRenderResource
 	{
 	public:

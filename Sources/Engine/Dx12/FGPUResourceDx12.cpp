@@ -8,6 +8,7 @@
 #if COMPILE_WITH_RHI_DX12
 #include "FGPUResourceDx12.h"
 #include "FRHIDx12.h"
+#include "FRHIDx12Conversion.h"
 
 namespace tix
 {
@@ -48,23 +49,22 @@ namespace tix
 	void FGPUResourceBufferDx12::Init(const FGPUResourceDesc& Desc, TStreamPtr Data)
 	{
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
-		ID3D12Device* Device = RHIDx12->GetD3dDevice();
-		ID3D12GraphicsCommandList* CommandList = RHIDx12->GetCommandList();
 
 		TI_ASSERT(Resource == nullptr);
 		CD3DX12_RESOURCE_DESC ResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(Desc.BufferSize);
 
-		if ((Desc.Flag & UB_FLAG_INTERMEDIATE) != 0)
+		if ((Desc.Flag & (uint32)EGPUResourceFlag::Intermediate) != 0)
 		{
 			// Create resource on UPLOAD heap directly for simple and efficency
-			CD3DX12_HEAP_PROPERTIES UploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-			VALIDATE_HRESULT(Device->CreateCommittedResource(
-				&UploadHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
+			ResourceState = EGPUResourceState::GenericRead;
+			D3D12_RESOURCE_STATES InitState = GetDx12ResourceState(ResourceState);
+			RHIDx12->CreateD3D12Resource(
+				D3D12_HEAP_TYPE_UPLOAD,
 				&ResourceDesc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
+				InitState,
 				nullptr,
-				IID_PPV_ARGS(&Resource)));
+				Resource
+			);
 
 			if (Data != nullptr)
 			{
@@ -79,38 +79,35 @@ namespace tix
 		else
 		{
 			// Create upload heap resource and copy to default heap
-			CD3DX12_HEAP_PROPERTIES DefaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-			VALIDATE_HRESULT(Device->CreateCommittedResource(
-				&DefaultHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
+			ResourceState = EGPUResourceState::CopyDest;
+			D3D12_RESOURCE_STATES InitState = GetDx12ResourceState(ResourceState);
+			RHIDx12->CreateD3D12Resource(
+				D3D12_HEAP_TYPE_DEFAULT,
 				&ResourceDesc,
-				D3D12_RESOURCE_STATE_COPY_DEST,
+				InitState,
 				nullptr,
-				IID_PPV_ARGS(&Resource)));
+				Resource
+			);
 
 			if (Data != nullptr)
 			{
 				ComPtr<ID3D12Resource> BufferUpload;
-				CD3DX12_HEAP_PROPERTIES UploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-				VALIDATE_HRESULT(Device->CreateCommittedResource(
-					&UploadHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
+				RHIDx12->CreateD3D12Resource(
+					D3D12_HEAP_TYPE_UPLOAD,
 					&ResourceDesc,
 					D3D12_RESOURCE_STATE_GENERIC_READ,
 					nullptr,
-					IID_PPV_ARGS(&BufferUpload)));
+					BufferUpload
+				);
 
 				// Upload the buffer data to the GPU.
-				D3D12_SUBRESOURCE_DATA BufferData = {};
-				BufferData.pData = reinterpret_cast<const uint8*>(Data->GetBuffer());
-				BufferData.RowPitch = Desc.BufferSize;
-				BufferData.SlicePitch = Desc.BufferSize;
-
-				UpdateSubresources(CommandList, Resource.Get(), BufferUpload.Get(), 0, 0, 1, &BufferData);
+				RHIDx12->UpdateD3D12Resource(
+					Resource.Get(),
+					BufferUpload.Get(),
+					reinterpret_cast<const uint8*>(Data->GetBuffer()),
+					Desc.BufferSize);
 				RHIDx12->HoldResourceReference(BufferUpload);
 			}
-
-			TI_ASSERT(0);// TODO: State change, and barriers
 		}
 	}
 }

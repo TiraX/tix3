@@ -117,7 +117,7 @@ namespace tix
 
 			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, EnvInfo.SkyIrradiance);
 
-			ViewUniformBuffer->InitUniformBuffer(UB_FLAG_INTERMEDIATE);
+			ViewUniformBuffer->InitUniformBuffer((uint32)EGPUResourceFlag::Intermediate);
 		}
 	}
 

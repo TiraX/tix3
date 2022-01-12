@@ -8,12 +8,12 @@
 namespace tix
 {
 	FTexture::FTexture()
-		: FRenderResource(RRT_TEXTURE)
+		: FRenderResource(ERenderResourceType::Texture)
 	{
 	}
 
 	FTexture::FTexture(const TTextureDesc& Desc)
-		: FRenderResource(RRT_TEXTURE)
+		: FRenderResource(ERenderResourceType::Texture)
 	{
 		TextureDesc = Desc;
 	}

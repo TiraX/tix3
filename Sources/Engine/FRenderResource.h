@@ -7,25 +7,25 @@
 
 namespace tix
 {
-	enum E_RENDER_RESOURCE_TYPE
+	enum class ERenderResourceType
 	{
-		RRT_VERTEX_BUFFER,
-		RRT_INDEX_BUFFER,
-		RRT_INSTANCE_BUFFER,
-		RRT_UNIFORM_BUFFER,
-		RRT_TEXTURE,
-		RRT_PIPELINE,
-		RRT_SHADER,
-		RRT_SHADER_BINDING,
-		RRT_RENDER_TARGET,
-		RRT_RESOURCE_TABLE,
-		RRT_ARGUMENT_BUFFER,
-		RRT_GPU_COMMAND_SIGNATURE,
-		RRT_GPU_COMMAND_BUFFER,
-		RRT_SCENE_TILE,
-		RRT_ENV_LIGHT,
-		RRT_RTX_PIPELINE,
-		RRT_ACCELERATION_STRUCTURE,
+		VertexBuffer,
+		IndexBuffer,
+		InstanceBuffer,
+		UniformBuffer,
+		Texture,
+		Pipeline,
+		Shader,
+		ShaderBinding,	// RootSignature in dx12
+		RenderTarget,
+		ResourceTable,
+		ArgumentBuffer,
+		GpuCommandSignature,
+		GpuCommandBuffer,
+		SceneTile,
+		EnvLight,
+		RtxPipeline,
+		AccelerationStructure,
 	};
 
 	template<typename T>
@@ -38,21 +38,8 @@ namespace tix
 	class FRenderResource : public IReferenceCounted
 	{
 	public:
-		enum E_USAGE
-		{
-			// By default, 
-			// vertex data is D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, 
-			// index data is D3D12_RESOURCE_STATE_INDEX_BUFFER
-			// instance data is D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-			USAGE_DEFAULT,
-
-			// vertex and index data used as copy source
-			USAGE_COPY_SOURCE
-		};
-
-		FRenderResource(E_RENDER_RESOURCE_TYPE InResourceType)
+		FRenderResource(ERenderResourceType InResourceType)
 			: ResourceType(InResourceType)
-			, Usage(USAGE_DEFAULT)
 		{}
 		virtual ~FRenderResource() 
 		{}
@@ -60,19 +47,9 @@ namespace tix
 		virtual void CreateGPUResource(TStreamPtr Data)
 		{}
 
-		E_RENDER_RESOURCE_TYPE GetResourceType() const
+		ERenderResourceType GetResourceType() const
 		{
 			return ResourceType;
-		}
-
-		E_USAGE GetUsage() const
-		{
-			return Usage;
-		}
-
-		void SetUsage(E_USAGE InUsage)
-		{
-			Usage = InUsage;
 		}
 
 		virtual void SetResourceName(const TString& Name)
@@ -86,14 +63,13 @@ namespace tix
 #if defined (TIX_DEBUG)
 			return ResourceName;
 #else
-			static const TString DefaultResourceName = "NoNamedTiXResource";
+			static const TString DefaultResourceName = "Resource";
 			return DefaultResourceName;
 #endif
 		}
 
 	protected:
-		E_RENDER_RESOURCE_TYPE ResourceType;
-		E_USAGE Usage;
+		ERenderResourceType ResourceType;
 
 #if defined (TIX_DEBUG)
 		TString ResourceName;

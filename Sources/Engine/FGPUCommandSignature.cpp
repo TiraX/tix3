@@ -9,7 +9,7 @@
 namespace tix
 {
 	FGPUCommandSignature::FGPUCommandSignature(FPipelinePtr InPipeline, const TVector<E_GPU_COMMAND_TYPE>& InCommandStructure)
-		: FRenderResource(RRT_GPU_COMMAND_SIGNATURE)
+		: FRenderResource(ERenderResourceType::GpuCommandSignature)
 		, Pipeline(InPipeline)
 		, CommandStructure(InCommandStructure)
 	{

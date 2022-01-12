@@ -24,7 +24,7 @@ namespace tix
 
 	protected:
 		TVertexBufferDesc Desc;
-		FGPUResourceBufferPtr GPUResourceVertexBuffer;
+		FGPUResourceBufferPtr GPUResourceVB;
 	};
 
 	///////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ namespace tix
 
 	protected:
 		TIndexBufferDesc Desc;
-		FGPUResourceBufferPtr GPUResourceIndexBuffer;
+		FGPUResourceBufferPtr GPUResourceIB;
 	};
 
 	///////////////////////////////////////////////////////////
@@ -56,23 +56,18 @@ namespace tix
 	{
 	public:
 		FInstanceBuffer();
-		FInstanceBuffer(uint32 TotalInstancesCount, uint32 InstanceStride);
+		FInstanceBuffer(const TInstanceBufferDesc& InDesc);
 		virtual ~FInstanceBuffer();
 
-		void TI_API SetFromTInstanceBuffer(TInstanceBufferPtr InstanceData);
+		virtual void CreateGPUResource(TStreamPtr Data) override;
 
-		uint32 GetInstancesCount() const
+		const TInstanceBufferDesc& GetDesc() const
 		{
-			return InstanceCount;
-		}
-
-		uint32 GetStride() const
-		{
-			return Stride;
+			return Desc;
 		}
 
 	private:
-		uint32 InstanceCount;
-		uint32 Stride;
+		TInstanceBufferDesc Desc;
+		FGPUResourceBufferPtr GPUResourceInsB;
 	};
 }

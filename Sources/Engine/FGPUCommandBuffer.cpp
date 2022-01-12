@@ -9,7 +9,7 @@
 namespace tix
 {
 	FGPUCommandBuffer::FGPUCommandBuffer(FGPUCommandSignaturePtr Signature, uint32 InCommandsCount, uint32 InBufferFlag)
-		: FRenderResource(RRT_GPU_COMMAND_BUFFER)
+		: FRenderResource(ERenderResourceType::GpuCommandBuffer)
 		, GPUCommandSignature(Signature)
 	{
 	}

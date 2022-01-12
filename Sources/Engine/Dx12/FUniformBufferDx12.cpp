@@ -38,7 +38,7 @@ namespace tix
 		{
 			// The code below assumes that the GPU wrote FLOATs to the buffer.
 			int32 BufferSize = GetTotalBufferSize();
-			if ((GetFlag() & UB_FLAG_COMPUTE_WITH_COUNTER) != 0)
+			if ((GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
 			{
 				BufferSize = FRHIDx12::GetUBSizeWithCounter(BufferSize);
 			}

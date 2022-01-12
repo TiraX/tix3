@@ -49,6 +49,7 @@ namespace tix
 	{
 		TI_ASSERT(VertexBufferResource == nullptr);
 		VertexBufferResource = ti_new FVertexBuffer(Desc);
+		VertexBufferResource->SetResourceName(GetResourceName());
 
 		FVertexBufferPtr VertexBuffer = VertexBufferResource;
 		TStreamPtr InData = Data;
@@ -109,6 +110,7 @@ namespace tix
 	{
 		TI_ASSERT(IndexBufferResource == nullptr);
 		IndexBufferResource = ti_new FIndexBuffer(Desc);
+		IndexBufferResource->SetResourceName(GetResourceName());
 
 		FIndexBufferPtr IndexBuffer = IndexBufferResource;
 		TStreamPtr InData = Data;
@@ -162,13 +164,11 @@ namespace tix
 
 	TInstanceBuffer::TInstanceBuffer()
 		: TResource(ERES_INSTANCE)
-		, InstanceData(nullptr)
 	{
 	}
 
 	TInstanceBuffer::~TInstanceBuffer()
 	{
-		SAFE_DELETE(InstanceData);
 	}
 
 	int32 TInstanceBuffer::GetStrideFromFormat(uint32 Format)
@@ -208,42 +208,41 @@ namespace tix
 		Desc.Stride = GetStrideFromFormat(InFormat);
 
 		const int32 BufferSize = Desc.InstanceCount * Desc.Stride;
-		TI_ASSERT(InstanceData == nullptr);
-		InstanceData = ti_new uint8[BufferSize];
-		memcpy(InstanceData, InInstanceData, BufferSize);
+		TI_ASSERT(Data == nullptr);
+		Data = ti_new TStream(BufferSize);
+		Data->Put(InInstanceData, BufferSize);
 	}
 
 	void TInstanceBuffer::InitRenderThreadResource()
 	{
-		TI_ASSERT(0);
-		//TI_ASSERT(InstanceResource == nullptr);
-		//InstanceResource = FRHI::Get()->CreateInstanceBuffer();
-		//// Set Instance Resource Usage to USAGE_COPY_SOURCE, 
-		//// as GPU Driven pipeline need to copy these instance buffer into a merged instance buffer
-		//TI_TODO("Add gpu driven CVAR to check here.");
-		////InstanceResource->SetUsage(FRenderResource::USAGE_COPY_SOURCE);
-		//TI_ASSERT(Desc.InstanceCount != 0);
+		TI_ASSERT(InstanceBufferResource == nullptr);
+		InstanceBufferResource = ti_new FInstanceBuffer(Desc);
+		InstanceBufferResource->SetResourceName(GetResourceName());
 
-		//FInstanceBufferPtr InstanceBuffer = InstanceResource;
-		//TInstanceBufferPtr InInstanceData = this;
-		//ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
-		//	[InstanceBuffer, InInstanceData]()
-		//	{
-		//		InstanceBuffer->SetFromTInstanceBuffer(InInstanceData);
-		//		FRHI::Get()->UpdateHardwareResourceIB(InstanceBuffer, InInstanceData);
-		//	});
+		FInstanceBufferPtr InstanceBuffer = InstanceBufferResource;
+		TStreamPtr InData = Data;
+		ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
+			[InstanceBuffer, InData]()
+			{
+				InstanceBuffer->CreateGPUResource(InData);
+			});
+
+		TI_TODO("release CPU memory after create render resource");
+		// Do not release yet, still need instance data to create BLAS
+		// Data = nullptr;
 	}
 
 	void TInstanceBuffer::DestroyRenderThreadResource()
 	{
-		TI_ASSERT(InstanceResource != nullptr);
+		TI_ASSERT(InstanceBufferResource != nullptr);
 
-		FInstanceBufferPtr InstanceBuffer = InstanceResource;
+		FInstanceBufferPtr InstanceBuffer = InstanceBufferResource;
 		ENQUEUE_RENDER_COMMAND(TInstanceBufferDestroyFInstanceBuffer)(
 			[InstanceBuffer]()
 			{
 				//InstanceBuffer = nullptr;
 			});
-		InstanceResource = nullptr;
+		InstanceBuffer = nullptr;
+		InstanceBufferResource = nullptr;
 	}
 }

@@ -9,7 +9,7 @@
 namespace tix
 {
 	FSceneTileResource::FSceneTileResource()
-		: FRenderResource(RRT_SCENE_TILE)
+		: FRenderResource(ERenderResourceType::SceneTile)
 		, TotalStaticMeshes(0)
 		, TotalSMInstances(0)
 	{
@@ -17,7 +17,7 @@ namespace tix
 	}
 
 	FSceneTileResource::FSceneTileResource(const TSceneTileResource& InSceneTileResource)
-		: FRenderResource(RRT_SCENE_TILE)
+		: FRenderResource(ERenderResourceType::SceneTile)
 		, Position(InSceneTileResource.Position)
 		, BBox(InSceneTileResource.BBox)
 		, TotalStaticMeshes(InSceneTileResource.SMInfos.NumMeshes)
@@ -25,7 +25,7 @@ namespace tix
 		, InstanceCountAndOffset(InSceneTileResource.SMInstances.InstanceCountAndOffset)
 	{
 		TI_ASSERT(IsGameThread());
-		InstanceBuffer = InSceneTileResource.SMInstances.InstanceBuffer->InstanceResource;
+		InstanceBuffer = InSceneTileResource.SMInstances.InstanceBuffer->InstanceBufferResource;
 
 		Primitives.resize(TotalStaticMeshes);
 	}

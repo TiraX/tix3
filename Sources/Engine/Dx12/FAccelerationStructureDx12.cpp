@@ -230,7 +230,7 @@ namespace tix
 
 		// Create Instance Resource
 		const uint32 InstanceBufferSize = (uint32)InstanceDescs.size() * sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
-		TLASInstanceBuffer = RHIDx12->CreateUniformBuffer(InstanceBufferSize, 1, UB_FLAG_INTERMEDIATE);
+		TLASInstanceBuffer = RHIDx12->CreateUniformBuffer(InstanceBufferSize, 1, (uint32)EGPUResourceFlag::Intermediate);
 		RHIDx12->UpdateHardwareResourceUB(TLASInstanceBuffer, InstanceDescs.data());
 
 		// Build top layer AS

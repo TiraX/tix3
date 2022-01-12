@@ -19,7 +19,7 @@ namespace tix
 		// Alloc data for command buffer data
 		FGPUCommandSignatureDx12 * GPUCommandSignatureDx12 = static_cast<FGPUCommandSignatureDx12*>(GetGPUCommandSignature().get());
 		TI_ASSERT(GPUCommandSignatureDx12->GetCommandStrideInBytes() != 0);
-		if ((InBufferFlag & UB_FLAG_COMPUTE_WRITABLE) == 0)
+		if ((InBufferFlag & (uint32)EGPUResourceFlag::Uav) == 0)
 		{
 			// UAV do not need command data
 			CommandBufferData = ti_new TStream(GPUCommandSignatureDx12->GetCommandStrideInBytes() * InCommandsCount);

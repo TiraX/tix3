@@ -21,7 +21,7 @@ namespace tix
 	void FDefaultRenderer::InitInRenderThread()
 	{
 		// Create Zero reset command buffer
-		CounterResetUniformBuffer = FRHI::Get()->CreateUniformBuffer(sizeof(uint32) * 4, 1, UB_FLAG_INTERMEDIATE);
+		CounterResetUniformBuffer = FRHI::Get()->CreateUniformBuffer(sizeof(uint32) * 4, 1, (uint32)EGPUResourceFlag::Intermediate);
 		uint8 * ZeroData = ti_new uint8[sizeof(uint32) * 4];
 		memset(ZeroData, 0, sizeof(uint32) * 4);
 		FRHI::Get()->UpdateHardwareResourceUB(CounterResetUniformBuffer, ZeroData);

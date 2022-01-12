@@ -9,7 +9,7 @@
 namespace tix
 {
 	FArgumentBuffer::FArgumentBuffer(int32 ReservedSlots)
-		: FRenderResource(RRT_ARGUMENT_BUFFER)
+		: FRenderResource(ERenderResourceType::ArgumentBuffer)
 	{
 		Arguments.resize(ReservedSlots);
 	}

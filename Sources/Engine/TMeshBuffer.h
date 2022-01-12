@@ -126,7 +126,7 @@ namespace tix
 		static const uint32 InstanceStride;
 
 	public:
-		FInstanceBufferPtr InstanceResource;
+		FInstanceBufferPtr InstanceBufferResource;
 
 		static int32 GetStrideFromFormat(uint32 Format);
 		static TVector<E_INSTANCE_STREAM_INDEX> GetSteamsFromFormat(uint32 Format);
@@ -145,12 +145,12 @@ namespace tix
 
 		const void* GetInstanceData() const
 		{
-			return InstanceData;
+			return Data->GetBuffer();
 		}
 	protected:
 
 	protected:
 		TInstanceBufferDesc Desc;
-		uint8* InstanceData;
+		TStreamPtr Data;
 	};
 }

@@ -9,14 +9,14 @@
 namespace tix
 {
 	FShader::FShader(const TString& InShaderName, E_SHADER_TYPE InType)
-		: FRenderResource(RRT_SHADER)
+		: FRenderResource(ERenderResourceType::Shader)
 		, Type(InType)
 	{
 		ShaderNames.ShaderNames[0] = InShaderName;
 	}
 
 	FShader::FShader(const TShaderNames& RenderShaderNames, E_SHADER_TYPE InType)
-		: FRenderResource(RRT_SHADER)
+		: FRenderResource(ERenderResourceType::Shader)
 		, ShaderNames(RenderShaderNames)
 		, Type(InType)
 	{
