@@ -10,49 +10,73 @@ namespace tix
 	TTexture::TTexture(const TTextureDesc& InDesc)
 		: TResource(ERES_TEXTURE)
 		, Desc(InDesc)
-	{}
+	{
+		// Init Default Array
+		int32 Faces = 0;
+		if (InDesc.Type == ETT_TEXTURE_2D)
+			Faces = 1;
+		else if (InDesc.Type == ETT_TEXTURE_CUBE)
+			Faces = 6;
+		else
+		{
+			TI_ASSERT(0);	// Add more support in future
+		}
+		TextureData.resize(Faces);
+	}
 
 	TTexture::~TTexture()
 	{
 		ClearSurfaceData();
 	}
 
-	void TTexture::AddSurface(int32 Width, int32 Height, const uint8* Data, int32 RowPitch, int32 DataSize)
+	void TTexture::AddSurface(
+		int32 FaceIndex, 
+		int32 MipLevel, 
+		int32 Width, 
+		int32 Height, 
+		const uint8* Data, 
+		int32 RowPitch, 
+		int32 DataSize
+	)
 	{
-		TSurface * Surface = ti_new TSurface;
-		uint32 AlignedDataSize = TMath::Align4(DataSize);
-		Surface->Data = ti_new uint8[AlignedDataSize];
-		Surface->DataSize = DataSize;
-		Surface->RowPitch = RowPitch;
-		Surface->Width = Width;
-		Surface->Height = Height;
-		memcpy(Surface->Data, Data, DataSize);
+		if (MipLevel == 0)
+		{
+			TextureData[FaceIndex] = ti_new TImage(Desc.Format, Width, Height);
+			if (Desc.Mips > 1)
+				TextureData[FaceIndex]->AllocEmptyMipmaps();
+			TI_ASSERT(TextureData[FaceIndex]->GetMipmapCount() == Desc.Mips);
+		}
 
-		Surfaces.push_back(Surface);
+		TImage::TSurfaceData& MipData = TextureData[FaceIndex]->GetMipmap(MipLevel);
+		TI_ASSERT(MipData.W == Width && MipData.H == Height);
+		TI_ASSERT(MipData.RowPitch == RowPitch && MipData.Data.GetLength() == DataSize);
+
+		memcpy(MipData.Data.GetBuffer(), Data, DataSize);
 	}
 
 	void TTexture::ClearSurfaceData()
 	{
-		for (TSurface* Surface : Surfaces)
+		for (auto& Image : TextureData)
 		{
-			ti_delete Surface;
+			Image = nullptr;
 		}
-		Surfaces.clear();
+		TextureData.clear();
 	}
 
 	void TTexture::InitRenderThreadResource()
 	{
 		TI_ASSERT(TextureResource == nullptr);
-		TextureResource = FRHI::Get()->CreateTexture();
+		TextureResource = ti_new FTexture(Desc);
 
 		FTexturePtr Texture_RT = TextureResource;
-		TTexturePtr TextureData = this;
+		TVector<TImagePtr> Data = TextureData;
 		ENQUEUE_RENDER_COMMAND(TTextureUpdateFTexture)(
-			[Texture_RT, TextureData]()
+			[Texture_RT, Data]()
 			{
-				Texture_RT->InitTextureInfo(TextureData);
-				FRHI::Get()->UpdateHardwareResourceTexture(Texture_RT, TextureData);
+				Texture_RT->CreateGPUTexture(Data);
 			});
+		Data.clear();
+		TextureData.clear();
 	}
 
 	void TTexture::DestroyRenderThreadResource()

@@ -10,7 +10,6 @@
 #include <d3d12.h>
 #include "d3dx12.h"
 #include "FAccelerationStructure.h"
-#include "FGPUResourceDx12.h"
 
 namespace tix
 {

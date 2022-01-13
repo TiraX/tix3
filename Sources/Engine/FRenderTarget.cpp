@@ -36,7 +36,7 @@ namespace tix
 		Desc.Mips = Mips;
 
 		FRHI * RHI = FRHI::Get();
-		FTexturePtr Texture = RHI->CreateTexture(Desc);
+		FTexturePtr Texture = ti_new FTexture(Desc, (uint32)ETextureFlag::ColorBuffer);
 		AddColorBuffer(Texture, ColorBufferIndex, LoadAction, StoreAction);
 	}
 
@@ -50,7 +50,7 @@ namespace tix
 		RTBuffer Buffer;
 		Buffer.Texture = Texture;
 		//Buffer.RTResource = ti_new FRenderTargetResource(EHT_RENDERTARGET);
-		Buffer.Texture->SetTextureFlag(ETF_RT_COLORBUFFER, true);
+		Buffer.Texture->SetTextureFlag(ETextureFlag::ColorBuffer, true);
 		Buffer.BufferIndex = ColorBufferIndex;
 		Buffer.LoadAction = LoadAction;
 		Buffer.StoreAction = StoreAction;
@@ -77,8 +77,7 @@ namespace tix
 		Desc.Mips = Mips;
 
 		FRHI * RHI = FRHI::Get();
-		FTexturePtr Texture = RHI->CreateTexture(Desc);
-		Texture->SetTextureFlag(ETF_RT_DSBUFFER, true);
+		FTexturePtr Texture = ti_new FTexture(Desc, (uint32)ETextureFlag::DsBuffer);
 #if defined (TIX_DEBUG)
 		Texture->SetResourceName(GetResourceName() + "-DS");
 #endif
@@ -107,12 +106,12 @@ namespace tix
 				break;
 			
 			TI_ASSERT(ColorBuffer.Texture != nullptr);
-			RHI->UpdateHardwareResourceTexture(ColorBuffer.Texture);
+			ColorBuffer.Texture->CreateGPUTexture();
 		}
 
 		if (RTDepthStencilBuffer.Texture != nullptr)
 		{
-			RHI->UpdateHardwareResourceTexture(RTDepthStencilBuffer.Texture);
+			RTDepthStencilBuffer.Texture->CreateGPUTexture();
 		}
 
 		RHI->UpdateHardwareResourceRT(this);

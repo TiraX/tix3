@@ -6,7 +6,6 @@
 #pragma once
 
 #if COMPILE_WITH_RHI_DX12
-#include "FGPUResourceDx12.h"
 
 namespace tix
 {
@@ -33,14 +32,14 @@ namespace tix
 
 		ComPtr<ID3D12Resource> GetResource()
 		{
-			return BufferResource.GetResource();
+			return nullptr;// BufferResource.GetResource();
 		}
 
 		
 	protected:
 
 	protected:
-		FGPUResourceDx12 BufferResource;
+		//FGPUResourceDx12 BufferResource;
 		friend class FRHIDx12;
 	};
 

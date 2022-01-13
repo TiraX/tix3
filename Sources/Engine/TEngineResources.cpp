@@ -32,13 +32,13 @@ namespace tix
 
 		TI_ASSERT(EmptyTextureWhite == nullptr);
 		EmptyTextureWhite = ti_new TTexture(Desc);
-		EmptyTextureWhite->AddSurface(W, H, (const uint8*)WhiteData, W * 4, sizeof(WhiteData));
+		EmptyTextureWhite->AddSurface(0, 0, W, H, (const uint8*)WhiteData, W * 4, sizeof(WhiteData));
 		EmptyTextureWhite->InitRenderThreadResource();
 		EmptyTextureBlack = ti_new TTexture(Desc);
-		EmptyTextureBlack->AddSurface(W, H, (const uint8*)BlackData, W * 4, sizeof(BlackData));
+		EmptyTextureBlack->AddSurface(0, 0, W, H, (const uint8*)BlackData, W * 4, sizeof(BlackData));
 		EmptyTextureBlack->InitRenderThreadResource();
 		EmptyTextureNormal= ti_new TTexture(Desc);
-		EmptyTextureNormal->AddSurface(W, H, (const uint8*)NormalData, W * 4, sizeof(NormalData));
+		EmptyTextureNormal->AddSurface(0, 0, W, H, (const uint8*)NormalData, W * 4, sizeof(NormalData));
 		EmptyTextureNormal->InitRenderThreadResource();
 	}
 

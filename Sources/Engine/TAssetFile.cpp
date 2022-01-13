@@ -397,16 +397,23 @@ namespace tix
 			TI_ASSERT(Header->Surfaces == ArraySize * Desc.Mips);
 
 			int32 DataOffset = 0;
-			for (int32 a = 0; a < ArraySize; ++a)
+			for (int32 ArrayIndex = 0; ArrayIndex < ArraySize; ++ArrayIndex)
 			{
-				for (uint32 m = 0; m < Texture->GetDesc().Mips; ++m)
+				for (uint32 MipLevel = 0; MipLevel < Texture->GetDesc().Mips; ++MipLevel)
 				{
 					const uint8* Data = TextureDataStart + DataOffset;
 					int32 Width = *(const int32*)(Data + sizeof(int32) * 0);
 					int32 Height = *(const int32*)(Data + sizeof(int32) * 1);
 					int32 RowPitch = *(const int32*)(Data + sizeof(int32) * 2);
 					int32 Size = *(const int32*)(Data + sizeof(int32) * 3);
-					Texture->AddSurface(Width, Height, Data + sizeof(uint32) * 4, RowPitch, Size);
+					Texture->AddSurface(
+						ArrayIndex, 
+						MipLevel, 
+						Width, 
+						Height, 
+						Data + sizeof(uint32) * 4, 
+						RowPitch, 
+						Size);
 					DataOffset += Size + sizeof(uint32) * 4;
 					DataOffset = TMath::Align4(DataOffset);
 				}

@@ -14,7 +14,11 @@ namespace tix
 		FVertexBuffer(const TVertexBufferDesc& InDesc);
 		virtual ~FVertexBuffer();
 
-		virtual void CreateGPUResource(TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUResourceVB;
+		}
 
 		const TVertexBufferDesc& GetDesc() const
 		{
@@ -24,7 +28,7 @@ namespace tix
 
 	protected:
 		TVertexBufferDesc Desc;
-		FGPUResourceBufferPtr GPUResourceVB;
+		FGPUBufferPtr GPUResourceVB;
 	};
 
 	///////////////////////////////////////////////////////////
@@ -36,7 +40,11 @@ namespace tix
 		FIndexBuffer(const TIndexBufferDesc& InDesc);
 		virtual ~FIndexBuffer();
 
-		virtual void CreateGPUResource(TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUResourceIB;
+		}
 
 		const TIndexBufferDesc& GetDesc() const
 		{
@@ -46,7 +54,7 @@ namespace tix
 
 	protected:
 		TIndexBufferDesc Desc;
-		FGPUResourceBufferPtr GPUResourceIB;
+		FGPUBufferPtr GPUResourceIB;
 	};
 
 	///////////////////////////////////////////////////////////
@@ -59,7 +67,11 @@ namespace tix
 		FInstanceBuffer(const TInstanceBufferDesc& InDesc);
 		virtual ~FInstanceBuffer();
 
-		virtual void CreateGPUResource(TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUResourceInsB;
+		}
 
 		const TInstanceBufferDesc& GetDesc() const
 		{
@@ -68,6 +80,6 @@ namespace tix
 
 	private:
 		TInstanceBufferDesc Desc;
-		FGPUResourceBufferPtr GPUResourceInsB;
+		FGPUBufferPtr GPUResourceInsB;
 	};
 }

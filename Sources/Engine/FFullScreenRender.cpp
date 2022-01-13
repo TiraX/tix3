@@ -47,7 +47,6 @@ namespace tix
 		IBData->SetIndexData(EIT_16BIT, FullScreenQuadIndices, 6);
 		FullScreenVB = ti_new FVertexBuffer(VBData->GetDesc());
 		FullScreenIB = ti_new FIndexBuffer(IBData->GetDesc());
-		TI_ASSERT(0);
 		VBData = nullptr;
 		IBData = nullptr;
 
@@ -83,13 +82,7 @@ namespace tix
 
 	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FTexturePtr Texture)
 	{
-		TI_ASSERT(bInited);
-        RHI->SetGraphicsPipeline(FullScreenPipeline);
-		RHI->SetVertexBuffer(FullScreenVB, nullptr);
-		RHI->SetIndexBuffer(FullScreenIB);
-        RHI->SetShaderTexture(0, Texture);
-        
-        RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
+		TI_ASSERT(0);
 	}
 
 	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FRenderResourceTablePtr TextureTable)

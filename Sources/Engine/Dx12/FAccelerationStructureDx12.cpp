@@ -7,7 +7,7 @@
 #include "FRHIDx12.h"
 #include "FRHIDx12Conversion.h"
 #include "FAccelerationStructureDx12.h"
-#include "FMeshBufferDx12.h"
+#include "FGPUBufferDx12.h"
 #include "FUniformBufferDx12.h"
 
 #if COMPILE_WITH_RHI_DX12
@@ -22,24 +22,26 @@ namespace tix
 
 	void FBottomLevelAccelerationStructureDx12::AddMeshBuffer(FVertexBufferPtr InVB, FIndexBufferPtr InIB)
 	{
-		TI_ASSERT(0);
-		//// Create Geometry Desc
-		//D3D12_RAYTRACING_GEOMETRY_DESC GeometryDesc = {};
-		//GeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-		//GeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+		// Create Geometry Desc
+		D3D12_RAYTRACING_GEOMETRY_DESC GeometryDesc = {};
+		GeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+		GeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-		//GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(InIB->GetDesc().IndexType);
-		//GeometryDesc.Triangles.IndexBuffer = MBDx12->IndexBuffer.GetResource()->GetGPUVirtualAddress();
-		//GeometryDesc.Triangles.IndexCount = MBDx12->GetDesc().IndexCount;
+		FGPUBufferDx12* VBDx12 = static_cast<FGPUBufferDx12*>(InVB->GetGPUResource().get());
+		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InIB->GetGPUResource().get());
 
-		//GeometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;	// Position always be RGB32F
-		//GeometryDesc.Triangles.VertexBuffer.StartAddress = MBDx12->VertexBuffer.GetResource()->GetGPUVirtualAddress();
-		//GeometryDesc.Triangles.VertexBuffer.StrideInBytes = MBDx12->GetDesc().Stride;
-		//GeometryDesc.Triangles.VertexCount = MBDx12->GetDesc().VertexCount;
+		GeometryDesc.Triangles.IndexFormat = GetDxIndexFormat(InIB->GetDesc().IndexType);
+		GeometryDesc.Triangles.IndexBuffer = IBDx12->GetResource()->GetGPUVirtualAddress();
+		GeometryDesc.Triangles.IndexCount = InIB->GetDesc().IndexCount;
 
-		//GeometryDesc.Triangles.Transform3x4 = NULL;
+		GeometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;	// Position always be RGB32F
+		GeometryDesc.Triangles.VertexBuffer.StartAddress = VBDx12->GetResource()->GetGPUVirtualAddress();
+		GeometryDesc.Triangles.VertexBuffer.StrideInBytes = InVB->GetDesc().Stride;
+		GeometryDesc.Triangles.VertexCount = InVB->GetDesc().VertexCount;
 
-		//GeometryDescs.push_back(GeometryDesc); 
+		GeometryDesc.Triangles.Transform3x4 = NULL;
+
+		GeometryDescs.push_back(GeometryDesc); 
 		MarkDirty();
 	}
 

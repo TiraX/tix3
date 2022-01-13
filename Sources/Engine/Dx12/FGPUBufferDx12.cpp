@@ -6,47 +6,13 @@
 #include "stdafx.h"
 
 #if COMPILE_WITH_RHI_DX12
-#include "FGPUResourceDx12.h"
+#include "FGPUBufferDx12.h"
 #include "FRHIDx12.h"
 #include "FRHIDx12Conversion.h"
 
 namespace tix
 {
-	FGPUResourceDx12::FGPUResourceDx12()
-		: UsageState(D3D12_RESOURCE_STATE_COMMON)
-	{}
-
-	FGPUResourceDx12::FGPUResourceDx12(D3D12_RESOURCE_STATES InitState)
-		: UsageState(InitState)
-	{}
-
-	FGPUResourceDx12::~FGPUResourceDx12()
-	{
-		Resource = nullptr;
-	}
-
-	void FGPUResourceDx12::CreateResource(
-		ID3D12Device* Device,
-		const D3D12_HEAP_PROPERTIES* pHeapProperties,
-		D3D12_HEAP_FLAGS HeapFlags,
-		const D3D12_RESOURCE_DESC* pDesc,
-		D3D12_RESOURCE_STATES InitialResourceState,
-		const D3D12_CLEAR_VALUE* pOptimizedClearValue)
-	{
-		Resource = nullptr;
-		UsageState = InitialResourceState;
-		VALIDATE_HRESULT(Device->CreateCommittedResource(
-			pHeapProperties,
-			HeapFlags,
-			pDesc,
-			InitialResourceState,
-			pOptimizedClearValue,
-			IID_PPV_ARGS(&Resource)));
-	}
-
-	/////////////////////////////////////////////////////////////
-
-	void FGPUResourceBufferDx12::Init(const FGPUResourceDesc& Desc, TStreamPtr Data)
+	void FGPUBufferDx12::Init(const FGPUBufferDesc& Desc, TStreamPtr Data)
 	{
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
 
@@ -76,6 +42,19 @@ namespace tix
 				Resource->Unmap(0, nullptr);
 			}
 		}
+		else if ((Desc.Flag & (uint32)EGPUResourceFlag::Readback) != 0)
+		{
+			// Readback buffer, create on READBACK heap
+			ResourceState = EGPUResourceState::CopyDest;
+			D3D12_RESOURCE_STATES InitState = GetDx12ResourceState(ResourceState);
+			RHIDx12->CreateD3D12Resource(
+				D3D12_HEAP_TYPE_READBACK,
+				&ResourceDesc,
+				InitState,
+				nullptr,
+				Resource
+			);
+		}
 		else
 		{
 			// Create upload heap resource and copy to default heap
@@ -101,11 +80,16 @@ namespace tix
 				);
 
 				// Upload the buffer data to the GPU.
+				D3D12_SUBRESOURCE_DATA BufferData = {};
+				BufferData.pData = reinterpret_cast<const uint8*>(Data->GetBuffer());
+				BufferData.RowPitch = Desc.BufferSize;
+				BufferData.SlicePitch = Desc.BufferSize;
+
 				RHIDx12->UpdateD3D12Resource(
 					Resource.Get(),
 					BufferUpload.Get(),
-					reinterpret_cast<const uint8*>(Data->GetBuffer()),
-					Desc.BufferSize);
+					1,
+					&BufferData);
 				RHIDx12->HoldResourceReference(BufferUpload);
 			}
 		}

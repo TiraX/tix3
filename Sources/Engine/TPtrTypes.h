@@ -34,6 +34,7 @@ namespace tix
 	DECLARE_INSTRUSIVE_PTR(FRenderResource);
 	DECLARE_INSTRUSIVE_PTR(FRenderResourceTable);
 	DECLARE_INSTRUSIVE_PTR(FTexture);
+	DECLARE_INSTRUSIVE_PTR(FTextureReadable);
 	DECLARE_INSTRUSIVE_PTR(FPipeline);
 	DECLARE_INSTRUSIVE_PTR(FVertexBuffer);
 	DECLARE_INSTRUSIVE_PTR(FIndexBuffer);
@@ -54,8 +55,8 @@ namespace tix
 	DECLARE_INSTRUSIVE_PTR(FBottomLevelAccelerationStructure);
 	DECLARE_INSTRUSIVE_PTR(FTopLevelAccelerationStructure);
 	DECLARE_INSTRUSIVE_PTR(FGPUResource);
-	DECLARE_INSTRUSIVE_PTR(FGPUResourceBuffer);
-	DECLARE_INSTRUSIVE_PTR(FGPUResourceTexture);
+	DECLARE_INSTRUSIVE_PTR(FGPUBuffer);
+	DECLARE_INSTRUSIVE_PTR(FGPUTexture);
 
 #undef DECLARE_INSTRUSIVE_PTR
 } // end namespace tix

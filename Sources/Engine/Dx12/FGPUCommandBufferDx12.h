@@ -6,7 +6,6 @@
 #pragma once
 
 #if COMPILE_WITH_RHI_DX12
-#include "FGPUResourceDx12.h"
 
 namespace tix
 {

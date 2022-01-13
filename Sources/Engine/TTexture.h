@@ -66,21 +66,6 @@ namespace tix
 		ETP_COUNT,
 	};
 
-	enum E_TEXTURE_FLAG
-	{
-		ETF_NONE = 0,
-		ETF_RT_COLORBUFFER = 1 << 0,
-		ETF_RT_DSBUFFER = 1 << 1,
-		ETF_UAV = 1 << 2,
-
-		ETF_RENDER_RESOURCE_UPDATED = 1 << 3,	// Used for FTexture
-        
-        // Used for iOS Metal
-        ETF_MEMORY_LESS = 1 << 4,
-
-		ETF_READBACK = 1 << 5,	// Read Texture Data from GPU back to CPU
-	};
-
 	struct TTextureDesc
 	{
 		E_TEXTURE_TYPE Type;
@@ -91,7 +76,6 @@ namespace tix
 		E_TEXTURE_ADDRESS_MODE AddressMode;
 		uint32 SRGB;
 		uint32 Mips;
-		uint32 Flags;
 		SColor ClearColor;
 
 		TTextureDesc()
@@ -103,7 +87,6 @@ namespace tix
 			, AddressMode(ETC_REPEAT)
 			, SRGB(0)
 			, Mips(1)
-			, Flags(0)
 			, ClearColor(0, 0, 0, 0)
 		{}
 	};
@@ -119,53 +102,32 @@ namespace tix
 
 		FTexturePtr TextureResource;
 
-		class TSurface
-		{
-		public:
-			TSurface()
-				: Data(nullptr)
-				, Width(0)
-				, Height(0)
-				, DataSize(0)
-				, RowPitch(0)
-			{}
-			~TSurface()
-			{
-				SAFE_DELETE_ARRAY(Data);
-				DataSize = 0;
-			}
-
-			uint8 * Data;
-			uint32 Width;
-			uint32 Height;
-			uint32 DataSize;
-			uint32 RowPitch;
-		};
-		TI_API void AddSurface(int32 Width, int32 Height, const uint8* Data, int32 RowPitch, int32 DataSize);
+		TI_API void AddSurface(
+			int32 FaceIndex,
+			int32 MipLevel,
+			int32 Width,
+			int32 Height,
+			const uint8* Data,
+			int32 RowPitch,
+			int32 DataSize
+		);
 		TI_API const TTextureDesc& GetDesc() const
 		{
 			return Desc;
 		}
-		TI_API const TVector<TSurface*>& GetSurfaces() const
+		TI_API TImagePtr GetTextureData(int32 Index) const
 		{
-			return  Surfaces;
-		}
-		TI_API void SetTextureFlag(E_TEXTURE_FLAG Flag, bool bEnable)
-		{
-			if (bEnable)
-			{
-				Desc.Flags |= Flag;
-			}
-			else
-			{
-				Desc.Flags &= ~Flag;
-			}
+			return  TextureData[Index];
 		}
 		TI_API void ClearSurfaceData();
 	protected:
 
 	protected:
 		TTextureDesc Desc;
-		TVector<TSurface*> Surfaces;
+		// Texture data array
+		// Texture2D, Array.size = 1;
+		// TextureCube, Array.size = 6;
+		// TextureArray Array.size = array_size
+		TVector<TImagePtr> TextureData;
 	};
 }

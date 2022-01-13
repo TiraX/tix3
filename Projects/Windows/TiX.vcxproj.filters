@@ -172,9 +172,6 @@
     <ClCompile Include="..\..\Sources\Engine\FShaderBinding.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FShaderParamValue.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TCrc.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
@@ -182,12 +179,6 @@
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FPipelineDx12.cpp">
@@ -206,9 +197,6 @@
       <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FShaderDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FTextureDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.cpp">
@@ -342,6 +330,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FGPUResource.cpp">
       <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUBufferDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -576,9 +570,6 @@
     <ClInclude Include="..\..\Sources\Engine\FShaderBinding.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FShaderParamValue.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TCrc.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
@@ -586,12 +577,6 @@
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FFrameResourcesDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUResourceDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FMeshBufferDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FPipelineDx12.h">
@@ -613,9 +598,6 @@
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FShaderDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FTextureDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.h">
@@ -770,6 +752,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FGPUResource.h">
       <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUBufferDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

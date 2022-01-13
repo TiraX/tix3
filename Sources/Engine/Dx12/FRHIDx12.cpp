@@ -11,8 +11,8 @@
 #include "FRHIDx12Conversion.h"
 #include "TDeviceWin32.h"
 #include "FFrameResourcesDx12.h"
-#include "FMeshBufferDx12.h"
-#include "FTextureDx12.h"
+#include "FGPUBufferDx12.h"
+#include "FGPUTextureDx12.h"
 #include "FPipelineDx12.h"
 #include "FUniformBufferDx12.h"
 #include "FRenderTargetDx12.h"
@@ -530,31 +530,14 @@ namespace tix
 		END_EVENT(DirectCommandList.Get());
 	}
 
-	FGPUResourceBufferPtr FRHIDx12::CreateGPUResourceBuffer()
+	FGPUBufferPtr FRHIDx12::CreateGPUBuffer()
 	{
-		return ti_new FGPUResourceBufferDx12();
+		return ti_new FGPUBufferDx12();
 	}
 	
-	FGPUResourceTexturePtr FRHIDx12::CreateGPUResourceTexture()
+	FGPUTexturePtr FRHIDx12::CreateGPUTexture()
 	{
-		return ti_new FGPUResourceTextureDx12();
-	}
-
-	FTexturePtr FRHIDx12::CreateTexture()
-	{
-		return ti_new FTextureDx12();
-	}
-
-	FTexturePtr FRHIDx12::CreateTexture(const TTextureDesc& Desc)
-	{
-		if ((Desc.Flags & ETF_READBACK) != 0)
-		{
-			return ti_new FTextureReadableDx12(Desc);
-		}
-		else
-		{
-			return ti_new FTextureDx12(Desc);
-		}
+		return ti_new FGPUTextureDx12();
 	}
 
 	FUniformBufferPtr FRHIDx12::CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag)
@@ -747,7 +730,7 @@ namespace tix
 		uint64 IntermediateOffset,
 		_In_range_(0, D3D12_REQ_SUBRESOURCES) uint32 FirstSubresource,
 		_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) uint32 NumSubresources,
-		_In_reads_(NumSubresources) D3D12_SUBRESOURCE_DATA* pSrcData)
+		_In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData)
 	{
 		uint64 RequiredSize = 0;
 		uint64 MemToAlloc = static_cast<uint64>(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) + sizeof(uint32) + sizeof(uint64)) * NumSubresources;
@@ -773,20 +756,6 @@ namespace tix
 		uint64 Result = UpdateSubresources(pCmdList, pDestinationResource, pIntermediate, FirstSubresource, NumSubresources, RequiredSize, pLayouts, pNumRows, pRowSizesInBytes, pSrcData);
 		HeapFree(GetProcessHeap(), 0, pMem);
 		return Result;
-	}
-
-	void FRHIDx12::Transition(
-		FGPUResourceDx12* GPUResource,
-		D3D12_RESOURCE_STATES stateAfter,
-		uint32 subresource,
-		D3D12_RESOURCE_BARRIER_FLAGS flags)
-	{
-		TI_TODO("Refactor resource-state related, make it more efficiency");
-		if (GPUResource->GetCurrentState() != stateAfter)
-		{
-			_Transition(GPUResource->GetResource().Get(), GPUResource->UsageState, stateAfter, subresource, flags);
-			GPUResource->UsageState = stateAfter;
-		}
 	}
 
 	void FRHIDx12::_Transition(
@@ -828,460 +797,6 @@ namespace tix
 			pCmdList->ResourceBarrier(GraphicsNumBarriersToFlush, GraphicsBarrierBuffers);
 			GraphicsNumBarriersToFlush = 0;
 		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	// Returns required size of a buffer to be used for data upload
-	inline uint64 GetRequiredIntermediateSize(
-		_In_ ID3D12Device* D3dDevice,
-		_In_ ID3D12Resource* pDestinationResource,
-		_In_range_(0, D3D12_REQ_SUBRESOURCES) uint32 FirstSubresource,
-		_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) uint32 NumSubresources)
-	{
-		D3D12_RESOURCE_DESC Desc = pDestinationResource->GetDesc();
-		uint64 RequiredSize = 0;
-
-		ID3D12Device* pDevice;
-		pDestinationResource->GetDevice(__uuidof(*pDevice), reinterpret_cast<void**>(&pDevice));
-		pDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &RequiredSize);
-		pDevice->Release();
-
-#if defined (TIX_DEBUG)
-		uint64 CompareSize;
-		D3dDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &CompareSize);
-		TI_ASSERT(CompareSize == RequiredSize);
-#endif
-
-		return RequiredSize;
-	}
-
-	inline uint64 GetRequiredIntermediateSize(
-		_In_ ID3D12Device* D3dDevice,
-		const D3D12_RESOURCE_DESC& Desc,
-		_In_range_(0, D3D12_REQ_SUBRESOURCES) uint32 FirstSubresource,
-		_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) uint32 NumSubresources)
-	{
-		uint64 RequiredSize = 0;
-		D3dDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &RequiredSize);
-
-		return RequiredSize;
-	}
-
-	inline DXGI_FORMAT GetBaseFormat(DXGI_FORMAT defaultFormat)
-	{
-		switch (defaultFormat)
-		{
-		case DXGI_FORMAT_R8G8B8A8_UNORM:
-		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-			return DXGI_FORMAT_R8G8B8A8_TYPELESS;
-
-		case DXGI_FORMAT_B8G8R8A8_UNORM:
-		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-			return DXGI_FORMAT_B8G8R8A8_TYPELESS;
-
-		case DXGI_FORMAT_B8G8R8X8_UNORM:
-		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-			return DXGI_FORMAT_B8G8R8X8_TYPELESS;
-
-			// 32-bit Z w/ Stencil
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-		case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-			return DXGI_FORMAT_R32G8X24_TYPELESS;
-
-			// No Stencil
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:
-		case DXGI_FORMAT_R32_FLOAT:
-			return DXGI_FORMAT_R32_TYPELESS;
-
-			// 24-bit Z
-		case DXGI_FORMAT_R24G8_TYPELESS:
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-			return DXGI_FORMAT_R24G8_TYPELESS;
-
-			// 16-bit Z w/o Stencil
-		case DXGI_FORMAT_R16_TYPELESS:
-		case DXGI_FORMAT_D16_UNORM:
-		case DXGI_FORMAT_R16_UNORM:
-			return DXGI_FORMAT_R16_TYPELESS;
-
-		default:
-			return defaultFormat;
-		}
-	}
-
-	inline DXGI_FORMAT GetDSVFormat(DXGI_FORMAT defaultFormat)
-	{
-		switch (defaultFormat)
-		{
-			// 32-bit Z w/ Stencil
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-		case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-
-			// No Stencil
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:
-		case DXGI_FORMAT_R32_FLOAT:
-			return DXGI_FORMAT_D32_FLOAT;
-
-			// 24-bit Z
-		case DXGI_FORMAT_R24G8_TYPELESS:
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-			// 16-bit Z w/o Stencil
-		case DXGI_FORMAT_R16_TYPELESS:
-		case DXGI_FORMAT_D16_UNORM:
-		case DXGI_FORMAT_R16_UNORM:
-			return DXGI_FORMAT_D16_UNORM;
-
-		default:
-			return defaultFormat;
-		}
-	}
-
-	inline DXGI_FORMAT GetDepthSrvFormat(DXGI_FORMAT defaultFormat)
-	{
-		switch (defaultFormat)
-		{
-			// 32-bit Z w/ Stencil
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-		case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-			return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-
-			// No Stencil
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:
-		case DXGI_FORMAT_R32_FLOAT:
-			return DXGI_FORMAT_R32_FLOAT;
-
-			// 24-bit Z
-		case DXGI_FORMAT_R24G8_TYPELESS:
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-
-			// 16-bit Z w/o Stencil
-		case DXGI_FORMAT_R16_TYPELESS:
-		case DXGI_FORMAT_D16_UNORM:
-		case DXGI_FORMAT_R16_UNORM:
-			return DXGI_FORMAT_R16_UNORM;
-
-		default:
-			return DXGI_FORMAT_UNKNOWN;
-		}
-	}
-	inline DXGI_FORMAT GetUAVFormat(DXGI_FORMAT defaultFormat)
-	{
-		switch (defaultFormat)
-		{
-		case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-		case DXGI_FORMAT_R8G8B8A8_UNORM:
-		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
-
-		case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-		case DXGI_FORMAT_B8G8R8A8_UNORM:
-		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-			return DXGI_FORMAT_B8G8R8A8_UNORM;
-
-		case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-		case DXGI_FORMAT_B8G8R8X8_UNORM:
-		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-			return DXGI_FORMAT_B8G8R8X8_UNORM;
-
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_R32_FLOAT:
-			return DXGI_FORMAT_R32_FLOAT;
-
-#if defined (TIX_DEBUG)
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-		case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-		case DXGI_FORMAT_D32_FLOAT:
-		case DXGI_FORMAT_R24G8_TYPELESS:
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-		case DXGI_FORMAT_D16_UNORM:
-
-			_LOG(Fatal, "Requested a UAV format for a depth stencil format.\n");
-#endif
-
-		default:
-			return defaultFormat;
-		}
-	}
-	bool FRHIDx12::UpdateHardwareResourceTexture(FTexturePtr Texture)
-	{
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(Texture.get());
-		if (TexDx12->TextureResource.IsInited())
-			return true;
-		const TTextureDesc& Desc = TexDx12->GetDesc();
-		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
-		const bool IsCubeMap = Desc.Type == ETT_TEXTURE_CUBE;
-
-		// do not have texture data, Create a empty texture (used for render target usually).
-		D3D12_CLEAR_VALUE ClearValue = {};
-		D3D12_RESOURCE_DESC TextureDx12Desc = {};
-		TextureDx12Desc.Alignment = 0;
-		TextureDx12Desc.Dimension = GetTextureTypeFromTiX(Desc.Type);
-		TextureDx12Desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		if ((Desc.Flags & ETF_RT_COLORBUFFER) != 0)
-		{
-			SColorf ClearColor(Desc.ClearColor);
-			TextureDx12Desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-			ClearValue.Color[0] = ClearColor.R;
-			ClearValue.Color[1] = ClearColor.G;
-			ClearValue.Color[2] = ClearColor.B;
-			ClearValue.Color[3] = ClearColor.A;
-		}
-		if ((Desc.Flags & ETF_RT_DSBUFFER) != 0)
-		{
-			TextureDx12Desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			ClearValue.DepthStencil.Depth = 1.f;
-			ClearValue.DepthStencil.Stencil = 0;
-		}
-		if ((Desc.Flags & ETF_UAV) != 0)
-		{
-			TextureDx12Desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		}
-		TextureDx12Desc.Format = GetBaseFormat(DxgiFormat);
-		TextureDx12Desc.Width = Desc.Width;
-		TextureDx12Desc.Height = Desc.Height;
-		TextureDx12Desc.DepthOrArraySize = Desc.Depth;
-		TextureDx12Desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		TextureDx12Desc.MipLevels = Desc.Mips;
-		TextureDx12Desc.SampleDesc.Count = 1;
-		TextureDx12Desc.SampleDesc.Quality = 0;
-
-		ClearValue.Format = DxgiFormat;
-
-		D3D12_CLEAR_VALUE *pOptimizedClearValue = nullptr;
-		if ((TextureDx12Desc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)) != 0)
-		{
-			pOptimizedClearValue = &ClearValue;
-		}
-
-		CD3DX12_HEAP_PROPERTIES HeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-		TexDx12->TextureResource.CreateResource(
-			D3dDevice.Get(),
-			&HeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&TextureDx12Desc,
-			D3D12_RESOURCE_STATE_COMMON,
-			pOptimizedClearValue
-		);
-		DX_SETNAME(TexDx12->TextureResource.GetResource().Get(), Texture->GetResourceName());
-
-		Texture->SetTextureFlag(ETF_RENDER_RESOURCE_UPDATED, true);
-
-		HoldResourceReference(Texture);
-
-		return true;
-	}
-
-	bool FRHIDx12::UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData)
-	{
-		TI_ASSERT(InTexData != nullptr);
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(Texture.get());
-		const TTextureDesc& Desc = TexDx12->GetDesc();
-		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
-		const bool IsCubeMap = Desc.Type == ETT_TEXTURE_CUBE;
-
-		// Create texture resource and fill with texture data.
-#if defined (TIX_DEBUG)
-		Texture->SetResourceName(InTexData->GetResourceName());
-#endif
-
-		// Note: ComPtr's are CPU objects but this resource needs to stay in scope until
-		// the command list that references it has finished executing on the GPU.
-		// We will flush the GPU at the end of this method to ensure the resource is not
-		// prematurely destroyed.
-		ComPtr<ID3D12Resource> TextureUploadHeap;
-		const int32 ArraySize = IsCubeMap ? 6 : 1;
-
-		if (!TexDx12->TextureResource.IsInited())
-		{
-			TI_ASSERT(DxgiFormat != DXGI_FORMAT_UNKNOWN);
-			// Describe and create a Texture2D.
-			D3D12_RESOURCE_DESC TextureDx12Desc = {};
-			TextureDx12Desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			TextureDx12Desc.Alignment = 0;
-			TextureDx12Desc.Width = Desc.Width;
-			TextureDx12Desc.Height = Desc.Height;
-			TextureDx12Desc.DepthOrArraySize = ArraySize;
-			TextureDx12Desc.MipLevels = Desc.Mips;
-			TextureDx12Desc.Format = DxgiFormat;
-			TextureDx12Desc.SampleDesc.Count = 1;
-			TextureDx12Desc.SampleDesc.Quality = 0;
-			TextureDx12Desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			TextureDx12Desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-			CD3DX12_HEAP_PROPERTIES DefaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-			TexDx12->TextureResource.CreateResource(
-				D3dDevice.Get(),
-				&DefaultHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
-				&TextureDx12Desc,
-				D3D12_RESOURCE_STATE_COPY_DEST);
-		}
-		else
-		{
-			TI_ASSERT(Desc.Width == InTexData->GetDesc().Width && Desc.Height == InTexData->GetDesc().Height);
-		}
-
-		const int32 SubResourceNum = ArraySize * Desc.Mips;
-		const uint64 uploadBufferSize = GetRequiredIntermediateSize(D3dDevice.Get(), TexDx12->TextureResource.GetResource().Get(), 0, SubResourceNum);
-
-		// Create the GPU upload buffer.
-		CD3DX12_HEAP_PROPERTIES UploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-		CD3DX12_RESOURCE_DESC UploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-			&UploadHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&UploadBuffer,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&TextureUploadHeap)));
-		DX_SETNAME(TextureUploadHeap.Get(), Texture->GetResourceName() + "-Upload");
-
-		// Copy data to the intermediate upload heap and then schedule a copy 
-		// from the upload heap to the Texture2D.
-
-		D3D12_SUBRESOURCE_DATA* TextureDatas = ti_new D3D12_SUBRESOURCE_DATA[SubResourceNum];
-		const TVector<TTexture::TSurface*>& TextureSurfaces = InTexData->GetSurfaces();
-		TI_ASSERT(SubResourceNum == TextureSurfaces.size());
-		for (int32 s = 0; s < SubResourceNum; ++s)
-		{
-			D3D12_SUBRESOURCE_DATA& texData = TextureDatas[s];
-			const TTexture::TSurface* Surface = TextureSurfaces[s];
-			texData.pData = Surface->Data;
-			texData.RowPitch = Surface->RowPitch;
-			texData.SlicePitch = Surface->DataSize;
-		}
-
-		UpdateSubresources(DirectCommandList.Get(), TexDx12->TextureResource.GetResource().Get(), TextureUploadHeap.Get(), 0, 0, SubResourceNum, TextureDatas);
-		Transition(&TexDx12->TextureResource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		DX_SETNAME(TexDx12->TextureResource.GetResource().Get(), Texture->GetResourceName());
-
-		ti_delete[] TextureDatas;
-
-		Texture->SetTextureFlag(ETF_RENDER_RESOURCE_UPDATED, true);
-
-		FlushGraphicsBarriers(DirectCommandList.Get());
-		// Hold resources used here
-		HoldResourceReference(Texture);
-		HoldResourceReference(TextureUploadHeap);
-
-		return true;
-	}
-
-	bool FRHIDx12::UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InImageData)
-	{
-		TI_ASSERT(InImageData != nullptr);
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(Texture.get());
-		const TTextureDesc& Desc = TexDx12->GetDesc();
-		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
-		const bool IsCubeMap = Desc.Type == ETT_TEXTURE_CUBE;
-
-		// Create texture resource and fill with texture data.
-
-		// Note: ComPtr's are CPU objects but this resource needs to stay in scope until
-		// the command list that references it has finished executing on the GPU.
-		// We will flush the GPU at the end of this method to ensure the resource is not
-		// prematurely destroyed.
-		ComPtr<ID3D12Resource> TextureUploadHeap;
-		const int32 ArraySize = 1;
-
-		if (!TexDx12->TextureResource.IsInited())
-		{
-			TI_ASSERT(DxgiFormat != DXGI_FORMAT_UNKNOWN);
-			// Describe and create a Texture2D.
-			D3D12_RESOURCE_DESC TextureDx12Desc = {};
-			TextureDx12Desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			TextureDx12Desc.Alignment = 0;
-			TextureDx12Desc.Width = Desc.Width;
-			TextureDx12Desc.Height = Desc.Height;
-			TextureDx12Desc.DepthOrArraySize = ArraySize;
-			TextureDx12Desc.MipLevels = Desc.Mips;
-			TextureDx12Desc.Format = DxgiFormat;
-			TextureDx12Desc.SampleDesc.Count = 1;
-			TextureDx12Desc.SampleDesc.Quality = 0;
-			TextureDx12Desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			TextureDx12Desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-			CD3DX12_HEAP_PROPERTIES DefaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-			TexDx12->TextureResource.CreateResource(
-				D3dDevice.Get(),
-				&DefaultHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
-				&TextureDx12Desc,
-				D3D12_RESOURCE_STATE_COPY_DEST);
-		}
-		else
-		{
-			TI_ASSERT(Desc.Width == InImageData->GetWidth() && Desc.Height == InImageData->GetHeight());
-		}
-		Transition(&TexDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_DEST);
-		FlushGraphicsBarriers(DirectCommandList.Get());
-
-		const int32 SubResourceNum = ArraySize * Desc.Mips;
-		const uint64 uploadBufferSize = GetRequiredIntermediateSize(D3dDevice.Get(), TexDx12->TextureResource.GetResource().Get(), 0, SubResourceNum);
-
-		// Create the GPU upload buffer.
-		CD3DX12_HEAP_PROPERTIES UploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-		CD3DX12_RESOURCE_DESC UploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-		VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-			&UploadHeapProperties,
-			D3D12_HEAP_FLAG_NONE,
-			&UploadBuffer,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&TextureUploadHeap)));
-		DX_SETNAME(TextureUploadHeap.Get(), Texture->GetResourceName() + "-Upload");
-
-		// Copy data to the intermediate upload heap and then schedule a copy 
-		// from the upload heap to the Texture2D.
-
-		D3D12_SUBRESOURCE_DATA* TextureDatas = ti_new D3D12_SUBRESOURCE_DATA[SubResourceNum];
-		TI_ASSERT(SubResourceNum == InImageData->GetMipmapCount());
-		for (int32 s = 0; s < SubResourceNum; ++s)
-		{
-			D3D12_SUBRESOURCE_DATA& texData = TextureDatas[s];
-			const TImage::TSurfaceData& MipSurface = InImageData->GetMipmap(s);
-			texData.pData = MipSurface.Data.GetBuffer();
-			texData.RowPitch = MipSurface.RowPitch;
-			texData.SlicePitch = MipSurface.Data.GetLength();
-		}
-
-		UpdateSubresources(DirectCommandList.Get(), TexDx12->TextureResource.GetResource().Get(), TextureUploadHeap.Get(), 0, 0, SubResourceNum, TextureDatas);
-		Transition(&TexDx12->TextureResource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		DX_SETNAME(TexDx12->TextureResource.GetResource().Get(), Texture->GetResourceName());
-
-		ti_delete[] TextureDatas;
-
-		Texture->SetTextureFlag(ETF_RENDER_RESOURCE_UPDATED, true);
-
-		FlushGraphicsBarriers(DirectCommandList.Get());
-		// Hold resources used here
-		HoldResourceReference(Texture);
-		HoldResourceReference(TextureUploadHeap);
-
-		return true;
 	}
 
 	inline FShaderDx12* GetDx12Shader(TPipelinePtr Pipeline, E_SHADER_STAGE Stage)
@@ -1712,6 +1227,8 @@ namespace tix
 	}
 	bool FRHIDx12::UpdateHardwareResourceUB(FUniformBufferPtr UniformBuffer, const void* InData)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12 * UniformBufferDx12 = static_cast<FUniformBufferDx12*>(UniformBuffer.get());
 		
 		if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0)
@@ -1841,64 +1358,55 @@ namespace tix
 		DX_SETNAME(UniformBufferDx12->BufferResource.GetResource().Get(), UniformBuffer->GetResourceName() + "-UB");
 
 		HoldResourceReference(UniformBuffer);
-
+		*/
 		return true;
 	}
 
-	void FRHIDx12::PrepareDataForCPU(FTexturePtr Texture)
+	void FRHIDx12::ReadGPUBufferToImage(FGPUBufferPtr GPUBuffer, TImagePtr OutImage)
 	{
-		if (Texture->HasTextureFlag(ETF_READBACK))
-		{
-			const TTextureDesc& Desc = Texture->GetDesc();
-			FTextureReadableDx12* TextureDx12 = static_cast<FTextureReadableDx12*>(Texture.get());
-			if (TextureDx12->ReadbackResource.GetResource() == nullptr)
-			{
-				const int32 TextureDataSize = TImage::GetDataSize(Desc.Format, Texture->GetWidth(), Texture->GetHeight());
-				TI_ASSERT(Desc.Depth == 1 && Desc.Type == ETT_TEXTURE_2D);
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUBuffer.get());
 
-				D3D12_HEAP_PROPERTIES ReadbackHeapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK) };
-				D3D12_RESOURCE_DESC ReadbackTextureDesc{ CD3DX12_RESOURCE_DESC::Buffer(TextureDataSize) };
+		const int32 TextureDataSize = TImage::GetDataSize(OutImage->GetFormat(), OutImage->GetWidth(), OutImage->GetHeight());
+		D3D12_RANGE ReadbackBufferRange{ 0, (SIZE_T)TextureDataSize };
+		uint8* Result = nullptr;
+		HRESULT Hr = BufferDx12->GetResource()->Map(0, &ReadbackBufferRange, reinterpret_cast<void**>(&Result));
+		TI_ASSERT(SUCCEEDED(Hr));
 
-				TextureDx12->ReadbackResource.CreateResource(
-					D3dDevice.Get(),
-					&ReadbackHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&ReadbackTextureDesc,
-					D3D12_RESOURCE_STATE_COPY_DEST);
-			}
+		uint8* ImageData = OutImage->Lock();
+		memcpy(ImageData, Result, TextureDataSize);
+		OutImage->Unlock();
 
-			{
-				// Transition the status of texture from D3D12_RESOURCE_STATE_COPY_DEST to D3D12_RESOURCE_STATE_COPY_SOURCE
-				//TI_ASSERT(UniformBufferDx12->BufferResource.GetCurrentState() == D3D12_RESOURCE_STATE_COPY_DEST);
-				Transition(&TextureDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
-				FlushGraphicsBarriers(DirectCommandList.Get());
-			}
+		// Code goes here to access the data via pReadbackBufferData.
+		D3D12_RANGE EmptyRange{ 0, 0 };
+		BufferDx12->GetResource()->Unmap(0, &EmptyRange);
+	}
 
-			D3D12_PLACED_SUBRESOURCE_FOOTPRINT Footprint;
-			Footprint.Offset = 0;
-			Footprint.Footprint.Format = GetDxPixelFormat(Desc.Format);
-			Footprint.Footprint.Width = Desc.Width;
-			Footprint.Footprint.Height = Desc.Height;
-			Footprint.Footprint.Depth = Desc.Depth;
-			Footprint.Footprint.RowPitch = TImage::GetRowPitch(Desc.Format, Desc.Width);
-			TI_ASSERT(Footprint.Footprint.RowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0);
-			CD3DX12_TEXTURE_COPY_LOCATION Dst(TextureDx12->ReadbackResource.GetResource().Get(), Footprint);
-			CD3DX12_TEXTURE_COPY_LOCATION Src(TextureDx12->TextureResource.GetResource().Get(), 0);
-			DirectCommandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
+	void FRHIDx12::CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch)
+	{
+		FGPUBufferDx12* GPUBufferDx12 = static_cast<FGPUBufferDx12*>(DstBuffer.get());
+		FGPUTextureDx12* GPUTextureDx12 = static_cast<FGPUTextureDx12*>(SrcTexture.get());
+		D3D12_RESOURCE_DESC Desc = GPUTextureDx12->Resource->GetDesc();
 
-			HoldResourceReference(Texture);
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT Footprint;
+		Footprint.Offset = 0;
+		Footprint.Footprint.Format = Desc.Format;
+		Footprint.Footprint.Width = (uint32)Desc.Width;
+		Footprint.Footprint.Height = (uint32)Desc.Height;
+		Footprint.Footprint.Depth = Desc.DepthOrArraySize;
+		Footprint.Footprint.RowPitch = RowPitch;
+		TI_ASSERT(Footprint.Footprint.RowPitch % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT == 0);
+		CD3DX12_TEXTURE_COPY_LOCATION Dst(GPUBufferDx12->Resource.Get(), Footprint);
+		CD3DX12_TEXTURE_COPY_LOCATION Src(GPUTextureDx12->Resource.Get(), 0);
+		DirectCommandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
 
-			// Code goes here to close, execute (and optionally reset) the command list, and also
-			// to use a fence to wait for the command queue.
-		}
-		else
-		{
-			_LOG(Error, "Can not read texture without flag ETF_READBACK.\n");
-		}
+		TI_ASSERT(0);
+		TI_TODO("Hold GPU resource ref");
 	}
 
 	void FRHIDx12::PrepareDataForCPU(FUniformBufferPtr UniformBuffer)
 	{
+		TI_ASSERT(0);
+		/*
 		if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::Readback) != 0)
 		{
 			FUniformBufferReadableDx12 * UniformBufferDx12 = static_cast<FUniformBufferReadableDx12*>(UniformBuffer.get());
@@ -1937,6 +1445,7 @@ namespace tix
 		{
 			_LOG(Error, "Can not read buffer without flag UB_FLAG_READBACK.\n");
 		}
+		*/
 	}
 
 	/*
@@ -2093,17 +1602,25 @@ namespace tix
 		UAVBarrier(ASDx12->GetASResource());
 	}
 
-	void FRHIDx12::SetGPUResourceBufferName(FGPUResourceBufferPtr GPUResourceBuffer, const TString& Name)
+	void FRHIDx12::SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name)
 	{
-		FGPUResourceBufferDx12* GPUBufferDx12 = static_cast<FGPUResourceBufferDx12*>(GPUResourceBuffer.get());
+		FGPUBufferDx12* GPUBufferDx12 = static_cast<FGPUBufferDx12*>(GPUBuffer.get());
 
 		TWString WName = FromString(Name);
 		GPUBufferDx12->Resource.Get()->SetName(WName.c_str());
 	}
 
-	void FRHIDx12::SetGPUResourceBufferState(FGPUResourceBufferPtr GPUResourceBuffer, EGPUResourceState NewState)
+	void FRHIDx12::SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name)
 	{
-		FGPUResourceBufferDx12* GPUBufferDx12 = static_cast<FGPUResourceBufferDx12*>(GPUResourceBuffer.get());
+		FGPUTextureDx12* GPUTextureDx12 = static_cast<FGPUTextureDx12*>(GPUTexture.get());
+
+		TWString WName = FromString(Name);
+		GPUTextureDx12->Resource.Get()->SetName(WName.c_str());
+	}
+
+	void FRHIDx12::SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState)
+	{
+		FGPUBufferDx12* GPUBufferDx12 = static_cast<FGPUBufferDx12*>(GPUBuffer.get());
 
 		if (GPUBufferDx12->ResourceState == NewState)
 			return;
@@ -2117,6 +1634,24 @@ namespace tix
 			D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, 
 			D3D12_RESOURCE_BARRIER_FLAG_NONE);
 		GPUBufferDx12->ResourceState = NewState;
+	}
+
+	void FRHIDx12::SetGPUTextureState(FGPUTexturePtr GPUTexture, EGPUResourceState NewState)
+	{
+		FGPUTextureDx12* GPUTextureDx12 = static_cast<FGPUTextureDx12*>(GPUTexture.get());
+
+		if (GPUTextureDx12->ResourceState == NewState)
+			return;
+
+		D3D12_RESOURCE_STATES StateBefore = GetDx12ResourceState(GPUTextureDx12->ResourceState);
+		D3D12_RESOURCE_STATES StateAfter = GetDx12ResourceState(NewState);
+		_Transition(
+			GPUTextureDx12->Resource.Get(),
+			StateBefore,
+			StateAfter,
+			D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+			D3D12_RESOURCE_BARRIER_FLAG_NONE);
+		GPUTextureDx12->ResourceState = NewState;
 	}
 
 	void FRHIDx12::FlushResourceStateChange()
@@ -2569,6 +2104,8 @@ namespace tix
 
 	void FRHIDx12::PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12 * UniformBufferDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
 
 		const int32 AlignedDataSize = TMath::Align(InUniformBuffer->GetTotalBufferSize(), UniformBufferAlignSize);
@@ -2577,11 +2114,14 @@ namespace tix
 		cbvDesc.SizeInBytes = AlignedDataSize;
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
 		D3dDevice->CreateConstantBufferView(&cbvDesc, Descriptor);
+		*/
 	}
 
 	void FRHIDx12::PutTextureInHeap(FTexturePtr InTexture, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(InTexture.get());
+		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
+		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
+		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
@@ -2621,7 +2161,7 @@ namespace tix
 			break;
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
-		D3dDevice->CreateShaderResourceView(TexDx12->TextureResource.GetResource().Get(), &SRVDesc, Descriptor);
+		D3dDevice->CreateShaderResourceView(TexDx12->Resource.Get(), &SRVDesc, Descriptor);
 	}
 
 	void FRHIDx12::PutRWTextureInHeap(
@@ -2630,7 +2170,9 @@ namespace tix
 		E_RENDER_RESOURCE_HEAP_TYPE InHeapType, 
 		uint32 InHeapSlot)
 	{
-		FTextureDx12* TexDx12 = static_cast<FTextureDx12*>(InTexture.get());
+		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
+		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
+		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
@@ -2661,7 +2203,7 @@ namespace tix
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
 
 		D3dDevice->CreateUnorderedAccessView(
-			TexDx12->TextureResource.GetResource().Get(),
+			TexDx12->Resource.Get(),
 			nullptr,
 			&UAVDesc,
 			Descriptor);
@@ -2672,6 +2214,8 @@ namespace tix
 		E_RENDER_RESOURCE_HEAP_TYPE InHeapType, 
 		uint32 InHeapSlot)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InBuffer.get());
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -2684,6 +2228,7 @@ namespace tix
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
 		D3dDevice->CreateShaderResourceView(UBDx12->BufferResource.GetResource().Get(), &SRVDesc, Descriptor);
+		*/
 	}
 
 	void FRHIDx12::PutTopAccelerationStructureInHeap(
@@ -2710,6 +2255,8 @@ namespace tix
 
 	void FRHIDx12::PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InBuffer.get());
 
 		TI_ASSERT((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0);
@@ -2732,13 +2279,12 @@ namespace tix
 			UBDx12->BufferResource.GetResource().Get() : nullptr,
 			&UAVDesc,
 			Descriptor);
+			*/
 	}
 	
 	void FRHIDx12::PutVertexBufferInHeap(FVertexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InVBHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		FVertexBufferDx12 * MBDx12 = static_cast<FMeshBufferDx12*>(InBuffer.get());
+		FGPUBufferDx12* VBDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -2754,26 +2300,13 @@ namespace tix
 			SRVDesc.Buffer.StructureByteStride = sizeof(float);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InVBHeapSlot);
-			D3dDevice->CreateShaderResourceView(MBDx12->VertexBuffer.GetResource().Get(), &SRVDesc, Descriptor);
+			D3dDevice->CreateShaderResourceView(VBDx12->GetResource(), &SRVDesc, Descriptor);
 		}
-
-		if (InIBHeapSlot >= 0)
-		{
-			TI_ASSERT(InBuffer->GetDesc().IndexType == EIT_32BIT);
-			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().IndexCount;
-			SRVDesc.Buffer.StructureByteStride = sizeof(uint32);
-
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InIBHeapSlot);
-			D3dDevice->CreateShaderResourceView(MBDx12->IndexBuffer.GetResource().Get(), &SRVDesc, Descriptor);
-		}
-		*/
 	}
 
 	void FRHIDx12::PutIndexBufferInHeap(FIndexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InIBHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		FMeshBufferDx12* MBDx12 = static_cast<FMeshBufferDx12*>(InBuffer.get());
+		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -2781,16 +2314,6 @@ namespace tix
 		SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
 		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-		if (InVBHeapSlot >= 0)
-		{
-			TI_ASSERT(InBuffer->GetDesc().Stride % 4 == 0);
-			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().VertexCount * InBuffer->GetDesc().Stride / sizeof(float);
-			SRVDesc.Buffer.StructureByteStride = sizeof(float);
-
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InVBHeapSlot);
-			D3dDevice->CreateShaderResourceView(MBDx12->VertexBuffer.GetResource().Get(), &SRVDesc, Descriptor);
-		}
 
 		if (InIBHeapSlot >= 0)
 		{
@@ -2799,36 +2322,32 @@ namespace tix
 			SRVDesc.Buffer.StructureByteStride = sizeof(uint32);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InIBHeapSlot);
-			D3dDevice->CreateShaderResourceView(MBDx12->IndexBuffer.GetResource().Get(), &SRVDesc, Descriptor);
+			D3dDevice->CreateShaderResourceView(IBDx12->GetResource(), &SRVDesc, Descriptor);
 		}
-		*/
 	}
 
 	void FRHIDx12::PutInstanceBufferInHeap(FInstanceBufferPtr InInstanceBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		TI_TODO("Refactor this with PutUniformBufferInHeap().");
-		FInstanceBufferDx12 * IBDx12 = static_cast<FInstanceBufferDx12*>(InInstanceBuffer.get());
+		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InInstanceBuffer->GetGPUResource().get());
 
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
 		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		SRVDesc.Buffer.NumElements = InInstanceBuffer->GetInstancesCount();
-		SRVDesc.Buffer.StructureByteStride = InInstanceBuffer->GetStride();
+		SRVDesc.Buffer.NumElements = InInstanceBuffer->GetDesc().InstanceCount;
+		SRVDesc.Buffer.StructureByteStride = InInstanceBuffer->GetDesc().Stride;
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
-		D3dDevice->CreateShaderResourceView(IBDx12->InstanceBuffer.GetResource().Get(), &SRVDesc, Descriptor);
-		*/
+		D3dDevice->CreateShaderResourceView(IBDx12->GetResource(), &SRVDesc, Descriptor);
 	}
 
 	void FRHIDx12::PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot)
 	{
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(InTexture.get());
-		TI_ASSERT(TexDx12->TextureResource.GetResource() != nullptr);
+		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
+		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
+		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
 
 		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
 		RTVDesc.Format = GetDxPixelFormat(InTexture->GetDesc().Format);
@@ -2841,14 +2360,15 @@ namespace tix
 		{
 			RTVDesc.Texture2D.MipSlice = Mip;
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(EHT_RENDERTARGET, InHeapSlot + Mip);
-			D3dDevice->CreateRenderTargetView(TexDx12->TextureResource.GetResource().Get(), &RTVDesc, Descriptor);
+			D3dDevice->CreateRenderTargetView(TexDx12->Resource.Get(), &RTVDesc, Descriptor);
 		}
 	}
 
 	void FRHIDx12::PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot)
 	{
-		FTextureDx12 * TexDx12 = static_cast<FTextureDx12*>(InTexture.get());
-		TI_ASSERT(TexDx12->TextureResource.GetResource() != nullptr);
+		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
+		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
+		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
 
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(InTexture->GetDesc().Format);
 		TI_ASSERT(DXGI_FORMAT_UNKNOWN != DxgiFormat);
@@ -2863,7 +2383,7 @@ namespace tix
 		{
 			DsvDesc.Texture2D.MipSlice = Mip;
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(EHT_DEPTHSTENCIL, InHeapSlot + Mip);
-			D3dDevice->CreateDepthStencilView(TexDx12->TextureResource.GetResource().Get(), &DsvDesc, Descriptor);
+			D3dDevice->CreateDepthStencilView(TexDx12->Resource.Get(), &DsvDesc, Descriptor);
 		}
 	}
 
@@ -2908,51 +2428,71 @@ namespace tix
 		HoldResourceReference(InPipeline);
 	}
 
-	void FRHIDx12::SetVertexBuffer(FVertexBufferPtr InVertexBuffer, FInstanceBufferPtr InInstanceBuffer)
+	void FRHIDx12::SetVertexBuffer(FVertexBufferPtr InVB, FInstanceBufferPtr InInsB)
 	{
-		TI_ASSERT(0);
-		/*
-		FMeshBufferDx12* MBDx12 = static_cast<FMeshBufferDx12*>(InMeshBuffer.get());
-
-		TI_TODO("Remove duplicated IASetPrimitiveTopology and IASetVertexBuffers call similar as SetGraphicsPipeline()");
-		DirectCommandList->IASetPrimitiveTopology(k_PRIMITIVE_TYPE_MAP[InMeshBuffer->GetDesc().PrimitiveType]);
-		if (InInstanceBuffer == nullptr)
+		const TVertexBufferDesc& VBDesc = InVB->GetDesc();
+		if (CurrentBoundResource.PrimitiveType != VBDesc.PrimitiveType)
 		{
-			DirectCommandList->IASetVertexBuffers(0, 1, &MBDx12->VertexBufferView);
+			DirectCommandList->IASetPrimitiveTopology(GetDx12PrimitiveType(VBDesc.PrimitiveType));
+			CurrentBoundResource.PrimitiveType = VBDesc.PrimitiveType;
+		}
+		FGPUBufferDx12* VBDx12 = static_cast<FGPUBufferDx12*>(InVB->GetGPUResource().get());
+
+		D3D12_VERTEX_BUFFER_VIEW VBView;
+		VBView.BufferLocation = VBDx12->GetResource()->GetGPUVirtualAddress();
+		VBView.SizeInBytes = VBDesc.VertexCount * VBDesc.Stride;
+		VBView.StrideInBytes = VBDesc.Stride;
+		if (InInsB == nullptr)
+		{
+			DirectCommandList->IASetVertexBuffers(0, 1, &VBView);
 		}
 		else
 		{
-			FInstanceBufferDx12* IBDx12 = static_cast<FInstanceBufferDx12*>(InInstanceBuffer.get());
+			FGPUBufferDx12* InsBDx12 = static_cast<FGPUBufferDx12*>(InInsB->GetGPUResource().get());
+			const TInstanceBufferDesc& InsDesc = InInsB->GetDesc();
+
+			D3D12_VERTEX_BUFFER_VIEW InsView;
+			InsView.BufferLocation = InsBDx12->GetResource()->GetGPUVirtualAddress();
+			InsView.SizeInBytes = InsDesc.InstanceCount * InsDesc.Stride;
+			InsView.StrideInBytes = InsDesc.Stride;
+
 			D3D12_VERTEX_BUFFER_VIEW Views[2] =
 			{
-				MBDx12->VertexBufferView,
-				IBDx12->InstanceBufferView
+				VBView,
+				InsView
 			};
 			DirectCommandList->IASetVertexBuffers(0, 2, Views);
-			HoldResourceReference(InInstanceBuffer);
+			HoldResourceReference(InInsB);
 		}
-		DirectCommandList->IASetIndexBuffer(&MBDx12->IndexBufferView);
 
-		HoldResourceReference(InMeshBuffer);
-		*/
+		HoldResourceReference(InVB);
 	}
 
-	void FRHIDx12::SetIndexBuffer(FIndexBufferPtr InIndexBuffer)
+	void FRHIDx12::SetIndexBuffer(FIndexBufferPtr InIB)
 	{
-		TI_ASSERT(0);
-		//DirectCommandList->IASetIndexBuffer(&MBDx12->IndexBufferView);
+		const TIndexBufferDesc& Desc = InIB->GetDesc();
+		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InIB->GetGPUResource().get());
 
-		//HoldResourceReference(InIndexBuffer);
+		D3D12_INDEX_BUFFER_VIEW IBView;
+		IBView.BufferLocation = IBDx12->GetResource()->GetGPUVirtualAddress();
+		IBView.SizeInBytes = Desc.IndexCount * (Desc.IndexType == EIT_16BIT ? 2 : 4);
+		IBView.Format = Desc.IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+
+		DirectCommandList->IASetIndexBuffer(&IBView);
+		HoldResourceReference(InIB);
 	}
 
 	void FRHIDx12::SetUniformBuffer(E_SHADER_STAGE , int32 BindIndex, FUniformBufferPtr InUniformBuffer)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
 
 		// Bind the current frame's constant buffer to the pipeline.
 		DirectCommandList->SetGraphicsRootConstantBufferView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress());
 
 		HoldResourceReference(InUniformBuffer);
+		*/
 	}
 	
 	void FRHIDx12::SetComputeConstant(int32 BindIndex, const FUInt4& InValue)
@@ -2967,22 +2507,28 @@ namespace tix
 
 	void FRHIDx12::SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
 
 		// Bind the current frame's constant buffer to the pipeline.
 		DirectCommandList->SetComputeRootConstantBufferView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress() + BufferOffset);
 
 		HoldResourceReference(InUniformBuffer);
+		*/
 	}
 	
 	void FRHIDx12::SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
 
 		// Bind the current frame's constant buffer to the pipeline.
 		DirectCommandList->SetComputeRootShaderResourceView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress() + BufferOffset);
 
 		HoldResourceReference(InUniformBuffer);
+		*/
 	}
 
 	void FRHIDx12::SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
@@ -3020,6 +2566,8 @@ namespace tix
 
 	void FRHIDx12::ComputeCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize)
 	{
+		TI_ASSERT(0);
+		/*
 		FUniformBufferDx12 * DestDx12 = static_cast<FUniformBufferDx12*>(Dest.get());
 		FUniformBufferDx12 * SrcDx12 = static_cast<FUniformBufferDx12*>(Src.get());
 
@@ -3027,10 +2575,13 @@ namespace tix
 			DestDx12->BufferResource.GetResource().Get(), DestOffset,
 			SrcDx12->BufferResource.GetResource().Get(), SrcOffset,
 			CopySize);
+			*/
 	}
 
 	void FRHIDx12::ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer)
 	{
+		TI_ASSERT(0);
+		/*
 		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
 		{
 			FlushResourceStateChange();
@@ -3066,10 +2617,13 @@ namespace tix
 
 			HoldResourceReference(GPUCommandBuffer);
 		}
+		*/
 	}
 
 	void FRHIDx12::ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer)
 	{
+		TI_ASSERT(0);
+		/*
 		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
 		{
 			FlushResourceStateChange();
@@ -3102,17 +2656,7 @@ namespace tix
 
 			HoldResourceReference(GPUCommandBuffer);
 		}
-	}
-
-	void FRHIDx12::SetShaderTexture(int32 BindIndex, FTexturePtr InTexture)
-	{
-		FTextureDx12* TexDx12 = static_cast<FTextureDx12*>(InTexture.get());
-		//The GPU virtual address of the Buffer.Textures are not supported.D3D12_GPU_VIRTUAL_ADDRESS is a typedef'd alias of UINT64.
-		// Bind texture to pipeline
-		//CommandList->SetGraphicsRootShaderResourceView(BindIndex, TexDx12->TextureResource.GetResource()->GetGPUVirtualAddress());
-		TI_ASSERT(0);
-
-		HoldResourceReference(InTexture);
+		*/
 	}
 
 	void FRHIDx12::SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer)
@@ -3190,8 +2734,8 @@ namespace tix
 			FTexturePtr Texture = RT->GetColorBuffer(cb).Texture;
 			RtMips = Texture->GetDesc().Mips;
 			TI_ASSERT(Texture != nullptr);	// Color can be NULL ?
-			FTextureDx12* TexDx12 = static_cast<FTextureDx12*>(Texture.get());
-			Transition(&TexDx12->TextureResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			FGPUTexturePtr GPUTexture = static_cast<FGPUTexture*>(Texture->GetGPUResource().get());
+			SetGPUTextureState(GPUTexture, EGPUResourceState::RenderTarget);
 		}
 		TI_ASSERT(CBCount == 0 || MipLevel < RtMips);
 
@@ -3202,8 +2746,8 @@ namespace tix
 			{
 				TI_ASSERT(CBCount == 0 || Texture->GetDesc().Mips == RtMips);
 				RtMips = Texture->GetDesc().Mips;
-				FTextureDx12* TexDx12 = static_cast<FTextureDx12*>(Texture.get());
-				Transition(&TexDx12->TextureResource, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				FGPUTexturePtr GPUTexture = static_cast<FGPUTexture*>(Texture->GetGPUResource().get());
+				SetGPUTextureState(GPUTexture, EGPUResourceState::DepthWrite);
 			}
 		}
 		FlushGraphicsBarriers(DirectCommandList.Get());
@@ -3295,20 +2839,28 @@ namespace tix
 	void FRHIDx12::UpdateD3D12Resource(
 		_In_ ID3D12Resource* pDestinationResource,
 		_In_ ID3D12Resource* pIntermediate,
-		const uint8* pSrcData,
-		int64 DataLength)
+		uint32 NumSubResources,
+		const D3D12_SUBRESOURCE_DATA* pData
+	)
 	{
-		D3D12_SUBRESOURCE_DATA BufferData = {};
-		BufferData.pData = pSrcData;
-		BufferData.RowPitch = DataLength;
-		BufferData.SlicePitch = DataLength;
-
 		UpdateSubresources(
 			DirectCommandList.Get(),
-			pDestinationResource, 
+			pDestinationResource,
 			pIntermediate,
-			0, 0, 1, 
-			&BufferData);
+			0, 0, NumSubResources,
+			pData
+		);
+	}
+
+	uint64 FRHIDx12::GetRequiredIntermediateSize(
+		const D3D12_RESOURCE_DESC& Desc,
+		uint32 FirstSubresource,
+		uint32 NumSubresources)
+	{
+		uint64 RequiredSize = 0;
+		D3dDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &RequiredSize);
+
+		return RequiredSize;
 	}
 }
 #endif	// COMPILE_WITH_RHI_DX12

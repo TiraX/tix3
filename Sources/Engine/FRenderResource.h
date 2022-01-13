@@ -44,8 +44,12 @@ namespace tix
 		virtual ~FRenderResource() 
 		{}
 
-		virtual void CreateGPUResource(TStreamPtr Data)
-		{}
+		virtual void CreateGPUBuffer(TStreamPtr Data) {}
+		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) {}
+		virtual FGPUResourcePtr GetGPUResource()
+		{
+			return nullptr;
+		}
 
 		ERenderResourceType GetResourceType() const
 		{

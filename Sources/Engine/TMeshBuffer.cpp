@@ -56,7 +56,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TVertexBufferUpdateFVertexBuffer)(
 			[VertexBuffer, InData]()
 			{
-				VertexBuffer->CreateGPUResource(InData);
+				VertexBuffer->CreateGPUBuffer(InData);
 			});
 
 		// release CPU memory after create render resource
@@ -117,7 +117,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TIndexBufferUpdateFIndexBuffer)(
 			[IndexBuffer, InData]()
 			{
-				IndexBuffer->CreateGPUResource(InData);
+				IndexBuffer->CreateGPUBuffer(InData);
 			});
 
 		// release CPU memory after create render resource
@@ -224,10 +224,10 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
 			[InstanceBuffer, InData]()
 			{
-				InstanceBuffer->CreateGPUResource(InData);
+				InstanceBuffer->CreateGPUBuffer(InData);
 			});
 
-		TI_TODO("release CPU memory after create render resource");
+		TI_TODO("release CPU memory after create GPU resource");
 		// Do not release yet, still need instance data to create BLAS
 		// Data = nullptr;
 	}

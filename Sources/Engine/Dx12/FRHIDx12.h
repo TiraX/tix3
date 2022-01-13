@@ -39,8 +39,8 @@ namespace tix
 		virtual void WaitingForGpu() override;
 
 		// Create GPU Resource
-		virtual FGPUResourceBufferPtr CreateGPUResourceBuffer() override;
-		virtual FGPUResourceTexturePtr CreateGPUResourceTexture() override;
+		virtual FGPUBufferPtr CreateGPUBuffer() override;
+		virtual FGPUTexturePtr CreateGPUTexture() override;
 
 		// Create RTX related resources
 		virtual FShaderPtr CreateRtxShaderLib(const TString& ShaderLibName) override;
@@ -49,8 +49,6 @@ namespace tix
 		virtual FBottomLevelAccelerationStructurePtr CreateBottomLevelAccelerationStructure() override;
 
 		// Create Graphics and Compute related resources
-		virtual FTexturePtr CreateTexture() override;
-		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) override;
 		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = 0) override;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) override;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) override;
@@ -66,9 +64,6 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
 		// Graphics and Compute
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture) override;
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData) override;
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InTexData) override;
 		virtual bool UpdateHardwareResourcePL(FPipelinePtr Pipeline, TPipelinePtr InPipelineDesc) override;
 		virtual bool UpdateHardwareResourceTilePL(FPipelinePtr Pipeline, TTilePipelinePtr InTilePipelineDesc) override;
 		virtual bool UpdateHardwareResourceUB(FUniformBufferPtr UniformBuffer, const void* InData) override;
@@ -77,9 +72,10 @@ namespace tix
 		virtual bool UpdateHardwareResourceAB(FArgumentBufferPtr ArgumentBuffer, FShaderPtr InShader, int32 SpecifiedBindingIndex = -1) override;
 		virtual bool UpdateHardwareResourceGPUCommandSig(FGPUCommandSignaturePtr GPUCommandSignature) override;
 		virtual bool UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer) override;
-		virtual void PrepareDataForCPU(FTexturePtr Texture) override;
 		virtual void PrepareDataForCPU(FUniformBufferPtr UniformBuffer) override;
 
+		virtual void ReadGPUBufferToImage(FGPUBufferPtr GPUBuffer, TImagePtr OutImage) override;
+		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) override;
 		//virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) override;
 		//virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) override;
 		//virtual bool CopyBufferRegion(
@@ -123,12 +119,13 @@ namespace tix
 
 		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) override;
 		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
-		virtual void SetShaderTexture(int32 BindIndex, FTexturePtr InTexture) override;
 		virtual void SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 
 				void UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS);
-		virtual void SetGPUResourceBufferName(FGPUResourceBufferPtr GPUResourceBuffer, const TString& Name) override;
-		virtual void SetGPUResourceBufferState(FGPUResourceBufferPtr GPUResourceBuffer, EGPUResourceState NewState) override;
+		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) override;
+		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) override;
+		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) override;
+		virtual void SetGPUTextureState(FGPUTexturePtr GPUTexture, EGPUResourceState NewState) override;
 		virtual void FlushResourceStateChange() override;
 
 		virtual void SetStencilRef(uint32 InRefValue) override;
@@ -171,11 +168,18 @@ namespace tix
 			const D3D12_CLEAR_VALUE* pOptimizedClearValue,
 			ComPtr<ID3D12Resource>& OutResource
 		);
+
 		void UpdateD3D12Resource(
 			_In_ ID3D12Resource* pDestinationResource,
 			_In_ ID3D12Resource* pIntermediate,
-			const uint8* pSrcData,
-			int64 DataLength);
+			uint32 NumSubResources,
+			const D3D12_SUBRESOURCE_DATA* pData
+		);
+
+		uint64 GetRequiredIntermediateSize(
+			const D3D12_RESOURCE_DESC& Desc,
+			uint32 FirstSubresource,
+			uint32 NumSubresources);
 
 		ID3D12DescriptorHeap* GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type)
 		{
@@ -225,13 +229,7 @@ namespace tix
 			uint64 IntermediateOffset,
 			_In_range_(0, D3D12_REQ_SUBRESOURCES) uint32 FirstSubresource,
 			_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) uint32 NumSubresources,
-			_In_reads_(NumSubresources) D3D12_SUBRESOURCE_DATA* pSrcData);
-
-		void Transition(
-			FGPUResourceDx12* GPUResource,
-			D3D12_RESOURCE_STATES stateAfter,
-			uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-			D3D12_RESOURCE_BARRIER_FLAGS flags = D3D12_RESOURCE_BARRIER_FLAG_NONE);
+			_In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData);
 
 		void _Transition(
 			_In_ ID3D12Resource* pResource,

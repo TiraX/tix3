@@ -21,11 +21,17 @@ namespace tix
 
 	struct FBoundResource
 	{
+		FBoundResource()
+			: PrimitiveType(EPT_INVALID)
+		{}
+
+		E_PRIMITIVE_TYPE PrimitiveType;
 		FPipelinePtr Pipeline;
 		FShaderBindingPtr ShaderBinding;
 
 		void Reset()
 		{
+			PrimitiveType = EPT_INVALID;
 			Pipeline = nullptr;
 			ShaderBinding = nullptr;
 		}
@@ -60,8 +66,8 @@ namespace tix
 		virtual void WaitingForGpu() = 0;
 
 		// Create GPU Resource
-		virtual FGPUResourceBufferPtr CreateGPUResourceBuffer() = 0;
-		virtual FGPUResourceTexturePtr CreateGPUResourceTexture() = 0;
+		virtual FGPUBufferPtr CreateGPUBuffer() = 0;
+		virtual FGPUTexturePtr CreateGPUTexture() = 0;
 
 		// Create RTX related resources
 		virtual FShaderPtr CreateRtxShaderLib(const TString& ShaderLibName) = 0;
@@ -70,8 +76,6 @@ namespace tix
 		virtual FBottomLevelAccelerationStructurePtr CreateBottomLevelAccelerationStructure() = 0;
 
 		// Create Graphics and Compute related resources
-		virtual FTexturePtr CreateTexture() = 0;
-		virtual FTexturePtr CreateTexture(const TTextureDesc& Desc) = 0;
 		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = (uint32)EGPUResourceFlag::None) = 0;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) = 0;
@@ -88,9 +92,6 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) = 0;
 
 		// Graphics and Compute
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture) = 0;
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TTexturePtr InTexData) = 0;
-		virtual bool UpdateHardwareResourceTexture(FTexturePtr Texture, TImagePtr InTexData) = 0;
 		virtual bool UpdateHardwareResourcePL(FPipelinePtr Pipeline, TPipelinePtr InPipelineDesc) = 0;
         virtual bool UpdateHardwareResourceTilePL(FPipelinePtr Pipeline, TTilePipelinePtr InTilePipelineDesc) = 0;
 		virtual bool UpdateHardwareResourceUB(FUniformBufferPtr UniformBuffer, const void* InData) = 0;
@@ -99,9 +100,10 @@ namespace tix
 		virtual bool UpdateHardwareResourceAB(FArgumentBufferPtr ArgumentBuffer, FShaderPtr InShader, int32 SpecifiedBindingIndex = -1) = 0;
 		virtual bool UpdateHardwareResourceGPUCommandSig(FGPUCommandSignaturePtr GPUCommandSignature) = 0;
 		virtual bool UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
-		virtual void PrepareDataForCPU(FTexturePtr Texture) = 0;
 		virtual void PrepareDataForCPU(FUniformBufferPtr UniformBuffer) = 0;
 
+		virtual void ReadGPUBufferToImage(FGPUBufferPtr GPUBuffer, TImagePtr OutImage) = 0;
+		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) = 0;
 		//virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) = 0;
 		//virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) = 0;
 		//virtual bool CopyBufferRegion(
@@ -145,11 +147,12 @@ namespace tix
 
 		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
 		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
-		virtual void SetShaderTexture(int32 BindIndex, FTexturePtr InTexture) = 0;
 		virtual void SetArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
 
-		virtual void SetGPUResourceBufferName(FGPUResourceBufferPtr GPUResourceBuffer, const TString& Name) = 0;
-		virtual void SetGPUResourceBufferState(FGPUResourceBufferPtr GPUResourceBuffer, EGPUResourceState NewState) = 0;
+		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) = 0;
+		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) = 0;
+		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) = 0;
+		virtual void SetGPUTextureState(FGPUTexturePtr GPUTexture, EGPUResourceState NewState) = 0;
 		virtual void FlushResourceStateChange() = 0;
 
 		virtual void SetStencilRef(uint32 InRefValue) = 0;

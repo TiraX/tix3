@@ -7,34 +7,48 @@
 
 namespace tix
 {
+	enum class ETextureFlag : uint32
+	{
+		None = 0,
+		ColorBuffer = 1 << 0,
+		DsBuffer = 1 << 1,
+		Uav = 1 << 2,
+
+		// Used for iOS Metal
+		MemoryLess = 1 << 3,
+	};
+
 	class FTexture : public FRenderResource
 	{
 	public:
-		FTexture();
-		FTexture(const TTextureDesc& Desc);
+		FTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 		virtual ~FTexture();
 
-		void InitTextureInfo(TTexturePtr Texture);
+		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUTexture;
+		}
 
 		const TTextureDesc& GetDesc() const
 		{
 			return TextureDesc;
 		}
 
-		bool HasTextureFlag(E_TEXTURE_FLAG Flag) const
+		bool HasTextureFlag(ETextureFlag Flag) const
 		{
-			return (TextureDesc.Flags & Flag) != 0;
+			return (TextureFlag & (uint32)Flag) != 0;
 		}
 		
-		void SetTextureFlag(E_TEXTURE_FLAG Flag, bool bEnable)
+		void SetTextureFlag(ETextureFlag Flag, bool bEnable)
 		{
 			if (bEnable)
 			{
-				TextureDesc.Flags |= Flag;
+				TextureFlag |= (uint32)Flag;
 			}
 			else
 			{
-				TextureDesc.Flags &= ~Flag;
+				TextureFlag &= ~((uint32)Flag);
 			}
 		}
 
@@ -47,12 +61,33 @@ namespace tix
 			return TextureDesc.Height;
 		}
 
+		virtual void PrepareDataForCPU() {}
 		virtual TImagePtr ReadTextureData() { return nullptr; }
 
 	protected:
-		TTextureDesc TextureDesc;
 
 
 	protected:
+		TTextureDesc TextureDesc;
+		uint32 TextureFlag;
+		FGPUTexturePtr GPUTexture;
+	};
+
+	///////////////////////////////////////////////////////////
+	class FTextureReadable : public FTexture
+	{
+	public:
+		FTextureReadable(const TTextureDesc& Desc);
+		virtual ~FTextureReadable();
+
+		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+
+		virtual void PrepareDataForCPU();
+		virtual TImagePtr ReadTextureData() override;
+
+	protected:
+
+	protected:
+		FGPUBufferPtr GPUReadbackBuffer;
 	};
 }

@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	enum class EGPUResourceFlag : uint8
+	enum class EGPUResourceFlag : uint32
 	{
 		None = 0,
 		Uav = 1 << 0,
@@ -18,6 +18,10 @@ namespace tix
 		// https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/BufferBindings.html
 		// For Dx12, use a D3D12_HEAP_TYPE_UPLOAD heap to manage data directly
 		Intermediate = 1 << 3,
+
+		// For texture resources
+		ColorBuffer = 1 << 4,
+		DsBuffer = 1 << 5,
 	};
 
 	enum class EGPUResourceState : uint8
@@ -39,10 +43,25 @@ namespace tix
 		GenericRead,
 	};
 
-	struct FGPUResourceDesc
+	struct FGPUBufferDesc
 	{
 		uint32 Flag;
 		uint32 BufferSize;
+
+		FGPUBufferDesc()
+			: Flag(0)
+			, BufferSize(0)
+		{}
+	};
+
+	struct FGPUTextureDesc
+	{
+		uint32 Flag;
+		TTextureDesc Texture;
+
+		FGPUTextureDesc()
+			: Flag(0)
+		{}
 	};
 
 	class FGPUResource : public IReferenceCounted
@@ -53,30 +72,32 @@ namespace tix
 		virtual ~FGPUResource()
 		{}
 
-		virtual void Init(const FGPUResourceDesc& Desc, TStreamPtr Data) = 0;
-
 	protected:
 
 	protected:
 	};
 
 	/////////////////////////////////////////////////////////////
-	class FGPUResourceBuffer : public FGPUResource
+	class FGPUBuffer : public FGPUResource
 	{
 	public:
-		FGPUResourceBuffer()
+		FGPUBuffer()
 		{}
-		virtual ~FGPUResourceBuffer()
+		virtual ~FGPUBuffer()
 		{}
+
+		virtual void Init(const FGPUBufferDesc & Desc, TStreamPtr Data) = 0;
 	};
 
 	/////////////////////////////////////////////////////////////
-	class FGPUResourceTexture : public FGPUResource
+	class FGPUTexture : public FGPUResource
 	{
 	public:
-		FGPUResourceTexture()
+		FGPUTexture()
 		{}
-		virtual ~FGPUResourceTexture()
+		virtual ~FGPUTexture()
 		{}
+
+		virtual void Init(const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) = 0;
 	};
 }
