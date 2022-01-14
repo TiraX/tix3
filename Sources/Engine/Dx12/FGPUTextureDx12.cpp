@@ -46,10 +46,12 @@ namespace tix
 		TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		TextureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-		D3D12_CLEAR_VALUE ClearValue = {};
+		D3D12_CLEAR_VALUE ClearValue = {}; 
+		ClearValue.Format = TextureDesc.Format;
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::ColorBuffer) != 0)
 		{
 			TextureDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			TextureDesc.Format = GetBaseFormat(TextureDesc.Format);
 			ClearValue.Color[0] = 0;
 			ClearValue.Color[1] = 0;
 			ClearValue.Color[2] = 0;
