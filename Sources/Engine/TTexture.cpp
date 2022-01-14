@@ -66,7 +66,7 @@ namespace tix
 	void TTexture::InitRenderThreadResource()
 	{
 		TI_ASSERT(TextureResource == nullptr);
-		TextureResource = ti_new FTexture(Desc);
+		TextureResource = FTexture::CreateTexture(Desc);
 
 		FTexturePtr Texture_RT = TextureResource;
 		TVector<TImagePtr> Data = TextureData;

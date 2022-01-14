@@ -7,6 +7,15 @@
 
 namespace tix
 {
+	FTexturePtr FTexture::CreateTexture(const TTextureDesc& Desc, uint32 InFlag)
+	{
+		return ti_new FTexture(Desc, InFlag);
+	}
+	FTexturePtr FTexture::CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag)
+	{
+		return ti_new FTextureReadable(Desc);
+	}
+
 	FTexture::FTexture(const TTextureDesc& Desc, uint32 InFlag)
 		: FRenderResource(ERenderResourceType::Texture)
 		, TextureDesc(Desc)
@@ -25,13 +34,11 @@ namespace tix
 		TI_ASSERT(GPUTexture == nullptr);
 		FRHI* RHI = FRHI::Get();
 
+		// Readback flag auto used in FTextureReadable, NEVER appear in FTexture
+		TI_ASSERT((TextureFlag & (uint32)EGPUResourceFlag::Readback) == 0);
+
 		FGPUTextureDesc Desc;
-		if ((TextureFlag & (uint32)ETextureFlag::ColorBuffer) != 0)
-			Desc.Flag |= (uint32)EGPUResourceFlag::ColorBuffer;
-		if ((TextureFlag & (uint32)ETextureFlag::DsBuffer) != 0)
-			Desc.Flag |= (uint32)EGPUResourceFlag::DsBuffer;
-		if ((TextureFlag & (uint32)ETextureFlag::Uav) != 0)
-			Desc.Flag |= (uint32)EGPUResourceFlag::Uav;
+		Desc.Flag = TextureFlag;
 		Desc.Texture = TextureDesc;
 
 		// Create GPU resource and copy data
@@ -44,7 +51,7 @@ namespace tix
 	}
 	///////////////////////////////////////////////////////////
 	FTextureReadable::FTextureReadable(const TTextureDesc& Desc)
-		: FTexture(Desc)
+		: FTexture(Desc, 0)
 	{
 	}
 
@@ -83,8 +90,14 @@ namespace tix
 		if (GPUReadbackBuffer != nullptr)
 		{
 			FRHI* RHI = FRHI::Get();
+			TStreamPtr Buffer = RHI->ReadGPUBufferToCPU(GPUReadbackBuffer);
+			TI_ASSERT(Buffer->GetLength() == TImage::GetDataSize(TextureDesc.Format, TextureDesc.Width, TextureDesc.Height));
+
 			TImagePtr Image = ti_new TImage(TextureDesc.Format, TextureDesc.Width, TextureDesc.Height);
-			RHI->ReadGPUBufferToImage(GPUReadbackBuffer, Image);
+			uint8* ImageData = Image->Lock();
+			memcpy(ImageData, Buffer->GetBuffer(), Buffer->GetLength());
+			Image->Unlock();
+
 			return Image;
 		}
 		return nullptr;

@@ -76,7 +76,6 @@ namespace tix
 		virtual FBottomLevelAccelerationStructurePtr CreateBottomLevelAccelerationStructure() = 0;
 
 		// Create Graphics and Compute related resources
-		virtual FUniformBufferPtr CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag = (uint32)EGPUResourceFlag::None) = 0;
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) = 0;
 		virtual FRenderResourceTablePtr CreateRenderResourceTable(uint32 InSize, E_RENDER_RESOURCE_HEAP_TYPE InHeap);
@@ -94,39 +93,15 @@ namespace tix
 		// Graphics and Compute
 		virtual bool UpdateHardwareResourcePL(FPipelinePtr Pipeline, TPipelinePtr InPipelineDesc) = 0;
         virtual bool UpdateHardwareResourceTilePL(FPipelinePtr Pipeline, TTilePipelinePtr InTilePipelineDesc) = 0;
-		virtual bool UpdateHardwareResourceUB(FUniformBufferPtr UniformBuffer, const void* InData) = 0;
 		virtual bool UpdateHardwareResourceRT(FRenderTargetPtr RenderTarget) = 0;
 		virtual bool UpdateHardwareResourceShader(FShaderPtr ShaderResource, TShaderPtr InShaderSource) = 0;
 		virtual bool UpdateHardwareResourceAB(FArgumentBufferPtr ArgumentBuffer, FShaderPtr InShader, int32 SpecifiedBindingIndex = -1) = 0;
 		virtual bool UpdateHardwareResourceGPUCommandSig(FGPUCommandSignaturePtr GPUCommandSignature) = 0;
-		virtual bool UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
-		virtual void PrepareDataForCPU(FUniformBufferPtr UniformBuffer) = 0;
 
-		virtual void ReadGPUBufferToImage(FGPUBufferPtr GPUBuffer, TImagePtr OutImage) = 0;
+		virtual TStreamPtr ReadGPUBufferToCPU(FGPUBufferPtr GPUBuffer) = 0;
+
 		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) = 0;
-		//virtual bool CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel) = 0;
-		//virtual bool CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length) = 0;
-		//virtual bool CopyBufferRegion(
-		//	FMeshBufferPtr DstBuffer, 
-		//	uint32 DstVertexOffset, 
-		//	uint32 DstIndexOffset,
-		//	FMeshBufferPtr SrcBuffer, 
-		//	uint32 SrcVertexOffset, 
-		//	uint32 VertexLengthInBytes,
-		//	uint32 SrcIndexOffset,
-		//	uint32 IndexLengthInBytes) = 0;
-		//virtual bool CopyBufferRegion(
-		//	FInstanceBufferPtr DstBuffer,
-		//	uint32 DstInstanceOffset,
-		//	FInstanceBufferPtr SrcBuffer,
-		//	uint32 SrcInstanceOffset,
-		//	uint32 InstanceCount) = 0;
-		//virtual bool CopyBufferRegion(
-		//	FMeshBufferPtr DstBuffer,
-		//	uint32 DstOffsetInBytes,
-		//	FUniformBufferPtr SrcBuffer,
-		//	uint32 SrcOffsetInBytes,
-		//	uint32 Bytes) = 0;
+		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) = 0;
 
 		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
 		virtual void PutTextureInHeap(FTexturePtr InTexture, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
@@ -159,7 +134,6 @@ namespace tix
 		virtual void DrawPrimitiveInstanced(uint32 VertexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) = 0;
-		virtual void GraphicsCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize) = 0;
         
         // Tile
         virtual void SetTilePipeline(FPipelinePtr InPipeline) = 0;
@@ -177,7 +151,6 @@ namespace tix
         virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) = 0;
         
 		virtual void DispatchCompute(const FInt3& GroupSize, const FInt3& GroupCount) = 0;
-		virtual void ComputeCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize) = 0;
 
 		// GPU Command buffer
 		virtual void ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer) = 0;

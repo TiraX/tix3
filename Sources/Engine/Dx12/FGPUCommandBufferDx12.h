@@ -60,8 +60,6 @@ namespace tix
 
 	private:
 		uint32 CommandsEncoded;
-		TStreamPtr CommandBufferData;
-
 		friend class FRHIDx12;
 	};
 } // end namespace tix

@@ -14,9 +14,30 @@ namespace tix
 		FGPUCommandBuffer(FGPUCommandSignaturePtr Signature, uint32 InCommandsCount, uint32 InBufferFlag);
 		virtual ~FGPUCommandBuffer();
 
+		virtual void CreateGPUBuffer(TStreamPtr InData) override;
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return CBBuffer;
+		}
+
 		FGPUCommandSignaturePtr GetGPUCommandSignature()
 		{
 			return GPUCommandSignature;
+		}
+
+		uint32 GetCommandsCount() const
+		{
+			return CommandsCount;
+		}
+
+		uint32 GetCBFlag() const
+		{
+			return CBFlag;
+		}
+
+		uint32 GetTotalBufferSize() const
+		{
+			return GPUCommandSignature->GetCommandStrideInBytes() * CommandsCount;
 		}
 
 		TI_API virtual uint32 GetEncodedCommandsCount() const = 0;
@@ -62,21 +83,13 @@ namespace tix
 		TI_API virtual void SetCommandData(uint32 CommandIndex, const void* InData, uint32 InDataSize)
 		{}
 
-		FUniformBufferPtr GetCommandBuffer()
-		{
-			return CommandBuffer;
-		}
-
-		TI_API virtual void SetResourceName(const TString& Name) override
-		{
-			FRenderResource::SetResourceName(Name);
-			CommandBuffer->SetResourceName(Name);
-		}
 	private:
 
 	protected:
 		FGPUCommandSignaturePtr GPUCommandSignature;
-
-		FUniformBufferPtr CommandBuffer;
+		uint32 CommandsCount;
+		uint32 CBFlag;
+		TStreamPtr CBData;
+		FGPUBufferPtr CBBuffer;
 	};
 } // end namespace tix

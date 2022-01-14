@@ -37,14 +37,14 @@ namespace tix
 #else
 				uint32 Alignment = 16;
 #endif
-				FUniformBufferPtr UniformBuffer = FRHI::Get()->CreateUniformBuffer(TMath::Max(ParamValueBuffer->GetLength(), Alignment), 1, UBFlag);
+				FUniformBufferPtr UniformBuffer = ti_new FUniformBuffer(TMath::Max(ParamValueBuffer->GetLength(), Alignment), 1, UBFlag);
 				UniformBuffer->SetResourceName(GetResourceName());
 
 				TStreamPtr _ParamValueBuffer = ParamValueBuffer;
 				ENQUEUE_RENDER_COMMAND(UpdateMIUniformBuffer)(
 					[UniformBuffer, _ParamValueBuffer]()
 					{
-						FRHI::Get()->UpdateHardwareResourceUB(UniformBuffer, _ParamValueBuffer->GetBuffer());
+						UniformBuffer->CreateGPUBuffer(_ParamValueBuffer);
 					});
 
 				ArgumentBuffer->SetBuffer(0, UniformBuffer);

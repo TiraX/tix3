@@ -540,18 +540,6 @@ namespace tix
 		return ti_new FGPUTextureDx12();
 	}
 
-	FUniformBufferPtr FRHIDx12::CreateUniformBuffer(uint32 InStructureSizeInBytes, uint32 Elements, uint32 Flag)
-	{
-		if ((Flag & (uint32)EGPUResourceFlag::Readback) != 0)
-		{
-			return ti_new FUniformBufferReadableDx12(InStructureSizeInBytes, Elements, Flag);
-		}
-		else
-		{
-			return ti_new FUniformBufferDx12(InStructureSizeInBytes, Elements, Flag);
-		}
-	}
-
 	FPipelinePtr FRHIDx12::CreatePipeline(FShaderPtr InShader)
 	{
 		return ti_new FPipelineDx12(InShader);
@@ -1150,19 +1138,22 @@ namespace tix
 			TI_TODO("Calc shader table size with shader parameters");
 
 			TI_ASSERT(RtxPipelineDx12->ShaderTable == nullptr);
-			RtxPipelineDx12->ShaderTable = CreateUniformBuffer(ShaderTableSize, 1);
+			RtxPipelineDx12->ShaderTable = ti_new FUniformBuffer(ShaderTableSize, 1);
 			// Build shader table data
-			uint8* Data = ti_new uint8[ShaderTableSize];
-			uint8* pData = Data;
-			memcpy(pData, RayGenShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-			pData += TMath::Align(RtxPipelineDx12->RayGenShaderOffsetAndSize.Y, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
-			memcpy(pData, MissShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-			pData += TMath::Align(RtxPipelineDx12->MissShaderOffsetAndSize.Y, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
-			memcpy(pData, HitgroupShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-			pData += TMath::Align(RtxPipelineDx12->HitGroupOffsetAndSize.Y, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
+			TStreamPtr Data = ti_new TStream(ShaderTableSize);
+			Data->Put(RayGenShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+			int32 SkipBytes = TMath::Align(Data->GetLength(), D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) - Data->GetLength();
+			Data->Seek(Data->GetLength() + SkipBytes);
 
-			UpdateHardwareResourceUB(RtxPipelineDx12->ShaderTable, Data);
-			ti_delete[] Data;
+			Data->Put(MissShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+			SkipBytes = TMath::Align(Data->GetLength(), D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) - Data->GetLength();
+			Data->Seek(Data->GetLength() + SkipBytes);
+
+			Data->Put(HitgroupShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+			SkipBytes = TMath::Align(Data->GetLength(), D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) - Data->GetLength();
+			Data->Seek(Data->GetLength() + SkipBytes);
+
+			RtxPipelineDx12->ShaderTable->CreateGPUBuffer(Data);
 		}
 
 		return true;
@@ -1185,7 +1176,7 @@ namespace tix
 	{
 		FlushResourceStateChange();
 		FRtxPipelineDx12* RtxPipelineDx12 = static_cast<FRtxPipelineDx12*>(RtxPipeline.get());
-		FUniformBufferDx12* UB_ShaderTable = static_cast<FUniformBufferDx12*>(RtxPipelineDx12->ShaderTable.get());
+		FGPUBufferDx12* ShaderTableBuffer = static_cast<FGPUBufferDx12*>(RtxPipelineDx12->ShaderTable->GetGPUResource().get());
 		FShaderPtr ShaderLib = RtxPipeline->GetShaderLib();
 
 		D3D12_DISPATCH_RAYS_DESC RaytraceDesc = {};
@@ -1195,18 +1186,18 @@ namespace tix
 
 		// RayGen is the first entry in the shader-table
 		RaytraceDesc.RayGenerationShaderRecord.StartAddress = 
-			UB_ShaderTable->GetResource().Get()->GetGPUVirtualAddress() + RtxPipelineDx12->RayGenShaderOffsetAndSize.X;
+			ShaderTableBuffer->GetResource()->GetGPUVirtualAddress() + RtxPipelineDx12->RayGenShaderOffsetAndSize.X;
 		RaytraceDesc.RayGenerationShaderRecord.SizeInBytes = RtxPipelineDx12->RayGenShaderOffsetAndSize.Y;
 
 		// Miss is the second entry in the shader-table
 		RaytraceDesc.MissShaderTable.StartAddress = 
-			UB_ShaderTable->GetResource().Get()->GetGPUVirtualAddress() + RtxPipelineDx12->MissShaderOffsetAndSize.X;
+			ShaderTableBuffer->GetResource()->GetGPUVirtualAddress() + RtxPipelineDx12->MissShaderOffsetAndSize.X;
 		RaytraceDesc.MissShaderTable.StrideInBytes = RtxPipelineDx12->MissShaderOffsetAndSize.Y;
 		RaytraceDesc.MissShaderTable.SizeInBytes = RtxPipelineDx12->MissShaderOffsetAndSize.Y;   // Only a s single miss-entry
 
 		// Hit is the third entry in the shader-table
 		RaytraceDesc.HitGroupTable.StartAddress =
-			UB_ShaderTable->GetResource().Get()->GetGPUVirtualAddress() + RtxPipelineDx12->HitGroupOffsetAndSize.X;
+			ShaderTableBuffer->GetResource()->GetGPUVirtualAddress() + RtxPipelineDx12->HitGroupOffsetAndSize.X;
 		RaytraceDesc.HitGroupTable.StrideInBytes = RtxPipelineDx12->HitGroupOffsetAndSize.Y;
 		RaytraceDesc.HitGroupTable.SizeInBytes = RtxPipelineDx12->HitGroupOffsetAndSize.Y;
 
@@ -1214,171 +1205,26 @@ namespace tix
 		DXR->DXRCommandList->DispatchRays(&RaytraceDesc);
 	}
 
-	static const int32 UniformBufferAlignSize = 256;
-	uint32 FRHIDx12::GetUBSizeWithCounter(uint32 InBufferSize)
-	{
-		uint32 BufferSizeWithCounter;
-		// With counter, counter offset must be aligned with D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT
-		BufferSizeWithCounter = FUniformBufferDx12::AlignForUavCounter(InBufferSize);
-		// Alloc FUint4 for counter, since some shader need to access it.
-		BufferSizeWithCounter += sizeof(FUInt4);
-
-		return BufferSizeWithCounter;
-	}
-	bool FRHIDx12::UpdateHardwareResourceUB(FUniformBufferPtr UniformBuffer, const void* InData)
-	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12 * UniformBufferDx12 = static_cast<FUniformBufferDx12*>(UniformBuffer.get());
-		
-		if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0)
-		{
-			// Add a counter for UAV
-			int32 BufferSize = UniformBuffer->GetTotalBufferSize();
-			if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
-			{
-				BufferSize = GetUBSizeWithCounter(BufferSize);
-			}
-			CD3DX12_RESOURCE_DESC BufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-			CD3DX12_HEAP_PROPERTIES DefaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-			UniformBufferDx12->BufferResource.CreateResource(
-				D3dDevice.Get(),
-				&DefaultHeapProperties,
-				D3D12_HEAP_FLAG_NONE,
-				&BufferDesc,
-				D3D12_RESOURCE_STATE_COPY_DEST);
-
-			if (InData != nullptr)
-			{
-				ComPtr<ID3D12Resource> UniformBufferUpload;
-				CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-				CD3DX12_RESOURCE_DESC ConstantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
-				VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-					&uploadHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&ConstantBufferDesc,
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(&UniformBufferUpload)));
-
-				// Upload the index buffer to the GPU.
-				{
-					D3D12_SUBRESOURCE_DATA UniformData = {};
-					UniformData.pData = reinterpret_cast<const uint8*>(InData);
-					UniformData.RowPitch = UniformBuffer->GetTotalBufferSize();
-					UniformData.SlicePitch = UniformData.RowPitch;
-
-					UpdateSubresources(DirectCommandList.Get(), UniformBufferDx12->BufferResource.GetResource().Get(), UniformBufferUpload.Get(), 0, 0, 1, &UniformData);
-
-					//if ((UniformBuffer->GetFlag() & UB_FLAG_GPU_COMMAND_BUFFER) != 0)
-					//{
-					//	Transition(&UniformBufferDx12->BufferResource, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-					//}
-					//else if ((UniformBuffer->GetFlag() & UB_FLAG_GPU_COMMAND_BUFFER_RESOURCE) != 0)
-					//{
-					//	Transition(&UniformBufferDx12->BufferResource, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-					//}
-					//else
-					//{
-					//	Transition(&UniformBufferDx12->BufferResource, D3D12_RESOURCE_STATE_GENERIC_READ);
-					//}
-				}
-				FlushGraphicsBarriers(DirectCommandList.Get());
-				HoldResourceReference(UniformBufferUpload);
-			}
-
-			FlushGraphicsBarriers(DirectCommandList.Get());
-		}
-		else
-		{
-			//const int32 AlignedDataSize = ti_align(UniformBuffer->GetTotalBufferSize(), UniformBufferAlignSize);
-			const int32 AlignedDataSize = UniformBuffer->GetTotalBufferSize();
-			CD3DX12_RESOURCE_DESC ConstantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(AlignedDataSize);
-
-			if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::Intermediate) != 0)
-			{
-				TI_ASSERT(InData != nullptr);
-
-				CD3DX12_HEAP_PROPERTIES UploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-				UniformBufferDx12->BufferResource.CreateResource(
-					D3dDevice.Get(),
-					&UploadHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&ConstantBufferDesc,
-					D3D12_RESOURCE_STATE_GENERIC_READ);
-
-				// Map the constant buffers.
-				uint8 * MappedConstantBuffer = nullptr;
-				CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
-				VALIDATE_HRESULT(UniformBufferDx12->BufferResource.GetResource()->Map(0, &readRange, reinterpret_cast<void**>(&MappedConstantBuffer)));
-				memcpy(MappedConstantBuffer, InData, UniformBuffer->GetTotalBufferSize());
-				if (AlignedDataSize - UniformBuffer->GetTotalBufferSize() > 0)
-				{
-					memset(MappedConstantBuffer + UniformBuffer->GetTotalBufferSize(), 0, AlignedDataSize - UniformBuffer->GetTotalBufferSize());
-				}
-				UniformBufferDx12->BufferResource.GetResource()->Unmap(0, nullptr);
-			}
-			else
-			{
-				CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-				UniformBufferDx12->BufferResource.CreateResource(
-					D3dDevice.Get(),
-					&defaultHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&ConstantBufferDesc,
-					D3D12_RESOURCE_STATE_COPY_DEST);
-
-				if (InData != nullptr)
-				{
-					ComPtr<ID3D12Resource> UniformBufferUpload;
-					CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-					VALIDATE_HRESULT(D3dDevice->CreateCommittedResource(
-						&uploadHeapProperties,
-						D3D12_HEAP_FLAG_NONE,
-						&ConstantBufferDesc,
-						D3D12_RESOURCE_STATE_GENERIC_READ,
-						nullptr,
-						IID_PPV_ARGS(&UniformBufferUpload)));
-
-					// Upload the index buffer to the GPU.
-					{
-						D3D12_SUBRESOURCE_DATA UniformData = {};
-						UniformData.pData = reinterpret_cast<const uint8*>(InData);
-						UniformData.RowPitch = UniformBuffer->GetTotalBufferSize();
-						UniformData.SlicePitch = UniformData.RowPitch;
-
-						UpdateSubresources(DirectCommandList.Get(), UniformBufferDx12->BufferResource.GetResource().Get(), UniformBufferUpload.Get(), 0, 0, 1, &UniformData);
-					}
-					FlushGraphicsBarriers(DirectCommandList.Get());
-					HoldResourceReference(UniformBufferUpload);
-				}
-			}
-		}
-		DX_SETNAME(UniformBufferDx12->BufferResource.GetResource().Get(), UniformBuffer->GetResourceName() + "-UB");
-
-		HoldResourceReference(UniformBuffer);
-		*/
-		return true;
-	}
-
-	void FRHIDx12::ReadGPUBufferToImage(FGPUBufferPtr GPUBuffer, TImagePtr OutImage)
+	TStreamPtr FRHIDx12::ReadGPUBufferToCPU(FGPUBufferPtr GPUBuffer)
 	{
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUBuffer.get());
 
-		const int32 TextureDataSize = TImage::GetDataSize(OutImage->GetFormat(), OutImage->GetWidth(), OutImage->GetHeight());
-		D3D12_RANGE ReadbackBufferRange{ 0, (SIZE_T)TextureDataSize };
-		uint8* Result = nullptr;
-		HRESULT Hr = BufferDx12->GetResource()->Map(0, &ReadbackBufferRange, reinterpret_cast<void**>(&Result));
+		D3D12_RESOURCE_DESC Desc = BufferDx12->GetResource()->GetDesc();
+		TI_ASSERT(Desc.Height == 1);
+		TStreamPtr Result = ti_new TStream();
+		Result->ReserveAndFill((uint32)Desc.Width);
+
+		D3D12_RANGE ReadbackBufferRange{ 0, Desc.Width };
+		uint8* SrcPointer = nullptr;
+		HRESULT Hr = BufferDx12->GetResource()->Map(0, &ReadbackBufferRange, reinterpret_cast<void**>(&SrcPointer));
 		TI_ASSERT(SUCCEEDED(Hr));
 
-		uint8* ImageData = OutImage->Lock();
-		memcpy(ImageData, Result, TextureDataSize);
-		OutImage->Unlock();
+		memcpy(Result->GetBuffer(), SrcPointer, Desc.Width);
 
 		// Code goes here to access the data via pReadbackBufferData.
 		D3D12_RANGE EmptyRange{ 0, 0 };
 		BufferDx12->GetResource()->Unmap(0, &EmptyRange);
+		return Result;
 	}
 
 	void FRHIDx12::CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch)
@@ -1399,202 +1245,21 @@ namespace tix
 		CD3DX12_TEXTURE_COPY_LOCATION Src(GPUTextureDx12->Resource.Get(), 0);
 		DirectCommandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
 
-		TI_ASSERT(0);
-		TI_TODO("Hold GPU resource ref");
+		HoldResourceReference(GPUTextureDx12->Resource);
+		HoldResourceReference(GPUBufferDx12->Resource);
 	}
 
-	void FRHIDx12::PrepareDataForCPU(FUniformBufferPtr UniformBuffer)
+	void FRHIDx12::CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer)
 	{
-		TI_ASSERT(0);
-		/*
-		if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::Readback) != 0)
-		{
-			FUniformBufferReadableDx12 * UniformBufferDx12 = static_cast<FUniformBufferReadableDx12*>(UniformBuffer.get());
-			if (UniformBufferDx12->ReadbackResource.GetResource() == nullptr)
-			{
-				int32 BufferSize = UniformBuffer->GetTotalBufferSize();
-				if ((UniformBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
-				{
-					BufferSize = GetUBSizeWithCounter(BufferSize);
-				}
-				D3D12_HEAP_PROPERTIES ReadbackHeapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK) };
-				D3D12_RESOURCE_DESC ReadbackBufferDesc{ CD3DX12_RESOURCE_DESC::Buffer(BufferSize) };
-
-				UniformBufferDx12->ReadbackResource.CreateResource(
-					D3dDevice.Get(),
-					&ReadbackHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&ReadbackBufferDesc,
-					D3D12_RESOURCE_STATE_COPY_DEST);
-			}
-			
-			{
-				// Transition the status of uniform from D3D12_RESOURCE_STATE_COPY_DEST to D3D12_RESOURCE_STATE_COPY_SOURCE
-				//TI_ASSERT(UniformBufferDx12->BufferResource.GetCurrentState() == D3D12_RESOURCE_STATE_COPY_DEST);
-				Transition(&UniformBufferDx12->BufferResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
-				FlushGraphicsBarriers(DirectCommandList.Get());
-			}
-
-			DirectCommandList->CopyResource(UniformBufferDx12->ReadbackResource.GetResource().Get(), UniformBufferDx12->BufferResource.GetResource().Get());
-			HoldResourceReference(UniformBuffer);
-
-			// Code goes here to close, execute (and optionally reset) the command list, and also
-			// to use a fence to wait for the command queue.
-		}
-		else
-		{
-			_LOG(Error, "Can not read buffer without flag UB_FLAG_READBACK.\n");
-		}
-		*/
-	}
-
-	/*
-	bool FRHIDx12::CopyTextureRegion(FTexturePtr DstTexture, const FRecti& InDstRegion, uint32 DstMipLevel, FTexturePtr SrcTexture, uint32 SrcMipLevel)
-	{
-		TI_ASSERT(SrcTexture != nullptr);
-		TI_ASSERT(SrcTexture->GetDesc().Width == InDstRegion.GetWidth() && SrcTexture->GetDesc().Height == InDstRegion.GetHeight());
-		FTextureDx12 * DstTexDx12 = static_cast<FTextureDx12*>(DstTexture.get());
-		FTextureDx12 * SrcTexDx12 = static_cast<FTextureDx12*>(SrcTexture.get());
-		TI_ASSERT(DstTexDx12->GetDesc().Type == ETT_TEXTURE_2D && SrcTexDx12->GetDesc().Type == ETT_TEXTURE_2D);
-		TI_ASSERT(InDstRegion.GetWidth() == SrcTexture->GetDesc().Width && InDstRegion.GetHeight() == SrcTexture->GetDesc().Height);
-		
-		Transition(&DstTexDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_DEST);
-		Transition(&SrcTexDx12->TextureResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		FlushGraphicsBarriers(DirectCommandList.Get());
+		FGPUBufferDx12* SrcDx12 = static_cast<FGPUBufferDx12*>(DstBuffer.get());
+		FGPUBufferDx12* DstDx12 = static_cast<FGPUBufferDx12*>(SrcBuffer.get());
 
-		D3D12_BOX SrcBox;
-		SrcBox.left = 0;
-		SrcBox.top = 0;
-		SrcBox.front = 0;
-		SrcBox.right = InDstRegion.GetWidth();
-		SrcBox.bottom = InDstRegion.GetHeight();
-		SrcBox.back = 1;
-		CD3DX12_TEXTURE_COPY_LOCATION Dst(DstTexDx12->TextureResource.GetResource().Get(), DstMipLevel);
-		CD3DX12_TEXTURE_COPY_LOCATION Src(SrcTexDx12->TextureResource.GetResource().Get(), SrcMipLevel);
-		DirectCommandList->CopyTextureRegion(&Dst, InDstRegion.Left, InDstRegion.Upper, 0, &Src, &SrcBox);
+		DirectCommandList->CopyResource(DstDx12->GetResource(), SrcDx12->GetResource());
 
-		// Hold resources used here
-		HoldResourceReference(DstTexture);
-		HoldResourceReference(SrcTexture);
-
-		return true;
+		HoldResourceReference(DstDx12->Resource);
+		HoldResourceReference(SrcDx12->Resource);
 	}
-
-	bool FRHIDx12::CopyBufferRegion(FUniformBufferPtr DstBuffer, uint32 DstOffset, FUniformBufferPtr SrcBuffer, uint32 Length)
-	{
-		uint32 RealBufferSize = DstBuffer->GetTotalBufferSize();
-		if ((DstBuffer->GetFlag() & UB_FLAG_COMPUTE_WITH_COUNTER) != 0)
-		{
-			RealBufferSize = GetUBSizeWithCounter(RealBufferSize);
-		}
-		TI_ASSERT(DstOffset + Length <= RealBufferSize);
-		TI_ASSERT(Length <= SrcBuffer->GetTotalBufferSize());
-
-		FUniformBufferDx12 * DstBufferDx12 = static_cast<FUniformBufferDx12*>(DstBuffer.get());
-		FUniformBufferDx12 * SrcBufferDx12 = static_cast<FUniformBufferDx12*>(SrcBuffer.get());
-
-		DirectCommandList->CopyBufferRegion(DstBufferDx12->BufferResource.GetResource().Get(), DstOffset, SrcBufferDx12->BufferResource.GetResource().Get(), 0, Length);
-
-		// Hold resources used here
-		HoldResourceReference(DstBuffer);
-		HoldResourceReference(SrcBuffer);
-
-		return true;
-	}
-
-	bool FRHIDx12::CopyBufferRegion(
-		FMeshBufferPtr DstBuffer,
-		uint32 DstVertexOffset,
-		uint32 DstIndexOffset,
-		FMeshBufferPtr SrcBuffer,
-		uint32 SrcVertexOffset,
-		uint32 VertexLengthInBytes,
-		uint32 SrcIndexOffset,
-		uint32 IndexLengthInBytes)
-	{
-		FMeshBufferDx12 * DstBufferDx12 = static_cast<FMeshBufferDx12*>(DstBuffer.get());
-		FMeshBufferDx12 * SrcBufferDx12 = static_cast<FMeshBufferDx12*>(SrcBuffer.get());
-
-		// Copy vertex data
-		TI_ASSERT(DstBuffer->GetDesc().VsFormat == SrcBuffer->GetDesc().VsFormat);
-		TI_ASSERT(DstVertexOffset + VertexLengthInBytes <= DstBuffer->GetDesc().VertexCount * DstBuffer->GetDesc().Stride);
-		DirectCommandList->CopyBufferRegion(
-			DstBufferDx12->VertexBuffer.GetResource().Get(), 
-			DstVertexOffset, 
-			SrcBufferDx12->VertexBuffer.GetResource().Get(), 
-			SrcVertexOffset, 
-			VertexLengthInBytes);
-
-		// Copy index data
-		TI_ASSERT(DstBuffer->GetDesc().IndexType == SrcBuffer->GetDesc().IndexType);
-		TI_ASSERT(DstIndexOffset + IndexLengthInBytes <= (uint32)(DstBuffer->GetDesc().IndexCount * (DstBuffer->GetDesc().IndexType == EIT_16BIT ? 2 : 4)));
-		DirectCommandList->CopyBufferRegion(
-			DstBufferDx12->IndexBuffer.GetResource().Get(), 
-			DstIndexOffset, 
-			SrcBufferDx12->IndexBuffer.GetResource().Get(), 
-			SrcIndexOffset, 
-			IndexLengthInBytes);
-
-		HoldResourceReference(DstBuffer);
-		HoldResourceReference(SrcBuffer);
-
-		return true;
-	}
-
-	bool FRHIDx12::CopyBufferRegion(
-		FInstanceBufferPtr DstBuffer,
-		uint32 DstInstanceOffset,
-		FInstanceBufferPtr SrcBuffer,
-		uint32 SrcInstanceOffset,
-		uint32 InstanceCount)
-	{
-		FInstanceBufferDx12 * DstBufferDx12 = static_cast<FInstanceBufferDx12*>(DstBuffer.get());
-		FInstanceBufferDx12 * SrcBufferDx12 = static_cast<FInstanceBufferDx12*>(SrcBuffer.get());
-
-		// Copy vertex data
-		const uint32 InstanceStride = DstBuffer->GetStride();
-		TI_ASSERT(DstBuffer->GetStride() == SrcBuffer->GetStride());
-		TI_ASSERT(DstInstanceOffset + InstanceCount <= DstBuffer->GetInstancesCount());
-		DirectCommandList->CopyBufferRegion(
-			DstBufferDx12->InstanceBuffer.GetResource().Get(),
-			DstInstanceOffset * InstanceStride, 
-			SrcBufferDx12->InstanceBuffer.GetResource().Get(),
-			SrcInstanceOffset * InstanceStride, 
-			InstanceCount * InstanceStride);
-
-		HoldResourceReference(DstBuffer);
-		HoldResourceReference(SrcBuffer);
-
-		return true;
-	}
-
-	bool FRHIDx12::CopyBufferRegion(
-		FMeshBufferPtr DstBuffer,
-		uint32 DstOffsetInBytes,
-		FUniformBufferPtr SrcBuffer,
-		uint32 SrcOffsetInBytes,
-		uint32 Bytes)
-	{
-		FMeshBufferDx12* DstBufferDx12 = static_cast<FMeshBufferDx12*>(DstBuffer.get());
-		FUniformBufferDx12* SrcBufferDx12 = static_cast<FUniformBufferDx12*>(SrcBuffer.get());
-
-		// Copy vertex data
-		const uint32 InstanceStride = DstBuffer->GetDesc().Stride;
-		TI_ASSERT((DstBuffer->GetDesc().VertexCount * DstBuffer->GetDesc().Stride - DstOffsetInBytes) >= Bytes);
-		TI_ASSERT((SrcBuffer->GetTotalBufferSize() - SrcOffsetInBytes) >= Bytes);
-		DirectCommandList->CopyBufferRegion(
-			DstBufferDx12->VertexBuffer.Resource.Get(),
-			DstOffsetInBytes,
-			SrcBufferDx12->BufferResource.GetResource().Get(),
-			SrcOffsetInBytes,
-			Bytes);
-
-		HoldResourceReference(DstBuffer);
-		HoldResourceReference(SrcBuffer);
-
-		return true;
-	}
-	*/
 
 	void FRHIDx12::UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS)
 	{
@@ -2090,31 +1755,11 @@ namespace tix
 		return true;
 	}
 
-	bool FRHIDx12::UpdateHardwareResourceGPUCommandBuffer(FGPUCommandBufferPtr GPUCommandBuffer)
-	{
-		FGPUCommandBufferDx12 * GPUCommandBufferDx12 = static_cast<FGPUCommandBufferDx12*>(GPUCommandBuffer.get());
-		FGPUCommandSignatureDx12 * SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandBuffer->GetGPUCommandSignature().get());
-
-		TI_ASSERT(GPUCommandBuffer->GetCommandBuffer() != nullptr);
-		UpdateHardwareResourceUB(GPUCommandBuffer->GetCommandBuffer(), GPUCommandBufferDx12->CommandBufferData != nullptr ? GPUCommandBufferDx12->CommandBufferData->GetBuffer() : nullptr);
-
-		HoldResourceReference(GPUCommandBuffer);
-		return true;
-	}
-
 	void FRHIDx12::PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12 * UniformBufferDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
-
-		const int32 AlignedDataSize = TMath::Align(InUniformBuffer->GetTotalBufferSize(), UniformBufferAlignSize);
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		cbvDesc.BufferLocation = UniformBufferDx12->BufferResource.GetResource()->GetGPUVirtualAddress();
-		cbvDesc.SizeInBytes = AlignedDataSize;
+		D3D12_CONSTANT_BUFFER_VIEW_DESC CBV = GetConstantBufferView(InUniformBuffer);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
-		D3dDevice->CreateConstantBufferView(&cbvDesc, Descriptor);
-		*/
+		D3dDevice->CreateConstantBufferView(&CBV, Descriptor);
 	}
 
 	void FRHIDx12::PutTextureInHeap(FTexturePtr InTexture, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
@@ -2214,9 +1859,6 @@ namespace tix
 		E_RENDER_RESOURCE_HEAP_TYPE InHeapType, 
 		uint32 InHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InBuffer.get());
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -2226,9 +1868,9 @@ namespace tix
 		SRVDesc.Buffer.StructureByteStride = InBuffer->GetStructureSizeInBytes();
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
-		D3dDevice->CreateShaderResourceView(UBDx12->BufferResource.GetResource().Get(), &SRVDesc, Descriptor);
-		*/
+		D3dDevice->CreateShaderResourceView(BufferDx12->GetResource(), &SRVDesc, Descriptor);
 	}
 
 	void FRHIDx12::PutTopAccelerationStructureInHeap(
@@ -2255,11 +1897,8 @@ namespace tix
 
 	void FRHIDx12::PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InBuffer.get());
-
 		TI_ASSERT((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0);
+		const bool HasCounter = (InBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0;
 		// https://docs.microsoft.com/en-us/windows/win32/direct3d12/uav-counters
 		// Create unordered access view
 		D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
@@ -2268,18 +1907,17 @@ namespace tix
 		UAVDesc.Buffer.FirstElement = 0;
 		UAVDesc.Buffer.NumElements = InBuffer->GetElements();
 		UAVDesc.Buffer.StructureByteStride = InBuffer->GetStructureSizeInBytes();
-		UAVDesc.Buffer.CounterOffsetInBytes = (InBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0 ?
-			FUniformBufferDx12::AlignForUavCounter(InBuffer->GetElements() * InBuffer->GetStructureSizeInBytes()) : 0;
+		UAVDesc.Buffer.CounterOffsetInBytes = HasCounter ? GetUavCounterOffset(InBuffer->GetTotalBufferSize()) : 0;
 		UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
 		D3dDevice->CreateUnorderedAccessView(
-			UBDx12->BufferResource.GetResource().Get(),
-			(InBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0 ?
-			UBDx12->BufferResource.GetResource().Get() : nullptr,
+			BufferDx12->GetResource(),
+			HasCounter ? BufferDx12->GetResource() : nullptr,
 			&UAVDesc,
 			Descriptor);
-			*/
 	}
 	
 	void FRHIDx12::PutVertexBufferInHeap(FVertexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InVBHeapSlot)
@@ -2436,26 +2074,15 @@ namespace tix
 			DirectCommandList->IASetPrimitiveTopology(GetDx12PrimitiveType(VBDesc.PrimitiveType));
 			CurrentBoundResource.PrimitiveType = VBDesc.PrimitiveType;
 		}
-		FGPUBufferDx12* VBDx12 = static_cast<FGPUBufferDx12*>(InVB->GetGPUResource().get());
 
-		D3D12_VERTEX_BUFFER_VIEW VBView;
-		VBView.BufferLocation = VBDx12->GetResource()->GetGPUVirtualAddress();
-		VBView.SizeInBytes = VBDesc.VertexCount * VBDesc.Stride;
-		VBView.StrideInBytes = VBDesc.Stride;
+		D3D12_VERTEX_BUFFER_VIEW VBView = GetVertexBufferView(InVB);
 		if (InInsB == nullptr)
 		{
 			DirectCommandList->IASetVertexBuffers(0, 1, &VBView);
 		}
 		else
 		{
-			FGPUBufferDx12* InsBDx12 = static_cast<FGPUBufferDx12*>(InInsB->GetGPUResource().get());
-			const TInstanceBufferDesc& InsDesc = InInsB->GetDesc();
-
-			D3D12_VERTEX_BUFFER_VIEW InsView;
-			InsView.BufferLocation = InsBDx12->GetResource()->GetGPUVirtualAddress();
-			InsView.SizeInBytes = InsDesc.InstanceCount * InsDesc.Stride;
-			InsView.StrideInBytes = InsDesc.Stride;
-
+			D3D12_VERTEX_BUFFER_VIEW InsView = GetInstanceBufferView(InInsB);
 			D3D12_VERTEX_BUFFER_VIEW Views[2] =
 			{
 				VBView,
@@ -2470,29 +2097,19 @@ namespace tix
 
 	void FRHIDx12::SetIndexBuffer(FIndexBufferPtr InIB)
 	{
-		const TIndexBufferDesc& Desc = InIB->GetDesc();
-		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InIB->GetGPUResource().get());
-
-		D3D12_INDEX_BUFFER_VIEW IBView;
-		IBView.BufferLocation = IBDx12->GetResource()->GetGPUVirtualAddress();
-		IBView.SizeInBytes = Desc.IndexCount * (Desc.IndexType == EIT_16BIT ? 2 : 4);
-		IBView.Format = Desc.IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-
+		D3D12_INDEX_BUFFER_VIEW IBView = GetIndexBufferView(InIB);
 		DirectCommandList->IASetIndexBuffer(&IBView);
 		HoldResourceReference(InIB);
 	}
 
 	void FRHIDx12::SetUniformBuffer(E_SHADER_STAGE , int32 BindIndex, FUniformBufferPtr InUniformBuffer)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
 
 		// Bind the current frame's constant buffer to the pipeline.
-		DirectCommandList->SetGraphicsRootConstantBufferView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress());
+		DirectCommandList->SetGraphicsRootConstantBufferView(BindIndex, BufferDx12->GetResource()->GetGPUVirtualAddress());
 
 		HoldResourceReference(InUniformBuffer);
-		*/
 	}
 	
 	void FRHIDx12::SetComputeConstant(int32 BindIndex, const FUInt4& InValue)
@@ -2507,28 +2124,22 @@ namespace tix
 
 	void FRHIDx12::SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
 
 		// Bind the current frame's constant buffer to the pipeline.
-		DirectCommandList->SetComputeRootConstantBufferView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress() + BufferOffset);
+		DirectCommandList->SetComputeRootConstantBufferView(BindIndex, BufferDx12->GetResource()->GetGPUVirtualAddress() + BufferOffset);
 
 		HoldResourceReference(InUniformBuffer);
-		*/
 	}
 	
 	void FRHIDx12::SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
 	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12* UBDx12 = static_cast<FUniformBufferDx12*>(InUniformBuffer.get());
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
 
 		// Bind the current frame's constant buffer to the pipeline.
-		DirectCommandList->SetComputeRootShaderResourceView(BindIndex, UBDx12->BufferResource.GetResource()->GetGPUVirtualAddress() + BufferOffset);
+		DirectCommandList->SetComputeRootShaderResourceView(BindIndex, BufferDx12->GetResource()->GetGPUVirtualAddress() + BufferOffset);
 
 		HoldResourceReference(InUniformBuffer);
-		*/
 	}
 
 	void FRHIDx12::SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
@@ -2564,44 +2175,27 @@ namespace tix
 		DirectCommandList->Dispatch(GroupCount.X, GroupCount.Y, GroupCount.Z);
 	}
 
-	void FRHIDx12::ComputeCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize)
-	{
-		TI_ASSERT(0);
-		/*
-		FUniformBufferDx12 * DestDx12 = static_cast<FUniformBufferDx12*>(Dest.get());
-		FUniformBufferDx12 * SrcDx12 = static_cast<FUniformBufferDx12*>(Src.get());
-
-		DirectCommandList->CopyBufferRegion(
-			DestDx12->BufferResource.GetResource().Get(), DestOffset,
-			SrcDx12->BufferResource.GetResource().Get(), SrcOffset,
-			CopySize);
-			*/
-	}
-
 	void FRHIDx12::ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer)
 	{
-		TI_ASSERT(0);
-		/*
 		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
 		{
 			FlushResourceStateChange();
-			FGPUCommandBufferDx12 * GPUCommandBufferDx12 = static_cast<FGPUCommandBufferDx12*>(GPUCommandBuffer.get());
 			FGPUCommandSignatureDx12 * SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandBuffer->GetGPUCommandSignature().get());
 
 			// Set Primitive Topology
 			DirectCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			// Execute indirect draw.
-			FUniformBufferDx12 * CommandBuffer = static_cast<FUniformBufferDx12*>(GPUCommandBuffer->GetCommandBuffer().get());
-			if ((CommandBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
+			FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUCommandBuffer->GetGPUResource().get());
+			if ((GPUCommandBuffer->GetCBFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0)
 			{
-				uint32 CounterOffset = CommandBuffer->GetCounterOffset();
+				uint32 CounterOffset = GetUavCounterOffset(GPUCommandBuffer->GetTotalBufferSize());
 				DirectCommandList->ExecuteIndirect(
 					SignatueDx12->CommandSignature.Get(),
 					GPUCommandBuffer->GetEncodedCommandsCount(),
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					0,
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					CounterOffset);
 			}
 			else
@@ -2609,7 +2203,7 @@ namespace tix
 				DirectCommandList->ExecuteIndirect(
 					SignatueDx12->CommandSignature.Get(),
 					GPUCommandBuffer->GetEncodedCommandsCount(),
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					0,
 					nullptr,
 					0);
@@ -2617,13 +2211,10 @@ namespace tix
 
 			HoldResourceReference(GPUCommandBuffer);
 		}
-		*/
 	}
 
 	void FRHIDx12::ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer)
 	{
-		TI_ASSERT(0);
-		/*
 		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
 		{
 			FlushResourceStateChange();
@@ -2631,16 +2222,16 @@ namespace tix
 			FGPUCommandSignatureDx12 * SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandBuffer->GetGPUCommandSignature().get());
 
 			// Execute indirect draw.
-			FUniformBufferDx12 * CommandBuffer = static_cast<FUniformBufferDx12*>(GPUCommandBuffer->GetCommandBuffer().get());
-			if ((CommandBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavWithCounter) != 0)
+			FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUCommandBuffer->GetGPUResource().get());
+			if ((GPUCommandBuffer->GetCBFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0)
 			{
-				uint32 CounterOffset = CommandBuffer->GetCounterOffset();
+				uint32 CounterOffset = GetUavCounterOffset(GPUCommandBuffer->GetTotalBufferSize());
 				DirectCommandList->ExecuteIndirect(
 					SignatueDx12->CommandSignature.Get(),
 					GPUCommandBuffer->GetEncodedCommandsCount(),
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					0,
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					CounterOffset);
 			}
 			else
@@ -2648,7 +2239,7 @@ namespace tix
 				DirectCommandList->ExecuteIndirect(
 					SignatueDx12->CommandSignature.Get(),
 					GPUCommandBuffer->GetEncodedCommandsCount(),
-					CommandBuffer->BufferResource.GetResource().Get(),
+					BufferDx12->GetResource(),
 					0,
 					nullptr,
 					0);
@@ -2656,7 +2247,6 @@ namespace tix
 
 			HoldResourceReference(GPUCommandBuffer);
 		}
-		*/
 	}
 
 	void FRHIDx12::SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer)
@@ -2693,11 +2283,6 @@ namespace tix
 		DirectCommandList->DrawIndexedInstanced(IndexCount, InstanceCount, IndexOffset, 0, InstanceOffset);
 
 		FStats::Stats.TrianglesRendered += IndexCount / 3 * InstanceCount;
-	}
-
-	void FRHIDx12::GraphicsCopyBuffer(FUniformBufferPtr Dest, uint32 DestOffset, FUniformBufferPtr Src, uint32 SrcOffset, uint32 CopySize)
-	{
-		TI_ASSERT(0);
 	}
 
 	void FRHIDx12::SetTilePipeline(FPipelinePtr InPipeline)
@@ -2861,6 +2446,67 @@ namespace tix
 		D3dDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &RequiredSize);
 
 		return RequiredSize;
+	}
+
+	uint32 FRHIDx12::GetUavCounterOffset(uint32 InBufferSize)
+	{
+		// With counter, counter offset must be aligned with D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT
+		return TMath::Align(InBufferSize, D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);
+	}
+
+	uint32 FRHIDx12::GetUavSizeWithCounter(uint32 InBufferSize)
+	{
+		uint32 BufferSizeWithCounter;
+		// Alloc FUint4 for counter, since some shader need to access it.
+		BufferSizeWithCounter = GetUavCounterOffset(InBufferSize) + sizeof(FUInt4);
+
+		return BufferSizeWithCounter;
+	}
+
+	D3D12_VERTEX_BUFFER_VIEW FRHIDx12::GetVertexBufferView(FVertexBufferPtr VB)
+	{
+		D3D12_VERTEX_BUFFER_VIEW VBView;
+		VBView.BufferLocation = GetGPUBufferGPUAddress(VB->GetGPUResource());
+		VBView.SizeInBytes = VB->GetDesc().VertexCount * VB->GetDesc().Stride;
+		VBView.StrideInBytes = VB->GetDesc().Stride;
+		return VBView;
+	}
+
+	D3D12_VERTEX_BUFFER_VIEW FRHIDx12::GetInstanceBufferView(FInstanceBufferPtr IB)
+	{
+		D3D12_VERTEX_BUFFER_VIEW VBView;
+		VBView.BufferLocation = GetGPUBufferGPUAddress(IB->GetGPUResource());
+		VBView.SizeInBytes = IB->GetDesc().InstanceCount * IB->GetDesc().Stride;
+		VBView.StrideInBytes = IB->GetDesc().Stride;
+		return VBView;
+	}
+
+	D3D12_INDEX_BUFFER_VIEW FRHIDx12::GetIndexBufferView(FIndexBufferPtr IB)
+	{
+		D3D12_INDEX_BUFFER_VIEW IBView;
+		IBView.BufferLocation = GetGPUBufferGPUAddress(IB->GetGPUResource());
+		IBView.SizeInBytes = IB->GetDesc().IndexCount * (IB->GetDesc().IndexType == EIT_16BIT ? 2 : 4);
+		IBView.Format = IB->GetDesc().IndexType == EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		return IBView;
+	}
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC FRHIDx12::GetConstantBufferView(FUniformBufferPtr UB)
+	{
+		D3D12_CONSTANT_BUFFER_VIEW_DESC CBView;
+		CBView.BufferLocation = GetGPUBufferGPUAddress(UB->GetGPUResource());
+		CBView.SizeInBytes = UB->GetTotalBufferSize();
+		return CBView;
+	}
+
+	D3D12_GPU_VIRTUAL_ADDRESS FRHIDx12::GetGPUBufferGPUAddress(FGPUResourcePtr GPUBuffer)
+	{
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUBuffer.get());
+		return BufferDx12->GetResource()->GetGPUVirtualAddress();
+	}
+	D3D12_GPU_VIRTUAL_ADDRESS FRHIDx12::GetGPUTextureGPUAddress(FGPUResourcePtr GPUTexture)
+	{
+		FGPUTextureDx12* TextureDx12 = static_cast<FGPUTextureDx12*>(GPUTexture.get());
+		return TextureDx12->GetResource()->GetGPUVirtualAddress();
 	}
 }
 #endif	// COMPILE_WITH_RHI_DX12

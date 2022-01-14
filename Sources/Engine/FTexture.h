@@ -7,22 +7,11 @@
 
 namespace tix
 {
-	enum class ETextureFlag : uint32
-	{
-		None = 0,
-		ColorBuffer = 1 << 0,
-		DsBuffer = 1 << 1,
-		Uav = 1 << 2,
-
-		// Used for iOS Metal
-		MemoryLess = 1 << 3,
-	};
-
 	class FTexture : public FRenderResource
 	{
 	public:
-		FTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
-		virtual ~FTexture();
+		static TI_API FTexturePtr CreateTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
+		static TI_API FTexturePtr CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 
 		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
 		virtual FGPUResourcePtr GetGPUResource() override
@@ -35,12 +24,12 @@ namespace tix
 			return TextureDesc;
 		}
 
-		bool HasTextureFlag(ETextureFlag Flag) const
+		bool HasTextureFlag(EGPUResourceFlag Flag) const
 		{
 			return (TextureFlag & (uint32)Flag) != 0;
 		}
 		
-		void SetTextureFlag(ETextureFlag Flag, bool bEnable)
+		void SetTextureFlag(EGPUResourceFlag Flag, bool bEnable)
 		{
 			if (bEnable)
 			{
@@ -65,7 +54,8 @@ namespace tix
 		virtual TImagePtr ReadTextureData() { return nullptr; }
 
 	protected:
-
+		FTexture(const TTextureDesc& Desc, uint32 InFlag);
+		virtual ~FTexture();
 
 	protected:
 		TTextureDesc TextureDesc;

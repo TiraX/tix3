@@ -182,7 +182,7 @@ namespace tix
 			{
 				const TMeshSection& MeshSection = StaticMesh->GetMeshSection(p);
 
-				SkeletonResources[p] = FRHI::Get()->CreateUniformBuffer(sizeof(float) * 12 * TSkeleton::MaxBones, 1, 0);
+				SkeletonResources[p] = ti_new FUniformBuffer(sizeof(float) * 12 * TSkeleton::MaxBones, 1, 0);
 				SkeletonResources[p]->SetResourceName(Skeleton->GetResourceName());
 
 				Skeleton->GatherBoneData(BoneDatas[p], MeshSection.BoneMap);
@@ -194,7 +194,8 @@ namespace tix
 					TI_ASSERT(SkeletonDataResources.size() == BoneDatas.size());
 					for (int32 i = 0; i < (int32)SkeletonDataResources.size(); i++)
 					{
-						FRHI::Get()->UpdateHardwareResourceUB(SkeletonDataResources[i], BoneDatas[i].data());
+						TStreamPtr BoneData = ti_new TStream(BoneDatas[i].data(), (uint32)(BoneDatas[i].size() * sizeof(float)));
+						SkeletonDataResources[i]->CreateGPUBuffer(BoneData);
 					}
 				});
 

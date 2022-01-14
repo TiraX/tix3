@@ -237,49 +237,11 @@ namespace tix
 	void TNodeCamera::GetRayFrom2DPoint(const FInt2& pos, FLine3&ray, float length)
 	{
 		TI_ASSERT(0);
-		//FFloat3 orig,dir;
-		//const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
-		//const FMat4& matView	= ViewArea.Matrices[ETS_VIEW];
-
-		//FMat4 m;
-		//matView.getInverse(m);
-		//const FRecti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
-
-		//// Compute the vector of the Pick ray in screen space
-		//FFloat3 v;
-		//v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
-		//v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
-		//v.Z = 1.0f;
-
-		//FFloat3 pStart, pEnd;
-		//m.TransformVect(pStart, v * 1.0f);
-		//m.TransformVect(pEnd, v * length);
-		//ray.start = pStart;
-		//ray.end = pEnd;
 	}
 
 	void TNodeCamera::GetRayFrom2DPoint(const FFloat2& pos, FLine3&ray, float length)
 	{
 		TI_ASSERT(0);
-		//FFloat3 orig,dir;
-		//const FMat4& matProj	= ViewArea.Matrices[ETS_PROJECTION];
-		//const FMat4& matView	= ViewArea.Matrices[ETS_VIEW];
-
-		//FMat4 m;
-		//matView.getInverse(m);
-		//const FRecti &vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
-
-		//// Compute the vector of the Pick ray in screen space
-		//FFloat3 v;
-		//v.X = ( ( ( 2.0f * (pos.X - vp.Left) ) / vp.getWidth() ) - 1 ) / matProj(0, 0);
-		//v.Y = -( ( ( 2.0f * (pos.Y - vp.Upper) ) / vp.getHeight() ) - 1 ) / matProj(1, 1);
-		//v.Z = 1.0f;
-
-		//FFloat3 pStart, pEnd;
-		//m.TransformVect(pStart, v * 1.0f);
-		//m.TransformVect(pEnd, v * length);
-		//ray.start = pStart;
-		//ray.end = pEnd;
 	}
 
 	void TNodeCamera::GetRayFrom2DPointWithViewport(const FRect& vp, const FFloat2& pos, FLine3&ray, float length)
@@ -308,19 +270,6 @@ namespace tix
 	{
 		TI_ASSERT(0);
 		FFloat2 _pos_2d;
-		//float _proj_pos[4];
-
-		//const FMat4& matVP	= ViewArea.Matrices[ETS_VP];
-		//matVP.TransformVect(_proj_pos, pos);
-
-		//_proj_pos[0]			/= _proj_pos[3];
-		//_proj_pos[1]			/= _proj_pos[3];
-
-		//const FRecti& vp			= TiEngine::Get()->GetRenderer()->GetActiveRenderer()->GetViewport();
-
-		//_pos_2d.X				= (_proj_pos[0] * 0.5f + 0.5f) * vp.getWidth();
-		//_pos_2d.Y				= (0.5f - _proj_pos[1] * 0.5f) * vp.getHeight();
-
 		return _pos_2d;
 	}
 }

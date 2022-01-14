@@ -67,9 +67,10 @@ namespace tix
 		{ \
 			TI_ASSERT(IsRenderThread()); \
 			FRHI * RHI = FRHI::Get(); \
-			UniformBuffer = RHI->CreateUniformBuffer((uint32)sizeof(StructTypeName::FUniformBufferStruct), GetElementsCount(), UBFlag); \
+			UniformBuffer = ti_new FUniformBuffer((uint32)sizeof(StructTypeName::FUniformBufferStruct), GetElementsCount(), UBFlag); \
 			UniformBuffer->SetResourceName(#StructTypeName); \
-			RHI->UpdateHardwareResourceUB(UniformBuffer, UniformBufferData.data()); \
+			TStreamPtr Data = ti_new TStream(UniformBufferData.data(), UniformBuffer->GetTotalBufferSize()); \
+			UniformBuffer->CreateGPUBuffer(Data); \
 			return UniformBuffer; \
 		} \
 	}; \
@@ -82,9 +83,12 @@ namespace tix
 	class FUniformBuffer : public FRenderResource
 	{
 	public:
-		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag);
+		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag = 0);
 		virtual ~FUniformBuffer();
 
+		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+
+		virtual void PrepareDataForCPU() {};
 		virtual TStreamPtr ReadBufferData() { return nullptr; }
 
 		uint32 GetTotalBufferSize() const
@@ -101,7 +105,7 @@ namespace tix
 		}
 		uint32 GetFlag() const
 		{
-			return Flag;
+			return UBFlag;
 		}
 		virtual uint32 GetCounterOffset() const
 		{
@@ -113,6 +117,23 @@ namespace tix
 	protected:
 		uint32 StructureSizeInBytes;
 		uint32 Elements;
-		uint32 Flag;
+		uint32 UBFlag;
+
+		FGPUBufferPtr Buffer;
+	};
+
+	/////////////////////////////////////////////////////////
+	class FUniformBufferReadable : public FUniformBuffer
+	{
+	public:
+		FUniformBufferReadable(uint32 InStructureSizeInBytes, uint32 Elements, uint32 InFlag);
+		virtual ~FUniformBufferReadable();
+
+		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+
+		virtual void PrepareDataForCPU() override;
+		virtual TStreamPtr ReadBufferData() override;
+	protected:
+		FGPUBufferPtr ReadbackBuffer;
 	};
 }

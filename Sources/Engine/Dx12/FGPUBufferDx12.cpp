@@ -18,6 +18,16 @@ namespace tix
 
 		TI_ASSERT(Resource == nullptr);
 		CD3DX12_RESOURCE_DESC ResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(Desc.BufferSize);
+		if ((Desc.Flag & (uint32)EGPUResourceFlag::Uav) != 0)
+		{
+			ResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+			// if need add counter for UAV
+			if ((Desc.Flag & (uint32)EGPUResourceFlag::UavCounter) != 0)
+			{
+				ResourceDesc.Width = FRHIDx12::GetUavSizeWithCounter(Desc.BufferSize);
+			}
+		}
 
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::Intermediate) != 0)
 		{

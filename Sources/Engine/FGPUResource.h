@@ -11,7 +11,7 @@ namespace tix
 	{
 		None = 0,
 		Uav = 1 << 0,
-		UavWithCounter = 1 << 1,
+		UavCounter = 1 << 1,
 		Readback = 1 << 2,
 
 		// For metal, do not create buffer (usually less than 4k bytes), bind raw memory to gpu as apple doc recommended.
@@ -22,6 +22,9 @@ namespace tix
 		// For texture resources
 		ColorBuffer = 1 << 4,
 		DsBuffer = 1 << 5,
+
+		// Used for iOS Metal
+		MemoryLess = 1 << 6,
 	};
 
 	enum class EGPUResourceState : uint8

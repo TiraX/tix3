@@ -170,6 +170,8 @@ namespace tix
 
 	void FTopLevelAccelerationStructureDx12::Build()
 	{
+		TI_ASSERT(0);
+		/*
 		TI_TODO("Move Build() function to RHI::UpdateHardwareTLAS().");
 		TI_ASSERT(IsRenderThread());
 		if (!Dirty || InstanceDescs.size() == 0)
@@ -268,7 +270,7 @@ namespace tix
 		ID3D12DescriptorHeap* DescriptorHeap = RHIDx12->GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		DXRCommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 		DXRCommandList->BuildRaytracingAccelerationStructure(&TopLevelBuildDesc, 0, nullptr);
-
+		*/
 		Dirty = false;
 	}
 }

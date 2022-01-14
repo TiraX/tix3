@@ -11,10 +11,29 @@ namespace tix
 	FGPUCommandBuffer::FGPUCommandBuffer(FGPUCommandSignaturePtr Signature, uint32 InCommandsCount, uint32 InBufferFlag)
 		: FRenderResource(ERenderResourceType::GpuCommandBuffer)
 		, GPUCommandSignature(Signature)
+		, CommandsCount(InCommandsCount)
+		, CBFlag(InBufferFlag)
 	{
 	}
 
 	FGPUCommandBuffer::~FGPUCommandBuffer()
 	{
+	}
+
+	void FGPUCommandBuffer::CreateGPUBuffer(TStreamPtr InData)
+	{
+		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(CBBuffer == nullptr);
+		FRHI* RHI = FRHI::Get();
+
+		FGPUBufferDesc Desc;
+		Desc.Flag = CBFlag;
+		Desc.BufferSize = CBData->GetLength();
+
+		// Create GPU resource and copy data
+		CBBuffer = RHI->CreateGPUBuffer();
+		CBBuffer->Init(Desc, CBData);
+		RHI->SetGPUBufferName(CBBuffer, GetResourceName());
+
 	}
 }

@@ -174,7 +174,7 @@ namespace tix
 		{
 			Mip0.RowPitch = Width * GetPixelSizeInBytes(InPixelFormat);
 		}
-		Mip0.Data.ReserveAndFill(GetDataSize(InPixelFormat, Width, Height));
+		Mip0.Data.ReserveAndClearFill(GetDataSize(InPixelFormat, Width, Height));
 	}
 
 	TImage::~TImage()
@@ -586,7 +586,7 @@ namespace tix
 				{
 					MipData->RowPitch = GetPixelSizeInBytes(PixelFormat) * W;
 				}
-				MipData->Data.ReserveAndFill(GetDataSize(PixelFormat, W, H));
+				MipData->Data.ReserveAndClearFill(GetDataSize(PixelFormat, W, H));
 			}
 
 			W /= 2;

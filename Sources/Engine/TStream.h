@@ -25,7 +25,7 @@ namespace tix
 			}
 		}
 
-		TStream(void* buf, uint32 buf_size)
+		TStream(const void* buf, uint32 buf_size)
 			: Buffer(nullptr)
 			, BufferSize(buf_size)
 			, Pos(buf_size)
@@ -158,6 +158,11 @@ namespace tix
 					Buffer = ti_new char[InSize];
 				}
 			}
+		}
+
+		void ReserveAndClearFill(uint32 InSize)
+		{
+			ReserveAndFill(InSize);
 			if (InSize > 0)
 				memset(Buffer, 0, InSize);
 		}
