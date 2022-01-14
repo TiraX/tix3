@@ -50,7 +50,8 @@ namespace tix
 		ComPtr<ID3D12Resource> AccelerationStructure;
 		ComPtr<ID3D12Resource> ScratchResource;
 
-		TVector<D3D12_RAYTRACING_INSTANCE_DESC> InstanceDescs;
+		// Data buffer to store all D3D12_RAYTRACING_INSTANCE_DESC of BLAS instances
+		TStreamPtr InstanceDescData;
 		THMap<FBottomLevelAccelerationStructurePtr, int32> BLASes;
 
 		friend class FRHIDx12;

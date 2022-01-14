@@ -8,7 +8,6 @@
 #include "FRHIDx12Conversion.h"
 #include "FAccelerationStructureDx12.h"
 #include "FGPUBufferDx12.h"
-#include "FUniformBufferDx12.h"
 
 #if COMPILE_WITH_RHI_DX12
 
@@ -52,7 +51,6 @@ namespace tix
 
 	void FBottomLevelAccelerationStructureDx12::Build()
 	{
-		TI_TODO("Move Build() function to RHI::UpdateHardwareBLAS().");
 		TI_ASSERT(IsRenderThread());
 		if (!Dirty)
 			return;
@@ -125,13 +123,13 @@ namespace tix
 
 	void FTopLevelAccelerationStructureDx12::ClearAllInstances()
 	{
-		InstanceDescs.clear();
+		InstanceDescData->Reset();
 		MarkDirty();
 	}
 
 	void FTopLevelAccelerationStructureDx12::ReserveInstanceCount(uint32 Count)
 	{
-		InstanceDescs.reserve(Count);
+		InstanceDescData->Reserve(Count * sizeof(D3D12_RAYTRACING_INSTANCE_DESC));
 	}
 
 	void FTopLevelAccelerationStructureDx12::AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMat34& Transform)
@@ -149,7 +147,7 @@ namespace tix
 			TI_TODO("Find correct InstanceContributionToHitGroupIndex");
 			Desc.AccelerationStructure = BLASDx12->GetASResource()->GetGPUVirtualAddress();
 
-			InstanceDescs.push_back(Desc);
+			InstanceDescData->Put(&Desc, sizeof(D3D12_RAYTRACING_INSTANCE_DESC));
 
 			if (BLASes.find(BLAS) == BLASes.end())
 			{
@@ -170,11 +168,8 @@ namespace tix
 
 	void FTopLevelAccelerationStructureDx12::Build()
 	{
-		TI_ASSERT(0);
-		/*
-		TI_TODO("Move Build() function to RHI::UpdateHardwareTLAS().");
 		TI_ASSERT(IsRenderThread());
-		if (!Dirty || InstanceDescs.size() == 0)
+		if (!Dirty || InstanceDescData->GetLength() == 0)
 			return;
 
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
@@ -188,7 +183,7 @@ namespace tix
 		TopLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 		TopLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		TopLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-		TopLevelInputs.NumDescs = (uint32)InstanceDescs.size();
+		TopLevelInputs.NumDescs = (uint32)InstanceDescData->GetLength() / sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
 
 		DXRDevice->GetRaytracingAccelerationStructurePrebuildInfo(&TopLevelInputs, &PrebuildInfo);
 		TI_ASSERT(PrebuildInfo.ResultDataMaxSizeInBytes > 0);
@@ -233,13 +228,12 @@ namespace tix
 		}
 
 		// Create Instance Resource
-		const uint32 InstanceBufferSize = (uint32)InstanceDescs.size() * sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
-		TLASInstanceBuffer = RHIDx12->CreateUniformBuffer(InstanceBufferSize, 1, (uint32)EGPUResourceFlag::Intermediate);
-		RHIDx12->UpdateHardwareResourceUB(TLASInstanceBuffer, InstanceDescs.data());
+		const uint32 InstanceBufferSize = InstanceDescData->GetLength();
+		TLASInstanceBuffer = ti_new FUniformBuffer(InstanceBufferSize, 1, (uint32)EGPUResourceFlag::Intermediate);
+		TLASInstanceBuffer->CreateGPUBuffer(InstanceDescData);
 
 		// Build top layer AS
-		FUniformBufferDx12* TLASInstanceBufferDx12 = static_cast<FUniformBufferDx12*>(TLASInstanceBuffer.get());
-		TopLevelInputs.InstanceDescs = TLASInstanceBufferDx12->GetResource()->GetGPUVirtualAddress();
+		TopLevelInputs.InstanceDescs = RHIDx12->GetGPUBufferGPUAddress(TLASInstanceBuffer->GetGPUResource());
 		TopLevelBuildDesc.ScratchAccelerationStructureData = ScratchResource->GetGPUVirtualAddress();
 		TopLevelBuildDesc.DestAccelerationStructureData = AccelerationStructure.Get()->GetGPUVirtualAddress();
 
@@ -270,7 +264,6 @@ namespace tix
 		ID3D12DescriptorHeap* DescriptorHeap = RHIDx12->GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		DXRCommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 		DXRCommandList->BuildRaytracingAccelerationStructure(&TopLevelBuildDesc, 0, nullptr);
-		*/
 		Dirty = false;
 	}
 }

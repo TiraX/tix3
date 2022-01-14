@@ -178,6 +178,9 @@ namespace tix
 		D3D12_VERTEX_BUFFER_VIEW GetInstanceBufferView(FInstanceBufferPtr IB);
 		D3D12_INDEX_BUFFER_VIEW GetIndexBufferView(FIndexBufferPtr IB);
 		D3D12_CONSTANT_BUFFER_VIEW_DESC GetConstantBufferView(FUniformBufferPtr UB);
+
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUBufferGPUAddress(FGPUResourcePtr GPUBuffer);
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUTextureGPUAddress(FGPUResourcePtr GPUTexture);
 	protected: 
 		FRHIDx12();
 
@@ -229,9 +232,6 @@ namespace tix
 		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle(E_RENDER_RESOURCE_HEAP_TYPE Heap, uint32 SlotIndex);
 
 		bool InitRaytracing();
-
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUBufferGPUAddress(FGPUResourcePtr GPUBuffer);
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUTextureGPUAddress(FGPUResourcePtr GPUTexture);
 	private:
 		ComPtr<ID3D12Device> D3dDevice;
 		ComPtr<IDXGIFactory4> DxgiFactory;

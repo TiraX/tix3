@@ -120,7 +120,7 @@ namespace tix
 			Pos = 0;
 		}
 
-		void ReserveAndClear(uint32 InSize)
+		void Reserve(uint32 InSize)
 		{
 			TI_ASSERT(InSize > 0);
 			if (InSize != BufferSize)
@@ -137,27 +137,19 @@ namespace tix
 					Buffer = ti_new char[InSize];
 				}
 			}
+		}
+
+		void ReserveAndClear(uint32 InSize)
+		{
+			Reserve(InSize);
 			if (InSize > 0)
 				memset(Buffer, 0, InSize);
 		}
 
 		void ReserveAndFill(uint32 InSize)
 		{
-			TI_ASSERT(InSize > 0);
-			if (InSize != BufferSize)
-			{
-				if (Buffer != nullptr)
-				{
-					ti_delete[] Buffer;
-					Buffer = nullptr;
-				}
-				Pos = InSize;
-				BufferSize = InSize;
-				if (BufferSize > 0)
-				{
-					Buffer = ti_new char[InSize];
-				}
-			}
+			Reserve(InSize);
+			Pos = InSize;
 		}
 
 		void ReserveAndClearFill(uint32 InSize)

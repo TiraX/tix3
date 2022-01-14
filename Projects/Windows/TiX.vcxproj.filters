@@ -199,9 +199,6 @@
     <ClCompile Include="..\..\Sources\Engine\Dx12\FShaderDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TShader.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -598,9 +595,6 @@
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FShaderDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FUniformBufferDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TMeshBufferSemantic.h">
