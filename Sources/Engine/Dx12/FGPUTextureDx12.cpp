@@ -46,6 +46,8 @@ namespace tix
 		TextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		TextureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
+		ResourceState = EGPUResourceState::CopyDest;
+
 		D3D12_CLEAR_VALUE ClearValue = {}; 
 		ClearValue.Format = TextureDesc.Format;
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::ColorBuffer) != 0)
@@ -56,6 +58,7 @@ namespace tix
 			ClearValue.Color[1] = 0;
 			ClearValue.Color[2] = 0;
 			ClearValue.Color[3] = 0;
+			ResourceState = EGPUResourceState::RenderTarget;
 		}
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::DsBuffer) != 0)
 		{
@@ -75,7 +78,6 @@ namespace tix
 		}
 
 		// Create upload heap resource and copy to default heap
-		ResourceState = EGPUResourceState::CopyDest;
 		D3D12_RESOURCE_STATES InitState = GetDx12ResourceState(ResourceState);
 		RHIDx12->CreateD3D12Resource(
 			D3D12_HEAP_TYPE_DEFAULT,

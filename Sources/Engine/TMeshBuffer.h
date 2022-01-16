@@ -74,6 +74,11 @@ namespace tix
 		{
 			return Desc;
 		}
+
+		const TStreamPtr GetVertexBufferData() const
+		{
+			return Data;
+		}
 	protected:
 
 	protected:
@@ -101,6 +106,11 @@ namespace tix
 		const TIndexBufferDesc& GetDesc() const
 		{
 			return Desc;
+		}
+
+		const TStreamPtr GetIndexBufferData() const
+		{
+			return Data;
 		}
 	protected:
 
@@ -143,9 +153,9 @@ namespace tix
 			return Desc;
 		}
 
-		const void* GetInstanceData() const
+		const TStreamPtr GetInstanceData() const
 		{
-			return Data->GetBuffer();
+			return Data;
 		}
 	protected:
 

@@ -47,6 +47,8 @@ namespace tix
 		IBData->SetIndexData(EIT_16BIT, FullScreenQuadIndices, 6);
 		FullScreenVB = ti_new FVertexBuffer(VBData->GetDesc());
 		FullScreenIB = ti_new FIndexBuffer(IBData->GetDesc());
+		FullScreenVB->CreateGPUBuffer(VBData->GetVertexBufferData());
+		FullScreenIB->CreateGPUBuffer(IBData->GetIndexBufferData());
 		VBData = nullptr;
 		IBData = nullptr;
 

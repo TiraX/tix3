@@ -116,7 +116,9 @@ namespace tix
 
 	////////////////////////////////////////////////////////////
 	FTopLevelAccelerationStructureDx12::FTopLevelAccelerationStructureDx12()
-	{}
+	{
+		InstanceDescData = ti_new TStream();
+	}
 
 	FTopLevelAccelerationStructureDx12::~FTopLevelAccelerationStructureDx12()
 	{}

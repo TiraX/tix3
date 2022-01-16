@@ -75,7 +75,7 @@ namespace tix
 			}
 
 			// Create BLAS instances
-			const FFloat4* InstanceData = (const FFloat4*)InInstanceData->GetInstanceData();
+			const FFloat4* InstanceData = (const FFloat4*)InInstanceData->GetInstanceData()->GetBuffer();
 			for (int32 Ins = 0; Ins < InstanceCount; ++Ins)
 			{
 				const FFloat4* InsData = InstanceData + (InstanceOffset + Ins) * 4;

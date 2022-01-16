@@ -87,7 +87,10 @@ namespace tix
 		virtual ~FUniformBuffer();
 
 		virtual void CreateGPUBuffer(TStreamPtr Data) override;
-
+		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return Buffer;
+		}
 		virtual void PrepareDataForCPU() {};
 		virtual TStreamPtr ReadBufferData() { return nullptr; }
 
