@@ -196,11 +196,17 @@ namespace tix
 		DepthStencilState.BackFace.StencilFunc = k_COMPARISON_FUNC_MAP[Desc.DepthStencilDesc.BackFace.StencilFunc];
 	}
 
-	static const D3D12_FILL_MODE k_FILL_MODE_MAP[EFM_COUNT] =
+	inline D3D12_FILL_MODE GetDx12FillMode(EFillMode FillMode)
 	{
-		D3D12_FILL_MODE_WIREFRAME,	//EFM_WIREFRAME,
-		D3D12_FILL_MODE_SOLID,	//EFM_SOLID,
-	};
+		switch (FillMode)
+		{
+		case EFillMode::Wireframe:
+			return D3D12_FILL_MODE_WIREFRAME;
+		case EFillMode::Solid:
+			return D3D12_FILL_MODE_SOLID;
+		}
+		return D3D12_FILL_MODE_SOLID;
+	}
 
 	inline D3D12_CULL_MODE GetDx12CullMode(ECullMode CullMode)
 	{
@@ -221,7 +227,7 @@ namespace tix
 
 	inline void MakeDx12RasterizerDesc(const TPipelineDesc& Desc, D3D12_RASTERIZER_DESC& RasterizerDesc)
 	{
-		RasterizerDesc.FillMode = k_FILL_MODE_MAP[Desc.RasterizerDesc.FillMode];
+		RasterizerDesc.FillMode = GetDx12FillMode(static_cast<EFillMode>(Desc.RasterizerDesc.FillMode));
 		RasterizerDesc.CullMode = GetDx12CullMode(static_cast<ECullMode>(Desc.RasterizerDesc.CullMode));
 		RasterizerDesc.FrontCounterClockwise = TRUE;
 		RasterizerDesc.DepthBias = Desc.RasterizerDesc.DepthBias;

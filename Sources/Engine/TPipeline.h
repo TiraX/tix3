@@ -72,20 +72,16 @@ namespace tix
 	};
 
 	// Rasterizer definition
-	enum E_FILL_MODE
+	enum class EFillMode : uint8
 	{
-		EFM_WIREFRAME,
-		EFM_SOLID,
-
-		EFM_COUNT,
+		Wireframe,
+		Solid
 	};
 
-	enum E_FRONT_FACE
+	enum class EFrontFace : uint8
 	{
-		EFF_CW,
-		EFF_CCW,
-
-		EFF_COUNT,
+		CW,
+		CCW
 	};
 
 	enum class ECullMode : uint8
@@ -103,7 +99,7 @@ namespace tix
 		int32 DepthBias;
 
 		TRasterizerDesc()
-			: FillMode(EFM_SOLID)
+			: FillMode(static_cast<uint8>(EFillMode::Solid))
 			, CullMode(static_cast<uint8>(ECullMode::Back))
 			, MultiSampleCount(0)
 			, Reserved(0)
