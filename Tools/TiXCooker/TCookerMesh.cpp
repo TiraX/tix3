@@ -431,7 +431,7 @@ namespace tix
 			TI_ASSERT((VertexEnd - VertexStart) % 4 == 0);
 			if ((VertexEnd - VertexStart) % 4 != 0)
 			{
-				_LOG(Error, "Not aligned vertices.\n");
+				_LOG(ELogLevel::Error, "Not aligned vertices.\n");
 			}
 			FillZero4(DataStream);
 

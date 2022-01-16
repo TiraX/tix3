@@ -69,7 +69,7 @@ namespace tix
 		}
 		else
 		{
-			_LOG(Error, "Unknown texture format : %s\n", SrcInfo.TextureSource.c_str());
+			_LOG(ELogLevel::Error, "Unknown texture format : %s\n", SrcInfo.TextureSource.c_str());
 			return false;
 		}
 
@@ -93,7 +93,7 @@ namespace tix
 			TextureOutput = SrcImage;
 #elif defined (TI_PLATFORM_IOS)
 			// iOS Platform need ASTC texture
-			_LOG(Error, "DDS to ASTC not implemented yet.\n");
+			_LOG(ELogLevel::Error, "DDS to ASTC not implemented yet.\n");
 			return false;
 #endif
 		}
@@ -136,7 +136,7 @@ namespace tix
 		}
 		else
 		{
-			_LOG(Error, "Can not load texture : %s.\n", SrcInfo.TextureSource.c_str());
+			_LOG(ELogLevel::Error, "Can not load texture : %s.\n", SrcInfo.TextureSource.c_str());
 			return false;
 		}
 	}

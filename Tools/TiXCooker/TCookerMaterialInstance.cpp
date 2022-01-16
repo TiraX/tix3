@@ -78,7 +78,7 @@ namespace tix
 		{
 			if (Param.ParamName == InParamName)
 			{
-				_LOG(Warning, "Duplicated param [%s] in %s.\n", InParamName.c_str(), InstanceName.c_str());
+				_LOG(ELogLevel::Warning, "Duplicated param [%s] in %s.\n", InParamName.c_str(), InstanceName.c_str());
 				return true;
 			}
 		}
@@ -86,7 +86,7 @@ namespace tix
 		{
 			if (Param.ParamName == InParamName)
 			{
-				_LOG(Warning, "Duplicated param [%s] in %s.\n", InParamName.c_str(), InstanceName.c_str());
+				_LOG(ELogLevel::Warning, "Duplicated param [%s] in %s.\n", InParamName.c_str(), InstanceName.c_str());
 				return true;
 			}
 		}
@@ -195,7 +195,7 @@ namespace tix
 					SValue.Put(&Param.ParamValue.ValueQuat, sizeof(float) * 4);
 					break;
 				default:
-					_LOG(Error, "Invalid param type %d for %s.\n", Param.ParamType, InstanceName.c_str());
+					_LOG(ELogLevel::Error, "Invalid param type %d for %s.\n", Param.ParamType, InstanceName.c_str());
 					break;
 				}
 			}
@@ -218,7 +218,7 @@ namespace tix
 				}
 				break;
 				default:
-					_LOG(Error, "Invalid param type %d for %s.\n", Param.ParamType, InstanceName.c_str());
+					_LOG(ELogLevel::Error, "Invalid param type %d for %s.\n", Param.ParamType, InstanceName.c_str());
 					break;
 				}
 			}

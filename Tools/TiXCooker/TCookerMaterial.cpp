@@ -29,7 +29,7 @@ namespace tix
 		{
 			TString Topo;
 			Doc["topology"] << Topo;
-			PipelineDesc.PrimitiveType = GetPrimitiveType(Topo);
+			PipelineDesc.PrimitiveType = EPrimitiveType::TriangleList;// GetPrimitiveType(Topo);
 		}
 
 		// vertex format
@@ -220,9 +220,9 @@ namespace tix
 	void TCookerMaterial::EnableTwoSides(bool bEnable)
 	{
 		if (bEnable)
-			PipelineDesc.RasterizerDesc.CullMode = ECM_NONE;
+			PipelineDesc.RasterizerDesc.CullMode = static_cast<uint8>(ECullMode::None);
 		else
-			PipelineDesc.RasterizerDesc.CullMode = ECM_BACK;
+			PipelineDesc.RasterizerDesc.CullMode = static_cast<uint8>(ECullMode::Back);
 	}
 	
 	void TCookerMaterial::SaveTrunk(TChunkFile& OutChunkFile)
@@ -252,7 +252,7 @@ namespace tix
 			Define.DepthStencilDesc = PipelineDesc.DepthStencilDesc;
 			Define.VsFormat = PipelineDesc.VsFormat;
 			Define.InsFormat = PipelineDesc.InsFormat;
-			Define.PrmitiveType = PipelineDesc.PrimitiveType;
+			Define.PrmitiveType = static_cast<uint32>(PipelineDesc.PrimitiveType);
 
 			int32 cb = 0;
 			for (; cb < ERTC_COUNT; ++cb)
