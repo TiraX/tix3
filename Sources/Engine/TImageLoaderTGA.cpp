@@ -19,6 +19,8 @@ namespace tix
 #elif defined(TI_PLATFORM_IOS)
 #   pragma push
 #   pragma pack( 1 )
+#else
+#	error("Not supported platform")
 #endif
 
 	struct STGAHeader
@@ -110,7 +112,7 @@ namespace tix
 			PixelBits = 32;
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 	}
@@ -186,7 +188,7 @@ namespace tix
 		}
 		else
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 	}
 
@@ -270,7 +272,7 @@ namespace tix
 		}
 		else //if (header.ImageType == 10)
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 			_LOG(Error, "Compressed TGA format is not supported yet.");
 		}
 
@@ -400,7 +402,7 @@ namespace tix
 		}
 		else
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 
 

@@ -30,6 +30,8 @@ namespace tix
 		{
 			Ret = getcwd(NULL, 0);
 		}
+#else
+#	error("Not supported platform")
 #endif
 
 		Ret = Ret.substr(0, Ret.rfind('/'));
@@ -44,6 +46,8 @@ namespace tix
 			Ret += "Windows";
 #elif defined (TI_PLATFORM_IOS)
 			Ret += "Mac";
+#else
+#	error("Not supported platform")
 #endif
 		}
 
@@ -58,6 +62,8 @@ namespace tix
 		TStringReplace(FileName, "/", "\\");
 #elif defined (TI_PLATFORM_IOS)
 		CommandLine = "rm ";
+#else
+#	error("Not supported platform")
 #endif
 		CommandLine += FileName;
 		return system(CommandLine.c_str());
@@ -72,6 +78,8 @@ namespace tix
 		TStringReplace(DstName, "/", "\\");
 #elif defined (TI_PLATFORM_IOS)
 		CommandLine = "cp ";
+#else
+#	error("Not supported platform")
 #endif
 		CommandLine += SrcName + " " + DstName;
 		return system(CommandLine.c_str());
@@ -93,8 +101,7 @@ namespace tix
         }
         return false;
 #else
-		TI_ASSERT(0);
-        return false;
+#	error("Not supported platform")
 #endif
 	}
 
@@ -111,7 +118,7 @@ namespace tix
             _LOG(Error, "Failed to create directory : %s.\n", Dir.c_str());
         }
 #else
-		TI_ASSERT(0);
+#	error("Not supported platform")
 #endif
 	}
 
@@ -170,8 +177,7 @@ namespace tix
         NSUInteger a = [[NSProcessInfo processInfo] processorCount];
         return (int32)a;
 #else
-		TI_ASSERT(0);
-        return 0;
+#	error("Not supported platform")
 #endif
 	}
 }

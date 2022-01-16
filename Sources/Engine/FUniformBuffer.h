@@ -112,7 +112,7 @@ namespace tix
 		}
 		virtual uint32 GetCounterOffset() const
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 			return 0;
 		}
 	protected:

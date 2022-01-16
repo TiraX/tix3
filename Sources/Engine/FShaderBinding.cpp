@@ -59,7 +59,7 @@ namespace tix
             {
                 return ARGUMENT_MI_ARGUMENTS;
             }
-            TI_ASSERT(0);
+			RuntimeFail();
 		}
 
 		return ARGUMENT_UNKNOWN;
@@ -92,7 +92,7 @@ namespace tix
 		}
 		else
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 	}
 

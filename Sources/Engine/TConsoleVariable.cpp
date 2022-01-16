@@ -76,7 +76,7 @@ namespace tix
 				*ValueString = Value.VString;
 				break;
 			default:
-				TI_ASSERT(0);
+				RuntimeFail();
 				break;
 			}
 		}
@@ -96,7 +96,7 @@ namespace tix
 				*ValueFloat = Value.VFloat;
 				break;
 			default:
-				TI_ASSERT(0);
+				RuntimeFail();
 				break;
 			}
 		}

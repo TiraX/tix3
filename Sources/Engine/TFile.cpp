@@ -104,7 +104,8 @@ namespace tix
 	
 	char* TFile::GetMemoryPointer(int32 size)
 	{
-		TI_ASSERT(0);	// not supported in TiFile, only in TiFileBuffer;
+		// not supported in TiFile, only in TiFileBuffer;
+		RuntimeFail();
 		return nullptr;
 	}
 

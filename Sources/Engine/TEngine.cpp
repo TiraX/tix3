@@ -54,8 +54,7 @@ namespace tix
 #elif defined (TI_PLATFORM_ANDROID)
 		CurrentPlatform = EP_Android;
 #else
-		_LOG(Error, "Unknown platform.");
-		TI_ASSERT(0);
+#	error("Not supported platform")
 #endif
 		// Create log system
 		LogSystem = ti_new TLog;
@@ -197,7 +196,7 @@ namespace tix
 #elif defined (TI_PLATFORM_IOS)
         [[TDirectorCaller sharedDirectorCaller] startMainLoopWithInterval: 1.0f / 60.f];
 #else
-#error("Not supported platform")
+#	error("Not supported platform")
 #endif
 	}
 

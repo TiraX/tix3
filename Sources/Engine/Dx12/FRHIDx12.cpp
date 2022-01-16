@@ -188,7 +188,7 @@ namespace tix
 		if (FenceEvent == nullptr)
 		{
 			Hr = HRESULT_FROM_WIN32(GetLastError());
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 
 		CreateWindowsSizeDependentResources();
@@ -926,7 +926,7 @@ namespace tix
 	bool FRHIDx12::UpdateHardwareResourceTilePL(FPipelinePtr Pipeline, TTilePipelinePtr InTilePipelineDesc)
 	{
 		// This is for Metal
-		TI_ASSERT(0);
+		RuntimeFail();
 		return false;
 	}
 
@@ -970,7 +970,7 @@ namespace tix
 				wstr << L"Local Root Signature 0x" << desc->pSubobjects[i].pDesc << L"\n";
 				break;
 			case D3D12_STATE_SUBOBJECT_TYPE_NODE_MASK:
-				TI_ASSERT(0);
+				RuntimeFail();	// Not consider NODE_MASK yet.
 				//wstr << L"Node Mask: 0x" << std::hex << std::setfill(L'0') << std::setw(8) << *static_cast<const UINT*>(desc->pSubobjects[i].pDesc) << std::setw(0) << std::dec << L"\n";
 				break;
 			case D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY:
@@ -1377,9 +1377,10 @@ namespace tix
 		case ESS_GEOMETRY_SHADER:
 			return D3D12_SHADER_VISIBILITY_GEOMETRY;
 		default:
-			TI_ASSERT(0);
-			return D3D12_SHADER_VISIBILITY_ALL;
-		}
+			RuntimeFail();
+			break;
+		};
+		return D3D12_SHADER_VISIBILITY_ALL;
 	}
 
 	inline int32 GetBindIndex(const D3D12_SHADER_INPUT_BIND_DESC& BindDesc, const D3D12_ROOT_SIGNATURE_DESC& RSDesc, E_SHADER_STAGE Stage)
@@ -1431,7 +1432,7 @@ namespace tix
 					else
 					{
 						// Not support yet.
-						TI_ASSERT(0);
+						RuntimeFail();
 					}
 				}
 			}
@@ -1441,7 +1442,7 @@ namespace tix
 			case D3D12_ROOT_PARAMETER_TYPE_UAV:
 			{
 				// Not support yet.
-				TI_ASSERT(0);
+				RuntimeFail();
 			}
 				break;
 			case D3D12_ROOT_PARAMETER_TYPE_CBV:
@@ -1460,7 +1461,7 @@ namespace tix
 		}
 
 		// Not found correspond param bind index.
-		TI_ASSERT(0);
+		RuntimeFail();
 		return -1;
 	}
 
@@ -1727,7 +1728,7 @@ namespace tix
 			}
 			else
 			{
-				TI_ASSERT(0);
+				RuntimeFail();
 			}
 			GPUCommandSignatureDx12->ArgumentStrideOffset[i] = ArgBytesStride;
 			ArgBytesStride += FGPUCommandSignatureDx12::GPU_COMMAND_STRIDE[Command];
@@ -1801,7 +1802,7 @@ namespace tix
 			break;
 		default:
 			// Not supported yet
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
@@ -1841,7 +1842,8 @@ namespace tix
 		}
 		else
 		{
-			TI_ASSERT(0);	// Not supported yet.
+			// Not supported yet.
+			RuntimeFail();
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);

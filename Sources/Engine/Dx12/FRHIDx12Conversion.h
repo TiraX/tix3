@@ -60,7 +60,7 @@ namespace tix
 		case EPF_DDS_BC5:
 			return DXGI_FORMAT_BC5_UNORM;
 		}
-		TI_ASSERT(0);
+		RuntimeFail();
 		return DXGI_FORMAT_UNKNOWN;
 	};
 
@@ -73,7 +73,8 @@ namespace tix
 		case EIT_32BIT:
 			return DXGI_FORMAT_R32_UINT;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
+			break;
 		}
 		return DXGI_FORMAT_UNKNOWN;
 	};
@@ -246,7 +247,7 @@ namespace tix
 		case tix::EPT_TRIANGLESTRIP:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -353,7 +354,7 @@ namespace tix
 		case EGPUResourceState::GenericRead:
 			return D3D12_RESOURCE_STATE_GENERIC_READ;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 		return D3D12_RESOURCE_STATE_COMMON;
@@ -374,7 +375,7 @@ namespace tix
 		case tix::ETT_TEXTURE_UNKNOWN:
 			return D3D12_RESOURCE_DIMENSION_UNKNOWN;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 		return D3D12_RESOURCE_DIMENSION_UNKNOWN;

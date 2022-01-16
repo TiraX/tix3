@@ -89,7 +89,7 @@ namespace tix
 		case EPF_DDS_DXT5_SRGB:
 			return SrcFormat;
         default:
-            TI_ASSERT(0);
+			RuntimeFail();
             return EPF_UNKNOWN;
 		}
 	}

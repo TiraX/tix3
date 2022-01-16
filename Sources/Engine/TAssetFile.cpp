@@ -80,7 +80,7 @@ namespace tix
 		Header = (TResfileHeader*)(Filebuffer + pos);
 		if (Header->Version != TIRES_VERSION_MAINFILE)
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 			_LOG(Error, "Wrong file version. [%s]\n", Filename.c_str());
 			return false;
 		}
@@ -152,7 +152,7 @@ namespace tix
 				TI_ASSERT(chunkHeader->Version == TIRES_VERSION_CHUNK_RTX_PIPELINE);
 				break;
 			default:
-				TI_ASSERT(0);
+				RuntimeFail();
 				break;
 			}
 			chunk_start += chunkHeader->ChunkSize;
@@ -488,7 +488,7 @@ namespace tix
 			{
 				// Load from res file
 				//Material->SetShaderCode((E_SHADER_STAGE)s, CodeDataStart + CodeOffset, Header->ShaderCodeLength[s]);
-				TI_ASSERT(0);
+				RuntimeFail();
 			}
 			else
 			{

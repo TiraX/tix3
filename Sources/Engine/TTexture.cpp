@@ -19,7 +19,8 @@ namespace tix
 			Faces = 6;
 		else
 		{
-			TI_ASSERT(0);	// Add more support in future
+			// Add more support in future
+			RuntimeFail();
 		}
 		TextureData.resize(Faces);
 	}

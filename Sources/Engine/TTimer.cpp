@@ -47,6 +47,8 @@ namespace tix
 //		struct timespec now;
 //		clock_gettime(CLOCK_MONOTONIC, &now);
 //		return (long long) (now.tv_sec*1000000000LL + now.tv_nsec);
+#else
+#	error("Not supported platform")
 #endif
 	}
 

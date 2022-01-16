@@ -22,7 +22,7 @@ namespace tix
 			return 6;
 		default:
 			// Other types do NOT support yet
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 		return 0;
@@ -65,6 +65,7 @@ namespace tix
 			TextureDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			ClearValue.DepthStencil.Depth = 1.f;
 			ClearValue.DepthStencil.Stencil = 0;
+			ResourceState = EGPUResourceState::DepthWrite;
 		}
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::Uav) != 0)
 		{

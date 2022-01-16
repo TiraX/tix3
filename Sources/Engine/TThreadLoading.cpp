@@ -107,7 +107,7 @@ namespace tix
 		else
 		{
 			// Should not have other state
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 	}
 

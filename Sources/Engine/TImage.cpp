@@ -49,7 +49,7 @@ namespace tix
 		case EPF_STENCIL8:
 			return 1;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			return 0;
 		}
 	}
@@ -212,7 +212,7 @@ namespace tix
 			Data[offset + 2] = c.B;
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 	}
@@ -251,7 +251,7 @@ namespace tix
 			hdata[3] = float16(c.A);
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 	}
@@ -268,7 +268,7 @@ namespace tix
 			Data[offset] = c;
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 	}
@@ -317,7 +317,7 @@ namespace tix
 			}
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 		return color;
 	}
@@ -472,7 +472,7 @@ namespace tix
 			c.A = hdata[3];
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 		return c;
 	}

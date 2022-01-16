@@ -22,7 +22,7 @@ namespace tix
 #elif defined (TI_PLATFORM_ANDROID)
 		device = ti_new TiAndroidDevice(w, h);
 #else
-		TI_ASSERT(0);
+#	error("Not supported platform")
 #endif
 		return device;
 	}

@@ -141,7 +141,7 @@ namespace tix
 			RHI->SetArgumentBuffer(Argument.BindingIndex, Primitive->GetSection(SectionIndex).Argument);
 			break;
 		default:
-			TI_ASSERT(0);
+			RuntimeFail();
 			break;
 		}
 	}

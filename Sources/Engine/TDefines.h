@@ -43,6 +43,7 @@ void * operator new (std::size_t count);
 #		define TI_ASSERT(cond)
 #	endif
 #endif
+#define RuntimeFail() TI_ASSERT(0)
 
 #ifndef TI_BREAK
 #	define	TI_BREAK	TI_ASSERT(0)

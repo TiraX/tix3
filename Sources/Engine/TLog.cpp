@@ -104,7 +104,7 @@ namespace tix
 #endif
 		if (LogLevel == Fatal)
 		{
-			TI_ASSERT(0);
+			RuntimeFail();
 		}
 	}
 }
