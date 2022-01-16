@@ -189,7 +189,7 @@ namespace tix
 	{
 		TString winversion;
 		GetWindowsVersion(winversion);
-		_LOG(Log, "%s\n", winversion.c_str());
+		_LOG(ELogLevel::Log, "%s\n", winversion.c_str());
 
 		// create window
 		TEngine* engine	= TEngine::Get();
@@ -242,7 +242,7 @@ namespace tix
 			TI_ASSERT(HWnd);
 			if (!HWnd)
 			{
-				_LOG(Fatal, "Create window failed.\n");
+				_LOG(ELogLevel::Fatal, "Create window failed.\n");
 				return ;
 			}
 

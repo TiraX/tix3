@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	enum E_LOG_LEVEL
+	enum class ELogLevel : uint8
 	{
 		Log = 0,
 		Warning,
@@ -21,7 +21,7 @@ namespace tix
 		TLog();
 		virtual ~TLog();
 
-		TI_API static void DoLog(E_LOG_LEVEL LogLevel, const char* Format, ...);
+		TI_API static void DoLog(ELogLevel LogLevel, const char* Format, ...);
 
 	public:
 		static int32 SilenceLog;

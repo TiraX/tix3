@@ -46,7 +46,7 @@ namespace tix
 	{
 		if (!ReadFile(InFilename))
 		{
-			_LOG(Error, "Failed to read file %s.\n", InFilename.c_str());
+			_LOG(ELogLevel::Error, "Failed to read file %s.\n", InFilename.c_str());
 			return false;
 		}
 		return ParseFile();
@@ -62,7 +62,7 @@ namespace tix
 		}
 		if (File == nullptr)
 		{
-			_LOG(Error, "Failed to LoadAsset %s.\n", InFilename.c_str());
+			_LOG(ELogLevel::Error, "Failed to LoadAsset %s.\n", InFilename.c_str());
 			return false;
 		}
 		Filename = File->GetFileName();
@@ -81,7 +81,7 @@ namespace tix
 		if (Header->Version != TIRES_VERSION_MAINFILE)
 		{
 			RuntimeFail();
-			_LOG(Error, "Wrong file version. [%s]\n", Filename.c_str());
+			_LOG(ELogLevel::Error, "Wrong file version. [%s]\n", Filename.c_str());
 			return false;
 		}
 		pos += TMath::Align4((int32)sizeof(TResfileHeader));
@@ -276,7 +276,7 @@ namespace tix
 			TAssetPtr MIRes = TAssetLibrary::Get()->LoadAsset(MaterialResName);
 			if (MIRes->GetResources().size() == 0)
 			{
-				_LOG(Error, "Failed to load default material instance [%s] for mesh [%s].\n", MaterialResName.c_str(), Filename.c_str());
+				_LOG(ELogLevel::Error, "Failed to load default material instance [%s] for mesh [%s].\n", MaterialResName.c_str(), Filename.c_str());
 			}
 			TMaterialInstancePtr MaterialInstance = static_cast<TMaterialInstance*>(MIRes->GetResourcePtr());
 			MeshSection.DefaultMaterial = MaterialInstance;
@@ -458,7 +458,7 @@ namespace tix
 
 			Material->SetShaderVsFormat(Header->VsFormat);
 			Material->SetShaderInsFormat(Header->InsFormat);
-			Material->SetPrimitiveType((E_PRIMITIVE_TYPE)Header->PrmitiveType);
+			Material->SetPrimitiveType((EPrimitiveType)Header->PrmitiveType);
 			Material->SetBlendState((E_BLEND_MODE)Header->BlendMode, Header->BlendState);
 			Material->SetRasterizerState(Header->RasterizerDesc);
 			Material->SetDepthStencilState(Header->DepthStencilDesc);
@@ -577,7 +577,7 @@ namespace tix
 			TAssetPtr Material = TAssetLibrary::Get()->LoadAsset(MaterialResName);
 			if (Material->GetResources().size() == 0)
 			{
-				_LOG(Error, "Failed to load material [%s] for Material Instance [%s].\n", MaterialResName.c_str(), Filename.c_str());
+				_LOG(ELogLevel::Error, "Failed to load material [%s] for Material Instance [%s].\n", MaterialResName.c_str(), Filename.c_str());
 			}
 			MInstance->LinkedMaterial = static_cast<TMaterial*>(Material->GetResourcePtr());
 
@@ -589,7 +589,7 @@ namespace tix
 	{
 		if (ChunkHeader[EChunkLib::Scene] == nullptr)
 		{
-			_LOG(Error, "Can not find scene chunk when loading scene %s.", Filename.c_str());
+			_LOG(ELogLevel::Error, "Can not find scene chunk when loading scene %s.", Filename.c_str());
 			return;
 		}
 
@@ -695,7 +695,7 @@ namespace tix
 	{
 		if (ChunkHeader[EChunkLib::SceneTile] == nullptr)
 		{
-			_LOG(Error, "Can not find scene tile chunk when loading scene %s.", Filename.c_str());
+			_LOG(ELogLevel::Error, "Can not find scene tile chunk when loading scene %s.", Filename.c_str());
 			return;
 		}
 

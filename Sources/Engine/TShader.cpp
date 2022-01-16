@@ -48,7 +48,7 @@ namespace tix
                 }
                 else
                 {
-                    _LOG(Fatal, "Failed to load shader code [%s].\n", ShaderName.c_str());
+                    _LOG(ELogLevel::Fatal, "Failed to load shader code [%s].\n", ShaderName.c_str());
                 }
 #elif defined (COMPILE_WITH_RHI_METAL)
                 // Metal need shader name only

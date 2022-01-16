@@ -10,7 +10,7 @@ namespace tix
 {
 	FRenderResourceTable::FRenderResourceTable(uint32 InSize)
 		: FRenderResource(ERenderResourceType::ResourceTable)
-		, HeapType(EHT_NONE)
+		, HeapType(EResourceHeapType::None)
 		, Start(uint32(-1))
 		, Size(InSize)
 	{
@@ -32,42 +32,42 @@ namespace tix
 
 	void FRenderResourceTable::PutConstantBufferInTable(FUniformBufferPtr InUniformBuffer, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutConstantBufferInHeap(InUniformBuffer, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutTextureInTable(FTexturePtr InTexture, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutTextureInHeap(InTexture, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutRWTextureInTable(FTexturePtr InTexture, uint32 MipLevel, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutRWTextureInHeap(InTexture, MipLevel, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutUniformBufferInTable(FUniformBufferPtr InBuffer, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutUniformBufferInHeap(InBuffer, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutRWUniformBufferInTable(FUniformBufferPtr InBuffer, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutRWUniformBufferInHeap(InBuffer, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutVertexBufferInTable(FVertexBufferPtr InBuffer, int32 VBIndex)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(VBIndex < (int32)Size);
 		if (VBIndex >= 0)
 			VBIndex = Start + VBIndex;
@@ -76,7 +76,7 @@ namespace tix
 
 	void FRenderResourceTable::PutIndexBufferInTable(FIndexBufferPtr InBuffer, int32 IBIndex)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(IBIndex < (int32)Size);
 		if (IBIndex >= 0)
 			IBIndex = Start + IBIndex;
@@ -85,21 +85,21 @@ namespace tix
 
 	void FRenderResourceTable::PutInstanceBufferInTable(FInstanceBufferPtr InBuffer, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutInstanceBufferInHeap(InBuffer, HeapType, Start + Index);
 	}
 
 	void FRenderResourceTable::PutRTColorInTable(FTexturePtr InTexture, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_RENDERTARGET);
+		TI_ASSERT(HeapType == EResourceHeapType::RenderTarget);
 		TI_ASSERT(InTexture->GetDesc().Mips > 0 && Index * InTexture->GetDesc().Mips < Size);
 		FRHI::Get()->PutRTColorInHeap(InTexture, Start + Index * InTexture->GetDesc().Mips);
 	}
 
 	void FRenderResourceTable::PutRTDepthInTable(FTexturePtr InTexture, uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_DEPTHSTENCIL);
+		TI_ASSERT(HeapType == EResourceHeapType::DepthStencil);
 		TI_ASSERT(InTexture->GetDesc().Mips > 0 && Index * InTexture->GetDesc().Mips < Size);
 		FRHI::Get()->PutRTDepthInHeap(InTexture, Start + Index * InTexture->GetDesc().Mips);
 	}
@@ -108,12 +108,12 @@ namespace tix
 		FTopLevelAccelerationStructurePtr InTLAS, 
 		uint32 Index)
 	{
-		TI_ASSERT(HeapType == EHT_SHADER_RESOURCE);
+		TI_ASSERT(HeapType == EResourceHeapType::ShaderResource);
 		TI_ASSERT(Index < Size);
 		FRHI::Get()->PutTopAccelerationStructureInHeap(InTLAS, HeapType, Start + Index);
 	}
 
-	E_RENDER_RESOURCE_HEAP_TYPE FRenderResourceTable::GetHeapType() const
+	EResourceHeapType FRenderResourceTable::GetHeapType() const
 	{
 		return HeapType;
 	}

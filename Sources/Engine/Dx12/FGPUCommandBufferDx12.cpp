@@ -61,7 +61,7 @@ namespace tix
 
 		// Only support indexed triangle list.
 		const TVertexBufferDesc& VBDesc = VertexBuffer->GetDesc();
-		TI_ASSERT(VBDesc.PrimitiveType == EPT_TRIANGLELIST);
+		TI_ASSERT(VBDesc.PrimitiveType == EPrimitiveType::TriangleList);
 
 		const TVector<E_GPU_COMMAND_TYPE>& CommandStructure = GPUCommandSignatureDx12->GetCommandStructure();
 		E_GPU_COMMAND_TYPE CommandType = CommandStructure[ArgumentIndex];

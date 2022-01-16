@@ -70,26 +70,25 @@ namespace tix
 		EINSSEG_TOTAL = EINSSEG_ROT_SCALE_MAT2,
 	};
 
-	enum E_PRIMITIVE_TYPE
+	enum class EPrimitiveType : int8
 	{
-		EPT_INVALID = -1,
-		EPT_POINTLIST = 0,
-		EPT_LINES,
-		EPT_LINESTRIP,
-		EPT_TRIANGLELIST,
-		EPT_TRIANGLESTRIP,
-
-		EPT_COUNT
+		Invalid = -1,
+		PointList = 0,
+		Lines,
+		LineStrip,
+		TriangleList,
+		TriangleStrip
 	};
 
-	enum E_RENDER_RESOURCE_HEAP_TYPE
+	enum class EResourceHeapType : int8
 	{
-		EHT_NONE = -1,
-		EHT_RENDERTARGET = 0,
-		EHT_DEPTHSTENCIL,
-		EHT_SAMPLER,
-		EHT_SHADER_RESOURCE,	// Constants, Buffers, Textures and UAV
+		None = -1,
+		RenderTarget = 0,
+		DepthStencil,
+		Sampler,
+		ShaderResource,	// Constants, Buffers, Textures and UAV
 
-		EHT_COUNT,
+		Count,
 	};
+	static const int32 NumResourceHeapTypes = static_cast<int32>(EResourceHeapType::Count);
 }

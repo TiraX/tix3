@@ -88,13 +88,11 @@ namespace tix
 		EFF_COUNT,
 	};
 
-	enum E_CULL_MODE
+	enum class ECullMode : uint8
 	{
-		ECM_NONE,
-		ECM_FRONT,
-		ECM_BACK,
-
-		ECM_COUNT,
+		None,
+		Front,
+		Back
 	};
 	struct TRasterizerDesc
 	{
@@ -106,7 +104,7 @@ namespace tix
 
 		TRasterizerDesc()
 			: FillMode(EFM_SOLID)
-			, CullMode(ECM_BACK)
+			, CullMode(static_cast<uint8>(ECullMode::Back))
 			, MultiSampleCount(0)
 			, Reserved(0)
 			, DepthBias(0)
@@ -180,7 +178,7 @@ namespace tix
 		TDepthStencilDesc DepthStencilDesc;
 		uint32 VsFormat;
 		uint32 InsFormat;
-		uint32 PrimitiveType;
+		EPrimitiveType PrimitiveType;
 
 		TShaderPtr Shader;
 
@@ -193,7 +191,7 @@ namespace tix
 			: Flags(EPSO_DEPTH | EPSO_DEPTH_TEST)
 			, VsFormat(EVSSEG_POSITION)
 			, InsFormat(0)
-			, PrimitiveType(EPT_TRIANGLELIST)
+			, PrimitiveType(EPrimitiveType::TriangleList)
 			, RTCount(1)
 		{
 			for (int32 i = 0; i < ERTC_COUNT; i++)

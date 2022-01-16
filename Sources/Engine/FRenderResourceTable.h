@@ -43,9 +43,9 @@ namespace tix
 			return Size;
 		}
 
-		TI_API E_RENDER_RESOURCE_HEAP_TYPE GetHeapType() const;
+		TI_API EResourceHeapType GetHeapType() const;
 	protected:
-		E_RENDER_RESOURCE_HEAP_TYPE HeapType;
+		EResourceHeapType HeapType;
 		uint32 Start;
 		uint32 Size;
 

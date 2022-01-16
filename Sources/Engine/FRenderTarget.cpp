@@ -25,7 +25,7 @@ namespace tix
 	{
 	}
 
-	void FRenderTarget::AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction)
+	void FRenderTarget::AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
 		TI_ASSERT(Mips > 0);
 		TTextureDesc Desc;
@@ -40,7 +40,7 @@ namespace tix
 		AddColorBuffer(Texture, ColorBufferIndex, LoadAction, StoreAction);
 	}
 
-	void FRenderTarget::AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction)
+	void FRenderTarget::AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
 		if (RTColorBuffers[ColorBufferIndex].BufferIndex == ERTC_INVALID)
 		{
@@ -66,7 +66,7 @@ namespace tix
 		RTColorBuffers[ColorBufferIndex] = Buffer;
 	}
 
-	void FRenderTarget::AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction)
+	void FRenderTarget::AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
 		TI_ASSERT(Mips > 0);
 		TTextureDesc Desc;
@@ -85,7 +85,7 @@ namespace tix
 		AddDepthStencilBuffer(Texture, LoadAction, StoreAction);
 	}
 
-	void FRenderTarget::AddDepthStencilBuffer(FTexturePtr Texture, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction)
+	void FRenderTarget::AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
 		RTDepthStencilBuffer.Texture = Texture;
 		RTDepthStencilBuffer.LoadAction = LoadAction;

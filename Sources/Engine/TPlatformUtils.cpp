@@ -110,12 +110,12 @@ namespace tix
 #if defined (TI_PLATFORM_WIN32)
 		if (!CreateDirectory(Dir.c_str(), nullptr))
 		{
-			_LOG(Error, "Failed to create directory : %s.\n", Dir.c_str());
+			_LOG(ELogLevel::Error, "Failed to create directory : %s.\n", Dir.c_str());
 		}
 #elif defined (TI_PLATFORM_IOS)
         if (mkdir(Dir.c_str(), 0755) != 0)
         {
-            _LOG(Error, "Failed to create directory : %s.\n", Dir.c_str());
+            _LOG(ELogLevel::Error, "Failed to create directory : %s.\n", Dir.c_str());
         }
 #else
 #	error("Not supported platform")

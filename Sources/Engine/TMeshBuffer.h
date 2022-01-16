@@ -9,7 +9,7 @@ namespace tix
 {
 	struct TVertexBufferDesc
 	{
-		E_PRIMITIVE_TYPE PrimitiveType;
+		EPrimitiveType PrimitiveType;
 		FBox BBox;
 		uint32 VertexCount;
 
@@ -17,7 +17,7 @@ namespace tix
 		uint32 Stride;
 
 		TVertexBufferDesc()
-			: PrimitiveType(EPT_TRIANGLELIST)
+			: PrimitiveType(EPrimitiveType::TriangleList)
 			, VertexCount(0)
 			, VsFormat(0)
 			, Stride(0)

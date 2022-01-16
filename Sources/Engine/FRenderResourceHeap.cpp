@@ -9,7 +9,7 @@
 namespace tix
 {
 	FRenderResourceHeap::FRenderResourceHeap()
-		: HeapType(EHT_NONE)
+		: HeapType(EResourceHeapType::None)
 		, Allocated(0)
 		, Size(0)
 		, Offset(0)
@@ -20,7 +20,7 @@ namespace tix
 	{
 	}
 
-	void FRenderResourceHeap::Create(E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 HeapSize, uint32 HeapOffset)
+	void FRenderResourceHeap::Create(EResourceHeapType InHeapType, uint32 HeapSize, uint32 HeapOffset)
 	{
 		HeapType = InHeapType;
 		Size = HeapSize;

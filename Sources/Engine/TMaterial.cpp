@@ -25,7 +25,7 @@ namespace tix
 		Desc.InsFormat = InInsFormat;
 	}
 
-	void TMaterial::SetPrimitiveType(E_PRIMITIVE_TYPE InPrimitiveType)
+	void TMaterial::SetPrimitiveType(EPrimitiveType InPrimitiveType)
 	{
 		Desc.PrimitiveType = InPrimitiveType;
 	}
@@ -56,7 +56,7 @@ namespace tix
 
 	void TMaterial::EnableTwoSides(bool bEnable)
 	{
-		Desc.RasterizerDesc.CullMode = bEnable ? ECM_NONE : ECM_BACK;
+		Desc.RasterizerDesc.CullMode = static_cast<uint8>(bEnable ? ECullMode::None : ECullMode::Back);
 	}
 
 	void TMaterial::EnableState(E_PIPELINE_STATES_OPTION InState, bool bEnable)

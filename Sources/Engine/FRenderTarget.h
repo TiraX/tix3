@@ -21,37 +21,20 @@ namespace tix
 		ERTF_COMPILED = 1 << 0,
 	};
 
-	enum E_RT_LOAD_ACTION
+	enum class ERenderTargetLoadAction : uint8
 	{
-		ERT_LOAD_DONTCARE,
-		ERT_LOAD_LOAD,
-		ERT_LOAD_CLEAR,
-        
-        ERT_LOAD_ACTION_NUM,
+		DontCare,
+		Load,
+		Clear
 	};
 
-	enum E_RT_STORE_ACTION
+	enum class ERenderTargetStoreAction : uint8
 	{
-		ERT_STORE_DONTCARE,
-		ERT_STORE_STORE,
-		ERT_STORE_MULTISAMPLE_RESOLVE,
-        ERT_STORE_STORE_AND_MULTISAMPLE_RESOLVE,
-        
-        ERT_STORE_ACTION_NUM,
+		DontCare,
+		Store,
+		MultiSampleResolve,
+		StoreAndMultiSampleResolve
 	};
-
-	//class FRenderTargetResource : public FRenderResource
-	//{
-	//public:
-	//	FRenderTargetResource()
-	//	{}
-	//	~FRenderTargetResource()
-	//	{}
-
-	//	virtual void Destroy() override {};
-	//private:
-
-	//};
 
 	class FRenderTarget : public FRenderResource
 	{
@@ -66,13 +49,13 @@ namespace tix
 			FTexturePtr Texture;
 			//FRenderTargetResourcePtr RTResource;
 			E_RT_COLOR_BUFFER BufferIndex;
-			E_RT_LOAD_ACTION LoadAction;
-			E_RT_STORE_ACTION StoreAction;
+			ERenderTargetLoadAction LoadAction;
+			ERenderTargetStoreAction StoreAction;
 
 			RTBuffer()
 				: BufferIndex(ERTC_INVALID)
-				, LoadAction(ERT_LOAD_DONTCARE)
-				, StoreAction(ERT_STORE_DONTCARE)
+				, LoadAction(ERenderTargetLoadAction::DontCare)
+				, StoreAction(ERenderTargetStoreAction::DontCare)
 			{}
 			~RTBuffer()
 			{
@@ -101,10 +84,10 @@ namespace tix
 			return RTDepthStencilBuffer;
 		}
 
-		TI_API virtual void AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction);
-		TI_API virtual void AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction);
-		TI_API virtual void AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction);
-		TI_API virtual void AddDepthStencilBuffer(FTexturePtr Texture, E_RT_LOAD_ACTION LoadAction, E_RT_STORE_ACTION StoreAction);
+		TI_API virtual void AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		TI_API virtual void AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		TI_API virtual void AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		TI_API virtual void AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
         
         // For metal tile shader
         TI_API virtual void SetTileSize(const FInt2& InTileSize)

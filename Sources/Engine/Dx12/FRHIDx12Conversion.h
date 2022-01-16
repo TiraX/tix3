@@ -202,16 +202,27 @@ namespace tix
 		D3D12_FILL_MODE_SOLID,	//EFM_SOLID,
 	};
 
-	static const D3D12_CULL_MODE k_CULL_MODE_MAP[ECM_COUNT] =
+	inline D3D12_CULL_MODE GetDx12CullMode(ECullMode CullMode)
 	{
-		D3D12_CULL_MODE_NONE,	//ECM_NONE,
-		D3D12_CULL_MODE_FRONT,	//ECM_FRONT,
-		D3D12_CULL_MODE_BACK,	//ECM_BACK
-	};
+		switch (CullMode)
+		{
+		case ECullMode::None:
+			return D3D12_CULL_MODE_NONE;
+		case ECullMode::Front:
+			return D3D12_CULL_MODE_FRONT;
+		case ECullMode::Back:
+			return D3D12_CULL_MODE_BACK;
+		default:
+			RuntimeFail();
+			break;
+		}
+		return D3D12_CULL_MODE_NONE;
+	}
+
 	inline void MakeDx12RasterizerDesc(const TPipelineDesc& Desc, D3D12_RASTERIZER_DESC& RasterizerDesc)
 	{
 		RasterizerDesc.FillMode = k_FILL_MODE_MAP[Desc.RasterizerDesc.FillMode];
-		RasterizerDesc.CullMode = k_CULL_MODE_MAP[Desc.RasterizerDesc.CullMode];
+		RasterizerDesc.CullMode = GetDx12CullMode(static_cast<ECullMode>(Desc.RasterizerDesc.CullMode));
 		RasterizerDesc.FrontCounterClockwise = TRUE;
 		RasterizerDesc.DepthBias = Desc.RasterizerDesc.DepthBias;
 		RasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
@@ -223,60 +234,84 @@ namespace tix
 		RasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 	}
 
-	static const D3D12_PRIMITIVE_TOPOLOGY_TYPE k_PRIMITIVE_D3D12_TYPE_MAP[EPT_COUNT] =
-	{
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT,	//EPT_POINTLIST,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,	//EPT_LINES,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED,	//EPT_LINESTRIP,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,	//EPT_TRIANGLELIST,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED,	//EPT_TRIANGLESTRIP,
-	};
-
-	inline D3D_PRIMITIVE_TOPOLOGY GetDx12PrimitiveType(E_PRIMITIVE_TYPE PrimitiveType)
+	inline D3D12_PRIMITIVE_TOPOLOGY_TYPE GetDx12TopologyType(EPrimitiveType PrimitiveType)
 	{
 		switch (PrimitiveType)
 		{
-		case tix::EPT_POINTLIST:
+		case EPrimitiveType::PointList:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+		case EPrimitiveType::Lines:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+		case EPrimitiveType::LineStrip:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+		case EPrimitiveType::TriangleList:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		case EPrimitiveType::TriangleStrip:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		default:
+			RuntimeFail();
+			break;
+		}
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+	}
+
+	inline D3D_PRIMITIVE_TOPOLOGY GetDx12Topology(EPrimitiveType PrimitiveType)
+	{
+		switch (PrimitiveType)
+		{
+		case EPrimitiveType::PointList:
 			return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		case tix::EPT_LINES:
+		case EPrimitiveType::Lines:
 			return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-		case tix::EPT_LINESTRIP:
+		case EPrimitiveType::LineStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		case tix::EPT_TRIANGLELIST:
+		case EPrimitiveType::TriangleList:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		case tix::EPT_TRIANGLESTRIP:
+		case EPrimitiveType::TriangleStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 		default:
 			RuntimeFail();
 			break;
 		}
-		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 	}
 
-	static const E_RENDER_RESOURCE_HEAP_TYPE Dx2TiXHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+	inline EResourceHeapType GetTiXHeapTypeFromDxHeap(D3D12_DESCRIPTOR_HEAP_TYPE DxHeap)
 	{
-		EHT_SHADER_RESOURCE,//D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV = 0,
-		EHT_SAMPLER,		//D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER = (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV + 1) ,
-		EHT_RENDERTARGET,	//D3D12_DESCRIPTOR_HEAP_TYPE_RTV = (D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER + 1) ,
-		EHT_DEPTHSTENCIL,	//D3D12_DESCRIPTOR_HEAP_TYPE_DSV = (D3D12_DESCRIPTOR_HEAP_TYPE_RTV + 1) ,
-	};
-
-	inline E_RENDER_RESOURCE_HEAP_TYPE GetTiXHeapTypeFromDxHeap(D3D12_DESCRIPTOR_HEAP_TYPE DxHeap)
-	{
-		return Dx2TiXHeapMap[DxHeap];
+		switch (DxHeap)
+		{
+		case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+			return EResourceHeapType::ShaderResource;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
+			return EResourceHeapType::Sampler;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
+			return EResourceHeapType::RenderTarget;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
+			return EResourceHeapType::DepthStencil;
+		default:
+			RuntimeFail();
+			break;
+		}
+		return EResourceHeapType::None;
 	}
 
-	static const D3D12_DESCRIPTOR_HEAP_TYPE TiX2DxHeapMap[EHT_COUNT] =
+	inline D3D12_DESCRIPTOR_HEAP_TYPE GetDxHeapTypeFromTiXHeap(EResourceHeapType TiXHeap)
 	{
-		D3D12_DESCRIPTOR_HEAP_TYPE_RTV,			//EHT_RENDERTARGET = 0,
-		D3D12_DESCRIPTOR_HEAP_TYPE_DSV,			//EHT_DEPTHSTENCIL,
-		D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,		//EHT_SAMPLER,
-		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,	//EHT_UNIFORMBUFFER,
-	};
-
-	inline D3D12_DESCRIPTOR_HEAP_TYPE GetDxHeapTypeFromTiXHeap(E_RENDER_RESOURCE_HEAP_TYPE TiXHeap)
-	{
-		return TiX2DxHeapMap[TiXHeap];
+		switch (TiXHeap)
+		{
+		case tix::EResourceHeapType::RenderTarget:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		case tix::EResourceHeapType::DepthStencil:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		case tix::EResourceHeapType::Sampler:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+		case tix::EResourceHeapType::ShaderResource:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		default:
+			RuntimeFail();
+			break;
+		}
+		return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	}
 
 	static const D3D12_FILTER TiX2DxTextureFilterMap[ETFT_COUNT] =
@@ -531,7 +566,7 @@ namespace tix
 		case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
 		case DXGI_FORMAT_D16_UNORM:
 
-			_LOG(Fatal, "Requested a UAV format for a depth stencil format.\n");
+			_LOG(ELogLevel::Fatal, "Requested a UAV format for a depth stencil format.\n");
 #endif
 
 		default:

@@ -22,14 +22,14 @@ namespace tix
 		FRenderResourceHeap();
 		~FRenderResourceHeap();
 
-		void Create(E_RENDER_RESOURCE_HEAP_TYPE HeapType, uint32 HeapSize, uint32 HeapOffset);
+		void Create(EResourceHeapType HeapType, uint32 HeapSize, uint32 HeapOffset);
 
 		//TI_API FRenderResourceTablePtr AllocateTable(uint32 Size);
 		TI_API void InitResourceTable(FRenderResourceTablePtr OutTable);
 
 		TI_API void RecallTable(const FRenderResourceTable& Table);
 
-		E_RENDER_RESOURCE_HEAP_TYPE GetHeapType() const
+		EResourceHeapType GetHeapType() const
 		{
 			return HeapType;
 		}
@@ -41,7 +41,7 @@ namespace tix
 	private:
 
 	private:
-		E_RENDER_RESOURCE_HEAP_TYPE HeapType;
+		EResourceHeapType HeapType;
 		THMap<uint32, TVector<uint32>> AvaibleHeapTables;
 		uint32 Allocated;
 		uint32 Size;

@@ -22,16 +22,16 @@ namespace tix
 	struct FBoundResource
 	{
 		FBoundResource()
-			: PrimitiveType(EPT_INVALID)
+			: PrimitiveType(EPrimitiveType::Invalid)
 		{}
 
-		E_PRIMITIVE_TYPE PrimitiveType;
+		EPrimitiveType PrimitiveType;
 		FPipelinePtr Pipeline;
 		FShaderBindingPtr ShaderBinding;
 
 		void Reset()
 		{
-			PrimitiveType = EPT_INVALID;
+			PrimitiveType = EPrimitiveType::Invalid;
 			Pipeline = nullptr;
 			ShaderBinding = nullptr;
 		}
@@ -78,7 +78,7 @@ namespace tix
 		// Create Graphics and Compute related resources
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) = 0;
-		virtual FRenderResourceTablePtr CreateRenderResourceTable(uint32 InSize, E_RENDER_RESOURCE_HEAP_TYPE InHeap);
+		virtual FRenderResourceTablePtr CreateRenderResourceTable(uint32 InSize, EResourceHeapType InHeap);
 		virtual FShaderPtr CreateShader(const TShaderNames& InNames, E_SHADER_TYPE Type) = 0;
 		virtual FShaderPtr CreateComputeShader(const TString& InComputeShaderName) = 0;
 		virtual FArgumentBufferPtr CreateArgumentBuffer(int32 ReservedSlots) = 0;
@@ -103,17 +103,17 @@ namespace tix
 		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) = 0;
 		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) = 0;
 
-		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutTextureInHeap(FTexturePtr InTexture, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutRWTextureInHeap(FTexturePtr InTexture, uint32 InMipLevel, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutVertexBufferInHeap(FVertexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InVBHeapSlot) = 0;
-		virtual void PutIndexBufferInHeap(FIndexBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, int32 InIBHeapSlot) = 0;
-		virtual void PutInstanceBufferInHeap(FInstanceBufferPtr InBuffer, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutTextureInHeap(FTexturePtr InTexture, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutRWTextureInHeap(FTexturePtr InTexture, uint32 InMipLevel, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutVertexBufferInHeap(FVertexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InVBHeapSlot) = 0;
+		virtual void PutIndexBufferInHeap(FIndexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InIBHeapSlot) = 0;
+		virtual void PutInstanceBufferInHeap(FInstanceBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
 		virtual void PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot) = 0;
 		virtual void PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot) = 0;
-		virtual void PutTopAccelerationStructureInHeap(FTopLevelAccelerationStructurePtr InTLAS, E_RENDER_RESOURCE_HEAP_TYPE InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutTopAccelerationStructureInHeap(FTopLevelAccelerationStructurePtr InTLAS, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
 
 		// Graphics
 		virtual void SetGraphicsPipeline(FPipelinePtr InPipeline) = 0;
@@ -169,9 +169,10 @@ namespace tix
 			return Viewport;
 		}
 
-		FRenderResourceHeap& GetRenderResourceHeap(int32 Index)
+		FRenderResourceHeap& GetRenderResourceHeap(EResourceHeapType Type)
 		{
-			TI_ASSERT(Index >= 0 && Index < EHT_COUNT);
+			int32 Index = static_cast<int32>(Type);
+			TI_ASSERT(Index >= 0 && Index < NumResourceHeapTypes);
 			return RenderResourceHeap[Index];
 		}
 
@@ -197,7 +198,7 @@ namespace tix
 		FRenderTargetPtr CurrentRenderTarget;
 		FViewport RtViewport;
 
-		FRenderResourceHeap RenderResourceHeap[EHT_COUNT];
+		FRenderResourceHeap RenderResourceHeap[NumResourceHeapTypes];
 		FBoundResource CurrentBoundResource;
 	};
 }

@@ -44,7 +44,7 @@ namespace tix
 		}
 		else
 		{
-			_LOG(Warning, "Failed to find level node - [%s]\n", LevelName.c_str());
+			_LOG(ELogLevel::Warning, "Failed to find level node - [%s]\n", LevelName.c_str());
 		}
 	}
 
