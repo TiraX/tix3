@@ -157,6 +157,29 @@ namespace tix
 			}
 		}
 
+		void operator << (FInt3& OutVec3) const
+		{
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 3));
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec3.X;
+				(*this)[1] << OutVec3.Y;
+				(*this)[2] << OutVec3.Z;
+			}
+		}
+
+		void operator << (FInt4& OutVec4) const
+		{
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 4));
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec4.X;
+				(*this)[1] << OutVec4.Y;
+				(*this)[2] << OutVec4.Z;
+				(*this)[3] << OutVec4.W;
+			}
+		}
+
 		void operator << (FFloat2& OutVec2) const
 		{
 			TI_ASSERT(IsNull() || (IsArray() && Size() == 2));
@@ -175,6 +198,18 @@ namespace tix
 				(*this)[0] << OutVec3.X;
 				(*this)[1] << OutVec3.Y;
 				(*this)[2] << OutVec3.Z;
+			}
+		}
+
+		void operator << (FFloat4& OutVec4) const
+		{
+			TI_ASSERT(IsNull() || (IsArray() && Size() == 4));
+			if (!IsNull())
+			{
+				(*this)[0] << OutVec4.X;
+				(*this)[1] << OutVec4.Y;
+				(*this)[2] << OutVec4.Z;
+				(*this)[3] << OutVec4.W;
 			}
 		}
 
