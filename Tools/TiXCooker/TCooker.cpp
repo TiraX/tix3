@@ -282,7 +282,7 @@ namespace tix
 		JsonDoc.Parse(FileContent);
 
 		TString AssetTypeName;
-		JsonDoc["type"] << AssetTypeName;
+		JsonDoc["file_type"] << AssetTypeName;
 		TCooker* Cooker = TCooker::GetCookerByName(AssetTypeName);
 		if (Cooker == nullptr)
 		{

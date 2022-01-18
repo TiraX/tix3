@@ -251,7 +251,7 @@ FTiXScene::FTiXScene(UWorld* InWorld)
 	, SkylightCube(nullptr)
 {
 	SceneDesc.name = InWorld->GetName();
-	SceneDesc.type = TEXT("scene");
+	SceneDesc.file_type = TEXT("scene");
 	SceneDesc.version = 1;
 	SceneDesc.desc = TEXT("Scene and scene tiles information from TiX exporter.");
 }
@@ -385,7 +385,7 @@ FTiXSceneTile* FTiXScene::CreateSceneTile(const FIntPoint& TileIndex)
 	FString TileName = FString::Printf(TEXT("t%d_%d"), TileIndex.X, TileIndex.Y);
 	Tile->SceneTileDesc.name = SceneName + TEXT("_") + TileName;
 	Tile->SceneTileDesc.level = SceneName;
-	Tile->SceneTileDesc.type = TEXT("scene_tile");
+	Tile->SceneTileDesc.file_type = TEXT("scene_tile");
 	Tile->SceneTileDesc.version = 1;
 	Tile->SceneTileDesc.desc = TEXT("Scene tiles contains mesh instance information from TiX exporter.");
 	Tile->SceneTileDesc.position = ToArray(TileIndex);

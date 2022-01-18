@@ -214,7 +214,7 @@ struct FTiXSceneDesc
 	FString name;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;
@@ -318,7 +318,7 @@ struct FTiXSceneTileDesc
 	FString level;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;
@@ -397,7 +397,7 @@ struct FTiXStaticMesh
 	FString name;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;
@@ -434,7 +434,7 @@ struct FTiXMaterial
 	FString name;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;
@@ -516,7 +516,7 @@ struct FTiXMaterialInstance
 	FString name;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;
@@ -545,7 +545,7 @@ struct FTiXTexture
 	FString name;
 
 	UPROPERTY()
-	FString type;
+	FString file_type;
 
 	UPROPERTY()
 	int32 version;

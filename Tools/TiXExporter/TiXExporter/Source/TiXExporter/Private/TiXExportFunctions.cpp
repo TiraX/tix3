@@ -243,7 +243,7 @@ void FTiXExportFunctions::ExportStaticMesh(UStaticMesh* SM)
 	// Fill Structure
 	FTiXStaticMesh SMDesc;
 	SMDesc.name = SM->GetName();
-	SMDesc.type = TEXT("static_mesh");
+	SMDesc.file_type = TEXT("static_mesh");
 	SMDesc.version = 1;
 	SMDesc.desc = TEXT("Static mesh (Render Resource) from TiX exporter.");
 	SMDesc.vertex_count_total = VertexData.Num();
@@ -287,7 +287,7 @@ void FTiXExportFunctions::ExportMaterial(UMaterial* M)
 {
 	FTiXMaterial MaterialDesc;
 	MaterialDesc.name = M->GetName();
-	MaterialDesc.type = TEXT("material");
+	MaterialDesc.file_type = TEXT("material");
 	MaterialDesc.version = 1;
 	MaterialDesc.desc = TEXT("Material from TiX exporter.");
 
@@ -353,7 +353,7 @@ void FTiXExportFunctions::ExportMaterialInstance(UMaterialInstance* MI)
 {
 	FTiXMaterialInstance MIDesc;
 	MIDesc.name = MI->GetName();
-	MIDesc.type = TEXT("material_instance");
+	MIDesc.file_type = TEXT("material_instance");
 	MIDesc.version = 1;
 	MIDesc.desc = TEXT("Material instance from TiX exporter.");
 	UMaterialInterface * ParentMaterial = MI->Parent;
@@ -476,7 +476,7 @@ void FTiXExportFunctions::ExportTexture(UTexture* T, const FString& ExportPath, 
 	// Export a Json Desc
 	FTiXTexture TextureDesc;
 	TextureDesc.name = T->GetName();
-	TextureDesc.type = TEXT("texture");
+	TextureDesc.file_type = TEXT("texture");
 	TextureDesc.version = 1;
 	TextureDesc.desc = TEXT("Texture from TiX exporter.");
 	TextureDesc.source = T->GetName() + TEXT(".") + ImageExtName;
