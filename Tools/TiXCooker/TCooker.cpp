@@ -88,8 +88,8 @@ bool ParseParams(int argc, TIX_COOKER_CONST int8* argv[])
 				key = param;
 			}
 
-			tolower(key);
-			tolower(value);
+			TStringToLower(key);
+			TStringToLower(value);
 
 			if (key == "example")
 			{

@@ -29,6 +29,34 @@ namespace tix
 		}
 	}
 
+	inline TString& TStringToLower(TString& text)
+	{
+		transform(text.begin(), text.end(), text.begin(), ::tolower);
+		return text;
+	}
+
+	inline TString& TStringToUpper(TString& text)
+	{
+		transform(text.begin(), text.end(), text.begin(), ::toupper);
+		return text;
+	}
+
+	inline void TStringSplit(const TString& S, int8 C, TVector<TString>& OutStrings)
+	{
+		TString::size_type Pos1, Pos2;
+		Pos2 = S.find(C);
+		Pos1 = 0;
+		while (std::string::npos != Pos2)
+		{
+			OutStrings.push_back(S.substr(Pos1, Pos2 - Pos1));
+
+			Pos1 = Pos2 + 1;
+			Pos2 = S.find(C, Pos1);
+		}
+		if (Pos1 != S.length())
+			OutStrings.push_back(S.substr(Pos1));
+	}
+
 	inline void GetPathAndName(const TString& FullPathName, TString& Path, TString& Name)
 	{
 		TString FullPathName1 = FullPathName;

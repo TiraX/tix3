@@ -7,24 +7,7 @@
 
 namespace tix
 {
-
 	// help functions
-	inline TString& trim(TString& text)
-	{
-		if (!text.empty())
-		{
-			text.erase(0, text.find_first_not_of(" \n\r\t"));
-			text.erase(text.find_last_not_of(" \n\r\t") + 1);
-		}
-		return text;
-	}
-
-	inline TString& tolower(TString& text)
-	{
-		transform(text.begin(), text.end(), text.begin(), ::tolower);
-		return text;
-	}
-
 	inline void FillZero4(TStream& Stream)
 	{
 		char zero[64] = { 0 };
