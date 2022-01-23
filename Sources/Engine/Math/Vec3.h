@@ -314,6 +314,7 @@ namespace tix
 
 	//! Typedef for an integer 3d vector.
 	typedef FVec3<int32> FInt3;
+	typedef FVec3<uint32> FUInt3;
 
 	//! Function multiplying a scalar and a vector component-wise.
 	template<class S, class T>
