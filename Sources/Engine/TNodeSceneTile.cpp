@@ -110,7 +110,7 @@ namespace tix
 						TStaticMeshPtr StaticMesh = static_cast<TStaticMesh*>(MeshResources[0].get());
 						// MeshResources Include static mesh, mesh sections and 1 collision set
 						LinkedPrimitive = ti_new FPrimitive;
-						LinkedPrimitive->SetInstancedStaticMesh(
+						LinkedPrimitive->InitFromInstancedStaticMesh(
 							StaticMesh,
 							SceneTileResource->SMInstances.InstanceBuffer->InstanceBufferResource,
 							SceneTileResource->SMInstances.InstanceCountAndOffset[m].X,

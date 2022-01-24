@@ -75,7 +75,7 @@ namespace tix
 		TNodeSceneTile * SceneTileNode = static_cast<TNodeSceneTile *>(SceneTileParent);
 
 		LinkedPrimitive = ti_new FPrimitive;
-		LinkedPrimitive->SetInstancedStaticMesh(
+		LinkedPrimitive->InitFromInstancedStaticMesh(
 			InStaticMesh,
 			InInstanceBuffer != nullptr ? InInstanceBuffer->InstanceBufferResource : nullptr,
 			InInstanceCount,

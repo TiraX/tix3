@@ -55,26 +55,6 @@ namespace tix
 		ti_delete[] string_offsets;
 	}
 
-	inline uint8 FloatToUNorm(float n)
-	{
-		if (n < -1.f)
-			n = -1.f;
-		if (n > 1.f)
-			n = 1.f;
-		n = n * 0.5f + 0.5f;
-		float n0 = n * 255.f + 0.5f;
-		return (uint8)n0;
-	}
-	inline uint8 FloatToColor(float n)
-	{
-		if (n < 0.f)
-			n = 0.f;
-		if (n > 1.f)
-			n = 1.f;
-		float n0 = n * 255.f + 0.5f;
-		return (uint8)n0;
-	}
-
 	template< class T >
 	int32 IndexInArray (const T& v, const TVector<T>& Arr)
 	{

@@ -343,37 +343,29 @@ namespace tix
 					FFloat3 pos(DataPos[0], DataPos[1], DataPos[2]);
 					MeshHeader.BBox.AddInternalPoint(pos);
 
-					TI_ASSERT(sizeof(FFloat3) == TMeshBuffer::SemanticSize[ESSI_POSITION]);
+					TI_ASSERT(sizeof(FFloat3) == TVertexBuffer::SemanticSize[ESSI_POSITION]);
 					DataStream.Put(DataPos, sizeof(FFloat3));
 					DataPos += Mesh.Segments[ESSI_POSITION].StrideInFloat;
 				}
 				if (DataNormal != nullptr)
 				{
-					uint8 NData[4];
-					NData[0] = FloatToUNorm(DataNormal[0]);
-					NData[1] = FloatToUNorm(DataNormal[1]);
-					NData[2] = FloatToUNorm(DataNormal[2]);
-					NData[3] = 255;
+					FByte4 NData = TVertexBuffer::EncodeNormalToByte4(FFloat3(DataNormal[0], DataNormal[1], DataNormal[2]));
 
-					TI_ASSERT(sizeof(NData) == TMeshBuffer::SemanticSize[ESSI_NORMAL]);
-					DataStream.Put(NData, sizeof(NData));
+					TI_ASSERT(sizeof(NData) == TVertexBuffer::SemanticSize[ESSI_NORMAL]);
+					DataStream.Put(NData.Data(), sizeof(FByte4));
 					DataNormal += Mesh.Segments[ESSI_NORMAL].StrideInFloat;
 				}
 				if (DataColor != nullptr)
 				{
-					uint8 CData[4];
-					CData[0] = FloatToColor(DataColor[0]);
-					CData[1] = FloatToColor(DataColor[1]);
-					CData[2] = FloatToColor(DataColor[2]);
-					CData[3] = FloatToColor(DataColor[3]);
+					FByte4 CData = TVertexBuffer::EncodeColorToByte4(FFloat4(DataColor[0], DataColor[1], DataColor[2], DataColor[3]));
 
-					TI_ASSERT(sizeof(CData) == TMeshBuffer::SemanticSize[ESSI_COLOR]);
-					DataStream.Put(CData, sizeof(CData));
+					TI_ASSERT(sizeof(CData) == TVertexBuffer::SemanticSize[ESSI_COLOR]);
+					DataStream.Put(CData.Data(), sizeof(FByte4));
 					DataColor += Mesh.Segments[ESSI_COLOR].StrideInFloat;
 				}
 				if (DataUv0 != nullptr)
 				{
-					TI_ASSERT(sizeof(float16) * 2 == TMeshBuffer::SemanticSize[ESSI_TEXCOORD0]);
+					TI_ASSERT(sizeof(float16) * 2 == TVertexBuffer::SemanticSize[ESSI_TEXCOORD0]);
 					float16 UvHalf[2];
 					UvHalf[0] = DataUv0[0];
 					UvHalf[1] = DataUv0[1];
@@ -382,7 +374,7 @@ namespace tix
 				}
 				if (DataUv1 != nullptr)
 				{
-					TI_ASSERT(sizeof(float16) * 2 == TMeshBuffer::SemanticSize[ESSI_TEXCOORD1]);
+					TI_ASSERT(sizeof(float16) * 2 == TVertexBuffer::SemanticSize[ESSI_TEXCOORD1]);
 					float16 UvHalf[2];
 					UvHalf[0] = DataUv1[0];
 					UvHalf[1] = DataUv1[1];
@@ -391,19 +383,15 @@ namespace tix
 				}
 				if (DataTangent != nullptr)
 				{
-					uint8 TData[4];
-					TData[0] = FloatToUNorm(DataTangent[0]);
-					TData[1] = FloatToUNorm(DataTangent[1]);
-					TData[2] = FloatToUNorm(DataTangent[2]);
-					TData[3] = 255;
+					FByte4 TData = TVertexBuffer::EncodeNormalToByte4(FFloat3(DataTangent[0], DataTangent[1], DataTangent[2]));
 
-					TI_ASSERT(sizeof(TData) == TMeshBuffer::SemanticSize[ESSI_TANGENT]);
-					DataStream.Put(TData, sizeof(TData));
+					TI_ASSERT(sizeof(TData) == TVertexBuffer::SemanticSize[ESSI_TANGENT]);
+					DataStream.Put(TData.Data(), sizeof(FByte4));
 					DataTangent += Mesh.Segments[ESSI_TANGENT].StrideInFloat;
 				}
 				if (DataBI != nullptr)
 				{
-					TI_ASSERT(sizeof(uint8) * 4 == TMeshBuffer::SemanticSize[ESSI_BLENDINDEX]);
+					TI_ASSERT(sizeof(uint8) * 4 == TVertexBuffer::SemanticSize[ESSI_BLENDINDEX]);
 					uint8 BIData[4];
 					BIData[0] = (uint8)DataBI[0];
 					BIData[1] = (uint8)DataBI[1];
@@ -414,14 +402,10 @@ namespace tix
 				}
 				if (DataBW != nullptr)
 				{
-					uint8 BWData[4];
-					BWData[0] = FloatToColor(DataBW[0]);
-					BWData[1] = FloatToColor(DataBW[1]);
-					BWData[2] = FloatToColor(DataBW[2]);
-					BWData[3] = FloatToColor(DataBW[3]);
+					FByte4 BWData = TVertexBuffer::EncodeColorToByte4(FFloat4(DataBW[0], DataBW[1], DataBW[2], DataBW[3]));
 
-					TI_ASSERT((int32)sizeof(BWData) == TMeshBuffer::SemanticSize[ESSI_BLENDWEIGHT]);
-					DataStream.Put(BWData, sizeof(BWData));
+					TI_ASSERT((int32)sizeof(BWData) == TVertexBuffer::SemanticSize[ESSI_BLENDWEIGHT]);
+					DataStream.Put(BWData.Data(), sizeof(FByte4));
 					DataBW += Mesh.Segments[ESSI_BLENDWEIGHT].StrideInFloat;
 				}
 			}

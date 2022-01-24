@@ -13,7 +13,7 @@ namespace tix
 		DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FFloat4, VTDebugInfo)
 	END_UNIFORM_BUFFER_STRUCT(FPrimitiveUniformBuffer)
 
-	class FPrimitive : public IReferenceCounted
+	class TI_API FPrimitive : public IReferenceCounted
 	{
 	public:
 		enum {
@@ -23,13 +23,14 @@ namespace tix
 		FPrimitive();
 		~FPrimitive();
 
-		void SetInstancedStaticMesh(
+		void InitFromData(TVertexBufferPtr VB, TIndexBufferPtr IB, TMaterialInstancePtr MatInst);
+		void InitFromInstancedStaticMesh(
 			TStaticMeshPtr InStaticMesh,
 			FInstanceBufferPtr InInstanceBuffer,
 			uint32 InInstanceCount,
 			uint32 InInstanceOffset
 		);
-		void SetSkeletalMesh(
+		void InitFromSkeletalMesh(
 			TStaticMeshPtr InStaticMesh
 		);
 		void SetSkeletonResource(
@@ -42,13 +43,11 @@ namespace tix
 			FSection()
 				: IndexStart(0)
 				, Triangles(0)
-				, DrawList(LIST_INVALID)
 			{}
 			int32 IndexStart;
 			int32 Triangles;
 			FPipelinePtr Pipeline;
 			FArgumentBufferPtr Argument;
-			E_DRAWLIST_TYPE DrawList;
 			FUniformBufferPtr SkeletonResourceRef;
 		};
 		int32 GetNumSections() const

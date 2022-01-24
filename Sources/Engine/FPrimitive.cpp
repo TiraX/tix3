@@ -22,7 +22,23 @@ namespace tix
 		PrimitiveUniformBuffer = nullptr;
 	}
 
-	void FPrimitive::SetInstancedStaticMesh(
+	void FPrimitive::InitFromData(TVertexBufferPtr VB, TIndexBufferPtr IB, TMaterialInstancePtr MatInst)
+	{
+		TI_ASSERT(IsGameThread());
+		// Add mesh buffer
+		VertexBuffer = VB->VertexBufferResource;
+		IndexBuffer = IB->IndexBufferResource;
+		TI_ASSERT(VertexBuffer != nullptr && IndexBuffer != nullptr);
+
+		// Add a default section.
+		Sections.resize(1);
+		Sections[0].IndexStart = 0;
+		Sections[0].Triangles = IB->GetDesc().IndexCount / 3;
+		Sections[0].Pipeline = MatInst->LinkedMaterial->PipelineResource;
+		Sections[0].Argument = MatInst->ArgumentBuffer;
+	}
+
+	void FPrimitive::InitFromInstancedStaticMesh(
 		TStaticMeshPtr InStaticMesh, 
 		FInstanceBufferPtr InInstanceBuffer,
 		uint32 InInstanceCount,
@@ -55,23 +71,11 @@ namespace tix
 			PrimitiveSection.Pipeline = Material->PipelineResource;
 			PrimitiveSection.Argument = Section.DefaultMaterial->ArgumentBuffer;
 			
-			if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
-			{
-				PrimitiveSection.DrawList = LIST_OPAQUE;
-			}
-			else if (Material->GetBlendMode() == BLEND_MODE_MASK)
-			{
-				PrimitiveSection.DrawList = LIST_MASK;
-			}
-			else
-			{
-				PrimitiveSection.DrawList = LIST_TRANSLUCENT;
-			}
 			Sections.push_back(PrimitiveSection);
 		}
 	}
 
-	void FPrimitive::SetSkeletalMesh(TStaticMeshPtr InStaticMesh)
+	void FPrimitive::InitFromSkeletalMesh(TStaticMeshPtr InStaticMesh)
 	{
 		TI_ASSERT(IsGameThread());
 		// Add mesh buffer
@@ -95,18 +99,6 @@ namespace tix
 			PrimitiveSection.Pipeline = Material->PipelineResource;
 			PrimitiveSection.Argument = Section.DefaultMaterial->ArgumentBuffer;
 
-			if (Material->GetBlendMode() == BLEND_MODE_OPAQUE)
-			{
-				PrimitiveSection.DrawList = LIST_OPAQUE;
-			}
-			else if (Material->GetBlendMode() == BLEND_MODE_MASK)
-			{
-				PrimitiveSection.DrawList = LIST_MASK;
-			}
-			else
-			{
-				PrimitiveSection.DrawList = LIST_TRANSLUCENT;
-			}
 			Sections.push_back(PrimitiveSection);
 		}
 	}

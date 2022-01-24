@@ -46,6 +46,27 @@ namespace tix
 		{}
 	};
 
+	inline uint8 FloatToUNorm(float n)
+	{
+		if (n < -1.f)
+			n = -1.f;
+		if (n > 1.f)
+			n = 1.f;
+		n = n * 0.5f + 0.5f;
+		float n0 = n * 255.f + 0.5f;
+		return (uint8)n0;
+	}
+
+	inline uint8 FloatToColor(float n)
+	{
+		if (n < 0.f)
+			n = 0.f;
+		if (n > 1.f)
+			n = 1.f;
+		float n0 = n * 255.f + 0.5f;
+		return (uint8)n0;
+	}
+
 	// TVertexBuffer, hold vertex data
 	class TI_API TVertexBuffer : public TResource
 	{
@@ -61,6 +82,25 @@ namespace tix
 
 		static uint32 GetStrideFromFormat(uint32 Format);
 		static TVector<E_MESH_STREAM_INDEX> GetSteamsFromFormat(uint32 Format);
+
+		inline static FByte4 EncodeNormalToByte4(const FFloat3& Normal)
+		{
+			FByte4 NData;
+			NData.X = FloatToUNorm(Normal.X);
+			NData.Y = FloatToUNorm(Normal.Y);
+			NData.Z = FloatToUNorm(Normal.Z);
+			return NData;
+		}
+
+		inline static FByte4 EncodeColorToByte4(const FFloat4& Color)
+		{
+			FByte4 CData;
+			CData.X = FloatToUNorm(Color.X);
+			CData.Y = FloatToUNorm(Color.Y);
+			CData.Z = FloatToUNorm(Color.Z);
+			CData.W = FloatToUNorm(Color.W);
+			return CData;
+		}
 
 		virtual void InitRenderThreadResource() override;
 		virtual void DestroyRenderThreadResource() override;

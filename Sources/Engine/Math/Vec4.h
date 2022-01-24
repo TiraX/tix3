@@ -149,6 +149,17 @@ namespace tix
 			return *this;
 		}
 
+		const T* Data() const
+		{
+			return reinterpret_cast<const T*>(this);
+		}
+
+		//!
+		T* Data()
+		{
+			return reinterpret_cast<T*>(this);
+		}
+
 		T X, Y, Z, W;
 	};
 
@@ -158,4 +169,6 @@ namespace tix
 	//! Typedef for an integer 4d vector.
 	typedef FVec4<int32> FInt4;
 	typedef FVec4<uint32> FUInt4;
+	//! Bytes 4
+	typedef FVec4<uint8> FByte4;
 }
