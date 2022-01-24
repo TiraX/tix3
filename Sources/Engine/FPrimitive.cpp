@@ -24,7 +24,7 @@ namespace tix
 
 	void FPrimitive::InitFromData(TVertexBufferPtr VB, TIndexBufferPtr IB, TMaterialInstancePtr MatInst)
 	{
-		TI_ASSERT(IsGameThread());
+		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
 		VertexBuffer = VB->VertexBufferResource;
 		IndexBuffer = IB->IndexBufferResource;
@@ -44,7 +44,7 @@ namespace tix
 		uint32 InInstanceCount,
 		uint32 InInstanceOffset)
 	{
-		TI_ASSERT(IsGameThread());
+		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
 		VertexBuffer = InStaticMesh->GetVertexBuffer()->VertexBufferResource;
 		IndexBuffer = InStaticMesh->GetIndexBuffer()->IndexBufferResource;
@@ -77,7 +77,7 @@ namespace tix
 
 	void FPrimitive::InitFromSkeletalMesh(TStaticMeshPtr InStaticMesh)
 	{
-		TI_ASSERT(IsGameThread());
+		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
 		VertexBuffer = InStaticMesh->GetVertexBuffer()->VertexBufferResource;
 		IndexBuffer = InStaticMesh->GetIndexBuffer()->IndexBufferResource;

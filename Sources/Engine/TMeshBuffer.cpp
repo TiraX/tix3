@@ -51,29 +51,38 @@ namespace tix
 		VertexBufferResource = ti_new FVertexBuffer(Desc);
 		VertexBufferResource->SetResourceName(GetResourceName());
 
-		FVertexBufferPtr VertexBuffer = VertexBufferResource;
-		TStreamPtr InData = Data;
-		ENQUEUE_RENDER_COMMAND(TVertexBufferUpdateFVertexBuffer)(
-			[VertexBuffer, InData]()
-			{
-				VertexBuffer->CreateGPUBuffer(InData);
-			});
-
+		if (IsRenderThread())
+		{
+			VertexBufferResource->CreateGPUBuffer(Data);
+		}
+		else
+		{
+			FVertexBufferPtr VertexBuffer = VertexBufferResource;
+			TStreamPtr InData = Data;
+			ENQUEUE_RENDER_COMMAND(TVertexBufferUpdateFVertexBuffer)(
+				[VertexBuffer, InData]()
+				{
+					VertexBuffer->CreateGPUBuffer(InData);
+				});
+		}
 		// release CPU memory after create render resource
-		Data = nullptr;	
+		Data = nullptr;
 	}
 
 	void TVertexBuffer::DestroyRenderThreadResource()
 	{
 		TI_ASSERT(VertexBufferResource != nullptr);
 
-		FVertexBufferPtr VertexBuffer = VertexBufferResource;
-		ENQUEUE_RENDER_COMMAND(TVertexBufferDestroyFVertexBuffer)(
-			[VertexBuffer]()
-			{
-				//VertexBuffer = nullptr;
-			});
-		VertexBuffer = nullptr;
+		if (!IsRenderThread())
+		{
+			FVertexBufferPtr VertexBuffer = VertexBufferResource;
+			ENQUEUE_RENDER_COMMAND(TVertexBufferDestroyFVertexBuffer)(
+				[VertexBuffer]()
+				{
+					//VertexBuffer = nullptr;
+				});
+			VertexBuffer = nullptr;
+		}
 		VertexBufferResource = nullptr;
 	}
 
@@ -112,13 +121,20 @@ namespace tix
 		IndexBufferResource = ti_new FIndexBuffer(Desc);
 		IndexBufferResource->SetResourceName(GetResourceName());
 
-		FIndexBufferPtr IndexBuffer = IndexBufferResource;
-		TStreamPtr InData = Data;
-		ENQUEUE_RENDER_COMMAND(TIndexBufferUpdateFIndexBuffer)(
-			[IndexBuffer, InData]()
-			{
-				IndexBuffer->CreateGPUBuffer(InData);
-			});
+		if (IsRenderThread())
+		{
+			IndexBufferResource->CreateGPUBuffer(Data);
+		}
+		else
+		{
+			FIndexBufferPtr IndexBuffer = IndexBufferResource;
+			TStreamPtr InData = Data;
+			ENQUEUE_RENDER_COMMAND(TIndexBufferUpdateFIndexBuffer)(
+				[IndexBuffer, InData]()
+				{
+					IndexBuffer->CreateGPUBuffer(InData);
+				});
+		}
 
 		// release CPU memory after create render resource
 		Data = nullptr;
@@ -128,13 +144,16 @@ namespace tix
 	{
 		TI_ASSERT(IndexBufferResource != nullptr);
 
-		FIndexBufferPtr IndexBuffer = IndexBufferResource;
-		ENQUEUE_RENDER_COMMAND(TIndexBufferDestroyFIndexBuffer)(
-			[IndexBuffer]()
-			{
-				//IndexBuffer = nullptr;
-			});
-		IndexBuffer = nullptr;
+		if (!IsRenderThread())
+		{
+			FIndexBufferPtr IndexBuffer = IndexBufferResource;
+			ENQUEUE_RENDER_COMMAND(TIndexBufferDestroyFIndexBuffer)(
+				[IndexBuffer]()
+				{
+					//IndexBuffer = nullptr;
+				});
+			IndexBuffer = nullptr;
+		}
 		IndexBufferResource = nullptr;
 	}
 

@@ -103,25 +103,24 @@ namespace tix
 					if (MeshAsset->IsLoaded())
 					{
 						// Gather loaded mesh resources
-						FPrimitivePtr LinkedPrimitive;
-
 						const TVector<TResourcePtr>& MeshResources = MeshAsset->GetResources();
 						TI_ASSERT(MeshResources[0]->GetType() == ERES_STATIC_MESH);
 						TStaticMeshPtr StaticMesh = static_cast<TStaticMesh*>(MeshResources[0].get());
-						// MeshResources Include static mesh, mesh sections and 1 collision set
-						LinkedPrimitive = ti_new FPrimitive;
-						LinkedPrimitive->InitFromInstancedStaticMesh(
-							StaticMesh,
-							SceneTileResource->SMInstances.InstanceBuffer->InstanceBufferResource,
-							SceneTileResource->SMInstances.InstanceCountAndOffset[m].X,
-							SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y
-						);
 
 						// Add primitive to scene
-						FPrimitivePtr Primitive = LinkedPrimitive;
+						FInstanceBufferPtr InstanceBuffer = SceneTileResource->SMInstances.InstanceBuffer->InstanceBufferResource;
+						FInt2 CountAndOffset = SceneTileResource->SMInstances.InstanceCountAndOffset[m];
+
 						ENQUEUE_RENDER_COMMAND(AddTSceneTileMeshPrimitivesToFScene)(
-							[Primitive]()
+							[StaticMesh, InstanceBuffer, CountAndOffset]()
 							{
+								FPrimitivePtr Primitive = ti_new FPrimitive;
+								Primitive->InitFromInstancedStaticMesh(
+									StaticMesh,
+									InstanceBuffer,
+									CountAndOffset.X,
+									CountAndOffset.Y
+								);
 								FRenderThread::Get()->GetRenderScene()->AddPrimitive(Primitive);
 							});
 
