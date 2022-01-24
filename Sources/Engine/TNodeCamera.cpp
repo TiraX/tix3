@@ -69,7 +69,7 @@ namespace tix
 			ENQUEUE_RENDER_COMMAND(UpdateViewProjectionRenderThread)(
 				[Info]()
 				{
-					FScene* Scene = FRenderThread::Get()->GetRenderScene();
+					FSceneInterface* Scene = FRenderThread::Get()->GetRenderScene();
 					Scene->SetViewProjection(Info);
 				});
 		}

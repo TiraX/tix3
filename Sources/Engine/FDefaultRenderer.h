@@ -8,21 +8,20 @@
 namespace tix
 {
 	class FRHI;
-	class FScene;
 
 	// Default Renderer
-	class TI_API FDefaultRenderer : public FRenderer
+	class TI_API FDefaultRenderer : public FRendererInterface
 	{
 	public:
-		FDefaultRenderer();
+		FDefaultRenderer(FSceneInterface* InScene);
 		virtual ~FDefaultRenderer();
 
 		virtual void InitInRenderThread() override;
-		virtual void InitRenderFrame(FScene* Scene) override;
-		virtual void EndRenderFrame(FScene* Scene) override;
-		virtual void Render(FRHI* RHI, FScene* Scene) override;
+		virtual void InitRenderFrame() override;
+		virtual void EndRenderFrame() override;
+		virtual void Render(FRHI* RHI) override;
 
-		virtual void ApplyShaderParameter(FRHI * RHI, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex);
+		virtual void ApplyShaderParameter(FRHI * RHI, FPrimitivePtr Primitive, int32 SectionIndex);
 
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() override
 		{
@@ -30,13 +29,22 @@ namespace tix
 		}
 
 	protected:
-		void BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex);
+		void BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex);
 		//void BindMaterialInstanceArgument(FRHI * RHI, FShaderBindingPtr InShaderBinding, FArgumentBufferPtr ArgumentBuffer);
 
-		void DrawSceneTiles(FRHI* RHI, FScene* Scene);
+		void DrawPrimitives(FRHI* RHI);
+		void PrepareViewUniforms();
 
 	protected:
+		// Scene to render
+		FDefaultScene* Scene;
+
+		// Uniform buffers
+		FViewUniformBufferPtr ViewUniformBuffer;
+
 		// Common Resources
 		FUniformBufferPtr CounterResetUniformBuffer;
+
+		friend class FDefaultScene;
 	};
 }

@@ -147,13 +147,33 @@ namespace tix
 		return Device;
 	}
 
-	void TEngine::UseDefaultRenderer()
+	TI_API void UseDefaultRenderer(FSceneInterface* Scene);
+	TI_API void SetScene(FSceneInterface* Scene);
+	TI_API void SetRenderer(FRendererInterface* Renderer);
+
+	FSceneInterface* TEngine::UseDefaultScene()
 	{
-		FRenderer * Renderer = ti_new FDefaultRenderer;
-		AssignRenderer(Renderer);
+		FSceneInterface* DefaultScene = ti_new FDefaultScene;
+		SetScene(DefaultScene);
+		return DefaultScene;
 	}
 
-	void TEngine::AssignRenderer(FRenderer* Renderer)
+	void TEngine::UseDefaultRenderer(FSceneInterface* Scene)
+	{
+		FRendererInterface* DefaultRenderer = ti_new FDefaultRenderer(Scene);
+		SetRenderer(DefaultRenderer);
+	}
+
+	void TEngine::SetScene(FSceneInterface* Scene)
+	{
+		ENQUEUE_RENDER_COMMAND(AddSceneInRenderThread)(
+			[Scene]()
+			{
+				FRenderThread::Get()->AssignScene(Scene);
+			});
+	}
+
+	void TEngine::SetRenderer(FRendererInterface* Renderer)
 	{
 		ENQUEUE_RENDER_COMMAND(AddRendererInRenderThread)(
 			[Renderer]()

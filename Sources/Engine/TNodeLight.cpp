@@ -18,17 +18,19 @@ namespace tix
 
 	TNodeLight::~TNodeLight()
 	{
-		if (LightResource != nullptr)
-		{
-			// Remove FLight from FSceneLights
-			FLightPtr InLight = LightResource;
-			ENQUEUE_RENDER_COMMAND(RemoveFLightFromFScene)(
-				[InLight]()
-				{
-					InLight->RemoveFromSceneLights_RenderThread();
-				});
-			LightResource = nullptr;
-		}
+		TI_ASSERT(0);
+		TI_TODO("A new way to add lights to FScene");
+		//if (LightResource != nullptr)
+		//{
+		//	 Remove FLight from FSceneLights
+		//	FLightPtr InLight = LightResource;
+		//	ENQUEUE_RENDER_COMMAND(RemoveFLightFromFScene)(
+		//		[InLight]()
+		//		{
+		//			InLight->RemoveFromSceneLights_RenderThread();
+		//		});
+		//	LightResource = nullptr;
+		//}
 	}
 
 	void TNodeLight::UpdateAbsoluteTransformation()
@@ -44,14 +46,16 @@ namespace tix
 
 			AffectBox.Move(AbsoluteTransformation.GetTranslation());
 
-			// Update FLight Position in render thread
-			FLightPtr InLight = LightResource;
-			FFloat3 InPosition = GetAbsolutePosition();
-			ENQUEUE_RENDER_COMMAND(UpdateFLightPosition)(
-				[InLight, InPosition]()
-				{
-					InLight->UpdateLightPosition_RenderThread(InPosition);
-				});
+			TI_ASSERT(0);
+			TI_TODO("A new way to add lights to FScene");
+			//// Update FLight Position in render thread
+			//FLightPtr InLight = LightResource;
+			//FFloat3 InPosition = GetAbsolutePosition();
+			//ENQUEUE_RENDER_COMMAND(UpdateFLightPosition)(
+			//	[InLight, InPosition]()
+			//	{
+			//		InLight->UpdateLightPosition_RenderThread(InPosition);
+			//	});
 
 			// Notify scene , lights get dirty
 			TEngine::Get()->GetScene()->SetSceneFlag(SF_LIGHTS_DIRTY, true);
@@ -72,15 +76,18 @@ namespace tix
 
 	void TNodeLight::CreateFLight()
 	{
-		TI_ASSERT(LightResource == nullptr);
-		LightResource = ti_new FLight(this);
+		TI_ASSERT(0);
+		TI_TODO("A new way to add lights to FScene");
 
-		// Add FLight to FSceneLights
-		FLightPtr InLight = LightResource;
-		ENQUEUE_RENDER_COMMAND(AddFLightToFScene)(
-			[InLight]()
-			{
-				InLight->AddToSceneLights_RenderThread();
-			});
+		//TI_ASSERT(LightResource == nullptr);
+		//LightResource = ti_new FLight(this);
+
+		//// Add FLight to FSceneLights
+		//FLightPtr InLight = LightResource;
+		//ENQUEUE_RENDER_COMMAND(AddFLightToFScene)(
+		//	[InLight]()
+		//	{
+		//		InLight->AddToSceneLights_RenderThread();
+		//	});
 	}
 }

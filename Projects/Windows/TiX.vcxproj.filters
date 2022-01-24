@@ -64,9 +64,6 @@
     <ClCompile Include="..\..\Sources\Engine\FRenderThread.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FRenderer.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FRHI.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -92,9 +89,6 @@
       <Filter>Sources\Scene</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TNodeCamera.cpp">
-      <Filter>Sources\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FScene.cpp">
       <Filter>Sources\Scene</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TNodeStaticMesh.cpp">
@@ -151,12 +145,6 @@
     <ClCompile Include="..\..\Sources\Engine\FFullScreenRender.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\TNodeLight.cpp">
-      <Filter>Sources\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FLight.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FRenderResourceHeap.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -164,9 +152,6 @@
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FRenderResourceTable.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FSceneLights.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FShaderBinding.cpp">
@@ -220,9 +205,6 @@
     <ClCompile Include="..\..\Sources\Engine\TThreadLoading.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FPostProcess.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TAsset.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
@@ -267,9 +249,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FSceneTileResource.cpp">
-      <Filter>Sources\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\TCollisionSet.cpp">
       <Filter>Sources\Rendering</Filter>
@@ -333,6 +312,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FDefaultScene.cpp">
+      <Filter>Sources\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -426,9 +408,6 @@
     <ClInclude Include="..\..\Sources\Engine\FRenderThread.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FRenderer.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRHI.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
@@ -469,9 +448,6 @@
       <Filter>Sources\Scene</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TNodeCamera.h">
-      <Filter>Sources\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FScene.h">
       <Filter>Sources\Scene</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FMeshRelevance.h">
@@ -549,19 +525,10 @@
     <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\TNodeLight.h">
-      <Filter>Sources\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FLight.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRenderResourceHeap.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRenderResourceTable.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FSceneLights.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FShaderBinding.h">
@@ -621,9 +588,6 @@
     <ClInclude Include="..\..\Sources\Engine\TThreadLoading.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FPostProcess.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TAsset.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
@@ -668,9 +632,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandSignatureDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FSceneTileResource.h">
-      <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TCollisionSet.h">
       <Filter>Sources\Rendering</Filter>
@@ -752,6 +713,15 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FSceneInterface.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FDefaultScene.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRendererInterface.h">
+      <Filter>Sources\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

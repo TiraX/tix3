@@ -9,13 +9,88 @@
 
 namespace tix
 {
-	FDefaultRenderer::FDefaultRenderer()
+	FDefaultRenderer::FDefaultRenderer(FSceneInterface* InScene)
+		: FRendererInterface(InScene)
+		, Scene(nullptr)
 	{
+		Scene = dynamic_cast<FDefaultScene*>(InScene);
+		TI_ASSERT(Scene != nullptr);
 	}
 
 	FDefaultRenderer::~FDefaultRenderer()
 	{
 		TI_ASSERT(IsRenderThread());
+	}
+
+	// From UE4
+	void SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(FFloat4* OutSkyIrradianceEnvironmentMap, const FSHVectorRGB3& SkyIrradiance)
+	{
+		const float SqrtPI = TMath::Sqrt(PI);
+		const float Coefficient0 = 1.0f / (2 * SqrtPI);
+		const float Coefficient1 = TMath::Sqrt(3) / (3 * SqrtPI);
+		const float Coefficient2 = TMath::Sqrt(15) / (8 * SqrtPI);
+		const float Coefficient3 = TMath::Sqrt(5) / (16 * SqrtPI);
+		const float Coefficient4 = .5f * Coefficient2;
+
+		// Pack the SH coefficients in a way that makes applying the lighting use the least shader instructions
+		// This has the diffuse convolution coefficients baked in
+		// See "Stupid Spherical Harmonics (SH) Tricks"
+		OutSkyIrradianceEnvironmentMap[0].X = -Coefficient1 * SkyIrradiance.R.V[3];
+		OutSkyIrradianceEnvironmentMap[0].Y = -Coefficient1 * SkyIrradiance.R.V[1];
+		OutSkyIrradianceEnvironmentMap[0].Z = Coefficient1 * SkyIrradiance.R.V[2];
+		OutSkyIrradianceEnvironmentMap[0].W = Coefficient0 * SkyIrradiance.R.V[0] - Coefficient3 * SkyIrradiance.R.V[6];
+
+		OutSkyIrradianceEnvironmentMap[1].X = -Coefficient1 * SkyIrradiance.G.V[3];
+		OutSkyIrradianceEnvironmentMap[1].Y = -Coefficient1 * SkyIrradiance.G.V[1];
+		OutSkyIrradianceEnvironmentMap[1].Z = Coefficient1 * SkyIrradiance.G.V[2];
+		OutSkyIrradianceEnvironmentMap[1].W = Coefficient0 * SkyIrradiance.G.V[0] - Coefficient3 * SkyIrradiance.G.V[6];
+
+		OutSkyIrradianceEnvironmentMap[2].X = -Coefficient1 * SkyIrradiance.B.V[3];
+		OutSkyIrradianceEnvironmentMap[2].Y = -Coefficient1 * SkyIrradiance.B.V[1];
+		OutSkyIrradianceEnvironmentMap[2].Z = Coefficient1 * SkyIrradiance.B.V[2];
+		OutSkyIrradianceEnvironmentMap[2].W = Coefficient0 * SkyIrradiance.B.V[0] - Coefficient3 * SkyIrradiance.B.V[6];
+
+		OutSkyIrradianceEnvironmentMap[3].X = Coefficient2 * SkyIrradiance.R.V[4];
+		OutSkyIrradianceEnvironmentMap[3].Y = -Coefficient2 * SkyIrradiance.R.V[5];
+		OutSkyIrradianceEnvironmentMap[3].Z = 3 * Coefficient3 * SkyIrradiance.R.V[6];
+		OutSkyIrradianceEnvironmentMap[3].W = -Coefficient2 * SkyIrradiance.R.V[7];
+
+		OutSkyIrradianceEnvironmentMap[4].X = Coefficient2 * SkyIrradiance.G.V[4];
+		OutSkyIrradianceEnvironmentMap[4].Y = -Coefficient2 * SkyIrradiance.G.V[5];
+		OutSkyIrradianceEnvironmentMap[4].Z = 3 * Coefficient3 * SkyIrradiance.G.V[6];
+		OutSkyIrradianceEnvironmentMap[4].W = -Coefficient2 * SkyIrradiance.G.V[7];
+
+		OutSkyIrradianceEnvironmentMap[5].X = Coefficient2 * SkyIrradiance.B.V[4];
+		OutSkyIrradianceEnvironmentMap[5].Y = -Coefficient2 * SkyIrradiance.B.V[5];
+		OutSkyIrradianceEnvironmentMap[5].Z = 3 * Coefficient3 * SkyIrradiance.B.V[6];
+		OutSkyIrradianceEnvironmentMap[5].W = -Coefficient2 * SkyIrradiance.B.V[7];
+
+		OutSkyIrradianceEnvironmentMap[6].X = Coefficient4 * SkyIrradiance.R.V[8];
+		OutSkyIrradianceEnvironmentMap[6].Y = Coefficient4 * SkyIrradiance.G.V[8];
+		OutSkyIrradianceEnvironmentMap[6].Z = Coefficient4 * SkyIrradiance.B.V[8];
+		OutSkyIrradianceEnvironmentMap[6].W = 1;
+	}
+
+	void FDefaultRenderer::PrepareViewUniforms()
+	{
+		if (Scene->HasSceneFlag(FDefaultScene::ViewUniformDirty))
+		{
+			// Always make a new View uniform buffer for on-the-fly rendering
+			ViewUniformBuffer = ti_new FViewUniformBuffer();
+
+			const FViewProjectionInfo& VPInfo = Scene->GetViewProjection();
+			const FEnvironmentInfo& EnvInfo = Scene->GetEnvironmentInfo();
+			ViewUniformBuffer->UniformBufferData[0].VP = (VPInfo.MatProj * VPInfo.MatView).GetTransposed();
+			ViewUniformBuffer->UniformBufferData[0].ViewDir = VPInfo.CamDir;
+			ViewUniformBuffer->UniformBufferData[0].ViewPos = VPInfo.CamPos;
+
+			ViewUniformBuffer->UniformBufferData[0].MainLightDirection = -EnvInfo.MainLightDirection;
+			ViewUniformBuffer->UniformBufferData[0].MainLightColor = EnvInfo.MainLightColor * EnvInfo.MainLightIntensity;
+
+			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, EnvInfo.SkyIrradiance);
+
+			ViewUniformBuffer->InitUniformBuffer((uint32)EGPUResourceFlag::Intermediate);
+		}
 	}
 
 	void FDefaultRenderer::InitInRenderThread()
@@ -28,10 +103,10 @@ namespace tix
 		CounterResetUniformBuffer->CreateGPUBuffer(Data);
 	}
 
-	void FDefaultRenderer::InitRenderFrame(FScene* Scene)
+	void FDefaultRenderer::InitRenderFrame()
 	{
 		// Prepare frame view uniform buffer
-		Scene->InitRenderFrame();
+		PrepareViewUniforms();
 
 		TI_TODO("Remove draw list , use new gpu driven pipeline.");
 		// Prepare frame primitive uniform buffers
@@ -48,55 +123,48 @@ namespace tix
 		//}
 	}
 
-	void FDefaultRenderer::EndRenderFrame(FScene* Scene)
+	void FDefaultRenderer::EndRenderFrame()
 	{
 		// Clear the flags in this frame.
 		Scene->ClearSceneFlags();
 	}
 
-	void FDefaultRenderer::Render(FRHI* RHI, FScene* Scene)
+	void FDefaultRenderer::Render(FRHI* RHI)
 	{
 		RHI->BeginRenderToFrameBuffer();
-		DrawSceneTiles(RHI, Scene);
+		DrawPrimitives(RHI);
 	}
 
-	void FDefaultRenderer::DrawSceneTiles(FRHI* RHI, FScene* Scene)
+	void FDefaultRenderer::DrawPrimitives(FRHI* RHI)
 	{
-		const THMap<FInt2, FSceneTileResourcePtr>& SceneTileResources = Scene->GetSceneTiles();
-		for (auto& TileIter : SceneTileResources)
+		const TVector<FPrimitivePtr>& Prims = Scene->Primitives;
+		for (uint32 PIndex = 0; PIndex < (uint32)Prims.size(); ++PIndex)
 		{
-			const FInt2& TilePos = TileIter.first;
-			FSceneTileResourcePtr TileRes = TileIter.second;
+			FPrimitivePtr Primitive = Prims[PIndex];
 
-			const TVector<FPrimitivePtr>& TilePrimitives = TileRes->GetPrimitives();
-			for (uint32 PIndex = 0; PIndex < (uint32)TilePrimitives.size(); ++PIndex)
+			if (Primitive != nullptr)
 			{
-				FPrimitivePtr Primitive = TilePrimitives[PIndex];
-
-				if (Primitive != nullptr)
+				FInstanceBufferPtr InstanceBuffer = Primitive->GetInstanceBuffer();
+				FVertexBufferPtr VB = Primitive->GetVertexBuffer();
+				FIndexBufferPtr IB = Primitive->GetIndexBuffer();
+				for (int32 S = 0; S < Primitive->GetNumSections(); S++)
 				{
-					FInstanceBufferPtr InstanceBuffer = Primitive->GetInstanceBuffer();
-					FVertexBufferPtr VB = Primitive->GetVertexBuffer();
-					FIndexBufferPtr IB = Primitive->GetIndexBuffer();
-					for (int32 S = 0; S < Primitive->GetNumSections(); S++)
-					{
-						const FPrimitive::FSection& Section = Primitive->GetSection(S);
-						RHI->SetGraphicsPipeline(Section.Pipeline);
-						RHI->SetVertexBuffer(VB, InstanceBuffer);
-						RHI->SetIndexBuffer(IB);
-						ApplyShaderParameter(RHI, Scene, Primitive, S);
-						RHI->DrawPrimitiveIndexedInstanced(
-							Section.Triangles * 3,
-							InstanceBuffer == nullptr ? 1 : Primitive->GetInstanceCount(),
-							Section.IndexStart,
-							Primitive->GetInstanceOffset());
-					}
+					const FPrimitive::FSection& Section = Primitive->GetSection(S);
+					RHI->SetGraphicsPipeline(Section.Pipeline);
+					RHI->SetVertexBuffer(VB, InstanceBuffer);
+					RHI->SetIndexBuffer(IB);
+					ApplyShaderParameter(RHI, Primitive, S);
+					RHI->DrawPrimitiveIndexedInstanced(
+						Section.Triangles * 3,
+						InstanceBuffer == nullptr ? 1 : Primitive->GetInstanceCount(),
+						Section.IndexStart,
+						Primitive->GetInstanceOffset());
 				}
 			}
 		}
 	}
 
-	void FDefaultRenderer::BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex)
+	void FDefaultRenderer::BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex)
 	{
 		switch (Argument.ArgumentType)
 		{
@@ -104,7 +172,7 @@ namespace tix
 			// A custom argument, do nothing here.
 			break;
 		case ARGUMENT_EB_VIEW:
-			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Scene->GetViewUniformBuffer()->UniformBuffer);
+			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, ViewUniformBuffer->UniformBuffer);
 			break;
 		case ARGUMENT_EB_PRIMITIVE:
 			TI_ASSERT(Primitive != nullptr);
@@ -114,14 +182,12 @@ namespace tix
 			TI_ASSERT(Primitive->GetSection(SectionIndex).SkeletonResourceRef != nullptr);
 			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
 			break;
-		case ARGUMENT_EB_LIGHTS:
-			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Scene->GetSceneLights()->GetSceneLightsUniform()->UniformBuffer);
-			break;
 		case ARGUMENT_EB_ENV_CUBE:
 		{
+			TI_ASSERT(0);
 			TI_TODO("Env Light should use the nearest with Primitive, associate with Primitive Buffer. Remove ARGUMENT_EB_ENV_CUBE in future");
-			FEnvLightPtr EnvLight = Scene->FindNearestEnvLight(FFloat3());
-			RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
+			//FEnvLightPtr EnvLight = Scene->FindNearestEnvLight(FFloat3());
+			//RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
 			break;
 #if (COMPILE_WITH_RHI_METAL)
@@ -146,7 +212,7 @@ namespace tix
 		}
 	}
 
-	void FDefaultRenderer::ApplyShaderParameter(FRHI * RHI, FScene * Scene, FPrimitivePtr Primitive, int32 SectionIndex)
+	void FDefaultRenderer::ApplyShaderParameter(FRHI * RHI, FPrimitivePtr Primitive, int32 SectionIndex)
 	{
 		FShaderBindingPtr ShaderBinding = Primitive->GetSection(SectionIndex).Pipeline->GetShader()->GetShaderBinding();
 
@@ -154,14 +220,15 @@ namespace tix
 		const TVector<FShaderBinding::FShaderArgument>& VSArguments = ShaderBinding->GetVertexComputeShaderArguments();
 		for (const auto& Arg : VSArguments)
 		{
-			BindEngineBuffer(RHI, ESS_VERTEX_SHADER, Arg, Scene, Primitive, SectionIndex);
+			BindEngineBuffer(RHI, ESS_VERTEX_SHADER, Arg, Primitive, SectionIndex);
 		}
 
 		// bind pixel arguments
 		const TVector<FShaderBinding::FShaderArgument>& PSArguments = ShaderBinding->GetPixelShaderArguments();
 		for (const auto& Arg : PSArguments)
 		{
-			BindEngineBuffer(RHI, ESS_PIXEL_SHADER, Arg, Scene, Primitive, SectionIndex);
+			BindEngineBuffer(RHI, ESS_PIXEL_SHADER, Arg, Primitive, SectionIndex);
 		}
 	}
+
 }

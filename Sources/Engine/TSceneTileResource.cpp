@@ -24,28 +24,28 @@ namespace tix
 		TI_ASSERT(SMInstances.InstanceBuffer != nullptr);
 		SMInstances.InstanceBuffer->InitRenderThreadResource();
 
-		// Register scene tile info to FSceneMetaInfos, for GPU tile frustum cull
-		TI_ASSERT(RenderThreadTileResource == nullptr);
-		RenderThreadTileResource = ti_new FSceneTileResource(*this);
-		FSceneTileResourcePtr SceneTileRes = RenderThreadTileResource;
-		ENQUEUE_RENDER_COMMAND(AddSceneTileRes)(
-			[SceneTileRes]()
-			{
-				FRenderThread::Get()->GetRenderScene()->AddSceneTileInfo(SceneTileRes);
-			});
+		//// Register scene tile info to FSceneMetaInfos, for GPU tile frustum cull
+		//TI_ASSERT(RenderThreadTileResource == nullptr);
+		//RenderThreadTileResource = ti_new FSceneTileResource(*this);
+		//FSceneTileResourcePtr SceneTileRes = RenderThreadTileResource;
+		//ENQUEUE_RENDER_COMMAND(AddSceneTileRes)(
+		//	[SceneTileRes]()
+		//	{
+		//		FRenderThread::Get()->GetRenderScene()->AddSceneTileInfo(SceneTileRes);
+		//	});
 	}
 
 	void TSceneTileResource::DestroyRenderThreadResource()
 	{
 		SMInstances.InstanceBuffer->DestroyRenderThreadResource();
 
-		TI_ASSERT(RenderThreadTileResource != nullptr);
-		FSceneTileResourcePtr SceneTileResource = RenderThreadTileResource;
-		ENQUEUE_RENDER_COMMAND(RemoveSceneTileRes)(
-			[SceneTileResource]()
-			{
-				//SceneTileResource = nullptr;
-			});
-		RenderThreadTileResource = nullptr;
+		//TI_ASSERT(RenderThreadTileResource != nullptr);
+		//FSceneTileResourcePtr SceneTileResource = RenderThreadTileResource;
+		//ENQUEUE_RENDER_COMMAND(RemoveSceneTileRes)(
+		//	[SceneTileResource]()
+		//	{
+		//		//SceneTileResource = nullptr;
+		//	});
+		//RenderThreadTileResource = nullptr;
 	}
 }

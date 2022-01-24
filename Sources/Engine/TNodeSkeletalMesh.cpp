@@ -59,27 +59,29 @@ namespace tix
 		StaticMesh = InMesh;
 		Skeleton = InSkeleton;
 		TI_ASSERT(Skeleton->GetBones() <= TSkeleton::MaxBones);
+		TI_ASSERT(0);
+		TI_TODO("Find a way to add skeleton mesh to render scene");
 
-		// Generate primitives and send to render thread
-		LinkedPrimitive = ti_new FPrimitive;
-		LinkedPrimitive->SetSkeletalMesh(InMesh);
+		//// Generate primitives and send to render thread
+		//LinkedPrimitive = ti_new FPrimitive;
+		//LinkedPrimitive->SetSkeletalMesh(InMesh);
 
-		FPrimitivePtr Primitive = LinkedPrimitive;
-		if (SceneTileResourceRef != nullptr)
-		{
-			// Add primitive to scene tile
-			FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResourceRef->RenderThreadTileResource;
-			ENQUEUE_RENDER_COMMAND(AddTNodeSkeletalMeshPrimitivesToFSceneTile)(
-				[RenderThreadSceneTileResource, Primitive]()
-				{
-					RenderThreadSceneTileResource->AppendPrimitive(Primitive);
-				});
-		}
-		else
-		{
-			// Add primitive to somewhere, like FScene??
-			TI_ASSERT(0);
-		}
+		//FPrimitivePtr Primitive = LinkedPrimitive;
+		//if (SceneTileResourceRef != nullptr)
+		//{
+		//	// Add primitive to scene tile
+		//	FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResourceRef->RenderThreadTileResource;
+		//	ENQUEUE_RENDER_COMMAND(AddTNodeSkeletalMeshPrimitivesToFSceneTile)(
+		//		[RenderThreadSceneTileResource, Primitive]()
+		//		{
+		//			RenderThreadSceneTileResource->AppendPrimitive(Primitive);
+		//		});
+		//}
+		//else
+		//{
+		//	// Add primitive to somewhere, like FScene??
+		//	TI_ASSERT(0);
+		//}
 
 		SkeletalMeshFlag |= SKMatrixDirty;
 	}

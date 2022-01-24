@@ -4,7 +4,6 @@
 */
 
 #include "stdafx.h"
-#include "FRenderer.h"
 #include "FFullScreenRender.h"
 
 namespace tix

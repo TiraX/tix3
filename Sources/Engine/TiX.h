@@ -87,7 +87,6 @@ using namespace std;
 #include "FGPUResource.h"
 #include "FMeshBuffer.h"
 #include "FEnvLight.h"
-#include "FSceneTileResource.h"
 #include "FShader.h"
 #include "FShaderBinding.h"
 #include "FTexture.h"
@@ -105,13 +104,11 @@ using namespace std;
 
 // Render thread things
 #include "FPrimitive.h"
-#include "FLight.h"
-#include "FSceneLights.h"
-#include "FScene.h"
-#include "FRenderer.h"
+#include "FSceneInterface.h"
+#include "FRendererInterface.h"
+#include "FDefaultScene.h"
 #include "FDefaultRenderer.h"
 #include "FFullScreenRender.h"
-#include "FPostProcess.h"
 #include "FRenderThread.h"
 #include "FStats.h"
 

@@ -5,7 +5,6 @@ By ZhaoShuai tirax.cn@gmail.com
 
 #include "stdafx.h"
 #include "TScene.h"
-#include "FSceneLights.h"
 
 namespace tix
 {

@@ -5,7 +5,6 @@ By ZhaoShuai tirax.cn@gmail.com
 
 #include "stdafx.h"
 #include "TScene.h"
-#include "FSceneLights.h"
 
 namespace tix
 {
@@ -124,35 +123,5 @@ namespace tix
 	{
 		// Dynamic lighting will be re-design
 		TI_ASSERT(0);
-		if (ActiveNodeList[ESLT_LIGHTS].size() > 0)
-		{
-			bool bLightsDirty = HasSceneFlag(SF_LIGHTS_DIRTY);
-
-			// Go though static solid list
-			for (auto StaticMeshNode : ActiveNodeList[ESLT_STATIC_SOLID])
-			{
-				TI_ASSERT(StaticMeshNode->GetType() == ENT_StaticMesh);
-				StaticMeshNode->BindLights(ActiveNodeList[ESLT_LIGHTS], bLightsDirty);
-			}
-
-			// Then dynamic solid list
-			for (auto DynamicMeshNode : ActiveNodeList[ESLT_DYNAMIC_SOLID])
-			{
-				DynamicMeshNode->BindLights(ActiveNodeList[ESLT_LIGHTS], bLightsDirty);
-			}
-			
-			// Send a render thread task to update lights uniform buffer
-			if (bLightsDirty)
-			{
-				ENQUEUE_RENDER_COMMAND(InitSceneLightsUniformBuffer)(
-					[]()
-					{
-						FRenderThread::Get()->GetRenderScene()->GetSceneLights()->InitSceneLightsUniformBufferRenderResource();
-					});
-			}
-
-			// Clear lights dirty flag after bind
-			SetSceneFlag(SF_LIGHTS_DIRTY, false);
-		}
 	}
 }

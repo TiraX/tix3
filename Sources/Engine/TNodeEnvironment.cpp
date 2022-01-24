@@ -53,7 +53,7 @@ namespace tix
 			ENQUEUE_RENDER_COMMAND(UpdateEnvInfoRenderThread)(
 				[_EnvInfo]()
 				{
-					FScene* Scene = FRenderThread::Get()->GetRenderScene();
+					FSceneInterface* Scene = FRenderThread::Get()->GetRenderScene();
 					Scene->SetEnvironmentInfo(_EnvInfo);
 				});
 

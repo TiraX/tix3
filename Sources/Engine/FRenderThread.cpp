@@ -5,7 +5,7 @@
 
 #include "stdafx.h"
 #include "FRenderThread.h"
-#include "FRenderer.h"
+#include "FRendererInterface.h"
 #include "FRHI.h"
 
 namespace tix
@@ -84,7 +84,13 @@ namespace tix
 	{
 	}
 
-	void FRenderThread::AssignRenderer(FRenderer* InRenderer)
+	void FRenderThread::AssignScene(FSceneInterface* InScene)
+	{
+		TI_ASSERT(IsRenderThread());
+		RenderScene = InScene;
+	}
+
+	void FRenderThread::AssignRenderer(FRendererInterface* InRenderer)
 	{
 		TI_ASSERT(IsRenderThread());
 		Renderer = InRenderer;
@@ -96,9 +102,6 @@ namespace tix
 		// Create RHI to submit commands to GPU
 		RHI = FRHI::Get();
 		RHI->InitRHI();
-
-		// Create render scene
-		RenderScene = ti_new FScene;
 	}
 
 	void FRenderThread::DestroyRenderComponents()
@@ -146,9 +149,9 @@ namespace tix
 
 		if (Renderer != nullptr)
 		{
-			Renderer->InitRenderFrame(RenderScene);
-			Renderer->Render(RHI, RenderScene);
-			Renderer->EndRenderFrame(RenderScene);
+			Renderer->InitRenderFrame();
+			Renderer->Render(RHI);
+			Renderer->EndRenderFrame();
 		}
 		RHI->EndFrame();
         

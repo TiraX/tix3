@@ -118,31 +118,12 @@ namespace tix
 						);
 
 						// Add primitive to scene
-						FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResource->RenderThreadTileResource;
 						FPrimitivePtr Primitive = LinkedPrimitive;
-						ENQUEUE_RENDER_COMMAND(AddTSceneTileMeshPrimitivesToFSceneTile)(
-							[RenderThreadSceneTileResource, m, Primitive]()
+						ENQUEUE_RENDER_COMMAND(AddTSceneTileMeshPrimitivesToFScene)(
+							[Primitive]()
 							{
-								RenderThreadSceneTileResource->AddPrimitive(m, Primitive);
+								FRenderThread::Get()->GetRenderScene()->AddPrimitive(Primitive);
 							});
-
-						// Create BLAS and BLAS instances for this mesh
-						TInstanceBufferPtr InstanceBufferData = SceneTileResource->SMInstances.InstanceBuffer;
-						const int32 InstanceCount = SceneTileResource->SMInstances.InstanceCountAndOffset[m].X;
-						const int32 InstanceOffset = SceneTileResource->SMInstances.InstanceCountAndOffset[m].Y;
-						FVertexBufferPtr VB = StaticMesh->GetVertexBuffer()->VertexBufferResource;
-						FIndexBufferPtr IB = StaticMesh->GetIndexBuffer()->IndexBufferResource;
-						ENQUEUE_RENDER_COMMAND(CreateBLASAndInstances)(
-							[RenderThreadSceneTileResource, VB, IB, InstanceBufferData, InstanceCount, InstanceOffset]()
-							{
-								RenderThreadSceneTileResource->CreateBLASAndInstances(
-									VB, IB,
-									InstanceBufferData,
-									InstanceCount,
-									InstanceOffset
-								);
-							});
-
 
 						// Remove the reference holder
 						TI_ASSERT(LoadedStaticMeshAssets[m] == nullptr);
@@ -162,12 +143,6 @@ namespace tix
 			{
 				// Tile Loading Done
 				SceneTileResource->SMInfos.MeshAssets.clear();
-				FSceneTileResourcePtr RenderThreadSceneTileResource = SceneTileResource->RenderThreadTileResource;
-				ENQUEUE_RENDER_COMMAND(BuildTileBLAS)(
-					[RenderThreadSceneTileResource]()
-					{
-						RenderThreadSceneTileResource->BuildBLAS();
-					});
 			}
 		}
 	}
@@ -267,7 +242,7 @@ namespace tix
 						ENQUEUE_RENDER_COMMAND(AddEnvLightToFScene)(
 							[CubeTextureResource, Position]()
 							{
-								FRenderThread::Get()->GetRenderScene()->AddEnvLight(CubeTextureResource, Position);
+								FRenderThread::Get()->GetRenderScene()->SetEnvLight(CubeTextureResource, Position);
 							});
 
 						// Remove the reference holder

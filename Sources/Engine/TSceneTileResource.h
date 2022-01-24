@@ -79,7 +79,5 @@ namespace tix
 		// Skeletal mesh always processed with actors
 		TMeshInfoInTile SKMInfos;
 		TVector<TSkeletalMeshActorInfo> SKMActorInfos;
-
-		FSceneTileResourcePtr RenderThreadTileResource;
 	};
 }

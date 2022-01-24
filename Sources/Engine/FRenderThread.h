@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	class FRenderer;
+	class FRendererInterface;
 	class FRHI;
 
 	struct FRenderFrame
@@ -43,9 +43,10 @@ namespace tix
 		virtual void OnThreadStart() override;
 		virtual void OnThreadEnd() override;
 
-		void AssignRenderer(FRenderer* InRenderer);
+		void AssignScene(FSceneInterface* InScene);
+		void AssignRenderer(FRendererInterface* InRenderer);
 
-		FScene* GetRenderScene()
+		FSceneInterface* GetRenderScene()
 		{
 			return RenderScene;
 		}
@@ -93,11 +94,12 @@ namespace tix
 		int32 RenderFrameIndex;
 		FRenderFrame RenderFrames[FRHIConfig::FrameBufferNum];
 
+		// Render scene
+		FSceneInterface* RenderScene;
+
 		// Render components
 		FRHI * RHI;
-		FRenderer* Renderer;
-
-		FScene * RenderScene;
+		FRendererInterface* Renderer;
 
 		static bool Inited;
 		static bool ThreadEnabled;

@@ -57,8 +57,10 @@ namespace tix
 			return Scene;
 		}
 
-		TI_API void UseDefaultRenderer();
-		TI_API void AssignRenderer(FRenderer* Renderer);
+		TI_API FSceneInterface* UseDefaultScene();
+		TI_API void UseDefaultRenderer(FSceneInterface* Scene);
+		TI_API void SetScene(FSceneInterface* Scene);
+		TI_API void SetRenderer(FRendererInterface* Renderer);
 		TI_API void AddTicker(TTicker* Ticker);
 
 		TI_API void FreezeTick();

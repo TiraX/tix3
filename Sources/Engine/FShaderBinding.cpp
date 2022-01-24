@@ -41,8 +41,6 @@ namespace tix
 					return ARGUMENT_EB_PRIMITIVE;
 				if (BufferName == "Bones")
 					return ARGUMENT_EB_BONES;
-				if (BufferName == "Lights")
-					return ARGUMENT_EB_LIGHTS;
 				if (BufferName == "EnvCube")
 					return ARGUMENT_EB_ENV_CUBE;
 #if (COMPILE_WITH_RHI_METAL)

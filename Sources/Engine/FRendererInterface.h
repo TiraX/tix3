@@ -8,19 +8,19 @@
 namespace tix
 {
 	class FRHI;
-	class FScene;
+	class FSceneInterface;
 
 	// Renderer interface
-	class TI_API FRenderer
+	class TI_API FRendererInterface
 	{
 	public: 
-		FRenderer();
-		virtual ~FRenderer();
+		FRendererInterface(FSceneInterface* InScene) {};
+		virtual ~FRendererInterface() {};
 
 		virtual void InitInRenderThread() = 0;
-		virtual void InitRenderFrame(FScene* Scene) = 0;
-		virtual void EndRenderFrame(FScene* Scene) = 0;
-		virtual void Render(FRHI* RHI, FScene* Scene) = 0;
+		virtual void InitRenderFrame() = 0;
+		virtual void EndRenderFrame() = 0;
+		virtual void Render(FRHI* RHI) = 0;
 
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() = 0;
 	protected:

@@ -59,7 +59,6 @@ namespace tix
 			return	AffectBox;
 		}
 
-		FLightPtr LightResource;
 	protected:
 		virtual void UpdateAbsoluteTransformation();
 
