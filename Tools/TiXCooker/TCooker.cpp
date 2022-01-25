@@ -23,48 +23,48 @@ TCookerSettings TCookerSettings::Setting;
 
 void ShowUsage()
 {
-	_LOG(ELogLevel::Log, "TiXCooker src_filename dst_filename\n");
+	_LOG(ELog::Log, "TiXCooker src_filename dst_filename\n");
 }
 
 bool bShowExample = false;
 void ShowExample()
 {
-	_LOG(ELogLevel::Log, "{\n");
-	_LOG(ELogLevel::Log, "\t\"name\": \"M_AddSpecular\",\n");
-	_LOG(ELogLevel::Log, "\t\"type\": \"material\",\n");
-	_LOG(ELogLevel::Log, "\t\"version\": 1,\n");
-	_LOG(ELogLevel::Log, "\t\"desc\": \"\",\n");
-	_LOG(ELogLevel::Log, "\t\"shaders\": [\n");
-	_LOG(ELogLevel::Log, "\t\t\"S_AddSpecularVS\",\n");
-	_LOG(ELogLevel::Log, "\t\t\"S_AddSpecularPS\",\n");
-	_LOG(ELogLevel::Log, "\t\t\"\",\n");
-	_LOG(ELogLevel::Log, "\t\t\"\",\n");
-	_LOG(ELogLevel::Log, "\t\t\"\"\n");
-	_LOG(ELogLevel::Log, "\t],\n");
-	_LOG(ELogLevel::Log, "\t\"vs_format\": [\n");
-	_LOG(ELogLevel::Log, "\t\t\"EVSSEG_POSITION\",\n");
-	_LOG(ELogLevel::Log, "\t\t\"EVSSEG_TEXCOORD0\"\n");
-	_LOG(ELogLevel::Log, "\t],\n");
-	_LOG(ELogLevel::Log, "\t\"rt_colors\": [\n");
-	_LOG(ELogLevel::Log, "\t\t\"EPF_RGBA16F\"\n");
-	_LOG(ELogLevel::Log, "\t],\n");
-	_LOG(ELogLevel::Log, "\t\"rt_depth\": \"EPF_DEPTH24_STENCIL8\",\n");
-	_LOG(ELogLevel::Log, "\t\"blend_mode\": \"BLEND_MODE_OPAQUE\",\n");
-	_LOG(ELogLevel::Log, "\t\"depth_write\": false,\n");
-	_LOG(ELogLevel::Log, "\t\"depth_test\": false,\n");
-	_LOG(ELogLevel::Log, "\t\"two_sides\": false,\n");
-	_LOG(ELogLevel::Log, "\t\"stencil_enable\": true,\n");
-	_LOG(ELogLevel::Log, "\t\"stencil_read_mask\": 1,\n");
-	_LOG(ELogLevel::Log, "\t\"stencil_write_mask\": 1,\n");
-	_LOG(ELogLevel::Log, "\t\"front_stencil_fail\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"front_stencil_depth_fail\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"front_stencil_pass\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"front_stencil_func\": \"ECF_EQUAL\",\n");
-	_LOG(ELogLevel::Log, "\t\"back_stencil_fail\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"back_stencil_depth_fail\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"back_stencil_pass\": \"ESO_KEEP\",\n");
-	_LOG(ELogLevel::Log, "\t\"back_stencil_func\": \"ECF_NEVER\"\n");
-	_LOG(ELogLevel::Log, "}\n");
+	_LOG(ELog::Log, "{\n");
+	_LOG(ELog::Log, "\t\"name\": \"M_AddSpecular\",\n");
+	_LOG(ELog::Log, "\t\"type\": \"material\",\n");
+	_LOG(ELog::Log, "\t\"version\": 1,\n");
+	_LOG(ELog::Log, "\t\"desc\": \"\",\n");
+	_LOG(ELog::Log, "\t\"shaders\": [\n");
+	_LOG(ELog::Log, "\t\t\"S_AddSpecularVS\",\n");
+	_LOG(ELog::Log, "\t\t\"S_AddSpecularPS\",\n");
+	_LOG(ELog::Log, "\t\t\"\",\n");
+	_LOG(ELog::Log, "\t\t\"\",\n");
+	_LOG(ELog::Log, "\t\t\"\"\n");
+	_LOG(ELog::Log, "\t],\n");
+	_LOG(ELog::Log, "\t\"vs_format\": [\n");
+	_LOG(ELog::Log, "\t\t\"EVSSEG_POSITION\",\n");
+	_LOG(ELog::Log, "\t\t\"EVSSEG_TEXCOORD0\"\n");
+	_LOG(ELog::Log, "\t],\n");
+	_LOG(ELog::Log, "\t\"rt_colors\": [\n");
+	_LOG(ELog::Log, "\t\t\"EPF_RGBA16F\"\n");
+	_LOG(ELog::Log, "\t],\n");
+	_LOG(ELog::Log, "\t\"rt_depth\": \"EPF_DEPTH24_STENCIL8\",\n");
+	_LOG(ELog::Log, "\t\"blend_mode\": \"BLEND_MODE_OPAQUE\",\n");
+	_LOG(ELog::Log, "\t\"depth_write\": false,\n");
+	_LOG(ELog::Log, "\t\"depth_test\": false,\n");
+	_LOG(ELog::Log, "\t\"two_sides\": false,\n");
+	_LOG(ELog::Log, "\t\"stencil_enable\": true,\n");
+	_LOG(ELog::Log, "\t\"stencil_read_mask\": 1,\n");
+	_LOG(ELog::Log, "\t\"stencil_write_mask\": 1,\n");
+	_LOG(ELog::Log, "\t\"front_stencil_fail\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"front_stencil_depth_fail\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"front_stencil_pass\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"front_stencil_func\": \"ECF_EQUAL\",\n");
+	_LOG(ELog::Log, "\t\"back_stencil_fail\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"back_stencil_depth_fail\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"back_stencil_pass\": \"ESO_KEEP\",\n");
+	_LOG(ELog::Log, "\t\"back_stencil_func\": \"ECF_NEVER\"\n");
+	_LOG(ELog::Log, "}\n");
 }
 
 bool ParseParams(int argc, TIX_COOKER_CONST int8* argv[])
@@ -267,7 +267,7 @@ namespace tix
 		TFile TjsFile;
 		if (!TjsFile.Open(FilenameSrc, EFA_READ))
 		{
-			_LOG(ELogLevel::Error, "Failed to open file : %s.\n", FilenameSrc.c_str());
+			_LOG(ELog::Error, "Failed to open file : %s.\n", FilenameSrc.c_str());
 			return -1;
 		}
 
@@ -287,7 +287,7 @@ namespace tix
 		if (Cooker == nullptr)
 		{
 			ti_delete[] FileContent;
-			_LOG(ELogLevel::Error, "Unknown asset type : %s.\n", AssetTypeName);
+			_LOG(ELog::Error, "Unknown asset type : %s.\n", AssetTypeName);
 			return -1;
 		}
 
@@ -309,7 +309,7 @@ namespace tix
 
 		if (!ChunkFile.SaveFile(FilenameDst))
 		{
-			_LOG(ELogLevel::Error, "Failed to save resfile : %s\n", FilenameDst.c_str());
+			_LOG(ELog::Error, "Failed to save resfile : %s\n", FilenameDst.c_str());
 		}
 		TResMTTaskExecuter::Destroy();
 

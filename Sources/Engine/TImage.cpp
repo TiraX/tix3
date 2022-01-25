@@ -766,7 +766,7 @@ namespace tix
 	{
 		if (IsCompressedFormat(GetFormat()))
 		{
-			_LOG(ELogLevel::Error, "Convert to linear space, not support compress format.\n");
+			_LOG(ELog::Error, "Convert to linear space, not support compress format.\n");
 			return;
 		}
 		for (int32 y = 0 ; y < GetWidth() ; ++ y)
@@ -795,7 +795,7 @@ namespace tix
 	{
 		if (IsCompressedFormat(GetFormat()))
 		{
-			_LOG(ELogLevel::Error, "Convert to srgb space, not support compress format.\n");
+			_LOG(ELog::Error, "Convert to srgb space, not support compress format.\n");
 			return;
 		}
 		for (int32 y = 0; y < GetWidth(); ++y)

@@ -239,14 +239,14 @@ namespace tix
 
 			default:
 			{
-				_LOG(ELogLevel::Error, "Unsupported TGA format. [%s]\n", FileInput.GetFileName().c_str());
+				_LOG(ELog::Error, "Unsupported TGA format. [%s]\n", FileInput.GetFileName().c_str());
 				return NULL;
 			}
 		}
 
 		if (!(header.ImageType == 2 || header.ImageType == 3 || header.ImageType == 10))
 		{
-			_LOG(ELogLevel::Error, "Unsupported TGA file type. [%s]\n", FileInput.GetFileName().c_str());
+			_LOG(ELog::Error, "Unsupported TGA file type. [%s]\n", FileInput.GetFileName().c_str());
 			return NULL;
 		}
 
@@ -273,7 +273,7 @@ namespace tix
 		else //if (header.ImageType == 10)
 		{
 			RuntimeFail();
-			_LOG(ELogLevel::Error, "Compressed TGA format is not supported yet.");
+			_LOG(ELog::Error, "Compressed TGA format is not supported yet.");
 		}
 
 		Image->Unlock();

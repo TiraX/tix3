@@ -80,7 +80,7 @@ namespace tix
 		{
 			if (!it->second->HasReference())
 			{
-				_LOG(ELogLevel::Log, "unused resource : [%s], removed\n", it->first.c_str());
+				_LOG(ELog::Log, "unused resource : [%s], removed\n", it->first.c_str());
 				it->second->DestroyRenderThreadResource();
 				it->second->ClearResources();
 				it->second = nullptr;

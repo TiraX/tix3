@@ -90,7 +90,7 @@ namespace tix
 			}
 			else
 			{
-				_LOG(ELogLevel::Warning, "Direct3D Debug Device is NOT avaible.\n");
+				_LOG(ELog::Warning, "Direct3D Debug Device is NOT avaible.\n");
 			}
 
 			// Try to create debug factory
@@ -196,18 +196,18 @@ namespace tix
 		// Describe and create a shader resource view (SRV) heap for the texture.
 		DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].Create(this, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		_LOG(ELogLevel::Log, "  RHI DirectX 12 inited.\n");
+		_LOG(ELog::Log, "  RHI DirectX 12 inited.\n");
 
 		// Init raytracing
 		if (RHIConfig.IsFeatureSupported(RHI_FEATURE_RAYTRACING))
 		{
 			if (InitRaytracing())
 			{
-				_LOG(ELogLevel::Log, "    DXR inited.\n");
+				_LOG(ELog::Log, "    DXR inited.\n");
 			}
 			else
 			{
-				_LOG(ELogLevel::Error, "    Can not init DXR.\n");
+				_LOG(ELog::Error, "    Can not init DXR.\n");
 			}
 		}
 	}
@@ -263,7 +263,7 @@ namespace tix
 					char AdapterName[128];
 					size_t Converted;
 					wcstombs_s(&Converted, AdapterName, 128, desc.Description, 128);
-					_LOG(ELogLevel::Log, "D3D12-capable hardware found:  %s (%u MB)\n", AdapterName, desc.DedicatedVideoMemory >> 20);
+					_LOG(ELog::Log, "D3D12-capable hardware found:  %s (%u MB)\n", AdapterName, desc.DedicatedVideoMemory >> 20);
 					break;
 				}
 			}
@@ -288,7 +288,7 @@ namespace tix
 					char AdapterName[128];
 					size_t Converted;
 					wcstombs_s(&Converted, AdapterName, 128, Desc.Description, 128);
-					_LOG(ELogLevel::Log, "D3D12-capable hardware found:  %s (%u MB)\n", AdapterName, Desc.DedicatedVideoMemory >> 20);
+					_LOG(ELog::Log, "D3D12-capable hardware found:  %s (%u MB)\n", AdapterName, Desc.DedicatedVideoMemory >> 20);
 					break;
 				}
 			}
@@ -1042,7 +1042,7 @@ namespace tix
 		}
 		wstr << L"\n";
 		TString s = FromWString(wstr.str());
-		_LOG(ELogLevel::Log, "%s", s.c_str());
+		_LOG(ELog::Log, "%s", s.c_str());
 	}
 #else
 	inline void PrintStateObjectDesc(const D3D12_STATE_OBJECT_DESC* desc) {}
@@ -1652,7 +1652,7 @@ namespace tix
 			}
 			else
 			{
-				_LOG(ELogLevel::Fatal, "Invalid resource type in Argument buffer.\n");
+				_LOG(ELog::Fatal, "Invalid resource type in Argument buffer.\n");
 			}
 		}
 

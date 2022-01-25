@@ -201,7 +201,7 @@ namespace tix
 			Tasks.PopFront(Task);
 			Task->Execute();
 #if TIX_DEBUG_RENDER_TASK_NAME
-			_LOG(ELogLevel::Log, "%d - Do RT Task: %s\n", RenderFrameIndex, Task->GetTaskName().c_str());
+			_LOG(ELog::Log, "%d - Do RT Task: %s\n", RenderFrameIndex, Task->GetTaskName().c_str());
 #endif
 
 			// release task memory

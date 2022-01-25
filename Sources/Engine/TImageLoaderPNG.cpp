@@ -41,14 +41,14 @@ namespace tix
 		// Read the first few bytes of the PNG file
 		if (FileInput.Read(buffer, 8, 8) != 8)
 		{
-			_LOG(ELogLevel::Error, "load png, can't read file [%s].\n", FileInput.GetFileName().c_str());
+			_LOG(ELog::Error, "load png, can't read file [%s].\n", FileInput.GetFileName().c_str());
 			return nullptr;
 		}
 
 		// Check if it really is a PNG file
 		if (png_sig_cmp(buffer, 0, 8))
 		{
-			_LOG(ELogLevel::Error, "load png [%s] is not a png file.\n", FileInput.GetFileName().c_str());
+			_LOG(ELog::Error, "load png [%s] is not a png file.\n", FileInput.GetFileName().c_str());
 			return 0;
 		}
 
@@ -60,7 +60,7 @@ namespace tix
 
 		if (!png_ptr)
 		{
-			_LOG(ELogLevel::Error, "load png internal PNG create read struct failure. [%s]\n",
+			_LOG(ELog::Error, "load png internal PNG create read struct failure. [%s]\n",
 				FileInput.GetFileName().c_str());
 			return 0;
 		}
@@ -69,7 +69,7 @@ namespace tix
 		png_infop info_ptr = png_create_info_struct(png_ptr);
 		if (!info_ptr)
 		{
-			_LOG(ELogLevel::Error, "Error: load png internal PNG create info struct failure. [%s]\n",
+			_LOG(ELog::Error, "Error: load png internal PNG create info struct failure. [%s]\n",
 				FileInput.GetFileName().c_str());
 			png_destroy_read_struct(&png_ptr, NULL, NULL);
 			return 0;
@@ -186,7 +186,7 @@ namespace tix
 		png_bytepp rowPointers = ti_new png_bytep[height];
 		if (!rowPointers)
 		{
-			_LOG(ELogLevel::Error, "load png internal PNG create row pointers failure. [%s]\n",
+			_LOG(ELog::Error, "load png internal PNG create row pointers failure. [%s]\n",
 				FileInput.GetFileName().c_str());
 			png_destroy_read_struct(&png_ptr, NULL, NULL);
 			return 0;

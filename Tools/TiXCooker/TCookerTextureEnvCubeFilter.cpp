@@ -538,7 +538,7 @@ namespace tix
 		for (int m = 0; m < TotalMips; ++m)
 		{
 			float Roughness = ComputeReflectionCaptureRoughnessFromMip(m, TotalMips - 1);
-			_LOG(ELogLevel::Log, "m = %d, R = %f.\n", m, Roughness);
+			_LOG(ELog::Log, "m = %d, R = %f.\n", m, Roughness);
 		}
 
 #define MULTI_THREAD 1

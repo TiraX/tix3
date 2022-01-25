@@ -82,7 +82,7 @@ namespace tix
 		}
 		else
 		{
-			_LOG(ELogLevel::Warning, "CVar %s, set value %s, require %s.\n", CVarName.c_str(), GetTypeString(Value.VType), GetTypeString(ValueType));
+			_LOG(ELog::Warning, "CVar %s, set value %s, require %s.\n", CVarName.c_str(), GetTypeString(Value.VType), GetTypeString(ValueType));
 			switch (ValueType)
 			{
 			case VAR_INT:

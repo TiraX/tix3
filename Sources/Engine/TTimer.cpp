@@ -256,7 +256,7 @@ namespace tix
 
 	void TTimeRecorder::Start()
 	{
-		_LOG(ELogLevel::Log, "%s started.\n", Name.c_str());
+		_LOG(ELog::Log, "%s started.\n", Name.c_str());
 		StartTime = TTimer::GetCurrentTimeMillis();
 	}
 
@@ -273,6 +273,6 @@ namespace tix
 		uint32 ms = (uint32)(Diff % 1000);
 		uint32 s = (uint32)((Diff / 1000) % 60);
 		uint32 m = (uint32)((Diff / 1000) / 60);
-		_LOG(ELogLevel::Log, "%s used : %d'%d\"%d\n", Name.c_str(), m, s, ms);
+		_LOG(ELog::Log, "%s used : %d'%d\"%d\n", Name.c_str(), m, s, ms);
 	}
 }

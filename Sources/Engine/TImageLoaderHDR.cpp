@@ -40,7 +40,7 @@ namespace tix
 		GetHeaderLine(DataPtr, Line);
 		if (strcmp(Line, "#?RADIANCE") != 0)
 		{
-			_LOG(ELogLevel::Error, "Invalid HDR sig. [%s]\n", FileInput.GetFileName().c_str());
+			_LOG(ELog::Error, "Invalid HDR sig. [%s]\n", FileInput.GetFileName().c_str());
 			ti_delete[] ImageData;
 			return nullptr;
 		}
@@ -74,7 +74,7 @@ namespace tix
 		if (RGBDataStart == nullptr || W == 0 || H == 0 || W1 < MINELEN || W1 > MAXELEN)
 		{
 			// Invalid hdr image
-			_LOG(ELogLevel::Error, "Invalid HDR data. [%s]\n", FileInput.GetFileName().c_str());
+			_LOG(ELog::Error, "Invalid HDR data. [%s]\n", FileInput.GetFileName().c_str());
 			ti_delete[] ImageData;
 			return nullptr;
 		}

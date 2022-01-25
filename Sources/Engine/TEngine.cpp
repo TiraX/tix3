@@ -34,7 +34,7 @@ namespace tix
 			// Init CVar system very first and load ini configuration
 			TConsoleVariables::Init();
 
-			_LOG(ELogLevel::Log, "TiX Engine v2.0.0\n");
+			_LOG(ELog::Log, "TiX Engine v2.0.0\n");
 			s_engine = ti_new TEngine;
 			s_engine->Init(Config);
 		}
