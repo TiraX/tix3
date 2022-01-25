@@ -82,6 +82,7 @@ namespace tix
 		// Copy data from GPUTexture to GPUReadbackBuffer
 		FRHI* RHI = FRHI::Get();
 		uint32 RowPitch = TImage::GetRowPitch(TextureDesc.Format, TextureDesc.Width);
+		RHI->SetGPUTextureState(GPUTexture, EGPUResourceState::CopySource);
 		RHI->CopyTextureRegion(GPUReadbackBuffer, GPUTexture, RowPitch);
 	}
 

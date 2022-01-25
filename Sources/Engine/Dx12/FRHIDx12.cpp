@@ -1228,6 +1228,7 @@ namespace tix
 
 	void FRHIDx12::CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch)
 	{
+		FlushGraphicsBarriers(DirectCommandList.Get());
 		FGPUBufferDx12* GPUBufferDx12 = static_cast<FGPUBufferDx12*>(DstBuffer.get());
 		FGPUTextureDx12* GPUTextureDx12 = static_cast<FGPUTextureDx12*>(SrcTexture.get());
 		D3D12_RESOURCE_DESC Desc = GPUTextureDx12->Resource->GetDesc();
