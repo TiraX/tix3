@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	class FVertexBuffer : public FRenderResource
+	class TI_API FVertexBuffer : public FRenderResource
 	{
 	public:
 		FVertexBuffer();
@@ -33,7 +33,7 @@ namespace tix
 
 	///////////////////////////////////////////////////////////
 
-	class FIndexBuffer : public FRenderResource
+	class TI_API FIndexBuffer : public FRenderResource
 	{
 	public:
 		FIndexBuffer();
@@ -60,7 +60,7 @@ namespace tix
 	///////////////////////////////////////////////////////////
 
 	// FInstanceBuffer, hold instance buffer
-	class FInstanceBuffer : public FRenderResource
+	class TI_API FInstanceBuffer : public FRenderResource
 	{
 	public:
 		FInstanceBuffer();

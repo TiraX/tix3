@@ -22,12 +22,12 @@ namespace tix
 		PrimitiveUniformBuffer = nullptr;
 	}
 
-	void FPrimitive::InitFromData(TVertexBufferPtr VB, TIndexBufferPtr IB, TMaterialInstancePtr MatInst)
+	void FPrimitive::InitFromData(FVertexBufferPtr VB, FIndexBufferPtr IB, TMaterialInstancePtr MatInst)
 	{
 		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
-		VertexBuffer = VB->VertexBufferResource;
-		IndexBuffer = IB->IndexBufferResource;
+		VertexBuffer = VB;
+		IndexBuffer = IB;
 		TI_ASSERT(VertexBuffer != nullptr && IndexBuffer != nullptr);
 
 		// Add a default section.

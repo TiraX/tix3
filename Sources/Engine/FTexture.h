@@ -7,11 +7,11 @@
 
 namespace tix
 {
-	class FTexture : public FRenderResource
+	class TI_API FTexture : public FRenderResource
 	{
 	public:
-		static TI_API FTexturePtr CreateTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
-		static TI_API FTexturePtr CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
+		static FTexturePtr CreateTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
+		static FTexturePtr CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 
 		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
 		virtual FGPUResourcePtr GetGPUResource() override
@@ -64,7 +64,7 @@ namespace tix
 	};
 
 	///////////////////////////////////////////////////////////
-	class FTextureReadable : public FTexture
+	class TI_API FTextureReadable : public FTexture
 	{
 	public:
 		FTextureReadable(const TTextureDesc& Desc);

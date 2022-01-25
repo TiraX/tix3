@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	class FShader : public FRenderResource
+	class TI_API FShader : public FRenderResource
 	{
 	public:
 		FShader(const TString& ShaderName, E_SHADER_TYPE InType);

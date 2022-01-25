@@ -80,7 +80,7 @@ namespace tix
 #define BEGIN_UNIFORM_BUFFER_STRUCT_ARRAY(StructTypeName, ArrayElements) BEGIN_UNIFORM_BUFFER_STRUCT_FIX_SIZE(StructTypeName, ArrayElements)
 #define BEGIN_UNIFORM_BUFFER_STRUCT_ARRAY_DYNAMIC(StructTypeName) BEGIN_UNIFORM_BUFFER_STRUCT_DYNAMIC_SIZE(StructTypeName)
 	
-	class FUniformBuffer : public FRenderResource
+	class TI_API FUniformBuffer : public FRenderResource
 	{
 	public:
 		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag = 0);
@@ -126,7 +126,7 @@ namespace tix
 	};
 
 	/////////////////////////////////////////////////////////
-	class FUniformBufferReadable : public FUniformBuffer
+	class TI_API FUniformBufferReadable : public FUniformBuffer
 	{
 	public:
 		FUniformBufferReadable(uint32 InStructureSizeInBytes, uint32 Elements, uint32 InFlag);

@@ -36,11 +36,9 @@ namespace tix
 		StoreAndMultiSampleResolve
 	};
 
-	class FRenderTarget : public FRenderResource
+	class TI_API FRenderTarget : public FRenderResource
 	{
 	public:
-		TI_API static FRenderTargetPtr Create(int32 W, int32 H);
-
 		FRenderTarget(int32 W, int32 H);
 		virtual ~FRenderTarget();
 
@@ -84,18 +82,18 @@ namespace tix
 			return RTDepthStencilBuffer;
 		}
 
-		TI_API virtual void AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
-		TI_API virtual void AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
-		TI_API virtual void AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
-		TI_API virtual void AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		virtual void AddColorBuffer(E_PIXEL_FORMAT Format, uint32 Mips, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		virtual void AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		virtual void AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
+		virtual void AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
         
         // For metal tile shader
-        TI_API virtual void SetTileSize(const FInt2& InTileSize)
+        virtual void SetTileSize(const FInt2& InTileSize)
         {}
-        TI_API virtual void SetThreadGroupMemoryLength(uint32 Length)
+        virtual void SetThreadGroupMemoryLength(uint32 Length)
         {}
 
-        TI_API virtual void Compile();
+        virtual void Compile();
 	protected:
 
 	protected:

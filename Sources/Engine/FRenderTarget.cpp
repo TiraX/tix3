@@ -8,12 +8,6 @@
 
 namespace tix
 {
-	FRenderTargetPtr FRenderTarget::Create(int32 W, int32 H)
-	{
-		FRHI * RHI = FRHI::Get();
-		return RHI->CreateRenderTarget(W, H);
-	}
-
 	FRenderTarget::FRenderTarget(int32 W, int32 H)
 		: FRenderResource(ERenderResourceType::RenderTarget)
 		, Demension(W, H)

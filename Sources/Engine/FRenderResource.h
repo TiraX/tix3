@@ -22,7 +22,6 @@ namespace tix
 		ArgumentBuffer,
 		GpuCommandSignature,
 		GpuCommandBuffer,
-		SceneTile,
 		EnvLight,
 		RtxPipeline,
 		AccelerationStructure,
@@ -35,7 +34,7 @@ namespace tix
 		return Ptr;
 	}
 
-	class FRenderResource : public IReferenceCounted
+	class TI_API FRenderResource : public IReferenceCounted
 	{
 	public:
 		FRenderResource(ERenderResourceType InResourceType)
