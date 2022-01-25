@@ -17,7 +17,7 @@ namespace tix
 		, Fovy(PI / 4.0f)
 		, Aspect(1280.f / 720.f)
 	{
-		SetPosition(FFloat3(-1, 2, 1.0));
+		SetPosition(FFloat3(-2, 0, 1.0));
 		SetTarget(FFloat3(0, 0, 0.25f));
 	}
 
