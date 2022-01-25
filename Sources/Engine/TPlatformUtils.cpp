@@ -26,7 +26,7 @@ namespace tix
 		_NSGetExecutablePath(Path, &BufferSize);
 		TI_ASSERT(BufferSize <= 512);
 		Ret = Path;
-		if (Ret.find("/Binary") == TString::npos && Ret.find("tix2/") == TString::npos)
+		if (Ret.find("/Binaries") == TString::npos && Ret.find("tix3/") == TString::npos)
 		{
 			Ret = getcwd(NULL, 0);
 		}
@@ -36,12 +36,12 @@ namespace tix
 
 		Ret = Ret.substr(0, Ret.rfind('/'));
 
-		// if dir is not in Binary/ then find from root "tix2"
+		// if dir is not in Binaries/ then find from root "tix3"
 		if (Ret.find("/Binary") == TString::npos)
 		{
-			TString::size_type root_pos = Ret.find("tix2/");
+			TString::size_type root_pos = Ret.find("tix3/");
 			TI_ASSERT(root_pos != TString::npos);
-			Ret = Ret.substr(0, root_pos + 5) + "Binary/";
+			Ret = Ret.substr(0, root_pos + 5) + "Binaries/";
 #if defined (TI_PLATFORM_WIN32)
 			Ret += "Windows";
 #elif defined (TI_PLATFORM_IOS)

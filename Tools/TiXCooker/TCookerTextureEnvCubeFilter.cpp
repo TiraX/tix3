@@ -559,6 +559,9 @@ namespace tix
 				const int32 RowStep = H / MaxThreads;
 				for (int32 y = 0; y < H; y += RowStep)
 				{
+					int32 LineStart = y;
+					int32 LineEnd = y + RowStep;
+					if (LineEnd >= H) LineEnd = H - 1;
 					TEnvFilterTask* Task = ti_new TEnvFilterTask(
 						LongLatImage,
 						Filtered,
@@ -566,8 +569,8 @@ namespace tix
 						TotalMips,
 						Roughness,
 						SolidAngleTexel,
-						y,
-						y + RowStep
+						LineStart,
+						LineEnd
 					);
 #if MULTI_THREAD
 					TResMTTaskExecuter::Get()->AddTask(Task);
