@@ -74,7 +74,7 @@ namespace tix
 		ti_delete DXR;
 	}
 
-#define ENABLE_DX_DEBUG_LAYER	(0)
+#define ENABLE_DX_DEBUG_LAYER	(1)
 	void FRHIDx12::InitRHI()
 	{
 		HRESULT Hr;
@@ -90,7 +90,7 @@ namespace tix
 			}
 			else
 			{
-				_LOG(Warning, "Direct3D Debug Device is NOT avaible.\n");
+				_LOG(ELogLevel::Warning, "Direct3D Debug Device is NOT avaible.\n");
 			}
 
 			// Try to create debug factory

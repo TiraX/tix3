@@ -39,8 +39,7 @@ namespace tix
 	class TI_API FRenderTarget : public FRenderResource
 	{
 	public:
-		FRenderTarget(int32 W, int32 H);
-		virtual ~FRenderTarget();
+		static FRenderTargetPtr Create(int32 W, int32 H);
 
 		struct RTBuffer
 		{
@@ -95,6 +94,8 @@ namespace tix
 
         virtual void Compile();
 	protected:
+		FRenderTarget(int32 W, int32 H);
+		virtual ~FRenderTarget();
 
 	protected:
 		FInt2 Demension;
