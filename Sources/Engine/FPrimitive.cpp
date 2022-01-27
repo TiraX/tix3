@@ -22,7 +22,7 @@ namespace tix
 		PrimitiveUniformBuffer = nullptr;
 	}
 
-	void FPrimitive::InitFromData(FVertexBufferPtr VB, FIndexBufferPtr IB, TMaterialInstancePtr MatInst)
+	void FPrimitive::InitFromRenderData(FVertexBufferPtr VB, FIndexBufferPtr IB, FPipelinePtr Pipeline, FArgumentBufferPtr MIParam)
 	{
 		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
@@ -34,8 +34,8 @@ namespace tix
 		Sections.resize(1);
 		Sections[0].IndexStart = 0;
 		Sections[0].Triangles = IB->GetDesc().IndexCount / 3;
-		Sections[0].Pipeline = MatInst->LinkedMaterial->PipelineResource;
-		Sections[0].Argument = MatInst->ArgumentBuffer;
+		Sections[0].Pipeline = Pipeline;
+		Sections[0].Argument = MIParam;
 	}
 
 	void FPrimitive::InitFromInstancedStaticMesh(

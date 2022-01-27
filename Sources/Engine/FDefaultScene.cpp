@@ -35,7 +35,6 @@ namespace tix
 
 	void FDefaultScene::SetEnvLight(FTexturePtr HDRCube, const FFloat3& Position)
 	{
-		TI_TODO("Create quad-tree to fast find nearest Env Light.");
 		EnvLight = ti_new FEnvLight(HDRCube, Position);
 	}
 

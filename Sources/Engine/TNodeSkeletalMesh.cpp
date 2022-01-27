@@ -34,7 +34,7 @@ namespace tix
 	{
 		TNode::UpdateAllTransformation();
 
-		// Temp solution, use LocalToWorld matrix, use instance transform in futher for GPU Driven
+		// Temp solution, use LocalToWorld matrix, use instance transform in future for GPU Driven
 		if (LinkedPrimitive != nullptr)
 		{
 			// Update primtive uniform buffer

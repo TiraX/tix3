@@ -64,7 +64,7 @@ namespace tix
 
 		FViewProjectionInfo ViewProjection;
 		FEnvironmentInfo EnvInfo;
-		// Env Lights, leave ONE envlight temp, should support multi env light in futher
+		// Env Lights, leave ONE envlight temp, should support multi env light in future
 		FEnvLightPtr EnvLight;
 
 		// Primitives
