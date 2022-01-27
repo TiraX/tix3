@@ -20,7 +20,7 @@ namespace tix
 	protected:
 
 	protected:
-		TStream ShaderCodes[ESS_COUNT];
+		TStreamPtr ShaderCodes[ESS_COUNT];
 
 		friend class FRHIDx12;
 	};

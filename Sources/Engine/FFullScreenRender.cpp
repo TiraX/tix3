@@ -63,7 +63,7 @@ namespace tix
 		TShaderPtr Shader = ti_new TShader(ShaderNames);
 		Shader->LoadShaderCode();
 		Shader->ShaderResource = RHI->CreateShader(ShaderNames, EST_RENDER);
-		RHI->UpdateHardwareResourceShader(Shader->ShaderResource, Shader);
+		RHI->UpdateHardwareResourceShader(Shader->ShaderResource, Shader->GetShaderCodes());
 		FSMaterial->SetShader(Shader);
 		FullScreenShader = Shader->ShaderResource;
 

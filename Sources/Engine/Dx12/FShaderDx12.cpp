@@ -31,7 +31,7 @@ namespace tix
 	{
 		for (int32 s = 0; s < ESS_COUNT; ++s)
 		{
-			ShaderCodes[s].Destroy();
+			ShaderCodes[s] = nullptr;
 		}
 	}
 }

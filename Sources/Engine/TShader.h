@@ -58,20 +58,11 @@ namespace tix
 		}
 
 		void LoadShaderCode();
-		const TStream& GetShaderCode(E_SHADER_STAGE InStage)
-		{
-			return ShaderCodes[InStage];
-		}
-		const TStream& GetComputeShaderCode()
-		{
-			return ShaderCodes[ESS_COMPUTE_SHADER];
-		}
-		const TStream& GetRtxShaderLibCode()
-		{
-			return ShaderCodes[ESS_SHADER_LIB];
-		}
 
-		void ReleaseShaderCode();
+		const TVector<TStreamPtr>& GetShaderCodes()
+		{
+			return ShaderCodes;
+		}
 
 		virtual void InitRenderThreadResource() override;
 		virtual void DestroyRenderThreadResource() override;
@@ -79,8 +70,11 @@ namespace tix
 		FShaderPtr ShaderResource;
 
 	protected:
+		void ReleaseShaderCode();
+
+	protected:
 		E_SHADER_TYPE Type;
 		TShaderNames Names;
-		TStream ShaderCodes[ESS_COUNT];
+		TVector<TStreamPtr> ShaderCodes;
 	};
 }

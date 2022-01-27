@@ -13,6 +13,7 @@ namespace tix
 		, Type(InType)
 	{
 		Names.ShaderNames[0] = InShaderName;
+		ShaderCodes.resize(ESS_COUNT);
 	}
 
 	TShader::TShader(const TShaderNames& InNames, E_SHADER_TYPE InType)
@@ -23,6 +24,7 @@ namespace tix
 		{
 			Names.ShaderNames[s] = InNames.ShaderNames[s];
 		}
+		ShaderCodes.resize(ESS_COUNT);
 	}
 
 	TShader::~TShader()
@@ -43,7 +45,8 @@ namespace tix
                 TFile File;
                 if (File.Open(ShaderName, EFA_READ))
                 {
-                    ShaderCodes[s].Put(File);
+					ShaderCodes[s] = ti_new TStream;
+                    ShaderCodes[s]->Put(File);
                     File.Close();
                 }
                 else
@@ -65,20 +68,21 @@ namespace tix
 		ShaderResource = FRHI::Get()->CreateShader(Names, Type);
 
 		FShaderPtr Shader_RT = ShaderResource;
-		TShaderPtr ShaderSource = this;
+		TVector<TStreamPtr> Codes = ShaderCodes;
 		ENQUEUE_RENDER_COMMAND(TShaderUpdateResource)(
-			[Shader_RT, ShaderSource]()
+			[Shader_RT, Codes]()
 			{
 				// Add TShader -> Shader Codes herer.
-				FRHI::Get()->UpdateHardwareResourceShader(Shader_RT, ShaderSource);
+				FRHI::Get()->UpdateHardwareResourceShader(Shader_RT, Codes);
 			});
+		ReleaseShaderCode();
 	}
 
 	void TShader::ReleaseShaderCode()
 	{
 		for (int32 s = 0; s < ESS_COUNT; ++s)
 		{
-			ShaderCodes[s].Destroy();
+			ShaderCodes[s] = nullptr;
 		}
 	}
 

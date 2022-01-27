@@ -854,22 +854,26 @@ namespace tix
 			state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
 			state.pRootSignature = PipelineRS->Get();
 
-			state.VS = { ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER].GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER].GetLength()) };
-			if (ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER].GetLength() > 0)
+			state.VS = { ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetLength()) };
+			if (ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER] != nullptr)
 			{
-				state.PS = { ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER].GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER].GetLength()) };
+				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength() > 0);
+				state.PS = { ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength()) };
 			}
-			if (ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER].GetLength() > 0)
+			if (ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER] != nullptr)
 			{
-				state.PS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER].GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER].GetLength()) };
+				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength() > 0);
+				state.PS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength()) };
 			}
-			if (ShaderDx12->ShaderCodes[ESS_HULL_SHADER].GetLength() > 0)
+			if (ShaderDx12->ShaderCodes[ESS_HULL_SHADER] != nullptr)
 			{
-				state.PS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER].GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER].GetLength()) };
+				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength() > 0);
+				state.PS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength()) };
 			}
-			if (ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER].GetLength() > 0)
+			if (ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER] != nullptr)
 			{
-				state.PS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER].GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER].GetLength()) };
+				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength() > 0);
+				state.PS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength()) };
 			}
 
 			MakeDx12RasterizerDesc(Desc, state.RasterizerState);
@@ -911,7 +915,7 @@ namespace tix
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC state = {};
 			state.pRootSignature = PipelineRS->Get();
-			state.CS = { ShaderDx12->ShaderCodes[0].GetBuffer(), uint32(ShaderDx12->ShaderCodes[0].GetLength()) };
+			state.CS = { ShaderDx12->ShaderCodes[0]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[0]->GetLength()) };
 
 			VALIDATE_HRESULT(D3dDevice->CreateComputePipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
 
@@ -1080,8 +1084,8 @@ namespace tix
 
 			D3D12_DXIL_LIBRARY_DESC DxilLibDesc;
 			SubObject.pDesc = &DxilLibDesc;
-			DxilLibDesc.DXILLibrary.pShaderBytecode = ShaderDx12->ShaderCodes[ESS_SHADER_LIB].GetBuffer();
-			DxilLibDesc.DXILLibrary.BytecodeLength = uint32(ShaderDx12->ShaderCodes[ESS_SHADER_LIB].GetLength());
+			DxilLibDesc.DXILLibrary.pShaderBytecode = ShaderDx12->ShaderCodes[ESS_SHADER_LIB]->GetBuffer();
+			DxilLibDesc.DXILLibrary.BytecodeLength = uint32(ShaderDx12->ShaderCodes[ESS_SHADER_LIB]->GetLength());
 
 			const TVector<TString>& ShaderEntries = RtxPipelineDesc.ExportNames;
 			TVector<D3D12_EXPORT_DESC> ExportDesc;
@@ -1512,8 +1516,9 @@ namespace tix
 		return TCrc::MemCrc32(RSData.GetBuffer(), RSData.GetLength());
 	}
 
-	bool FRHIDx12::UpdateHardwareResourceShader(FShaderPtr ShaderResource, TShaderPtr InShaderSource)
+	bool FRHIDx12::UpdateHardwareResourceShader(FShaderPtr ShaderResource, const TVector<TStreamPtr>& ShaderCodes)
 	{
+		TI_ASSERT(ShaderCodes.size() == ESS_COUNT);
 		// Dx12 shader only need load byte code.
 		FShaderDx12 * ShaderDx12 = static_cast<FShaderDx12*>(ShaderResource.get());
 
@@ -1521,14 +1526,14 @@ namespace tix
 		if (ShaderResource->GetShaderType() == EST_COMPUTE ||
 			ShaderResource->GetShaderType() == EST_SHADERLIB)
 		{
-			const TStream& ShaderCode = InShaderSource->GetComputeShaderCode();
-			TI_ASSERT(ShaderCode.GetLength() > 0);
+			TStreamPtr ShaderCode = ShaderCodes[ESS_COMPUTE_SHADER];
+			TI_ASSERT(ShaderCode != nullptr && ShaderCode->GetLength() > 0);
 
 			ShaderDx12->ShaderCodes[0] = ShaderCode;
 			if (RSDeserializer == nullptr)
 			{
-				VALIDATE_HRESULT(D3D12CreateRootSignatureDeserializer(ShaderDx12->ShaderCodes[0].GetBuffer(),
-					ShaderDx12->ShaderCodes[0].GetLength(),
+				VALIDATE_HRESULT(D3D12CreateRootSignatureDeserializer(ShaderCode->GetBuffer(),
+					ShaderCode->GetLength(),
 					__uuidof(ID3D12RootSignatureDeserializer),
 					reinterpret_cast<void**>(&RSDeserializer)));
 			}
@@ -1537,16 +1542,17 @@ namespace tix
 		{
 			for (int32 s = 0; s < ESS_COUNT; ++s)
 			{
-				const TStream& ShaderCode = InShaderSource->GetShaderCode((E_SHADER_STAGE)s);
+				TStreamPtr ShaderCode = ShaderCodes[s];
 				//TString ShaderName = ShaderDx12->GetShaderName((E_SHADER_STAGE)s);
-				if (ShaderCode.GetLength() > 0)
+				if (ShaderCode != nullptr)
 				{
-					ShaderDx12->ShaderCodes[s] = ShaderCode;
+					TI_ASSERT(ShaderCode->GetLength() > 0);
 
+					ShaderDx12->ShaderCodes[s] = ShaderCode;
 					if (RSDeserializer == nullptr)
 					{
-						VALIDATE_HRESULT(D3D12CreateRootSignatureDeserializer(ShaderDx12->ShaderCodes[s].GetBuffer(),
-							ShaderDx12->ShaderCodes[s].GetLength(),
+						VALIDATE_HRESULT(D3D12CreateRootSignatureDeserializer(ShaderCode->GetBuffer(),
+							ShaderCode->GetLength(),
 							__uuidof(ID3D12RootSignatureDeserializer),
 							reinterpret_cast<void**>(&RSDeserializer)));
 					}
@@ -1575,12 +1581,14 @@ namespace tix
 				// Analysis binding argument types
 				for (int32 s = 0; s < ESS_COUNT; ++s)
 				{
-					if (ShaderDx12->ShaderCodes[s].GetLength() > 0)
+					TStreamPtr ShaderCode = ShaderCodes[s];
+					if (ShaderCode != nullptr)
 					{
+						TI_ASSERT(ShaderCode->GetLength() > 0);
 						THMap<int32, E_ARGUMENT_TYPE> BindingMap;	// Key is Binding Index, Value is ArgumentIndex in Arguments
 
 						ID3D12ShaderReflection* ShaderReflection;
-						VALIDATE_HRESULT(D3DReflect(ShaderDx12->ShaderCodes[s].GetBuffer(), ShaderDx12->ShaderCodes[s].GetLength(), IID_PPV_ARGS(&ShaderReflection)));
+						VALIDATE_HRESULT(D3DReflect(ShaderCode->GetBuffer(), ShaderCode->GetLength(), IID_PPV_ARGS(&ShaderReflection)));
 
 						D3D12_SHADER_DESC ShaderDesc;
 						VALIDATE_HRESULT(ShaderReflection->GetDesc(&ShaderDesc));
