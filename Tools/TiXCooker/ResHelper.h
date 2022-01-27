@@ -8,14 +8,6 @@
 namespace tix
 {
 	// help functions
-	inline void FillZero4(TStream& Stream)
-	{
-		char zero[64] = { 0 };
-		int32 bytes = TMath::Align4(Stream.GetLength()) - Stream.GetLength();
-		TI_ASSERT(bytes <= 64);
-		Stream.Put(zero, bytes);
-	}
-
 	inline int32 AddStringToList(TVector<TString>& Strings, const TString& String)
 	{
 		for (int32 s = 0; s < (int32)Strings.size(); ++s)
@@ -43,7 +35,7 @@ namespace tix
 		}
 
 		Stream.Put(string_offsets, (int32)Strings.size() * sizeof(int32));
-		FillZero4(Stream);
+		Stream.FillZero4();
 		for (int i = 0; i < (int)Strings.size(); ++i)
 		{
 			const TString& s = Strings[i];

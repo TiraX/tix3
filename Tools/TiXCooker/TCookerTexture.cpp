@@ -178,7 +178,7 @@ namespace tix
 			TI_ASSERT(Define->Desc.Mips == Define->ImageSurfaces[0]->GetMipmapCount());
 
 			HeaderStream.Put(&TextureHeader, sizeof(THeaderTexture));
-			FillZero4(HeaderStream);
+			HeaderStream.FillZero4();
 
 			const TVector<TImage*>& Surfaces = Define->ImageSurfaces;
 			for (int32 Face = 0; Face < Faces; ++Face)
@@ -193,14 +193,14 @@ namespace tix
 					DataStream.Put(&DataLength, sizeof(int32));
 
 					DataStream.Put(Surface.Data.GetBuffer(), Surface.Data.GetLength());
-					FillZero4(DataStream);
+					DataStream.FillZero4();
 				}
 			}
 		}
 		ChunkHeader.ChunkSize = HeaderStream.GetLength() + DataStream.GetLength();
 
 		OutStream.Put(&ChunkHeader, sizeof(TResfileChunkHeader));
-		FillZero4(OutStream);
+		OutStream.FillZero4();
 		OutStream.Put(HeaderStream.GetBuffer(), HeaderStream.GetLength());
 		OutStream.Put(DataStream.GetBuffer(), DataStream.GetLength());
 	}

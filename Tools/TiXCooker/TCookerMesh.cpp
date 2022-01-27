@@ -417,7 +417,7 @@ namespace tix
 			{
 				_LOG(ELog::Error, "Not aligned vertices.\n");
 			}
-			FillZero4(DataStream);
+			DataStream.FillZero4();
 
 			// - Indices
 			if (TCookerSettings::Setting.MeshClusterSize > 0)
@@ -444,7 +444,7 @@ namespace tix
 					}
 				}
 			}
-			FillZero4(DataStream);
+			DataStream.FillZero4();
 
 			// Export cluster meta data
 			if (TCookerSettings::Setting.MeshClusterSize > 0)
@@ -454,13 +454,13 @@ namespace tix
 
 			// Fill header
 			HeaderStream.Put(&MeshHeader, sizeof(THeaderMesh));
-			FillZero4(HeaderStream);
+			HeaderStream.FillZero4();
 			HeaderStream.Put(SMSections.data(), (uint32)(sizeof(THeaderMeshSection) * SMSections.size()));
 			if (TotalActiveBones.size() > 0)
 			{
 				HeaderStream.Put(TotalActiveBones.data(), (uint32)TotalActiveBones.size() * sizeof(uint32));
 			}
-			FillZero4(HeaderStream);
+			HeaderStream.FillZero4();
 		}
 
 		// Collision data
@@ -497,14 +497,14 @@ namespace tix
 			{
 				DataStream.Put(Convex.VertexData.data(), sizeof(FFloat3) * (uint32)Convex.VertexData.size());
 				DataStream.Put(Convex.IndexData.data(), sizeof(uint16) * (uint32)Convex.IndexData.size());
-				FillZero4(DataStream);
+				DataStream.FillZero4();
 			}
 		}
 
 		ChunkHeader.ChunkSize = HeaderStream.GetLength() + DataStream.GetLength();
 
 		OutStream.Put(&ChunkHeader, sizeof(TResfileChunkHeader));
-		FillZero4(OutStream);
+		OutStream.FillZero4();
 		OutStream.Put(HeaderStream.GetBuffer(), HeaderStream.GetLength());
 		OutStream.Put(DataStream.GetBuffer(), DataStream.GetLength());
 	}

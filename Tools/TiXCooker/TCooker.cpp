@@ -404,7 +404,7 @@ namespace tix
 
 		TStream ChunkHeaderStream;
 		ChunkHeaderStream.Put(&HeaderResfile, sizeof(TResfileHeader));
-		FillZero4(ChunkHeaderStream);
+		ChunkHeaderStream.FillZero4();
 
 		// Write to file
 		TFile file;

@@ -159,6 +159,19 @@ namespace tix
 				memset(Buffer, 0, InSize);
 		}
 
+		void FillZeroToAlign(int32 AlignBytes)
+		{
+			TI_ASSERT(AlignBytes <= 64);
+			static const char Zero[64] = { 0 };
+			int32 Bytes = TMath::Align4(GetLength()) - GetLength();
+			Put(Zero, Bytes);
+		}
+
+		void FillZero4()
+		{
+			FillZeroToAlign(4);
+		}
+
 		void Destroy()
 		{
 			if (Buffer != nullptr)

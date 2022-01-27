@@ -270,7 +270,7 @@ namespace tix
 				if (ShaderCodes[s].GetLength() > 0)
 				{
 					DataStream.Put(ShaderCodes[s].GetBuffer(), ShaderCodes[s].GetLength());
-					FillZero4(DataStream);
+					DataStream.FillZero4();
 				}
 			}
 		}
@@ -278,7 +278,7 @@ namespace tix
 		ChunkHeader.ChunkSize = HeaderStream.GetLength() + DataStream.GetLength();
 
 		OutStream.Put(&ChunkHeader, sizeof(TResfileChunkHeader));
-		FillZero4(OutStream);
+		OutStream.FillZero4();
 		OutStream.Put(HeaderStream.GetBuffer(), HeaderStream.GetLength());
 		OutStream.Put(DataStream.GetBuffer(), DataStream.GetLength());
 	}
