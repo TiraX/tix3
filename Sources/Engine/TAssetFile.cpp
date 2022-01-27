@@ -546,8 +546,6 @@ namespace tix
 
 			// Load param names and types
 			int32 ValueOffset = 0;
-			MInstance->ParamTextureNames.reserve(Header->ParamTextureCount);
-			MInstance->ParamTextureSizes.reserve(Header->ParamTextureCount);
 			for (int32 p = 0; p < TotalParamCount; ++p)
 			{
 				MInstance->ParamNames.push_back(GetString(ParamNameOffset[p]));
@@ -560,9 +558,13 @@ namespace tix
 					int32 TextureNameIndex = *(const int32*)(ParamValueOffset + ValueOffset);
 					const int16 * TextureSize = (const int16*)(ParamValueOffset + ValueOffset + sizeof(int32));
 					TString TextureName = GetString(TextureNameIndex);
-					MInstance->ParamTextureNames.push_back(TextureName);
-					FInt2 Size = FInt2(TextureSize[0], TextureSize[1]);
-					MInstance->ParamTextureSizes.push_back(Size);
+					TAssetPtr TextureAsset = TAssetLibrary::Get()->LoadAsset(TextureName);
+					if (TextureAsset->GetResources().size() == 0)
+					{
+						_LOG(ELog::Error, "Failed to load texture [%s] for Material Instance [%s].\n", TextureName.c_str(), Filename.c_str());
+					}
+					TTexturePtr Texture = static_cast<TTexture*>(TextureAsset->GetResourcePtr());
+					MInstance->ParamTextures.push_back(Texture);
 				}
 				else
 				{

@@ -17,17 +17,16 @@ namespace tix
 
 	void TMaterialInstance::InitRenderThreadResource()
 	{
-		if (ParamValueBuffer != nullptr || ParamTextureNames.size() > 0)
+		if (ParamValueBuffer != nullptr || ParamTextures.size() > 0)
 		{
 			TI_ASSERT(ArgumentBuffer == nullptr);
 			TI_ASSERT(LinkedMaterial->GetDesc().Shader != nullptr);
 			int32 NumBuffers = ParamValueBuffer != nullptr ? 1 : 0;
-			int32 NumTextures = (int32)ParamTextureNames.size();
+			int32 NumTextures = (int32)ParamTextures.size();
 			int32 NumArguments = NumBuffers + NumTextures;
 			ArgumentBuffer = FRHI::Get()->CreateArgumentBuffer(NumArguments);
-			ArgumentBuffer->SetTextureNames(ParamTextureNames);
-			ArgumentBuffer->SetTextureSizes(ParamTextureSizes);
 
+			// Number Parameters
 			if (ParamValueBuffer != nullptr)
 			{
 				uint32 UBFlag = (uint32)(ParamValueBuffer->GetLength() < 4096 ? EGPUResourceFlag::Intermediate : EGPUResourceFlag::None);
@@ -49,6 +48,22 @@ namespace tix
 
 				ArgumentBuffer->SetBuffer(0, UniformBuffer);
 			}
+
+			// Texture Parameters
+			for (int32 i = 0; i < (int32)ParamTextures.size(); ++i)
+			{
+				TI_ASSERT(ParamTextures[i]->TextureResource != nullptr);
+				ArgumentBuffer->SetTexture(i + NumBuffers, ParamTextures[i]->TextureResource);
+			}
+
+			FShaderPtr MaterialShader = LinkedMaterial->GetDesc().Shader->ShaderResource;
+
+			FArgumentBufferPtr _ArgumentBuffer = ArgumentBuffer;
+			ENQUEUE_RENDER_COMMAND(UpdateMIArgumentBuffer)(
+				[_ArgumentBuffer, MaterialShader]()
+				{
+					FRHI::Get()->UpdateHardwareResourceAB(_ArgumentBuffer, MaterialShader);
+				});
 		}
 	}
 

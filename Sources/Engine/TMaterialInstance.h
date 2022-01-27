@@ -40,10 +40,6 @@ namespace tix
 		TStreamPtr ParamValueBuffer;
 		TVector<TTexturePtr> ParamTextures;
 
-		// For VT System
-		TVector<TString> ParamTextureNames;
-		TVector<FInt2> ParamTextureSizes;
-
 	protected:
 		friend class TAssetFile;
 	};

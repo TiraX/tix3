@@ -17,38 +17,14 @@ namespace tix
 		TI_API void SetBuffer(int32 Index, FUniformBufferPtr InUniform);
 		TI_API void SetTexture(int32 Index, FTexturePtr InTexture);
 
-		void SetTextureNames(const TVector<TString>& InTextureNames)
-		{
-			TextureNames = InTextureNames;
-		}
-
-		void SetTextureSizes(const TVector<FInt2>& InSizes)
-		{
-			TextureSizes = InSizes;
-		}
-
 		const TVector<FRenderResourcePtr>& GetArguments() const
 		{
 			return Arguments;
-		}
-
-		const TVector<TString>& GetTextureNames() const
-		{
-			return TextureNames;
-		}
-
-		const TVector<FInt2>& GetTextureSizes() const
-		{
-			return TextureSizes;
 		}
 
 	protected:
 
 	protected:
 		TVector<FRenderResourcePtr> Arguments;
-
-		// For VT System
-		TVector<TString> TextureNames;
-		TVector<FInt2> TextureSizes;
 	};
 }
