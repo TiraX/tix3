@@ -30,13 +30,14 @@ namespace tix
 			Desc.Shader->InitRenderThreadResource();
 		}
 		PipelineResource = FRHI::Get()->CreatePipeline(Desc.Shader->ShaderResource);
+		PipelineResource->SetResourceName(GetResourceName());
 
 		FPipelinePtr _PipelineResource = PipelineResource;
-		TPipelinePtr PipelineDesc = this;
+		const TPipelineDesc& PLDesc = Desc;
 		ENQUEUE_RENDER_COMMAND(TPipelineUpdateResource)(
-			[_PipelineResource, PipelineDesc]()
+			[_PipelineResource, PLDesc]()
 			{
-				FRHI::Get()->UpdateHardwareResourcePL(_PipelineResource, PipelineDesc);
+				FRHI::Get()->UpdateHardwareResourceGraphicsPipeline(_PipelineResource, PLDesc);
 			});
 	}
 

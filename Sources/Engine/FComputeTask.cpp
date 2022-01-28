@@ -53,8 +53,7 @@ namespace tix
         }
         else
         {
-            TPipelinePtr PipelineDesc = nullptr;
-            FRHI::Get()->UpdateHardwareResourcePL(ComputePipeline, PipelineDesc);
+            FRHI::Get()->UpdateHardwareResourceComputePipeline(ComputePipeline);
         }
 	}
 }

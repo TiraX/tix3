@@ -796,132 +796,135 @@ namespace tix
 		return nullptr;
 	}
 
-	bool FRHIDx12::UpdateHardwareResourcePL(FPipelinePtr Pipeline, TPipelinePtr InPipelineDesc)
+	bool FRHIDx12::UpdateHardwareResourceGraphicsPipeline(FPipelinePtr Pipeline, const TPipelineDesc& Desc)
 	{
 		FPipelineDx12 * PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
 		FShaderPtr Shader = Pipeline->GetShader();
 
-		if (Shader->GetShaderType() == EST_RENDER)
+		TI_ASSERT(Shader->GetShaderType() == EST_RENDER);
+
+		TVector<E_MESH_STREAM_INDEX> VertexStreams = TVertexBuffer::GetSteamsFromFormat(Desc.VsFormat);
+		TVector<E_INSTANCE_STREAM_INDEX> InstanceStreams = TInstanceBuffer::GetSteamsFromFormat(Desc.InsFormat);
+		TVector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
+		InputLayout.resize(VertexStreams.size() + InstanceStreams.size());
+
+		// Fill layout desc
+		uint32 VertexDataOffset = 0;
+		for (uint32 i = 0; i < VertexStreams.size(); ++i)
 		{
-#if defined (TIX_DEBUG)
-			Pipeline->SetResourceName(InPipelineDesc->GetResourceName());
-#endif
-			TI_ASSERT(InPipelineDesc != nullptr);
-			const TPipelineDesc& Desc = InPipelineDesc->GetDesc();
-			TI_ASSERT(Shader == Desc.Shader->ShaderResource);
+			E_MESH_STREAM_INDEX Stream = VertexStreams[i];
+			D3D12_INPUT_ELEMENT_DESC& InputElement = InputLayout[i];
+			InputElement.SemanticName = TVertexBuffer::SemanticName[Stream];
+			InputElement.SemanticIndex = TVertexBuffer::SemanticIndex[Stream];
+			InputElement.Format = k_MESHBUFFER_STREAM_FORMAT_MAP[Stream];
+			InputElement.InputSlot = 0;
+			InputElement.AlignedByteOffset = VertexDataOffset;
+			VertexDataOffset += TVertexBuffer::SemanticSize[Stream];
+			InputElement.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+			InputElement.InstanceDataStepRate = 0;
+		}
+		uint32 InstanceDataOffset = 0;
+		for (uint32 i = 0; i < InstanceStreams.size(); ++i)
+		{
+			E_INSTANCE_STREAM_INDEX Stream = InstanceStreams[i];
+			D3D12_INPUT_ELEMENT_DESC& InputElement = InputLayout[VertexStreams.size() + i];
+			InputElement.SemanticName = TInstanceBuffer::SemanticName[Stream];
+			InputElement.SemanticIndex = TInstanceBuffer::SemanticIndex[Stream];
+			InputElement.Format = k_INSTANCEBUFFER_STREAM_FORMAT_MAP[Stream];
+			InputElement.InputSlot = 1;
+			InputElement.AlignedByteOffset = InstanceDataOffset;
+			InstanceDataOffset += TInstanceBuffer::SemanticSize[Stream];
+			InputElement.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+			InputElement.InstanceDataStepRate = 1;
+		}
 
-			TVector<E_MESH_STREAM_INDEX> VertexStreams = TVertexBuffer::GetSteamsFromFormat(Desc.VsFormat);
-			TVector<E_INSTANCE_STREAM_INDEX> InstanceStreams = TInstanceBuffer::GetSteamsFromFormat(Desc.InsFormat);
-			TVector<D3D12_INPUT_ELEMENT_DESC> InputLayout;
-			InputLayout.resize(VertexStreams.size() + InstanceStreams.size());
+		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
+		FShaderBindingPtr Binding = ShaderDx12->ShaderBinding;
+		TI_ASSERT(Binding != nullptr);
+		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
 
-			// Fill layout desc
-			uint32 VertexDataOffset = 0;
-			for (uint32 i = 0; i < VertexStreams.size(); ++i)
-			{
-				E_MESH_STREAM_INDEX Stream = VertexStreams[i];
-				D3D12_INPUT_ELEMENT_DESC& InputElement = InputLayout[i];
-				InputElement.SemanticName = TVertexBuffer::SemanticName[Stream];
-				InputElement.SemanticIndex = TVertexBuffer::SemanticIndex[Stream];
-				InputElement.Format = k_MESHBUFFER_STREAM_FORMAT_MAP[Stream];
-				InputElement.InputSlot = 0;
-				InputElement.AlignedByteOffset = VertexDataOffset;
-				VertexDataOffset += TVertexBuffer::SemanticSize[Stream];
-				InputElement.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-				InputElement.InstanceDataStepRate = 0;
-			}
-			uint32 InstanceDataOffset = 0;
-			for (uint32 i = 0; i < InstanceStreams.size(); ++i)
-			{
-				E_INSTANCE_STREAM_INDEX Stream = InstanceStreams[i];
-				D3D12_INPUT_ELEMENT_DESC& InputElement = InputLayout[VertexStreams.size() + i];
-				InputElement.SemanticName = TInstanceBuffer::SemanticName[Stream];
-				InputElement.SemanticIndex = TInstanceBuffer::SemanticIndex[Stream];
-				InputElement.Format = k_INSTANCEBUFFER_STREAM_FORMAT_MAP[Stream];
-				InputElement.InputSlot = 1;
-				InputElement.AlignedByteOffset = InstanceDataOffset;
-				InstanceDataOffset += TInstanceBuffer::SemanticSize[Stream];
-				InputElement.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
-				InputElement.InstanceDataStepRate = 1;
-			}
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
+		state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
+		state.pRootSignature = PipelineRS->Get();
 
-			FShaderDx12 * ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
-			FShaderBindingPtr Binding = ShaderDx12->ShaderBinding;
-			TI_ASSERT(Binding != nullptr);
-			FRootSignatureDx12 * PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
+		state.VS = { ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetLength()) };
+		if (ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength() > 0);
+			state.PS = { ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength()) };
+		}
+		if (ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength() > 0);
+			state.PS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength()) };
+		}
+		if (ShaderDx12->ShaderCodes[ESS_HULL_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength() > 0);
+			state.PS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength()) };
+		}
+		if (ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength() > 0);
+			state.PS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength()) };
+		}
 
-			D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
-			state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
-			state.pRootSignature = PipelineRS->Get();
-
-			state.VS = { ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetLength()) };
-			if (ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER] != nullptr)
-			{
-				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength() > 0);
-				state.PS = { ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength()) };
-			}
-			if (ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER] != nullptr)
-			{
-				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength() > 0);
-				state.PS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength()) };
-			}
-			if (ShaderDx12->ShaderCodes[ESS_HULL_SHADER] != nullptr)
-			{
-				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength() > 0);
-				state.PS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength()) };
-			}
-			if (ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER] != nullptr)
-			{
-				TI_ASSERT(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength() > 0);
-				state.PS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength()) };
-			}
-
-			MakeDx12RasterizerDesc(Desc, state.RasterizerState);
-			MakeDx12BlendState(Desc, state.BlendState);
-			MakeDx12DepthStencilState(Desc, state.DepthStencilState);
-			state.SampleMask = UINT_MAX;
-			state.PrimitiveTopologyType = GetDx12TopologyType(Desc.PrimitiveType);
-			TI_ASSERT(D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED != state.PrimitiveTopologyType);
-			state.NumRenderTargets = Desc.RTCount;
-			TI_ASSERT(Desc.RTCount >= 0);
-			for (int32 r = 0; r < Desc.RTCount; ++r)
-			{
-				state.RTVFormats[r] = GetDxPixelFormat(Desc.RTFormats[r]);
-			}
-			if (Desc.DepthFormat != EPF_UNKNOWN)
-			{
-				state.DSVFormat = GetDxPixelFormat(Desc.DepthFormat);
-			}
-			else
-			{
-				state.DSVFormat = DXGI_FORMAT_UNKNOWN;
-			}
-			TI_ASSERT(DXGI_FORMAT_UNKNOWN != state.RTVFormats[0] || DXGI_FORMAT_UNKNOWN != state.DSVFormat);
-			state.SampleDesc.Count = 1;
-
-			VALIDATE_HRESULT(D3dDevice->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
-			DX_SETNAME(PipelineDx12->PipelineState.Get(), Pipeline->GetResourceName());
-
-			// Shader data can be deleted once the pipeline state is created.
-			ShaderDx12->ReleaseShaderCode();
+		MakeDx12RasterizerDesc(Desc, state.RasterizerState);
+		MakeDx12BlendState(Desc, state.BlendState);
+		MakeDx12DepthStencilState(Desc, state.DepthStencilState);
+		state.SampleMask = UINT_MAX;
+		state.PrimitiveTopologyType = GetDx12TopologyType(Desc.PrimitiveType);
+		TI_ASSERT(D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED != state.PrimitiveTopologyType);
+		state.NumRenderTargets = Desc.RTCount;
+		TI_ASSERT(Desc.RTCount >= 0);
+		for (int32 r = 0; r < Desc.RTCount; ++r)
+		{
+			state.RTVFormats[r] = GetDxPixelFormat(Desc.RTFormats[r]);
+		}
+		if (Desc.DepthFormat != EPF_UNKNOWN)
+		{
+			state.DSVFormat = GetDxPixelFormat(Desc.DepthFormat);
 		}
 		else
 		{
-			// Compute pipeline 
-			FShaderDx12 * ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
-			FShaderBindingPtr Binding = ShaderDx12->ShaderBinding;
-			TI_ASSERT(Binding != nullptr);
-			FRootSignatureDx12 * PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
-
-			D3D12_COMPUTE_PIPELINE_STATE_DESC state = {};
-			state.pRootSignature = PipelineRS->Get();
-			state.CS = { ShaderDx12->ShaderCodes[0]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[0]->GetLength()) };
-
-			VALIDATE_HRESULT(D3dDevice->CreateComputePipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
-
-			// Shader data can be deleted once the pipeline state is created.
-			ShaderDx12->ReleaseShaderCode();
+			state.DSVFormat = DXGI_FORMAT_UNKNOWN;
 		}
+		TI_ASSERT(DXGI_FORMAT_UNKNOWN != state.RTVFormats[0] || DXGI_FORMAT_UNKNOWN != state.DSVFormat);
+		state.SampleDesc.Count = 1;
+
+		VALIDATE_HRESULT(D3dDevice->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
+		DX_SETNAME(PipelineDx12->PipelineState.Get(), Pipeline->GetResourceName());
+
+		// Shader data can be deleted once the pipeline state is created.
+		ShaderDx12->ReleaseShaderCode();
+		HoldResourceReference(Pipeline);
+
+		return true;
+	}
+
+
+	bool FRHIDx12::UpdateHardwareResourceComputePipeline(FPipelinePtr Pipeline)
+	{
+		FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
+		FShaderPtr Shader = Pipeline->GetShader();
+
+		TI_ASSERT(Shader->GetShaderType() == EST_COMPUTE);
+
+		// Compute pipeline 
+		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
+		FShaderBindingPtr Binding = ShaderDx12->ShaderBinding;
+		TI_ASSERT(Binding != nullptr);
+		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC state = {};
+		state.pRootSignature = PipelineRS->Get();
+		state.CS = { ShaderDx12->ShaderCodes[0]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[0]->GetLength()) };
+
+		VALIDATE_HRESULT(D3dDevice->CreateComputePipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
+
+		// Shader data can be deleted once the pipeline state is created.
+		ShaderDx12->ReleaseShaderCode();
+
 		HoldResourceReference(Pipeline);
 
 		return true;

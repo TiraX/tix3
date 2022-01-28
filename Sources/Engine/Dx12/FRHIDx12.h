@@ -63,7 +63,8 @@ namespace tix
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
 		// Graphics and Compute
-		virtual bool UpdateHardwareResourcePL(FPipelinePtr Pipeline, TPipelinePtr InPipelineDesc) override;
+		virtual bool UpdateHardwareResourceGraphicsPipeline(FPipelinePtr Pipeline, const TPipelineDesc& Desc) override;
+		virtual bool UpdateHardwareResourceComputePipeline(FPipelinePtr Pipeline) override;
 		virtual bool UpdateHardwareResourceTilePL(FPipelinePtr Pipeline, TTilePipelinePtr InTilePipelineDesc) override;
 		virtual bool UpdateHardwareResourceRT(FRenderTargetPtr RenderTarget) override;
 		virtual bool UpdateHardwareResourceShader(FShaderPtr ShaderResource, const TVector<TStreamPtr>& ShaderCodes) override;

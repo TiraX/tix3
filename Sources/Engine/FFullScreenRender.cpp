@@ -75,7 +75,7 @@ namespace tix
 
 		// Pipeline
 		FullScreenPipeline = RHI->CreatePipeline(FullScreenShader);
-		RHI->UpdateHardwareResourcePL(FullScreenPipeline, FSMaterial);
+		RHI->UpdateHardwareResourceGraphicsPipeline(FullScreenPipeline, FSMaterial->GetDesc());
 		FSMaterial = nullptr;
 
 		bInited = true;
