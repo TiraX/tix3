@@ -241,7 +241,8 @@ namespace tix
 						ENQUEUE_RENDER_COMMAND(AddEnvLightToFScene)(
 							[CubeTextureResource, Position]()
 							{
-								FRenderThread::Get()->GetRenderScene()->SetEnvLight(CubeTextureResource, Position);
+								FEnvLightPtr EnvLight = ti_new FEnvLight(CubeTextureResource, Position);
+								FRenderThread::Get()->GetRenderScene()->SetEnvLight(EnvLight);
 							});
 
 						// Remove the reference holder

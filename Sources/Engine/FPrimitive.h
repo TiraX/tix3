@@ -23,7 +23,13 @@ namespace tix
 		FPrimitive();
 		~FPrimitive();
 
-		void InitFromRenderData(FVertexBufferPtr VB, FIndexBufferPtr IB, FPipelinePtr Pipeline, FArgumentBufferPtr MIParam);
+		void InitFromRenderData(
+			FVertexBufferPtr VB,
+			FIndexBufferPtr IB,
+			FInstanceBufferPtr InsB,
+			FPipelinePtr Pipeline,
+			FArgumentBufferPtr MIParam
+		);
 		void InitFromInstancedStaticMesh(
 			TStaticMeshPtr InStaticMesh,
 			FInstanceBufferPtr InInstanceBuffer,

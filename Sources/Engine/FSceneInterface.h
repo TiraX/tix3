@@ -21,7 +21,8 @@ namespace tix
 
 		// Lights info
 		virtual void SetEnvironmentInfo(const FEnvironmentInfo& Info) = 0;
-		virtual void SetEnvLight(FTexturePtr HDRCube, const FFloat3& Position) = 0;
+		virtual void SetEnvLight(FEnvLightPtr InEnvLight) = 0;
+		virtual FEnvLightPtr GetEnvLight() = 0;
 
 		// Scene Primitives
 		virtual void AddPrimitive(FPrimitivePtr InPrim) = 0;

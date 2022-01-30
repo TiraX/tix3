@@ -9,7 +9,7 @@ namespace tix
 {
 	// FEnvLight: Hold indirect light info
 	// Filtered cubemap for indirect specular, and qiuxie for indirect diffuse
-	class FEnvLight : public FRenderResource
+	class TI_API FEnvLight : public FRenderResource
 	{
 	public:
 		FEnvLight(FTexturePtr InCubemap, const FFloat3& InPosition);

@@ -33,9 +33,14 @@ namespace tix
 		SetSceneFlag(EnvironmentDirty);
 	}
 
-	void FDefaultScene::SetEnvLight(FTexturePtr HDRCube, const FFloat3& Position)
+	void FDefaultScene::SetEnvLight(FEnvLightPtr InEnvLight)
 	{
-		EnvLight = ti_new FEnvLight(HDRCube, Position);
+		EnvLight = InEnvLight;
+	}
+
+	FEnvLightPtr FDefaultScene::GetEnvLight()
+	{
+		return EnvLight;
 	}
 
 	void FDefaultScene::AddPrimitive(FPrimitivePtr InPrim)

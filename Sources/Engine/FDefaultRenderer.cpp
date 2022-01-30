@@ -184,10 +184,8 @@ namespace tix
 			break;
 		case ARGUMENT_EB_ENV_CUBE:
 		{
-			TI_ASSERT(0);
-			TI_TODO("Env Light should use the nearest with Primitive, associate with Primitive Buffer. Remove ARGUMENT_EB_ENV_CUBE in future");
-			//FEnvLightPtr EnvLight = Scene->FindNearestEnvLight(FFloat3());
-			//RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
+			FEnvLightPtr EnvLight = Scene->GetEnvLight();
+			RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
 			break;
 #if (COMPILE_WITH_RHI_METAL)

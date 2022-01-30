@@ -28,7 +28,8 @@ namespace tix
 
 		virtual void SetViewProjection(const FViewProjectionInfo& Info) override;
 		virtual void SetEnvironmentInfo(const FEnvironmentInfo& Info) override;
-		virtual void SetEnvLight(FTexturePtr HDRCube, const FFloat3& Position) override;
+		virtual void SetEnvLight(FEnvLightPtr InEnvLight) override;
+		virtual FEnvLightPtr GetEnvLight() override;
 		virtual void AddPrimitive(FPrimitivePtr InPrim) override;
 
 		bool HasSceneFlag(SceneFlag Flag) const

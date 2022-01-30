@@ -22,13 +22,24 @@ namespace tix
 		PrimitiveUniformBuffer = nullptr;
 	}
 
-	void FPrimitive::InitFromRenderData(FVertexBufferPtr VB, FIndexBufferPtr IB, FPipelinePtr Pipeline, FArgumentBufferPtr MIParam)
+	void FPrimitive::InitFromRenderData(
+		FVertexBufferPtr VB,
+		FIndexBufferPtr IB, 
+		FInstanceBufferPtr InsB, 
+		FPipelinePtr Pipeline, 
+		FArgumentBufferPtr MIParam
+	)
 	{
 		TI_ASSERT(IsRenderThread());
 		// Add mesh buffer
 		VertexBuffer = VB;
 		IndexBuffer = IB;
 		TI_ASSERT(VertexBuffer != nullptr && IndexBuffer != nullptr);
+
+		// Add instance buffer
+		InstanceBuffer = InsB;
+		InstanceCount = InsB->GetDesc().InstanceCount;
+		InstanceOffset = 0;
 
 		// Add a default section.
 		Sections.resize(1);
