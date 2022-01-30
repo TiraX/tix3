@@ -163,7 +163,7 @@ namespace tix
 		{
 			TI_ASSERT(AlignBytes <= 64);
 			static const char Zero[64] = { 0 };
-			int32 Bytes = TMath::Align4(GetLength()) - GetLength();
+			int32 Bytes = TMath::Align(GetLength(), AlignBytes) - GetLength();
 			Put(Zero, Bytes);
 		}
 
