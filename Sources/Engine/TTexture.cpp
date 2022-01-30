@@ -68,6 +68,7 @@ namespace tix
 	{
 		TI_ASSERT(TextureResource == nullptr);
 		TextureResource = FTexture::CreateTexture(Desc);
+		TextureResource->SetResourceName(GetResourceName());
 
 		FTexturePtr Texture_RT = TextureResource;
 		TVector<TImagePtr> Data = TextureData;
