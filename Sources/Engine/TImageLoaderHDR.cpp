@@ -272,6 +272,17 @@ namespace tix
 				SColorf HdrColor = HdrImage->GetPixelFloat(x, y, MipIndex);
 				SColor RGBEColor = ToRGBEDithered(HdrColor);
 
+				// Test RGBE decode
+				if (false)
+				{
+					float scale = ldexp(1.f, RGBEColor.A - (128 + 8));
+					SColorf Color;
+					Color.R = RGBEColor.R * scale;
+					Color.G = RGBEColor.G * scale;
+					Color.B = RGBEColor.B * scale;
+					Color.A = 1.f;
+				}
+
 				ScanLine[0].push_back(RGBEColor.R);
 				ScanLine[1].push_back(RGBEColor.G);
 				ScanLine[2].push_back(RGBEColor.B);

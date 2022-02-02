@@ -78,12 +78,18 @@ namespace tix
 		}
 	}
 
-	SColorf SampleParentMip(TImage* Image, const FFloat2& InUV, int32 FaceIndex, int32 SrcMipIndex)
+	SColorf SampleParentMip(TImage* Image, const FFloat2& InUV, int32 SrcMipIndex)
 	{
-		FFloat2 UV = InUV * 2.f - FFloat2(1.f, 1.f);
-		FFloat3 CubeCoord = GetCubemapVector(UV, FaceIndex);
-		CubeCoord.Normalize();
-		return TCookerTexture::SampleLongLatPoint(Image, CubeCoord, SrcMipIndex);
+		const int32 W = Image->GetMipmap(SrcMipIndex).W;
+		const int32 H = Image->GetMipmap(SrcMipIndex).H;
+
+		int32 X0 = (int32)floor(InUV.X * W);
+		int32 Y0 = (int32)floor(InUV.Y * H);
+
+		X0 = TMath::Clamp(X0, 0, W - 1);
+		Y0 = TMath::Clamp(Y0, 0, H - 1);
+
+		return Image->GetPixelFloat(X0, Y0, SrcMipIndex);
 	}
 
 	void TCookerTexture::ComputeDiffuseIrradiance(TResTextureDefine* SrcImage, FSHVectorRGB3& OutIrrEnvMap)
@@ -176,15 +182,67 @@ namespace tix
 
 							SColorf Acc(0, 0, 0, 0);
 
-							Acc += SampleParentMip(LongLat32, UV + FFloat2(-SourceTexelSize, -SourceTexelSize), Face, SourceMipIndex);
-							Acc += SampleParentMip(LongLat32, UV + FFloat2(SourceTexelSize, -SourceTexelSize), Face, SourceMipIndex);
-							Acc += SampleParentMip(LongLat32, UV + FFloat2(-SourceTexelSize, SourceTexelSize), Face, SourceMipIndex);
-							Acc += SampleParentMip(LongLat32, UV + FFloat2(SourceTexelSize, SourceTexelSize), Face, SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(-SourceTexelSize, -SourceTexelSize), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(SourceTexelSize, -SourceTexelSize), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(-SourceTexelSize, SourceTexelSize), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(SourceTexelSize, SourceTexelSize), SourceMipIndex);
 
 							Acc *= 1.f / 4.f;
 							TargetCubeFaces[Face]->SetPixel(X, Y, Acc, MipIndex);
 						}
 					}
+				}
+			}
+
+			if (!false)
+			{
+				char name[64];
+				sprintf(name, "SH%d", CoefficientIndex);
+				ExportCubeMap(TargetCubeFaces, name);
+
+				TVector<TImage*> UEResult;
+				UEResult.resize(6);
+				for (int32 Face = 0; Face < 6; ++Face)
+				{
+					UEResult[Face] = ti_new TImage(LongLat32->GetFormat(), TargetSize, TargetSize);
+					UEResult[Face]->AllocEmptyMipmaps();
+				}
+
+				// Load UE json result, and convert to hdr
+				for (int32 MipIndex = 0; MipIndex < 6; MipIndex++)
+				{
+					for (int32 Face = 0; Face < 6; Face++)
+					{
+						int8 Name[64];
+						sprintf(Name, "C%d_Face%d_Mip%d.json", CoefficientIndex, Face, MipIndex);
+
+						// Load tjs file to buffer
+						TFile TjsFile;
+						TjsFile.Open(Name, EFA_READ);
+						int8* FileContent = ti_new int8[TjsFile.GetSize() + 1];
+						TjsFile.Read(FileContent, TjsFile.GetSize(), TjsFile.GetSize());
+						FileContent[TjsFile.GetSize()] = 0;
+						TjsFile.Close();
+
+						// Parse json file
+						TJSON JsonDoc;
+						JsonDoc.Parse(FileContent);
+
+						TVector<float> Data;
+						JsonDoc["data"] << Data;
+
+						uint8* ImageData = UEResult[Face]->Lock(MipIndex);
+						memcpy(ImageData, Data.data(), Data.size() * sizeof(float));
+						UEResult[Face]->Unlock();
+
+						ti_delete[] FileContent;
+					}
+				}
+				sprintf(name, "UE%d", CoefficientIndex);
+				ExportCubeMap(UEResult, name);
+				for (auto Cube : UEResult)
+				{
+					ti_delete Cube;
 				}
 			}
 

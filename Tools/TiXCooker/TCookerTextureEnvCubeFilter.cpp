@@ -518,7 +518,7 @@ namespace tix
 		}
 	};
 
-	void ExportCubeMap(const TVector<TImage*>& FaceImages, const int8* NamePrefix)
+	void TCookerTexture::ExportCubeMap(const TVector<TImage*>& FaceImages, const int8* NamePrefix)
 	{
 		TImage* Face0 = FaceImages[0];
 		int32 W = Face0->GetWidth();

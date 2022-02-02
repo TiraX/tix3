@@ -89,6 +89,9 @@ namespace tix
 
 		static TVector<TImage*> LongLatToCube(TImage* LongLat, bool WithMips);
 
+		// For Debug
+		static void ExportCubeMap(const TVector<TImage*>& FaceImages, const int8* NamePrefix);
+
 		void AddTexture(TResTextureDefine* Texture);
 
 	private:
