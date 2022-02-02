@@ -115,6 +115,11 @@ namespace tix
 	{
 		return Format >= EPF_DDS_DXT1;
 	}
+	
+	bool TImage::IsHDRFormat(E_PIXEL_FORMAT Format)
+	{
+		return Format >= EPF_R16F && Format <= EPF_R10G10B10A2F_RESERVED;
+	}
 
 	inline int32 GetBlockWidth(int32 PixelWidth, int32 BlockSize)
 	{
@@ -620,37 +625,66 @@ namespace tix
 		}
 
 		// Down sample to generate all mips
-		for (int32 Mip = 0 ; Mip < MipCount - 1 ; ++ Mip)
+		if (IsHDRFormat(PixelFormat))
 		{
-			for (int32 y = 0 ; y < H ; y += 2)
+			for (int32 Mip = 0; Mip < MipCount - 1; ++Mip)
 			{
-				for (int32 x = 0 ; x < W ; x += 2)
+				for (int32 y = 0; y < H; y += 2)
 				{
-					SColor c00 = GetPixel(x + 0, y + 0, Mip);
-					SColor c10 = GetPixel(x + 1, y + 0, Mip);
-					SColor c01 = GetPixel(x + 0, y + 1, Mip);
-					SColor c11 = GetPixel(x + 1, y + 1, Mip);
+					for (int32 x = 0; x < W; x += 2)
+					{
+						SColorf c00 = GetPixelFloat(x + 0, y + 0, Mip);
+						SColorf c10 = GetPixelFloat(x + 1, y + 0, Mip);
+						SColorf c01 = GetPixelFloat(x + 0, y + 1, Mip);
+						SColorf c11 = GetPixelFloat(x + 1, y + 1, Mip);
 
-					float Rf, Gf, Bf, Af;
-					Rf = (float)(c00.R + c10.R + c01.R + c11.R);
-					Gf = (float)(c00.G + c10.G + c01.G + c11.G);
-					Bf = (float)(c00.B + c10.B + c01.B + c11.B);
-					Af = (float)(c00.A + c10.A + c01.A + c11.A);
+						SColorf Target;
+						Target = c00 + c10 + c01 + c11;
+						Target *= 0.25f;
 
-					// Calc average
-					SColor Target;
-					Target.R = TMath::Round(Rf * 0.25f);
-					Target.G = TMath::Round(Gf * 0.25f);
-					Target.B = TMath::Round(Bf * 0.25f);
-					Target.A = TMath::Round(Af * 0.25f);
-
-					// Set to next mip
-					SetPixel(x / 2, y / 2, Target, Mip + 1);
+						// Set to next mip
+						SetPixel(x / 2, y / 2, Target, Mip + 1);
+					}
 				}
-			}
 
-			W /= 2;
-			H /= 2;
+				W /= 2;
+				H /= 2;
+			}
+		}
+		else
+		{
+			for (int32 Mip = 0; Mip < MipCount - 1; ++Mip)
+			{
+				for (int32 y = 0; y < H; y += 2)
+				{
+					for (int32 x = 0; x < W; x += 2)
+					{
+						SColor c00 = GetPixel(x + 0, y + 0, Mip);
+						SColor c10 = GetPixel(x + 1, y + 0, Mip);
+						SColor c01 = GetPixel(x + 0, y + 1, Mip);
+						SColor c11 = GetPixel(x + 1, y + 1, Mip);
+
+						float Rf, Gf, Bf, Af;
+						Rf = (float)(c00.R + c10.R + c01.R + c11.R);
+						Gf = (float)(c00.G + c10.G + c01.G + c11.G);
+						Bf = (float)(c00.B + c10.B + c01.B + c11.B);
+						Af = (float)(c00.A + c10.A + c01.A + c11.A);
+
+						// Calc average
+						SColor Target;
+						Target.R = TMath::Round(Rf * 0.25f);
+						Target.G = TMath::Round(Gf * 0.25f);
+						Target.B = TMath::Round(Bf * 0.25f);
+						Target.A = TMath::Round(Af * 0.25f);
+
+						// Set to next mip
+						SetPixel(x / 2, y / 2, Target, Mip + 1);
+					}
+				}
+
+				W /= 2;
+				H /= 2;
+			}
 		}
 	}
 

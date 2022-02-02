@@ -78,6 +78,10 @@ namespace tix
 			TI_ASSERT(SrcImage->Desc.Type == ETT_TEXTURE_2D);
 			TI_ASSERT(SrcImage->Desc.Format == EPF_RGBA32F || SrcImage->Desc.Format == EPF_RGBA16F);
 
+			// Calc SH for this IBL
+			FSHVectorRGB3 SH;
+			ComputeDiffuseIrradiance(SrcImage, SH);
+
 			// Convert Latlong Image to cube faces and do pbr filter
 			TResTextureDefine* Filtered = LongLatToCubeAndFilter(SrcImage);
 			ti_delete SrcImage;

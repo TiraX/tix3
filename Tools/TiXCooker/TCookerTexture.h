@@ -72,6 +72,9 @@ namespace tix
 		virtual bool Load(const TJSON& JsonDoc) override;
 		virtual void SaveTrunk(TChunkFile& OutChunkFile) override;
 
+		static SColorf SampleLongLatPoint(TImage* LongLat, const FFloat3& Dir, int32 Mip);
+		static SColorf SampleLongLatLinear(TImage* LongLat, const FFloat3& Dir, int32 Mip);
+		static SColorf SampleLongLatLinearMip(TImage* LongLat, const FFloat3& Dir, float Mip);
 	private:
 		static TResTextureDefine* LoadDdsFile(const TResTextureSourceInfo& SrcInfo);
 		static TResTextureDefine* LoadTgaFile(const TResTextureSourceInfo& SrcInfo);
@@ -82,11 +85,9 @@ namespace tix
 		static TResTextureDefine* Convert32FTo16F(TResTextureDefine* SrcImage);
 
 		static TResTextureDefine* LongLatToCubeAndFilter(TResTextureDefine* SrcImage);
+		static void ComputeDiffuseIrradiance(TResTextureDefine* SrcImage, FSHVectorRGB3& OutIrrEnvMap);
 
-		//static TResTextureDefine* ConvertDdsToAstc(TResTextureDefine* DdsTexture, const TString& Filename, int32 LodBias, E_PIXEL_FORMAT TargetFormat);
-
-		//static TResTextureDefine* LoadTgaToDds(const TResTextureSourceInfo& SrcInfo);
-		//static TResTextureDefine* LoadTgaToAstc(const TResTextureSourceInfo& SrcInfo);
+		static TVector<TImage*> LongLatToCube(TImage* LongLat, bool WithMips);
 
 		void AddTexture(TResTextureDefine* Texture);
 

@@ -70,6 +70,7 @@ namespace tix
 			memcpy(V, RawData, Num * sizeof(float));
 		}
 	};
+	typedef FSHVector<3> FSHVector3;
 
 	/////////////////////////////////////////////////////////////////
 

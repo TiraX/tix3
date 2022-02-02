@@ -79,6 +79,9 @@
     <ClCompile Include="TCookerTextureTga.cpp">
       <Filter>AssetCookers</Filter>
     </ClCompile>
+    <ClCompile Include="TCookerTextureSH.cpp">
+      <Filter>AssetCookers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TCooker.h" />

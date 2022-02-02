@@ -18,6 +18,7 @@ namespace tix
 		static int32 GetDataSize(E_PIXEL_FORMAT Format, int32 Width, int32 Height);
 		static int32 GetRowPitch(E_PIXEL_FORMAT Format, int32 Width);
 		static bool IsCompressedFormat(E_PIXEL_FORMAT Format);
+		static bool IsHDRFormat(E_PIXEL_FORMAT Format);
 		static int32 CalcMipCount(int32 Width, int32 Height);
 
 		static TImagePtr LoadImageTGA(TFile& FileInput, int32* PixelDepth = nullptr);

@@ -159,6 +159,7 @@ copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Co
     <ClCompile Include="TCookerTextureDds.cpp" />
     <ClCompile Include="TCookerTextureEnvCubeFilter.cpp" />
     <ClCompile Include="TCookerTextureHdr.cpp" />
+    <ClCompile Include="TCookerTextureSH.cpp" />
     <ClCompile Include="TCookerTextureTga.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

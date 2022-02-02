@@ -248,6 +248,12 @@ namespace tix
 		{
 			return Equals(a, 0.0f, tolerance);
 		}
+		
+		//! Is power of 2
+		static bool IsPowerOf2(int32 n)
+		{
+			return (n & (n - 1)) == 0;
+		}
 
 		static inline float ReciprocalSquareroot(const float32 x)
 		{

@@ -13,6 +13,8 @@
 
 namespace tix
 {
+	// CubemapUnwrapUtils.cpp
+	
 	// Longlat image to cubemap
 	// From UE4 TextureCompressorModule.cpp
 	// transform world space vector to a space relative to the face
@@ -114,7 +116,44 @@ namespace tix
 		return FFloat3(Result.X, Result.Z, Result.Y);
 	}
 
-	SColorf SampleLongLat(TImage* LongLat, const FFloat3& Dir, int32 Mip)
+	SColorf TCookerTexture::SampleLongLatPoint(TImage* LongLat, const FFloat3& Dir, int32 Mip)
+	{
+		int32 W = LongLat->GetMipmap(Mip).W;
+		int32 H = LongLat->GetMipmap(Mip).H;
+
+		auto DirectionToLongLat = [](const FFloat3& NormalizedDirection, int32 LongLatWidth, int32 LongLatHeight)
+		{
+			// see http://gl.ict.usc.edu/Data/HighResProbes
+			// latitude-longitude panoramic format = equirectangular mapping
+
+			FFloat2 Result;
+
+			Result.X = (1 + atan2(NormalizedDirection.X, -NormalizedDirection.Z) / PI) / 2 * LongLatWidth;
+			Result.Y = acos(NormalizedDirection.Y) / PI * LongLatHeight;
+
+			return Result;
+		};
+
+		auto GetPixelFloatWithXWrap = [](TImage* Image, float x, float y, int32 MipIndex)
+		{
+			const int32 W = Image->GetWidth() >> MipIndex;
+			const int32 H = Image->GetHeight() >> MipIndex;
+
+			int32 X0 = (int32)floor(x);
+			int32 Y0 = (int32)floor(y);
+
+			WrapTo(X0, W);
+			Y0 = TMath::Max(0, Y0); Y0 = TMath::Min(Y0, H - 1);
+
+			return Image->GetPixelFloat(X0, Y0, MipIndex);
+		};
+
+		FFloat2 Coord = DirectionToLongLat(Dir, W, H);
+
+		return GetPixelFloatWithXWrap(LongLat, Coord.X, Coord.Y, Mip);
+	}
+
+	SColorf TCookerTexture::SampleLongLatLinear(TImage* LongLat, const FFloat3& Dir, int32 Mip)
 	{
 		int32 W = LongLat->GetMipmap(Mip).W;
 		int32 H = LongLat->GetMipmap(Mip).H;
@@ -167,20 +206,20 @@ namespace tix
 		return GetPixelFloatWithXWrap(LongLat, Coord.X, Coord.Y, Mip);
 	}
 
-	SColorf SampleLongLatLinearMip(TImage* LongLat, const FFloat3& Dir, float Mip)
+	SColorf TCookerTexture::SampleLongLatLinearMip(TImage* LongLat, const FFloat3& Dir, float Mip)
 	{
 		int32 Mip0 = (int32)Mip;
 		int32 Mip1 = Mip0 + 1;
 
-		SColorf C0 = SampleLongLat(LongLat, Dir, Mip0);
-		SColorf C1 = SampleLongLat(LongLat, Dir, Mip1);
+		SColorf C0 = SampleLongLatLinear(LongLat, Dir, Mip0);
+		SColorf C1 = SampleLongLatLinear(LongLat, Dir, Mip1);
 
 		float Frac = Mip - Mip0;
 
 		return TMath::Lerp(C0, C1, Frac);
 	}
 
-	TVector<TImage*> LongLatToCube(TImage* LongLat, bool WithMips)
+	TVector<TImage*> TCookerTexture::LongLatToCube(TImage* LongLat, bool WithMips)
 	{
 		TVector<TImage*> Surfaces;
 		Surfaces.resize(6);
@@ -218,7 +257,7 @@ namespace tix
 					for (int32 x = 0; x < Extent; ++x)
 					{
 						FFloat3 DirectionWS = ComputeWSCubeDirectionAtTexelCenter(Face, x, y, InvExtent);
-						SColorf Sample = SampleLongLat(LongLat, DirectionWS, Mip);
+						SColorf Sample = SampleLongLatLinear(LongLat, DirectionWS, Mip);
 
 						FaceImage->SetPixel(x, y, Sample, Mip);
 					}
@@ -420,7 +459,7 @@ namespace tix
 								//L = mul(L, TangentToWorld);
 								TangentToWorld.TransformVect(L);
 								L.Normalize();
-								FFloat4 Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
+								FFloat4 Sample = TCookerTexture::SampleLongLatLinearMip(SrcLongLat, L, Mip);
 								FilteredColor += Sample;
 							}
 
@@ -460,7 +499,7 @@ namespace tix
 									//L = mul(L, TangentToWorld);
 									TangentToWorld.TransformVect(L);
 									L.Normalize();
-									FFloat4 Sample = SampleLongLatLinearMip(SrcLongLat, L, Mip);
+									FFloat4 Sample = TCookerTexture::SampleLongLatLinearMip(SrcLongLat, L, Mip);
 									FilteredColor += Sample * NoL;
 									Weight += NoL;
 								}

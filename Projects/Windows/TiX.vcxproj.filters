@@ -316,6 +316,9 @@
     <ClCompile Include="..\..\Sources\Engine\FDefaultScene.cpp">
       <Filter>Sources\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\TNodeLight.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Engine\stdafx.h">
