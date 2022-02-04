@@ -87,7 +87,9 @@ namespace tix
 			ViewUniformBuffer->UniformBufferData[0].MainLightDirection = -EnvInfo.MainLightDirection;
 			ViewUniformBuffer->UniformBufferData[0].MainLightColor = EnvInfo.MainLightColor * EnvInfo.MainLightIntensity;
 
-			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, EnvInfo.SkyIrradiance);
+			// IBL texture, get SH
+			FTexturePtr IBLCube = Scene->GetEnvLight()->GetEnvCubemap();
+			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, IBLCube->GetDesc().SH);
 
 			ViewUniformBuffer->InitUniformBuffer((uint32)EGPUResourceFlag::Intermediate);
 		}
@@ -107,20 +109,6 @@ namespace tix
 	{
 		// Prepare frame view uniform buffer
 		PrepareViewUniforms();
-
-		TI_TODO("Remove draw list , use new gpu driven pipeline.");
-		// Prepare frame primitive uniform buffers
-		//for (int32 List = 0; List < LIST_COUNT; ++List)
-		//{
-		//	const TVector<FPrimitivePtr>& Primitives = Scene->GetStaticDrawList((E_DRAWLIST_TYPE)List);
-		//	for (auto& Primitive : Primitives)
-		//	{
-		//		if (Primitive->IsPrimitiveBufferDirty())
-		//		{
-		//			Primitive->UpdatePrimitiveBuffer_RenderThread();
-		//		}
-		//	}
-		//}
 	}
 
 	void FDefaultRenderer::EndRenderFrame()

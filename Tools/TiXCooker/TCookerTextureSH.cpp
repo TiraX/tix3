@@ -194,7 +194,7 @@ namespace tix
 				}
 			}
 
-			if (!false)
+			if (false)
 			{
 				char name[64];
 				sprintf(name, "SH%d", CoefficientIndex);

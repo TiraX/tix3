@@ -37,12 +37,6 @@ namespace tix
 		EnvFlags |= ENVF_MAIN_LIGHT_DIRTY;
 	}
 
-	void TNodeEnvironment::SetSkyLightSH3(const float* SH3Data)
-	{
-		EnvInfo.SkyIrradiance.Init(SH3Data, FSHVectorRGB3::NumTotalFloats);
-		EnvFlags |= ENVF_MAIN_LIGHT_DIRTY;
-	}
-
 	void TNodeEnvironment::UpdateAllTransformation()
 	{
 		TNode::UpdateAllTransformation();

@@ -381,6 +381,7 @@ namespace tix
 			Desc.AddressMode = (E_TEXTURE_ADDRESS_MODE)Header->AddressMode;
 			Desc.SRGB = Header->SRGB;
 			Desc.Mips = Header->Mips;
+			Desc.SH = Header->SH;
 
 			if (Desc.SRGB != 0)
 			{
@@ -609,7 +610,6 @@ namespace tix
 			Env->SetMainLightDirection(Header->MainLightDirection);
 			Env->SetMainLightColor(Header->MainLightColor);
 			Env->SetMainLightIntensity(Header->MainLightIntensity);
-			Env->SetSkyLightSH3(Header->SkyLight_SH3);
 
 			// Load Cameras
 			if (Header->NumCameras > 0)

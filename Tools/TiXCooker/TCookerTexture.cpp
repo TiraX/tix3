@@ -73,13 +73,13 @@ namespace tix
 			return false;
 		}
 
+		FSHVectorRGB3 SH;
 		if (SrcInfo.IsIBL)
 		{
 			TI_ASSERT(SrcImage->Desc.Type == ETT_TEXTURE_2D);
 			TI_ASSERT(SrcImage->Desc.Format == EPF_RGBA32F || SrcImage->Desc.Format == EPF_RGBA16F);
 
 			// Calc SH for this IBL
-			FSHVectorRGB3 SH;
 			ComputeDiffuseIrradiance(SrcImage, SH);
 
 			// Convert Latlong Image to cube faces and do pbr filter
@@ -135,6 +135,8 @@ namespace tix
 			TextureOutput->Desc.AddressMode = SrcInfo.AddressMode;
 			TextureOutput->Desc.SRGB = SrcInfo.SRGB;
 
+			TextureOutput->Desc.SH = SH;
+
 			AddTexture(TextureOutput);
 			return true;
 		}
@@ -179,6 +181,7 @@ namespace tix
 			TextureHeader.SRGB = Define->Desc.SRGB;
 			TextureHeader.Mips = Define->Desc.Mips;
 			TextureHeader.Surfaces = (uint32)Define->ImageSurfaces.size() * Define->Desc.Mips;
+			TextureHeader.SH = Define->Desc.SH;
 			TI_ASSERT(Define->Desc.Mips == Define->ImageSurfaces[0]->GetMipmapCount());
 
 			HeaderStream.Put(&TextureHeader, sizeof(THeaderTexture));

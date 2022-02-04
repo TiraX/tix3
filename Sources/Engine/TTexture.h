@@ -76,7 +76,10 @@ namespace tix
 		E_TEXTURE_ADDRESS_MODE AddressMode;
 		uint32 SRGB;
 		uint32 Mips;
-		SColor ClearColor;
+		SColorf ClearColor;
+
+		// Sphere Harmonic for IBL
+		FSHVectorRGB3 SH;
 
 		TTextureDesc()
 			: Type(ETT_TEXTURE_2D)

@@ -36,6 +36,7 @@ namespace tix
 	void FDefaultScene::SetEnvLight(FEnvLightPtr InEnvLight)
 	{
 		EnvLight = InEnvLight;
+		SetSceneFlag(EnvironmentDirty);
 	}
 
 	FEnvLightPtr FDefaultScene::GetEnvLight()

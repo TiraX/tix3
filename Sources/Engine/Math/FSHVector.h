@@ -63,12 +63,6 @@ namespace tix
 				memcpy(V, Other.V, sizeof(V));
 			}
 		}
-
-		void Init(const float* RawData, int32 Count)
-		{
-			int32 Num = TMath::Min(Count, (int32)NumTotalFloats);
-			memcpy(V, RawData, Num * sizeof(float));
-		}
 	};
 	typedef FSHVector<3> FSHVector3;
 
@@ -93,16 +87,6 @@ namespace tix
 			R = (FSHVector<MaxSHOrder>)Other.R;
 			G = (FSHVector<MaxSHOrder>)Other.G;
 			B = (FSHVector<MaxSHOrder>)Other.B;
-		}
-
-		void Init(const float* RawData, int32 Count)
-		{
-			int32 Offset = 0;
-			R.Init(RawData + Offset, Count - Offset);
-			Offset += R.NumTotalFloats;
-			G.Init(RawData + Offset, Count - Offset);
-			Offset += G.NumTotalFloats;
-			B.Init(RawData + Offset, Count - Offset);
 		}
 
 		/** Calculates greyscale spherical harmonic coefficients. */

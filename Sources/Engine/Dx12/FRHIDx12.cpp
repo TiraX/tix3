@@ -228,7 +228,6 @@ namespace tix
 	{
 		DXR = ti_new FRHIDXR();
 
-		// Temp, use GraphicsCommandLists[0] for test
 		return DXR->Init(D3dDevice.Get(), DirectCommandList.Get());
 	}
 
@@ -2321,7 +2320,7 @@ namespace tix
 		DirectCommandList->RSSetViewports(1, &ViewportDx);
 	}
 
-	void FRHIDx12::SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel, const SColor& ClearColor)
+	void FRHIDx12::SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel)
 	{
 		// Transition Color buffer to D3D12_RESOURCE_STATE_RENDER_TARGET
 		FRenderTargetDx12 * RTDx12 = static_cast<FRenderTargetDx12*>(RT.get());
@@ -2379,10 +2378,10 @@ namespace tix
 		// Clear render target
 		if (CBCount > 0)
 		{
-			SColorf ClearColorFloat(ClearColor);
 			for (int32 cb = 0; cb < CBCount; ++cb)
 			{
-				DirectCommandList->ClearRenderTargetView(RTVDescriptors[cb], ClearColorFloat.GetDataPtr(), 0, nullptr);
+				FTexturePtr Texture = RT->GetColorBuffer(cb).Texture;
+				DirectCommandList->ClearRenderTargetView(RTVDescriptors[cb], Texture->GetDesc().ClearColor.GetDataPtr(), 0, nullptr);
 			}
 		}
 		if (Dsv != nullptr)
@@ -2391,12 +2390,12 @@ namespace tix
 		}
 	}
 
-	void FRHIDx12::BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName, uint32 MipLevel, const SColor& ClearColor)
+	void FRHIDx12::BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName, uint32 MipLevel)
 	{
 		END_EVENT(DirectCommandList.Get());
-		FRHI::BeginRenderToRenderTarget(RT, PassName, MipLevel, ClearColor);
+		FRHI::BeginRenderToRenderTarget(RT, PassName, MipLevel);
 		BEGIN_EVENT(DirectCommandList.Get(), PassName);
-		SetRenderTarget(RT, MipLevel, ClearColor);
+		SetRenderTarget(RT, MipLevel);
 	}
 
 	void FRHIDx12::InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset)

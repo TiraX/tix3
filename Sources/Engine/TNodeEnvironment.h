@@ -12,7 +12,9 @@ namespace tix
 		FFloat3 MainLightDirection;
 		SColorf MainLightColor;
 		float MainLightIntensity;
-		FSHVectorRGB3 SkyIrradiance;
+
+		// Sky Irradiance go with IBL Textures
+		//FSHVectorRGB3 SkyIrradiance;
 
 		FEnvironmentInfo()
 			: MainLightDirection(0, 0, -1)
@@ -37,7 +39,6 @@ namespace tix
 		TI_API void SetMainLightDirection(const FFloat3& InDir);
 		TI_API void SetMainLightColor(const SColorf& InColor);
 		TI_API void SetMainLightIntensity(float InIntensity);
-		TI_API void SetSkyLightSH3(const float* SH3Data);
 
 		const FFloat3& GetMainLightDirection() const
 		{

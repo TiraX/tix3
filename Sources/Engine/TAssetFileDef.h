@@ -11,7 +11,7 @@ namespace tix
 	{
 		TIRES_VERSION_MAINFILE = 1,
 		TIRES_VERSION_CHUNK_MESH = 2,	// v2, Support for skeletal_mesh, add RefSkeleton attribute, add ActiveBones to mesh sections
-		TIRES_VERSION_CHUNK_TEXTURE = 1,
+		TIRES_VERSION_CHUNK_TEXTURE = 2,	// v2, Add SH for IBL
 		TIRES_VERSION_CHUNK_MATERIAL = 2,	// v2, Add primitive_type export
 		TIRES_VERSION_CHUNK_MINSTANCE = 1,
 		TIRES_VERSION_CHUNK_SCENE = 2,	// v2, Add sky light SH3 export
@@ -226,6 +226,8 @@ namespace tix
 		uint8 Mips;
 		uint8 Surfaces;
 		uint8 padding[3];
+
+		FSHVectorRGB3 SH;
 	};
 
 	struct THeaderMaterial

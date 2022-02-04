@@ -131,7 +131,7 @@ namespace tix
 		virtual void ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer) override;
 
 		virtual void SetViewport(const FViewport& InViewport) override;
-		virtual void BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName = "UnnamedPass", uint32 MipLevel = 0, const SColor& ClearColor = SColor(0, 0, 0, 0)) override;
+		virtual void BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName = "UnnamedPass", uint32 MipLevel = 0) override;
 
 
 		// Direct12 Specified Functions
@@ -226,7 +226,7 @@ namespace tix
 		void FlushGraphicsBarriers(
 			_In_ ID3D12GraphicsCommandList* pCmdList);
 
-		void SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel, const SColor& ClearColor);
+		void SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel);
 
 		void InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset);
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex);
