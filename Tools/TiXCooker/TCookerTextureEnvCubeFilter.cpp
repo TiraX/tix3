@@ -18,7 +18,7 @@ namespace tix
 	// Longlat image to cubemap
 	// From UE4 TextureCompressorModule.cpp
 	// transform world space vector to a space relative to the face
-	static FFloat3 TransformSideToWorldSpace(uint32 CubemapFace, const FFloat3& InDirection)
+	FFloat3 TCookerTexture::TransformSideToWorldSpace(uint32 CubemapFace, const FFloat3& InDirection)
 	{
 		float x = InDirection.X, y = InDirection.Y, z = InDirection.Z;
 
@@ -43,7 +43,7 @@ namespace tix
 	}
 
 	// transform vector relative to the face to world space
-	static FFloat3 TransformWorldToSideSpace(uint32 CubemapFace, const FFloat3& InDirection)
+	FFloat3 TCookerTexture::TransformWorldToSideSpace(uint32 CubemapFace, const FFloat3& InDirection)
 	{
 		// undo Unreal way (z and y are flipped)
 		float x = InDirection.X, y = InDirection.Z, z = InDirection.Y;
@@ -67,14 +67,14 @@ namespace tix
 		return Ret;
 	}
 
-	FFloat3 ComputeSSCubeDirectionAtTexelCenter(uint32 x, uint32 y, float InvSideExtent)
+	FFloat3 TCookerTexture::ComputeSSCubeDirectionAtTexelCenter(uint32 x, uint32 y, float InvSideExtent)
 	{
 		// center of the texels
 		FFloat3 DirectionSS((x + 0.5f) * InvSideExtent * 2 - 1, (y + 0.5f) * InvSideExtent * 2 - 1, 1);
 		return DirectionSS;
 	}
 
-	static FFloat3 ComputeWSCubeDirectionAtTexelCenter(uint32 CubemapFace, uint32 x, uint32 y, float InvSideExtent)
+	FFloat3 TCookerTexture::ComputeWSCubeDirectionAtTexelCenter(uint32 CubemapFace, uint32 x, uint32 y, float InvSideExtent)
 	{
 		FFloat3 DirectionSS = ComputeSSCubeDirectionAtTexelCenter(x, y, InvSideExtent);
 		FFloat3 DirectionWS = TransformSideToWorldSpace(CubemapFace, DirectionSS);

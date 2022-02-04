@@ -88,6 +88,10 @@ namespace tix
 		static void ComputeDiffuseIrradiance(TResTextureDefine* SrcImage, FSHVectorRGB3& OutIrrEnvMap);
 
 		static TVector<TImage*> LongLatToCube(TImage* LongLat, bool WithMips);
+		static FFloat3 TransformSideToWorldSpace(uint32 CubemapFace, const FFloat3& InDirection);
+		static FFloat3 TransformWorldToSideSpace(uint32 CubemapFace, const FFloat3& InDirection);
+		static FFloat3 ComputeSSCubeDirectionAtTexelCenter(uint32 x, uint32 y, float InvSideExtent);
+		static FFloat3 ComputeWSCubeDirectionAtTexelCenter(uint32 CubemapFace, uint32 x, uint32 y, float InvSideExtent);
 
 		// For Debug
 		static void ExportCubeMap(const TVector<TImage*>& FaceImages, const int8* NamePrefix);

@@ -78,18 +78,9 @@ namespace tix
 		}
 	}
 
-	SColorf SampleParentMip(TImage* Image, const FFloat2& InUV, int32 SrcMipIndex)
+	SColorf SampleParentMip(TImage* Image, const FInt2& InPos, int32 SrcMipIndex)
 	{
-		const int32 W = Image->GetMipmap(SrcMipIndex).W;
-		const int32 H = Image->GetMipmap(SrcMipIndex).H;
-
-		int32 X0 = (int32)floor(InUV.X * W);
-		int32 Y0 = (int32)floor(InUV.Y * H);
-
-		X0 = TMath::Clamp(X0, 0, W - 1);
-		Y0 = TMath::Clamp(Y0, 0, H - 1);
-
-		return Image->GetPixelFloat(X0, Y0, SrcMipIndex);
+		return Image->GetPixelFloat(InPos.X, InPos.Y, SrcMipIndex);
 	}
 
 	void TCookerTexture::ComputeDiffuseIrradiance(TResTextureDefine* SrcImage, FSHVectorRGB3& OutIrrEnvMap)
@@ -118,7 +109,6 @@ namespace tix
 		uint8* Data = LongLat32->Lock();
 		memcpy(Data, LongLatImage->GetMipmap(TargetMip).Data.GetBuffer(), LongLatImage->GetMipmap(TargetMip).Data.GetLength());
 		LongLat32->Unlock();
-		LongLat32->GenerateMipmaps();
 
 		// Allocate cube faces
 		TVector<TImage*> TargetCubeFaces;
@@ -152,7 +142,9 @@ namespace tix
 
 						float CurrentSHCoefficient = GetSHCoefficient(CubeCoord, CoefficientIndex);
 
-						SColorf TexelLighting = SampleLongLatLinear(LongLat32, CubeCoord, 0);
+						FFloat3 SampleCoord = TransformSideToWorldSpace(Face, FFloat3(UV.X, UV.Y, 1.f));
+						SampleCoord.Normalize();
+						SColorf TexelLighting = SampleLongLatLinear(LongLat32, SampleCoord, 0);
 						TexelLighting *= CurrentSHCoefficient * TexelWeight;
 						TexelLighting.A = TexelWeight;
 
@@ -168,24 +160,19 @@ namespace tix
 				const int32 SourceMipIndex = MipIndex - 1;
 				const int32 MipSize = 1 << (NumMips - MipIndex - 1);
 
-				const float InvMipSize = 1.f / (MipSize);
-				const float InvSrcMipSize = 1.f / (MipSize * 2);
-				const float SourceTexelSize = InvSrcMipSize;
-
 				for (int32 Face = 0; Face < 6; ++Face)
 				{
 					for (int32 Y = 0; Y < MipSize; Y++)
 					{
 						for (int32 X = 0; X < MipSize; X++)
 						{
-							FFloat2 UV = FFloat2((X + 0.5f) * InvMipSize, (Y + 0.5f) * InvMipSize);
-
+							FInt2 Pos = FInt2(X, Y) * 2;
 							SColorf Acc(0, 0, 0, 0);
 
-							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(-SourceTexelSize, -SourceTexelSize), SourceMipIndex);
-							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(SourceTexelSize, -SourceTexelSize), SourceMipIndex);
-							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(-SourceTexelSize, SourceTexelSize), SourceMipIndex);
-							Acc += SampleParentMip(TargetCubeFaces[Face], UV + FFloat2(SourceTexelSize, SourceTexelSize), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], Pos + FInt2(0, 0), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], Pos + FInt2(1, 0), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], Pos + FInt2(0, 1), SourceMipIndex);
+							Acc += SampleParentMip(TargetCubeFaces[Face], Pos + FInt2(1, 1), SourceMipIndex);
 
 							Acc *= 1.f / 4.f;
 							TargetCubeFaces[Face]->SetPixel(X, Y, Acc, MipIndex);
