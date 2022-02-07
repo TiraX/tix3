@@ -265,7 +265,7 @@ namespace tix
 			T sn = (T)sin(degrees);
 			X -= center.X;
 			Z -= center.Z;
-			set(X * cs - Z * sn, Y, X * sn + Z * cs);
+			Set(X * cs - Z * sn, Y, X * sn + Z * cs);
 			X += center.X;
 			Z += center.Z;
 		}
@@ -277,7 +277,7 @@ namespace tix
 			T sn = (T)sin(degrees);
 			X -= center.X;
 			Y -= center.Y;
-			set(X * cs - Y * sn, X * sn + Y * cs, Z);
+			Set(X * cs - Y * sn, X * sn + Y * cs, Z);
 			X += center.X;
 			Y += center.Y;
 		}
@@ -289,7 +289,7 @@ namespace tix
 			T sn = (T)sin(degrees);
 			Z -= center.Z;
 			Y -= center.Y;
-			set(X, Y * cs - Z * sn, Y * sn + Z * cs);
+			Set(X, Y * cs - Z * sn, Y * sn + Z * cs);
 			Z += center.Z;
 			Y += center.Y;
 		}

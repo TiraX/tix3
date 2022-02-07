@@ -33,6 +33,8 @@ typedef double float64;
 #define TList std::list
 #define TMap std::map
 #define THMap std::unordered_map
+#define TSet std::set
+#define THSet std::unordered_set
 #define TSort std::sort
 #define TFill std::fill
 

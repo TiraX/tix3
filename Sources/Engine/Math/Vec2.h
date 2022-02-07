@@ -216,7 +216,7 @@ namespace tix
 			X -= center.X;
 			Y -= center.Y;
 
-			set(X * cs - Y * sn, X * sn + Y * cs);
+			Set(X * cs - Y * sn, X * sn + Y * cs);
 
 			X += center.X;
 			Y += center.Y;
