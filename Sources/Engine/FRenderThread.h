@@ -112,7 +112,7 @@ namespace tix
 	{
 	public:
 		TEnqueueUniqueRenderCommandType(LAMBDA&& InLambda) 
-			: Lambda(tix_forward<LAMBDA>(InLambda)) 
+			: Lambda(TForward<LAMBDA>(InLambda)) 
 		{
 		}
 
@@ -129,7 +129,7 @@ namespace tix
 	inline void EnqueueUniqueRenderCommand(LAMBDA&& Lambda)
 	{
 		typedef TEnqueueUniqueRenderCommandType<TSTR, LAMBDA> EURCType;
-		TTask* Task = ti_new EURCType(tix_forward<LAMBDA>(Lambda));
+		TTask* Task = ti_new EURCType(TForward<LAMBDA>(Lambda));
 #if TIX_DEBUG_RENDER_TASK_NAME
 		Task->SetTaskName(TSTR::CStr());
 #endif

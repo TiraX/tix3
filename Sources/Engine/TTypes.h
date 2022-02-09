@@ -35,8 +35,11 @@ typedef double float64;
 #define THMap std::unordered_map
 #define TSet std::set
 #define THSet std::unordered_set
+#define TNumLimit std::numeric_limits
 #define TSort std::sort
 #define TFill std::fill
+#define TFind std::find
+#define TForward std::forward
 
 typedef std::string TString;
 typedef std::wstring TWString;
@@ -45,9 +48,6 @@ typedef std::stringstream TStringStream;
 typedef std::mutex TMutex;
 typedef std::condition_variable TCond;
 typedef std::thread::id TThreadId;
-
-#define tix_find std::find
-#define tix_forward std::forward
 
 #include "TInputEventType.h"
 #include "TTypeCull.h"
