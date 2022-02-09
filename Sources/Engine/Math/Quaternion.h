@@ -45,6 +45,7 @@ namespace tix
 
 		bool operator==(const FQuat& other) const;
 		bool operator!=(const FQuat& other) const;
+		bool operator<(const FQuat& other) const;
 
 		inline FQuat& operator=(const FQuat& other);
 		inline FQuat& operator=(const FMat4& other);
@@ -139,6 +140,18 @@ namespace tix
 			(Y != other.Y) ||
 			(Z != other.Z) ||
 			(W != other.W));
+	}
+
+	// overload operator< for std::map compare
+	inline bool FQuat::operator<(const FQuat& other) const
+	{
+		if (X != other.X)
+			return X < other.X;
+		if (Y != other.Y)
+			return Y < other.Y;
+		if (Z != other.Z)
+			return Z < other.Z;
+		return W < other.W;
 	}
 
 	inline FQuat& FQuat::operator=(const FQuat& other)

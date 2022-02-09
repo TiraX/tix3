@@ -40,6 +40,14 @@ namespace tix
 			return !(Min == other.Min && other.Max == Max);
 		}
 
+		// overload operator< for std::map compare
+		bool operator<(const FAABBox<T>& other) const
+		{
+			if (Min != other.Min)
+				return Min < other.Min;
+			return Max < other.Max;
+		}
+
 		inline FAABBox<T>& operator+=(const FVec3<T>& other)
 		{
 			Min += other;
@@ -112,12 +120,16 @@ namespace tix
 
 		bool IntersectsWithBox(const FAABBox<T>& other) const
 		{
-			return (Min <= other.Max && Max >= other.Min);
+			// Min <= other.Max && Max >= other.Min
+			return Min.X <= other.Max.X && Min.Y <= other.Max.Y && Min.Z <= other.Max.Z &&
+				Max.X >= other.Min.X && Max.Y >= other.Min.Y && Max.Z >= other.Min.Z;
 		}
 
 		bool IsFullInside(const FAABBox<T>& other) const
 		{
-			return Min >= other.Min && Max <= other.Max;
+			// Min >= other.Min && Max <= other.Max;
+			return Min.X >= other.Min.X && Min.Y >= other.Min.Y && Min.Z >= other.Min.Z &&
+				Max.X <= other.Max.X && Max.Y <= other.Max.Y && Max.Z <= other.Max.Z;
 		}
 
 		bool IntersectsWithPoint(const FVec3<T>& point) const

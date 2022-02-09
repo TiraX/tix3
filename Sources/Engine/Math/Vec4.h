@@ -53,6 +53,18 @@ namespace tix
 			, W(other.W)
 		{}
 
+		// overload operator< for std::map compare
+		bool operator<(const FVec4<T>&other) const
+		{
+			if (X != other.X)
+				return X < other.X;
+			if (Y != other.Y)
+				return Y < other.Y;
+			if (Z != other.Z)
+				return Z < other.Z;
+			return W < other.W;
+		}
+
 		bool operator==(const FVec4<T>& other) const
 		{
 			return X == other.X && Y == other.Y && Z == other.Z && W == other.W;

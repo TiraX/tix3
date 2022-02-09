@@ -166,24 +166,14 @@ namespace tix
 			return *this;
 		}
 
-		bool operator<=(const FVec3<T>& other) const
-		{
-			return X <= other.X && Y <= other.Y && Z <= other.Z;
-		}
-
-		bool operator>=(const FVec3<T>& other) const
-		{
-			return X >= other.X && Y >= other.Y && Z >= other.Z;
-		}
-
+		// overload operator< for std::map compare
 		bool operator<(const FVec3<T>& other) const
 		{
-			return X < other.X&& Y < other.Y&& Z < other.Z;
-		}
-
-		bool operator>(const FVec3<T>& other) const
-		{
-			return X > other.X && Y > other.Y && Z > other.Z;
+			if (X != other.X)
+				return X < other.X;
+			if (Y != other.Y)
+				return Y < other.Y;
+			return Z < other.Z;
 		}
 
 		bool operator==(const FVec3<T>& other) const
