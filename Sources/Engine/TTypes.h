@@ -41,6 +41,13 @@ typedef double float64;
 #define TFind std::find
 #define TForward std::forward
 
+// Release memory of TVector
+template<class T>
+inline void ReleaseTVector(TVector<T>& V)
+{
+	TVector<T>().swap(V);
+}
+
 typedef std::string TString;
 typedef std::wstring TWString;
 typedef std::stringstream TStringStream;
