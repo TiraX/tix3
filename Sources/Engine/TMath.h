@@ -182,9 +182,9 @@ namespace tix
 			return Modf(x);
 		}
 
-		static inline int32 Floor(float x)
+		static inline float Floor(float x)
 		{
-			return (int32)floor(x);
+			return floor(x);
 			//if (x >= 0.f)
 			//	return (int32)x;
 			//else
