@@ -30,7 +30,7 @@ namespace tix
 //    struct tm *tm; \
 //    tm = localtime(&time)
 //#endif
-	const long long TTimer::GetCurrentTimeMillis()
+	uint64 TTimer::GetCurrentTimeMillis()
 	{
 #if defined (TI_PLATFORM_WIN32)
 		return timeGetTime();
@@ -52,7 +52,7 @@ namespace tix
 #endif
 	}
 
-	const int TTimer::GetCurrentTimeSeconds()
+	int32 TTimer::GetCurrentTimeSeconds()
 	{
 		const time_t _time	= time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -68,7 +68,7 @@ namespace tix
 #endif
 	}
 
-	const int TTimer::GetCurrentTimeSeconds(int& h, int& m, int& s)
+	int32 TTimer::GetCurrentTimeSeconds(int32& h, int32& m, int32& s)
 	{
 		const time_t _time	= time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -90,7 +90,7 @@ namespace tix
 		return	h * 60 * 60 + m * 60 + s;
 	}
 
-	const int TTimer::GetCurrentDate()
+	int32 TTimer::GetCurrentDate()
 	{
 		const time_t _time	= time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -108,7 +108,7 @@ namespace tix
 #endif
 	}
 
-	const void TTimer::GetYMDFromDate(int date, int& y, int& m, int& d)
+	void TTimer::GetYMDFromDate(int32 date, int32& y, int32& m, int32& d)
 	{
 		y		= date / 366;
 		date	-= y * 366;
@@ -116,7 +116,7 @@ namespace tix
 		d		= date - m * 31;
 	}
 
-	const int TTimer::GetCurrentDate(int& y, int& m, int& d)
+	int32 TTimer::GetCurrentDate(int32& y, int32& m, int32& d)
 	{
 		const time_t _time = time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -138,7 +138,7 @@ namespace tix
 		return y * 366 + m * 31 + d;
 	}
 
-	void TTimer::GetCurrentWeekDay(int& d)
+	void TTimer::GetCurrentWeekDay(int32& d)
 	{
 		const time_t _time = time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -154,7 +154,30 @@ namespace tix
 #endif
 	}
 
-	void TTimer::GetCurrentDateAndSeconds(int& d, int& s)
+	uint64 TTimer::QueryCPUFrequency()
+	{
+#if defined (TI_PLATFORM_WIN32)
+		LARGE_INTEGER Freq;
+		QueryPerformanceFrequency(&Freq);
+		return Freq.QuadPart;
+#else
+		TI_ASSERT(0);
+#endif
+	}
+
+	uint64 TTimer::QueryCPUCounter()
+	{
+#if defined (TI_PLATFORM_WIN32)
+		LARGE_INTEGER C;
+		QueryPerformanceCounter(&C);
+		return C.QuadPart;
+#else
+		TI_ASSERT(0);
+#endif
+	}
+
+
+	void TTimer::GetCurrentDateAndSeconds(int32& d, int32& s)
 	{
 		const time_t _time = time(0);
 #if defined (TI_PLATFORM_WIN32)
@@ -172,25 +195,25 @@ namespace tix
 #endif
 	}
 
-	bool TTimer::IsLeapYear(int year)
+	bool TTimer::IsLeapYear(int32 year)
 	{
 		return (year % 4 == 0 || year % 400 == 0) && (year % 100 != 0);
 	}
 
-	int TTimer::DayInYear(int y, int m, int d)
+	int32 TTimer::DayInYear(int32 y, int32 m, int32 d)
 	{
-		int DAY[12]	= {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+		int32 DAY[12]	= {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 		if (IsLeapYear(y))
 			DAY[1]	= 29;
 
-		for (int i = 0 ; i < m - 1 ; ++ i)
+		for (int32 i = 0 ; i < m - 1 ; ++ i)
 		{
 			d		+= DAY[i];
 		}
 		return d;
 	}
 
-	int TTimer::DayBetweenDates(int y1, int m1, int d1, int y2, int m2, int d2)
+	int32 TTimer::DayBetweenDates(int32 y1, int32 m1, int32 d1, int32 y2, int32 m2, int32 d2)
 	{
 		if (y1 == y2 && m1 == m2)
 		{
@@ -198,7 +221,7 @@ namespace tix
 		}
 		else if (y1 == y2)
 		{
-			int _d1, _d2;
+			int32 _d1, _d2;
 			_d1		= DayInYear(y1, m1, d1);
 			_d2		= DayInYear(y2, m2, d2);
 			return TMath::Abs(_d1 - _d2);
@@ -207,14 +230,14 @@ namespace tix
 		{
 			if (y1 > y2)
 			{
-				int tmp;
+				int32 tmp;
 #define TI_SWAP(x, y)	tmp = x; x = y; y = tmp;
 				TI_SWAP(y1, y2)
 					TI_SWAP(m1, m2)
 					TI_SWAP(d1, d2)
 #undef TI_SWAP
 			}
-			int _d1, _d2, _d3;
+			int32 _d1, _d2, _d3;
 			// get days left in last year
 			if (IsLeapYear(y1))
 				_d1		= 366 - DayInYear(y1, m1, d1);	
@@ -225,7 +248,7 @@ namespace tix
 			_d2			= DayInYear(y2, m2, d2);
 
 			_d3			= 0;
-			for (int y = y1 + 1 ; y < y2 ; ++ y)
+			for (int32 y = y1 + 1 ; y < y2 ; ++ y)
 			{
 				if (IsLeapYear(y))
 					_d3	+= 366;
@@ -238,13 +261,21 @@ namespace tix
 
 	//////////////////////////////////////////////////////////////////////////
 
-	TTimeRecorder::TTimeRecorder()
+	TTimeRecorder::TTimeRecorder(bool UseHighPrecision)
+		: High(UseHighPrecision)
+		, StartTime(0)
+		, EndTime(0)
+		, Freq(1)
 	{
 		Start();
 	}
 
-	TTimeRecorder::TTimeRecorder(const TString& InName)
+	TTimeRecorder::TTimeRecorder(const TString& InName, bool UseHighPrecision)
 		: Name(InName)
+		, High(UseHighPrecision)
+		, StartTime(0)
+		, EndTime(0)
+		, Freq(1)
 	{
 		Start();
 	}
@@ -257,12 +288,21 @@ namespace tix
 	void TTimeRecorder::Start()
 	{
 		_LOG(ELog::Log, "%s started.\n", Name.c_str());
-		StartTime = TTimer::GetCurrentTimeMillis();
+		if (High)
+		{
+			Freq = TTimer::QueryCPUFrequency();
+			StartTime = TTimer::QueryCPUCounter();
+		}
+		else
+			StartTime = TTimer::GetCurrentTimeMillis();
 	}
 
 	void TTimeRecorder::End()
 	{
-		EndTime = TTimer::GetCurrentTimeMillis();
+		if (High)
+			EndTime = TTimer::QueryCPUCounter();
+		else
+			EndTime = TTimer::GetCurrentTimeMillis();
 	}
 
 	void TTimeRecorder::LogTimeUsed()
@@ -270,9 +310,17 @@ namespace tix
 		End();
 
 		uint64 Diff = EndTime - StartTime;
-		uint32 ms = (uint32)(Diff % 1000);
-		uint32 s = (uint32)((Diff / 1000) % 60);
-		uint32 m = (uint32)((Diff / 1000) / 60);
-		_LOG(ELog::Log, "%s used : %d'%d\"%d\n", Name.c_str(), m, s, ms);
+		if (High)
+		{
+			double Dt = double(EndTime - StartTime) / double(Freq);
+			_LOG(ELog::Log, "%s used : %.3f us\n", Name.c_str(), (Dt * 1000000));
+		}
+		else
+		{
+			uint32 ms = (uint32)(Diff % 1000);
+			uint32 s = (uint32)((Diff / 1000) % 60);
+			uint32 m = (uint32)((Diff / 1000) / 60);
+			_LOG(ELog::Log, "%s used : %d'%d\"%d\n", Name.c_str(), m, s, ms);
+		}
 	}
 }

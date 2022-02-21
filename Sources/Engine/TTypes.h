@@ -31,6 +31,7 @@ typedef double float64;
 
 #define TVector std::vector
 #define TList std::list
+#define TPair std::pair
 #define TMap std::map
 #define THMap std::unordered_map
 #define TSet std::set
