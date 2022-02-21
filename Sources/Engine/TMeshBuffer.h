@@ -102,6 +102,14 @@ namespace tix
 			return CData;
 		}
 
+		inline static FHalf2 EncodeUVToHalf2(const FFloat2& UV)
+		{
+			FHalf2 UVData;
+			UVData.X = UV.X;
+			UVData.Y = UV.Y;
+			return UVData;
+		}
+
 		virtual void InitRenderThreadResource() override;
 		virtual void DestroyRenderThreadResource() override;
 
