@@ -6,10 +6,15 @@
 #pragma once
 
 #include "document.h"
+#include "prettywriter.h"
+#include "stringbuffer.h"
+
 using namespace rapidjson;
 
 namespace tix
 {
+	typedef Document::AllocatorType TJSONAllocator;
+
 	class TJSONNodeIterator
 	{
 	public:
@@ -36,16 +41,22 @@ namespace tix
 	private:
 		Value::MemberIterator Iter;
 	};
+	////////////////////////////////////////////////////////////
 
 	class TJSONNode
 	{
 	public:
 		TJSONNode()
 			: JsonValue(nullptr)
+			, Allocator(nullptr)
 		{}
 
-		TJSONNode(Value* InValue)
+		TJSONNode(Value* InValue, TJSONAllocator* InAllocator)
 			: JsonValue(InValue)
+			, Allocator(InAllocator)
+		{}
+
+		virtual ~TJSONNode()
 		{}
 
 		TJSONNode operator[] (const int8* Name) const
@@ -56,7 +67,7 @@ namespace tix
 			Value::MemberIterator Member = JsonValue->FindMember(Name);
 			if (Member != JsonValue->MemberEnd())
 			{
-				TJSONNode Node(&(*JsonValue)[Name]);
+				TJSONNode Node(&(*JsonValue)[Name], Allocator);
 				return Node;
 			}
 
@@ -68,7 +79,7 @@ namespace tix
 			if (IsNull())
 				return TJSONNode();
 
-			TJSONNode Node(&(*JsonValue)[Index]);
+			TJSONNode Node(&(*JsonValue)[Index], Allocator);
 			return Node;
 		}
 
@@ -123,6 +134,7 @@ namespace tix
 			return (int32)JsonValue->Size();
 		}
 
+		// Read interfaces
 		void operator << (bool& OutBool) const
 		{
 			if (!IsNull())
@@ -296,9 +308,80 @@ namespace tix
 			}
 		}
 
+		// Construct interfaces
+		void AddMember(const char* Name, int32 V)
+		{
+			JsonValue->AddMember(StringRef(Name), V, *Allocator);
+		}
+		void AddMember(const char* Name, float V)
+		{
+			JsonValue->AddMember(StringRef(Name), V, *Allocator);
+		}
+		void AddMember(const char* Name, const char* S)
+		{
+			JsonValue->AddMember(StringRef(Name), StringRef(S), *Allocator);
+		}
+		void AddMember(const char* Name, const FFloat3& V)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve(3, *Allocator);
+			VArray.PushBack(V.X, *Allocator);
+			VArray.PushBack(V.Y, *Allocator);
+			VArray.PushBack(V.Z, *Allocator);
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		void AddMember(const char* Name, const TVector<int32>& VI)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)VI.size(), *Allocator);
+			for (const auto& i : VI)
+			{
+				VArray.PushBack(i, *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		void AddMember(const char* Name, const TVector<uint32>& VI)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)VI.size(), *Allocator);
+			for (const auto& i : VI)
+			{
+				VArray.PushBack(i, *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		void AddMember(const char* Name, const TVector<float>& VF)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)VF.size(), *Allocator);
+			for (const auto& f : VF)
+			{
+				VArray.PushBack(f, *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		void AddMember(const char* Name, const TVector<TString>& VS)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)VS.size(), *Allocator);
+			for (const auto& S : VS)
+			{
+				VArray.PushBack(StringRef(S.c_str()), *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		TJSONNode AddObject(const char* Name)
+		{
+			Value VObj(kObjectType);
+			JsonValue->AddMember(Value::StringRefType(Name), VObj, *Allocator);
+			return (*this)[Name];
+		}
+
 	protected:
 		Value* JsonValue;
+		TJSONAllocator* Allocator;
 	};
+	////////////////////////////////////////////////////////////
 
 	class TJSON : public TJSONNode
 	{
@@ -306,13 +389,40 @@ namespace tix
 		TJSON()
 		{}
 
-		~TJSON()
+		virtual ~TJSON()
 		{}
 
 		void Parse(const int8* JsonText)
 		{
 			JsonDoc.Parse(JsonText);
 			JsonValue = &JsonDoc;
+		}
+
+	protected:
+		Document JsonDoc;
+	};
+	////////////////////////////////////////////////////////////
+
+	class TJSONWriter : public TJSONNode
+	{
+	public:
+		TJSONWriter()
+		{
+			JsonDoc.SetObject();
+			Allocator = &JsonDoc.GetAllocator();
+			JsonValue = &JsonDoc;
+		}
+
+		virtual ~TJSONWriter()
+		{}
+
+		void Dump(TString& OutString)
+		{
+			//JsonDoc.AddMember("111", Root, *Allocator);
+			StringBuffer Buffer;
+			PrettyWriter<StringBuffer> Writer(Buffer);
+			JsonDoc.Accept(Writer);
+			OutString = Buffer.GetString();
 		}
 
 	protected:
