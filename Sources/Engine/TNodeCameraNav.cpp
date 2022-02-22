@@ -145,7 +145,7 @@ namespace tix
 			FFloat3 tar_offset = OldPosition - OldTarget;
 			FFloat3 axis = UpVector.Cross(tar_offset);
 			axis.Normalize();
-			rotX.FromAngleAxis(-TMath::DegToRad(float(mouseCurrent.X - mouseStart.X)) * rot_speed, UpVector);
+			rotX.FromAngleAxis(TMath::DegToRad(float(mouseCurrent.X - mouseStart.X)) * rot_speed, UpVector);
 			rotY.FromAngleAxis(TMath::DegToRad(float(mouseCurrent.Y - mouseStart.Y)) * rot_speed, axis);
 			rot = rotX * rotY;
 			rot.GetMatrix(mat);
