@@ -287,7 +287,7 @@ namespace tix
 
 	void TTimeRecorder::Start()
 	{
-		_LOG(ELog::Log, "%s started.\n", Name.c_str());
+		//_LOG(ELog::Log, "%s started.\n", Name.c_str());
 		if (High)
 		{
 			Freq = TTimer::QueryCPUFrequency();
