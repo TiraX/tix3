@@ -313,7 +313,10 @@ namespace tix
 		if (High)
 		{
 			double Dt = double(EndTime - StartTime) / double(Freq);
-			_LOG(ELog::Log, "%s used : %.3f us\n", Name.c_str(), (Dt * 1000000));
+			if (Dt > 0.001)
+				_LOG(ELog::Log, "%s used : %.2f ms\n", Name.c_str(), (Dt * 1000));
+			else
+				_LOG(ELog::Log, "%s used : %.2f us\n", Name.c_str(), (Dt * 1000000));
 		}
 		else
 		{
