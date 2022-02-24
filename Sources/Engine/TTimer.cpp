@@ -230,12 +230,9 @@ namespace tix
 		{
 			if (y1 > y2)
 			{
-				int32 tmp;
-#define TI_SWAP(x, y)	tmp = x; x = y; y = tmp;
-				TI_SWAP(y1, y2)
-					TI_SWAP(m1, m2)
-					TI_SWAP(d1, d2)
-#undef TI_SWAP
+				TMath::Swap(y1, y2);
+				TMath::Swap(m1, m2);
+				TMath::Swap(d1, d2);
 			}
 			int32 _d1, _d2, _d3;
 			// get days left in last year

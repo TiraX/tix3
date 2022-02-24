@@ -50,13 +50,13 @@ const float64 ROUNDING_ERROR_64 = 0.000005;
 #undef PI
 #endif
 //! Constant for PI.
-const float32 PI		= 3.14159265359f;
+const float32 PI = 3.14159265359f;
 
 //! Constant for reciprocal of PI.
-const float32 RECIPROCAL_PI	= 1.0f/PI;
+const float32 RECIPROCAL_PI = 1.0f/PI;
 
 //! Constant for half of PI.
-const float32 HALF_PI	= PI/2.0f;
+const float32 HALF_PI = PI/2.0f;
 
 //! 32bit Constant for converting from degrees to radians
 const float32 DEGTORAD = PI / 180.0f;
@@ -89,6 +89,14 @@ namespace tix
 			{
 				return (int)(n - 0.5f);
 			}
+		}
+
+		template< class T >
+		static inline void Swap(T& a, T& b)
+		{
+			T Tmp = a;
+			a = b;
+			b = Tmp;
 		}
 
 		template< class T >
@@ -185,16 +193,21 @@ namespace tix
 		static inline float Floor(float x)
 		{
 			return floor(x);
-			//if (x >= 0.f)
-			//	return (int32)x;
-			//else
-			//{
-			//	int32 r = (int32)x;
-			//	if (x == (float)r)
-			//		return r;
-			//	else
-			//		return r - 1;
-			//}
+		}
+
+		static inline int32 FloorToInt(float x)
+		{
+			return (int32)floor(x);
+		}
+
+		static inline float Ceil(float x)
+		{
+			return ceil(x);
+		}
+
+		static inline int32 CeilToInt(float x)
+		{
+			return (int32)ceil(x);
 		}
 
 		static inline int32 CountBitNum(uint32 value)
