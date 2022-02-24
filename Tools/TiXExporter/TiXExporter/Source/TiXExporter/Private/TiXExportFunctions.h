@@ -41,9 +41,9 @@ private:
 	struct FTiXVertex
 	{
 		FVector Position;
-		FVector4 Normal;
-		FVector4 TangentX;
-		FVector2D TexCoords[MAX_TIX_TEXTURE_COORDS];
+		FVector4f Normal;
+		FVector4f TangentX;
+		FVector2f TexCoords[MAX_TIX_TEXTURE_COORDS];
 		FVector4 Color;
 		FVector4 BlendIndex;
 		FVector4 BlendWeight;

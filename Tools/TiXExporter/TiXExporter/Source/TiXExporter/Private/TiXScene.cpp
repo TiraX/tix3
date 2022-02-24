@@ -184,7 +184,7 @@ void FTiXSceneTile::UpdateInstancesDesc()
 		RCWorld->Scene->GetReflectionCaptureData(RCComponent, ReadbackCaptureData);
 		RCDesc.cubemap_size = ReadbackCaptureData.CubemapSize;
 		RCDesc.average_brightness = ReadbackCaptureData.AverageBrightness;
-		RCDesc.brightness = ReadbackCaptureData.Brightness;
+		//RCDesc.brightness = ReadbackCaptureData.Brightness;
 		RCDesc.position = ToArray(RCA->GetTransform().GetLocation() * FTiXExporterSetting::Setting.MeshVertexPositionScale);
 		SceneTileDesc.reflection_captures.Add(RCDesc);
 	}

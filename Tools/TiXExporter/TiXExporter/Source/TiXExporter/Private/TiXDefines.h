@@ -299,9 +299,6 @@ struct FTiXReflectionCapture
 	float average_brightness;
 
 	UPROPERTY()
-	float brightness;
-
-	UPROPERTY()
 	TArray<float> position;
 };
 
