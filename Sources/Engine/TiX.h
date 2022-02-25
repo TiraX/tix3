@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
+#include <functional>
 #include <algorithm>
 #include <assert.h>
 #include <thread>
