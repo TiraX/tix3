@@ -261,7 +261,7 @@ namespace tix
 
 	void FRenderThread::AddTaskToFrame(TTask* Task)
 	{
-		TI_ASSERT(IsGameThread() || IsVTLoadingThread());
+		TI_ASSERT(!IsRenderThread());
 		RenderFrames[PreFrameIndex].FrameTasks.PushBack(Task);
 	}
 }

@@ -38,7 +38,7 @@ namespace tix
         TI_API static TAppInfo AppInfo;
         
 		TI_API static TEngine* Get();
-		TI_API static void	InitEngine(const TEngineDesc& Config);
+		TI_API static void	Create(const TEngineDesc& Config);
 		TI_API static void	Destroy();
 
 		TI_API static float GameTime();

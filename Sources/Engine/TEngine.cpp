@@ -27,7 +27,7 @@ namespace tix
 	E_Platform TEngine::CurrentPlatform = EP_Unknown;
     TAppInfo TEngine::AppInfo;
 
-	void TEngine::InitEngine(const TEngineDesc& Config)
+	void TEngine::Create(const TEngineDesc& Config)
 	{
 		if (s_engine == nullptr)
 		{
