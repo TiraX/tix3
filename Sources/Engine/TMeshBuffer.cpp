@@ -94,7 +94,7 @@ namespace tix
 		Data = ti_new TStream(VertexBufferSize);
 		Data->Put(InVertexData, VertexDataSize);
 	}
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 
 	TIndexBuffer::TIndexBuffer()
 		: TResource(ERES_INDEX_BUFFER)
@@ -152,7 +152,7 @@ namespace tix
 		Data->Put(InIndexData, IndexDataSize);
 	}
 
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 
 	const uint32 TInstanceBuffer::InstanceFormat = EINSSEG_TRANSITION | EINSSEG_ROT_SCALE_MAT0 | EINSSEG_ROT_SCALE_MAT1 | EINSSEG_ROT_SCALE_MAT2;
 	const uint32 TInstanceBuffer::InstanceStride =

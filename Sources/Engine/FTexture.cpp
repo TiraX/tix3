@@ -49,7 +49,7 @@ namespace tix
 		// Set resource state to IndexBuffer
 		//RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
 	}
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	FTextureReadable::FTextureReadable(const TTextureDesc& Desc)
 		: FTexture(Desc, 0)
 	{

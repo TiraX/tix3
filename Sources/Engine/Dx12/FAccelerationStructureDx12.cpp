@@ -114,7 +114,7 @@ namespace tix
 		Dirty = false;
 	}
 
-	////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	FTopLevelAccelerationStructureDx12::FTopLevelAccelerationStructureDx12()
 	{
 		InstanceDescData = ti_new TStream();

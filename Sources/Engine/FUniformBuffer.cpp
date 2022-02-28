@@ -39,7 +39,7 @@ namespace tix
 		RHI->SetGPUBufferName(Buffer, GetResourceName());
 	}
 
-	/////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	FUniformBufferReadable::FUniformBufferReadable(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag)
 		: FUniformBuffer(InStructureSizeInBytes, InElements, InUBFlag)
 	{

@@ -237,7 +237,7 @@ namespace tix
 		TPipelineDesc Desc;
 	};
     
-    ////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
     
     // For metal: Tile shader pipeline desc corresponding to MTLTileRenderPipelineDescriptor
     class TTilePipeline : public TResource

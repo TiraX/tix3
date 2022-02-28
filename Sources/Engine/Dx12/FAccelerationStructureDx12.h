@@ -34,7 +34,7 @@ namespace tix
 		TVector<D3D12_RAYTRACING_GEOMETRY_DESC> GeometryDescs;
 	};
 
-	////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	class FTopLevelAccelerationStructureDx12 : public FTopLevelAccelerationStructure
 	{
 	public:

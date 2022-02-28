@@ -42,7 +42,7 @@ namespace tix
 		RHI->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	FIndexBuffer::FIndexBuffer()
 		: FRenderResource(ERenderResourceType::IndexBuffer)
 	{
@@ -77,7 +77,7 @@ namespace tix
 		RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
 	}
 
-	///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
 	FInstanceBuffer::FInstanceBuffer()
 		: FRenderResource(ERenderResourceType::InstanceBuffer)
 	{
