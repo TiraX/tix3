@@ -257,7 +257,17 @@ namespace tix
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-
+	static int32 TimerRecorderStack = 0;
+	inline void LogSpaceForStack()
+	{
+		static char spaces[128] = { 0 };
+		if (TimerRecorderStack > 0)
+		{
+			memset(spaces, ' ', TimerRecorderStack * 2);
+			spaces[TimerRecorderStack * 2] = 0;
+			_LOG(ELog::Log, spaces);
+		}
+	}
 	TTimeRecorder::TTimeRecorder(bool UseHighPrecision)
 		: High(UseHighPrecision)
 		, StartTime(0)
@@ -284,7 +294,9 @@ namespace tix
 
 	void TTimeRecorder::Start()
 	{
-		//_LOG(ELog::Log, "%s started.\n", Name.c_str());
+		LogSpaceForStack();
+		_LOG(ELog::Log, "%s started.\n", Name.c_str());
+		++TimerRecorderStack;
 		if (High)
 		{
 			Freq = TTimer::QueryCPUFrequency();
@@ -300,11 +312,13 @@ namespace tix
 			EndTime = TTimer::QueryCPUCounter();
 		else
 			EndTime = TTimer::GetCurrentTimeMillis();
+		--TimerRecorderStack;
 	}
 
 	void TTimeRecorder::LogTimeUsed()
 	{
 		End();
+		LogSpaceForStack();
 
 		uint64 Diff = EndTime - StartTime;
 		if (High)
