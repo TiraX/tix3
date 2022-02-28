@@ -57,6 +57,16 @@ namespace tix
 			OutStrings.push_back(S.substr(Pos1));
 	}
 
+	inline TString TStringMerge(const TVector<TString>& InStrings)
+	{
+		TStringStream SS;
+		for (const auto& S : InStrings)
+		{
+			SS << S;
+		}
+		return SS.str();
+	}
+
 	inline void GetPathAndName(const TString& FullPathName, TString& Path, TString& Name)
 	{
 		TString FullPathName1 = FullPathName;
