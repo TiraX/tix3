@@ -74,7 +74,7 @@ namespace tix
 		TStreamPtr Compressed = ZCompress(SrcData, SrcLength, GetZlibQuality(Quality));
 
 		const uint32 ID = TIRES_ID_ZIPFILE;
-		const uint32 Len = Compressed->GetLength();
+		const uint32 Len = SrcLength;
 
 		TStreamPtr Data = ti_new TStream(Compressed->GetLength() + sizeof(uint32) * 2);
 		Data->Put(&ID, sizeof(uint32));

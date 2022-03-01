@@ -111,7 +111,7 @@ namespace tix
 		// Seek 'Pos' to position in buffer
 		void Seek(uint32 NewPos)
 		{
-			TI_ASSERT(NewPos < BufferSize);
+			TI_ASSERT(NewPos <= BufferSize);
 			Pos = NewPos;
 		}
 
