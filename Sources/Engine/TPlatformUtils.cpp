@@ -13,7 +13,7 @@
 
 namespace tix
 {
-	TString TPlatformUtils::GetExecutablePath()
+	TString TPlatformUtils::GetExecutablePath(const TString& RelativePathStart)
 	{
 		TString Ret;
 		int8 Path[512];
@@ -39,7 +39,7 @@ namespace tix
 		// if dir is not in Binaries/ then find from root "tix3"
 		if (Ret.find("/Binary") == TString::npos)
 		{
-			TString::size_type root_pos = Ret.find("tix3/");
+			TString::size_type root_pos = Ret.find(RelativePathStart);
 			TI_ASSERT(root_pos != TString::npos);
 			Ret = Ret.substr(0, root_pos + 5) + "Binaries/";
 #if defined (TI_PLATFORM_WIN32)
