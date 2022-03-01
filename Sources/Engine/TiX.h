@@ -41,6 +41,7 @@ using namespace std;
 #include "TMath.h"
 #include "TJSON.h"
 #include "TUtils.h"
+#include "TZip.h"
 #include "TCrc.h"
 
 // Game thread components
