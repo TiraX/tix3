@@ -68,6 +68,11 @@ namespace tix
 		}
 	}
 
+	TStreamPtr TZip::CompressTZip(TStreamPtr InData)
+	{
+		return CompressTZip((const uint8*)InData->GetBuffer(), InData->GetBufferSize());
+	}
+
 	TStreamPtr TZip::CompressTZip(const uint8* SrcData, int32 SrcLength, CompressQuality Quality)
 	{
 
@@ -82,6 +87,11 @@ namespace tix
 		Data->Put(Compressed->GetBuffer(), Compressed->GetLength());
 
 		return Data;
+	}
+
+	TStreamPtr TZip::DecompressTZip(TStreamPtr InData)
+	{
+		return DecompressTZip((const uint8*)InData->GetBuffer(), InData->GetBufferSize());
 	}
 
 	TStreamPtr TZip::DecompressTZip(const uint8* SrcData, int32 SrcLength)
