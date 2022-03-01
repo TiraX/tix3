@@ -79,11 +79,11 @@ namespace tix
 		TStreamPtr Compressed = ZCompress(SrcData, SrcLength, GetZlibQuality(Quality));
 
 		const uint32 ID = TIRES_ID_ZIPFILE;
-		const uint32 Len = SrcLength;
+		const uint32 DecompressLength = SrcLength;
 
 		TStreamPtr Data = ti_new TStream(Compressed->GetLength() + sizeof(uint32) * 2);
 		Data->Put(&ID, sizeof(uint32));
-		Data->Put(&Len, sizeof(uint32));
+		Data->Put(&DecompressLength, sizeof(uint32));
 		Data->Put(Compressed->GetBuffer(), Compressed->GetLength());
 
 		return Data;
@@ -97,10 +97,14 @@ namespace tix
 	TStreamPtr TZip::DecompressTZip(const uint8* SrcData, int32 SrcLength)
 	{
 		uint32 ID = *(uint32*)(SrcData);
-		uint32 DestLen = *(uint32*)(SrcData + sizeof(uint32));
-		TI_ASSERT(ID == TIRES_ID_ZIPFILE);
+		if (ID != TIRES_ID_ZIPFILE)
+		{
+			RuntimeFail();
+			return nullptr;
+		}
 
-		TStreamPtr Data = ZDecompress(SrcData + sizeof(uint32) * 2, SrcLength - sizeof(uint32) * 2, DestLen);
+		uint32 DecompressLength = *(uint32*)(SrcData + sizeof(uint32));
+		TStreamPtr Data = ZDecompress(SrcData + sizeof(uint32) * 2, SrcLength - sizeof(uint32) * 2, DecompressLength);
 		return Data;
 	}
 }
