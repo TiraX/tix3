@@ -23,12 +23,12 @@ namespace tix
 
 		// Compress data into TZip format
 		// TZip is a zip data with a 8 bytes header: TIRES_ID_ZIPFILE and SrcLength
-		static TStreamPtr CompressTZip(TStreamPtr InData);
-		static TStreamPtr CompressTZip(const uint8* SrcData, int32 SrcLength, CompressQuality Quality = CompressQuality::Default);
+		TI_API static TStreamPtr CompressTZip(TStreamPtr InData);
+		TI_API static TStreamPtr CompressTZip(const uint8* SrcData, int32 SrcLength, CompressQuality Quality = CompressQuality::Default);
 
 		// Decompress data from TZip format
 		// TZip is a zip data with a 8 bytes header: TIRES_ID_ZIPFILE and SrcLength
-		static TStreamPtr DecompressTZip(TStreamPtr InData);
-		static TStreamPtr DecompressTZip(const uint8* SrcData, int32 SrcLength);
+		TI_API static TStreamPtr DecompressTZip(TStreamPtr InData);
+		TI_API static TStreamPtr DecompressTZip(const uint8* SrcData, int32 SrcLength);
 	};
 }
