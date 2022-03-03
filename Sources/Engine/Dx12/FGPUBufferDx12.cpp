@@ -90,6 +90,7 @@ namespace tix
 					nullptr,
 					BufferUpload
 				);
+				BufferUpload->SetName(L"TccBufferUpload");
 
 				// Upload the buffer data to the GPU.
 				D3D12_SUBRESOURCE_DATA BufferData = {};

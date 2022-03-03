@@ -92,6 +92,14 @@ namespace tix
 			return NData;
 		}
 
+		inline static FHalf2 EncodeNormalToHalf2(const FFloat3& Normal)
+		{
+			FHalf2 NormalYZ;
+			NormalYZ.X = Normal.Y;
+			NormalYZ.Y = Normal.Z;
+			return NormalYZ;
+		}
+
 		inline static FByte4 EncodeColorToByte4(const FFloat4& Color)
 		{
 			FByte4 CData;

@@ -103,6 +103,7 @@ namespace tix
 				nullptr,
 				BufferUpload
 			);
+			BufferUpload->SetName(L"TccTexBufferUpload");
 
 			// Copy data to the intermediate upload heap and then schedule a copy 
 			// from the upload heap to the Texture2D.
