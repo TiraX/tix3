@@ -94,6 +94,10 @@ namespace tix
 		virtual void PrepareDataForCPU() {};
 		virtual TStreamPtr ReadBufferData() { return nullptr; }
 
+		FGPUBufferPtr GetGPUBuffer()
+		{
+			return Buffer;
+		}
 		uint32 GetTotalBufferSize() const
 		{
 			return StructureSizeInBytes * Elements;

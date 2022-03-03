@@ -39,7 +39,8 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceVB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
-		RHI->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
+		if (Data != nullptr)
+			RHI->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -74,7 +75,8 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceIB, GetResourceName());
 
 		// Set resource state to IndexBuffer
-		RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
+		if (Data != nullptr)
+			RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -109,6 +111,7 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceInsB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
-		RHI->SetGPUBufferState(GPUResourceInsB, EGPUResourceState::VertexAndConstantBuffer);
+		if (Data != nullptr)
+			RHI->SetGPUBufferState(GPUResourceInsB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 }

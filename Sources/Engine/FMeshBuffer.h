@@ -19,6 +19,10 @@ namespace tix
 		{
 			return GPUResourceVB;
 		}
+		virtual FGPUBufferPtr GetGPUBuffer()
+		{
+			return GPUResourceVB;
+		}
 
 		const TVertexBufferDesc& GetDesc() const
 		{
@@ -42,6 +46,10 @@ namespace tix
 
 		virtual void CreateGPUBuffer(TStreamPtr Data) override;
 		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUResourceIB;
+		}
+		virtual FGPUBufferPtr GetGPUBuffer()
 		{
 			return GPUResourceIB;
 		}
@@ -69,6 +77,10 @@ namespace tix
 
 		virtual void CreateGPUBuffer(TStreamPtr Data) override;
 		virtual FGPUResourcePtr GetGPUResource() override
+		{
+			return GPUResourceInsB;
+		}
+		virtual FGPUBufferPtr GetGPUBuffer()
 		{
 			return GPUResourceInsB;
 		}

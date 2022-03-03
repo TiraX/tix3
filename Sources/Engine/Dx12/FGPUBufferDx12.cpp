@@ -81,9 +81,11 @@ namespace tix
 			if (Data != nullptr)
 			{
 				ComPtr<ID3D12Resource> BufferUpload;
+				// Use a new RESOURCE_DESC to avoid UAV flags.
+				CD3DX12_RESOURCE_DESC UploadDesc = CD3DX12_RESOURCE_DESC::Buffer(Desc.BufferSize);
 				RHIDx12->CreateD3D12Resource(
 					D3D12_HEAP_TYPE_UPLOAD,
-					&ResourceDesc,
+					&UploadDesc,
 					D3D12_RESOURCE_STATE_GENERIC_READ,
 					nullptr,
 					BufferUpload
