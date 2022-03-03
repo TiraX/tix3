@@ -94,10 +94,10 @@ namespace tix
 
 		inline static FHalf2 EncodeNormalToHalf2(const FFloat3& Normal)
 		{
-			FHalf2 NormalYZ;
-			NormalYZ.X = Normal.Y;
-			NormalYZ.Y = Normal.Z;
-			return NormalYZ;
+			FHalf2 NormalXY;
+			NormalXY.X = Normal.X / (1.f + Normal.Z);
+			NormalXY.Y = Normal.Y / (1.f + Normal.Z);
+			return NormalXY;
 		}
 
 		inline static FByte4 EncodeColorToByte4(const FFloat4& Color)
