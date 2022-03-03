@@ -1258,8 +1258,8 @@ namespace tix
 	void FRHIDx12::CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer)
 	{
 		FlushGraphicsBarriers(DirectCommandList.Get());
-		FGPUBufferDx12* SrcDx12 = static_cast<FGPUBufferDx12*>(DstBuffer.get());
-		FGPUBufferDx12* DstDx12 = static_cast<FGPUBufferDx12*>(SrcBuffer.get());
+		FGPUBufferDx12* DstDx12 = static_cast<FGPUBufferDx12*>(DstBuffer.get());
+		FGPUBufferDx12* SrcDx12 = static_cast<FGPUBufferDx12*>(SrcBuffer.get());
 
 		DirectCommandList->CopyResource(DstDx12->GetResource(), SrcDx12->GetResource());
 
