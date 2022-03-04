@@ -20,16 +20,17 @@ namespace tix
 		return RHI;
 	}
 
-	void FRHI::CreateRHI()
+	FRHI* FRHI::CreateRHI(const TString& InRHIName)
 	{
 		TI_ASSERT(RHI == nullptr);
 #if defined (TI_PLATFORM_WIN32) && (COMPILE_WITH_RHI_DX12)
-		RHI = ti_new FRHIDx12;
+		RHI = ti_new FRHIDx12(InRHIName);
 #elif defined (TI_PLATFORM_IOS) && (COMPILE_WITH_RHI_METAL)
         RHI = ti_new FRHIMetal;
 #else
 #error("No avaible RHI for this platform.")
 #endif
+		return RHI;
 	}
 
 	void FRHI::ReleaseRHI()
@@ -39,8 +40,9 @@ namespace tix
 		RHI = nullptr;
 	}
 
-	FRHI::FRHI(E_RHI_TYPE InRHIType)
+	FRHI::FRHI(E_RHI_TYPE InRHIType, const TString& InRHIName)
 		: RHIType(InRHIType)
+		, RHIName(InRHIName)
 	{
 		for (int32 i = 0; i < FRHIConfig::FrameBufferNum; ++i)
 		{

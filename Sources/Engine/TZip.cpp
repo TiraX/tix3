@@ -75,6 +75,8 @@ namespace tix
 
 	TStreamPtr TZip::CompressTZip(const uint8* SrcData, int32 SrcLength, CompressQuality Quality)
 	{
+		if (SrcData == nullptr)
+			return nullptr;
 
 		TStreamPtr Compressed = ZCompress(SrcData, SrcLength, GetZlibQuality(Quality));
 
@@ -96,6 +98,9 @@ namespace tix
 
 	TStreamPtr TZip::DecompressTZip(const uint8* SrcData, int32 SrcLength)
 	{
+		if (SrcData == nullptr)
+			return nullptr;
+
 		uint32 ID = *(uint32*)(SrcData);
 		if (ID != TIRES_ID_ZIPFILE)
 		{

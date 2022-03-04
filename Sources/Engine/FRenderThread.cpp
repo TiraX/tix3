@@ -77,7 +77,7 @@ namespace tix
 		, Renderer(nullptr)
 		, RenderScene(nullptr)
 	{
-		FRHI::CreateRHI();
+		RHI = FRHI::CreateRHI("Default");
 	}
 
 	FRenderThread::~FRenderThread()
@@ -99,8 +99,7 @@ namespace tix
 
 	void FRenderThread::CreateRenderComponents()
 	{
-		// Create RHI to submit commands to GPU
-		RHI = FRHI::Get();
+		// Init RHI in render thread.
 		RHI->InitRHI();
 	}
 

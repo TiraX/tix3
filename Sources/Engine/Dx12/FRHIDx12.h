@@ -26,6 +26,7 @@ namespace tix
 		virtual ~FRHIDx12();
 
 		// RHI common methods
+		virtual FRHI* CreateAsyncRHI(const TString& InRHIName) override;
 		virtual void InitRHI() override;
 		virtual void BeginFrame() override;
 		virtual void EndFrame() override;
@@ -97,7 +98,7 @@ namespace tix
 		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
 		virtual void SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 
-				void UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS);
+		virtual void UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS);
 		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) override;
 		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) override;
 		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) override;
@@ -143,7 +144,7 @@ namespace tix
 			ComPtr<ID3D12Resource>& OutResource
 		);
 
-		void UpdateD3D12Resource(
+		virtual void UpdateD3D12Resource(
 			_In_ ID3D12Resource* pDestinationResource,
 			_In_ ID3D12Resource* pIntermediate,
 			uint32 NumSubResources,
@@ -183,14 +184,14 @@ namespace tix
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUBufferGPUAddress(FGPUResourcePtr GPUBuffer);
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUTextureGPUAddress(FGPUResourcePtr GPUTexture);
 	protected: 
-		FRHIDx12();
+		FRHIDx12(const TString& InRHIName);
 
 		virtual void FeatureCheck() override;
 
 	private:
-		void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
-		void CreateWindowsSizeDependentResources();
-		void MoveToNextFrame();
+		virtual void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
+		virtual void CreateWindowsSizeDependentResources();
+		virtual void MoveToNextFrame();
 
 		FShaderBindingPtr CreateShaderBinding(const D3D12_ROOT_SIGNATURE_DESC& RSDesc);
 
@@ -214,26 +215,26 @@ namespace tix
 			_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) uint32 NumSubresources,
 			_In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData);
 
-		void _Transition(
+		virtual void _Transition(
 			_In_ ID3D12Resource* pResource,
 			D3D12_RESOURCE_STATES stateBefore,
 			D3D12_RESOURCE_STATES stateAfter,
 			uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
 			D3D12_RESOURCE_BARRIER_FLAGS flags = D3D12_RESOURCE_BARRIER_FLAG_NONE);
 
-		void UAVBarrier(_In_ ID3D12Resource* pResource);
+		virtual void UAVBarrier(_In_ ID3D12Resource* pResource);
 
-		void FlushGraphicsBarriers(
+		virtual void FlushBarriers(
 			_In_ ID3D12GraphicsCommandList* pCmdList);
 
-		void SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel);
+		virtual void SetRenderTarget(FRenderTargetPtr RT, uint32 MipLevel);
 
-		void InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset);
+		virtual void InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset);
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex);
 		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex);
 
-		bool InitRaytracing();
-	private:
+		virtual bool InitRaytracing();
+	protected:
 		ComPtr<ID3D12Device> D3dDevice;
 		ComPtr<IDXGIFactory4> DxgiFactory;
 		ComPtr<IDXGISwapChain3> SwapChain;
@@ -247,10 +248,10 @@ namespace tix
 		D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptor;
 
 		// Commands
-		ComPtr<ID3D12CommandAllocator> DirectCommandAllocators[FRHIConfig::FrameBufferNum];
-		ComPtr<ID3D12CommandQueue> DirectCommandQueue;
-		ComPtr<ID3D12GraphicsCommandList> DirectCommandList;
-		ComPtr<ID3D12Fence> DirectCommandFence;
+		ComPtr<ID3D12CommandAllocator> CommandAllocators[FRHIConfig::FrameBufferNum];
+		ComPtr<ID3D12CommandQueue> CommandQueue;
+		ComPtr<ID3D12GraphicsCommandList> CommandList;
+		ComPtr<ID3D12Fence> CommandFence;
 
 		// Descriptor heaps
 		FDescriptorHeapDx12 DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
@@ -274,6 +275,9 @@ namespace tix
 
 		// Raytracing component
 		FRHIDXR* DXR;
+
+		// Asynchronized RHI for Async Compute
+		TVector<FRHI*> AsyncRHIs;
 
 		friend class FRHI;
 		friend class FDescriptorHeapDx12;

@@ -43,7 +43,7 @@ namespace tix
 	{
 	public: 
 		TI_API static FRHI* Get();
-		static void CreateRHI();
+		static FRHI* CreateRHI(const TString& InRHIName);
 		static void ReleaseRHI();
 
 		static FRHIConfig RHIConfig;
@@ -53,6 +53,7 @@ namespace tix
 			return NumGPUFrames;
 		}
 
+		virtual FRHI* CreateAsyncRHI(const TString& InRHIName) = 0;
 		virtual void InitRHI() = 0;
 		virtual void BeginFrame();
 		virtual void EndFrame() = 0;
@@ -179,7 +180,7 @@ namespace tix
 
 	protected:
 		static FRHI* RHI;
-		FRHI(E_RHI_TYPE InRHIType);
+		FRHI(E_RHI_TYPE InRHIType, const TString& InRHIName);
 		virtual ~FRHI();
 
 		virtual void FeatureCheck() = 0;
@@ -193,6 +194,7 @@ namespace tix
 		static TI_API uint32 NumGPUFrames;
 	protected:
 		E_RHI_TYPE RHIType;
+		TString RHIName;
 		FViewport Viewport;
 		FFrameResources * FrameResources[FRHIConfig::FrameBufferNum];
 
