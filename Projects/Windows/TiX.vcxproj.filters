@@ -145,9 +145,6 @@
     <ClCompile Include="..\..\Sources\Engine\FFullScreenRender.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FRenderResourceHeap.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FRenderResource.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -330,6 +327,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FHeapAllocator.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRHIHeap.cpp">
+      <Filter>Sources\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -535,9 +538,6 @@
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FRenderResourceHeap.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRenderResourceTable.h">
@@ -746,6 +746,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FHeapAllocator.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRHIHeap.h">
+      <Filter>Sources\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

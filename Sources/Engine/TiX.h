@@ -106,6 +106,7 @@ using namespace std;
 #include "FAccelerationStructure.h"
 #include "FComputeTask.h"
 #include "FFrameResources.h"
+#include "FRHIHeap.h"
 #include "FRHICmdList.h"
 #include "FRHI.h"
 

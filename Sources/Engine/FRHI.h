@@ -6,7 +6,6 @@
 #pragma once
 
 #include "FRHIConfig.h"
-#include "FRenderResourceHeap.h"
 #include "FRHICmdList.h"
 
 namespace tix
@@ -46,6 +45,8 @@ namespace tix
 			ERHICmdList Type,
 			const TString& InNamePrefix,
 			int32 BufferCount) = 0;
+		// Create Resource Heap
+		virtual FRHIHeap* CreateHeap(EResourceHeapType Type) = 0;
 
 		// Create GPU Resource
 		virtual FGPUBufferPtr CreateGPUBuffer() = 0;
@@ -60,7 +61,6 @@ namespace tix
 		// Create Graphics and Compute related resources
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) = 0;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) = 0;
-		virtual FRenderResourceTablePtr CreateRenderResourceTable(uint32 InSize, EResourceHeapType InHeap);
 		virtual FShaderPtr CreateShader(const TShaderNames& InNames, E_SHADER_TYPE Type) = 0;
 		virtual FShaderPtr CreateComputeShader(const TString& InComputeShaderName) = 0;
 		virtual FArgumentBufferPtr CreateArgumentBuffer(int32 ReservedSlots) = 0;
@@ -81,17 +81,14 @@ namespace tix
 
 		virtual TStreamPtr ReadGPUBufferToCPU(FGPUBufferPtr GPUBuffer) = 0;
 
-		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutTextureInHeap(FTexturePtr InTexture, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutRWTextureInHeap(FTexturePtr InTexture, uint32 InMipLevel, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutVertexBufferInHeap(FVertexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InVBHeapSlot) = 0;
-		virtual void PutIndexBufferInHeap(FIndexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InIBHeapSlot) = 0;
-		virtual void PutInstanceBufferInHeap(FInstanceBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
-		virtual void PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot) = 0;
-		virtual void PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot) = 0;
-		virtual void PutTopAccelerationStructureInHeap(FTopLevelAccelerationStructurePtr InTLAS, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
+		virtual void PutConstantBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InUniformBuffer, uint32 InTableSlot) = 0;
+		virtual void PutTextureInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) = 0;
+		virtual void PutRWTextureInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InMipLevel, uint32 InTableSlot) = 0;
+		virtual void PutUniformBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InBuffer, uint32 InTableSlot) = 0;
+		virtual void PutRWUniformBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InBuffer, uint32 InTableSlot) = 0;
+		virtual void PutRTColorInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) = 0;
+		virtual void PutRTDepthInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) = 0;
+		virtual void PutTopAccelerationStructureInTable(FRenderResourceTablePtr RRTable, FTopLevelAccelerationStructurePtr InTLAS, uint32 InTableSlot) = 0;
 
 		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) = 0;
 		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) = 0;
@@ -107,11 +104,25 @@ namespace tix
 			return CmdListDirect;
 		}
 
-		FRenderResourceHeap& GetRenderResourceHeap(EResourceHeapType Type)
+		virtual FRHIHeap* GetHeapById(uint32 HeapId)
 		{
-			int32 Index = static_cast<int32>(Type);
-			TI_ASSERT(Index >= 0 && Index < NumResourceHeapTypes);
-			return RenderResourceHeap[Index];
+			return nullptr;
+		}
+		virtual FRHIHeap* GetDefaultHeapRtv()
+		{
+			return nullptr;
+		}
+		virtual FRHIHeap* GetDefaultHeapDsv()
+		{
+			return nullptr;
+		}
+		virtual FRHIHeap* GetDefaultHeapSampler()
+		{
+			return nullptr;
+		}
+		virtual FRHIHeap* GetDefaultHeapCbvSrvUav()
+		{
+			return nullptr;
 		}
 
 	protected:
@@ -130,8 +141,6 @@ namespace tix
 		static TI_API uint32 NumGPUFrames;
 	protected:
 		ERHIType RHIType;
-
-		FRenderResourceHeap RenderResourceHeap[NumResourceHeapTypes];
 
 		// Command Lists
 		FRHICmdList* CmdListDirect;

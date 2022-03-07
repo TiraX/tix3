@@ -64,11 +64,4 @@ namespace tix
     {
 		FStats::ResetPerFrame();
     }
-    
-	FRenderResourceTablePtr FRHI::CreateRenderResourceTable(uint32 InSize, EResourceHeapType InHeap)
-	{
-		FRenderResourceTablePtr Table = ti_new FRenderResourceTable(InSize);
-		GetRenderResourceHeap(InHeap).InitResourceTable(Table);
-		return Table;
-	}
 }

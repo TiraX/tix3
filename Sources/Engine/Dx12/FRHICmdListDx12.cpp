@@ -36,6 +36,7 @@ namespace tix
 {
 	FRHICmdListDx12::FRHICmdListDx12(ERHICmdList InType)
 		: FRHICmdList(InType)
+		, RHIDx12(nullptr)
 		, CurrentFrameIndex(0)
 	{
 		Barriers.reserve(16);
@@ -50,8 +51,11 @@ namespace tix
 		}
 	}
 
-	void FRHICmdListDx12::Init(ID3D12Device* D3dDevice, const TString& InNamePrefix, int32 BufferCount)
+	void FRHICmdListDx12::Init(FRHIDx12* InRHIDx12, const TString& InNamePrefix, int32 BufferCount)
 	{
+		RHIDx12 = InRHIDx12;
+		ID3D12Device* D3dDevice = InRHIDx12->GetD3dDevice();
+
 		auto GetCmdListType = [](ERHICmdList InType)
 		{
 			switch (InType)
@@ -494,7 +498,7 @@ namespace tix
 
 	void FRHICmdListDx12::SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = GetGpuDescriptorHandle(RenderResourceTable->GetHeapType(), RenderResourceTable->GetStartIndex());
+		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, RenderResourceTable->GetStartIndex());
 		CommandList->SetGraphicsRootDescriptorTable(BindIndex, Descriptor);
 
 		HoldResourceReference(RenderResourceTable);
@@ -631,7 +635,7 @@ namespace tix
 
 	void FRHICmdListDx12::SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = GetGpuDescriptorHandle(RenderResourceTable->GetHeapType(), RenderResourceTable->GetStartIndex());
+		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, RenderResourceTable->GetStartIndex());
 		CommandList->SetComputeRootDescriptorTable(BindIndex, Descriptor);
 
 		HoldResourceReference(RenderResourceTable);
@@ -832,7 +836,7 @@ namespace tix
 				RTVDescriptors.reserve(CBCount);
 				for (int32 cb = 0; cb < CBCount; ++cb)
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(EResourceHeapType::RenderTarget, ColorTable->GetIndexAt(cb * RtMips + MipLevel));
+					D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetCpuDescriptorHandle(ColorTable, cb * RtMips + MipLevel);
 					RTVDescriptors.push_back(Descriptor);
 				}
 				Rtv = RTVDescriptors.data();
@@ -843,7 +847,7 @@ namespace tix
 			FRenderResourceTablePtr DepthTable = RTDx12->RTDepthTable;
 			if (DepthTable != nullptr && DepthTable->GetTableSize() != 0)
 			{
-				DepthDescriptor = GetCpuDescriptorHandle(EResourceHeapType::DepthStencil, DepthTable->GetIndexAt(MipLevel));
+				DepthDescriptor = RHIDx12->GetCpuDescriptorHandle(DepthTable, MipLevel);
 				Dsv = &DepthDescriptor;
 			}
 

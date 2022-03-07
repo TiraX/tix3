@@ -13,8 +13,8 @@ namespace tix
 		, EnvCubemap(InCubemap)
 		, Position(InPosition)
 	{
-		ResourceTable = FRHI::Get()->CreateRenderResourceTable(1, EResourceHeapType::ShaderResource);
-		ResourceTable->PutTextureInTable(EnvCubemap, 0);
+		ResourceTable = FRHI::Get()->GetDefaultHeapCbvSrvUav()->CreateRenderResourceTable(1);
+		FRHI::Get()->PutTextureInTable(ResourceTable, EnvCubemap, 0);
 	}
 
 	FEnvLight::~FEnvLight()

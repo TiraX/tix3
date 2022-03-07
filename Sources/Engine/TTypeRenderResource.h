@@ -84,7 +84,6 @@ namespace tix
 
 	enum class EResourceHeapType : int8
 	{
-		None = -1,
 		RenderTarget = 0,
 		DepthStencil,
 		Sampler,

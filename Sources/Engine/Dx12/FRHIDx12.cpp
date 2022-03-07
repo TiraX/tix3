@@ -36,16 +36,26 @@ namespace tix
 {
 	FRHIDx12::FRHIDx12()
 		: FRHI(ERHIType::Dx12)
+		, HeapRtv(nullptr)
+		, HeapDsv(nullptr)
+		, HeapSampler(nullptr)
+		, HeapCbvSrvUav(nullptr)
 		, CurrentFrame(0)
 		, DXR(nullptr)
 		, CmdListDirectDx12Ref(nullptr)
 	{
+		DescriptorHeaps.reserve(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES);
 		// Reserve spaces for AsyncRHIs
 		AsyncRHIs.reserve(4);
 	}
 
 	FRHIDx12::~FRHIDx12()
 	{
+		for (auto H : DescriptorHeaps)
+		{
+			ti_delete H;
+		}
+		DescriptorHeaps.clear();
 		ti_delete DXR;
 	}
 
@@ -132,14 +142,14 @@ namespace tix
 		CmdListDirect = CreateRHICommandList(ERHICmdList::Direct, "Default", FRHIConfig::FrameBufferNum);
 		CmdListDirectDx12Ref = static_cast<FRHICmdListDx12*>(CmdListDirect);
 
-		// Create descriptor heaps for render target views and depth stencil views.
-		DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].Create(this, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].Create(this, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+		// Create default descriptor heaps for render target views and depth stencil views.
+		HeapRtv = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::RenderTarget));
+		HeapDsv = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::DepthStencil));
+		HeapSampler = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::Sampler));
+		// Describe and create a shader resource view (SRV) heap for the texture.
+		HeapCbvSrvUav = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::ShaderResource));
 		
 		CreateWindowsSizeDependentResources();
-
-		// Describe and create a shader resource view (SRV) heap for the texture.
-		DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].Create(this, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		_LOG(ELog::Log, "  RHI DirectX 12 inited.\n");
 
@@ -331,10 +341,10 @@ namespace tix
 		{
 			CurrentFrame = SwapChain->GetCurrentBackBufferIndex();
 
-			BackBufferDescriptorTable = CreateRenderResourceTable(FRHIConfig::FrameBufferNum, EResourceHeapType::RenderTarget);
+			BackBufferDescriptorTable = HeapRtv->CreateRenderResourceTable(FRHIConfig::FrameBufferNum);
 			for (uint32 n = 0; n < FRHIConfig::FrameBufferNum; n++)
 			{
-				BackBufferDescriptors[n] = GetCpuDescriptorHandle(EResourceHeapType::RenderTarget, BackBufferDescriptorTable->GetIndexAt(n));
+				BackBufferDescriptors[n] = GetCpuDescriptorHandle(BackBufferDescriptorTable, n);
 				VALIDATE_HRESULT(SwapChain->GetBuffer(n, IID_PPV_ARGS(&BackBufferRTs[n])));
 				D3dDevice->CreateRenderTargetView(BackBufferRTs[n].Get(), nullptr, BackBufferDescriptors[n]);
 
@@ -372,8 +382,8 @@ namespace tix
 			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 			dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-			DepthStencilDescriptorTable = CreateRenderResourceTable(1, EResourceHeapType::DepthStencil);
-			DepthStencilDescriptor = GetCpuDescriptorHandle(EResourceHeapType::DepthStencil, DepthStencilDescriptorTable->GetStartIndex());
+			DepthStencilDescriptorTable = HeapDsv->CreateRenderResourceTable(1);
+			DepthStencilDescriptor = GetCpuDescriptorHandle(DepthStencilDescriptorTable, 0);
 			D3dDevice->CreateDepthStencilView(DepthStencil.Get(), &dsvDesc, DepthStencilDescriptor);
 		}
 	}
@@ -383,7 +393,7 @@ namespace tix
 		FRHI::BeginFrame();
 
 		// Reset command list
-		CmdListDirectDx12Ref->BeginFrame(CurrentFrame, DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].GetHeap());
+		CmdListDirectDx12Ref->BeginFrame(CurrentFrame, HeapCbvSrvUav->GetHeap());
 	}
 
 	void FRHIDx12::BeginRenderToFrameBuffer()
@@ -442,8 +452,19 @@ namespace tix
 		int32 BufferCount)
 	{
 		FRHICmdListDx12* RHICmdList = ti_new FRHICmdListDx12(Type);
-		RHICmdList->Init(D3dDevice.Get(), InNamePrefix, BufferCount);
+		RHICmdList->Init(this, InNamePrefix, BufferCount);
 		return RHICmdList;
+	}
+
+	FRHIHeap* FRHIDx12::CreateHeap(EResourceHeapType Type)
+	{
+		TI_ASSERT(IsRenderThread());
+
+		uint32 HeapId = (uint32)DescriptorHeaps.size();
+		FDescriptorHeapDx12* Heap = ti_new FDescriptorHeapDx12(HeapId, Type);
+		Heap->Create(D3dDevice.Get());
+		DescriptorHeaps.push_back(Heap);
+		return Heap;
 	}
 
 	FGPUBufferPtr FRHIDx12::CreateGPUBuffer()
@@ -957,11 +978,11 @@ namespace tix
 				Mips = ColorBuffer.Texture->GetDesc().Mips;
 			}
 			TI_ASSERT(Mips > 0);
-			RTDx12->RTColorTable = CreateRenderResourceTable(ColorBufferCount * Mips, EResourceHeapType::RenderTarget);
+			RTDx12->RTColorTable = HeapRtv->CreateRenderResourceTable(ColorBufferCount * Mips);
 			for (int32 i = 0; i < ColorBufferCount; ++i)
 			{
 				const FRenderTarget::RTBuffer& ColorBuffer = RenderTarget->GetColorBuffer(i);
-				RTDx12->RTColorTable->PutRTColorInTable(ColorBuffer.Texture, i);
+				PutRTColorInTable(RTDx12->RTColorTable, ColorBuffer.Texture, i);
 			}
 		}
 
@@ -972,8 +993,8 @@ namespace tix
 			if (DSBufferTexture != nullptr)
 			{
 				TI_ASSERT(RTDx12->RTDepthTable == nullptr);
-				RTDx12->RTDepthTable = CreateRenderResourceTable(DSBufferTexture->GetDesc().Mips, EResourceHeapType::DepthStencil);
-				RTDx12->RTDepthTable->PutRTDepthInTable(DSBufferTexture, 0);
+				RTDx12->RTDepthTable = HeapDsv->CreateRenderResourceTable(DSBufferTexture->GetDesc().Mips);
+				PutRTDepthInTable(RTDx12->RTDepthTable, DSBufferTexture, 0);
 			}
 		}
 		return true;
@@ -1255,19 +1276,19 @@ namespace tix
 		const TVector<FRenderResourcePtr>& Arguments = ArgumentBuffer->GetArguments();
 		TI_ASSERT(ArgumentDx12->ResourceTable == nullptr && Arguments.size() > 0);
 
-		ArgumentDx12->ResourceTable = CreateRenderResourceTable((uint32)Arguments.size(), EResourceHeapType::ShaderResource);
+		ArgumentDx12->ResourceTable = HeapCbvSrvUav->CreateRenderResourceTable((uint32)Arguments.size());
 		for (int32 i = 0 ; i < (int32)Arguments.size() ; ++ i)
 		{
 			FRenderResourcePtr Arg = Arguments[i];
 			if (Arg->GetResourceType() == ERenderResourceType::UniformBuffer)
 			{
 				FUniformBufferPtr ArgUB = static_cast<FUniformBuffer*>(Arg.get());
-				ArgumentDx12->ResourceTable->PutConstantBufferInTable(ArgUB, i);
+				PutConstantBufferInTable(ArgumentDx12->ResourceTable, ArgUB, i);
 			}
 			else if (Arg->GetResourceType() == ERenderResourceType::Texture)
 			{
 				FTexturePtr ArgTex = static_cast<FTexture*>(Arg.get());
-				ArgumentDx12->ResourceTable->PutTextureInTable(ArgTex, i);
+				PutTextureInTable(ArgumentDx12->ResourceTable, ArgTex, i);
 			}
 			else
 			{
@@ -1374,14 +1395,22 @@ namespace tix
 		return true;
 	}
 
-	void FRHIDx12::PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot)
+	void FRHIDx12::PutConstantBufferInTable(
+		FRenderResourceTablePtr RRTable, 
+		FUniformBufferPtr InUniformBuffer, 
+		uint32 InTableSlot
+	)
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC CBV = GetConstantBufferView(InUniformBuffer);
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateConstantBufferView(&CBV, Descriptor);
 	}
 
-	void FRHIDx12::PutTextureInHeap(FTexturePtr InTexture, EResourceHeapType InHeapType, uint32 InHeapSlot)
+	void FRHIDx12::PutTextureInTable(
+		FRenderResourceTablePtr RRTable, 
+		FTexturePtr InTexture, 
+		uint32 InTableSlot
+	)
 	{
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
@@ -1424,15 +1453,16 @@ namespace tix
 			RuntimeFail();
 			break;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(TexDx12->Resource.Get(), &SRVDesc, Descriptor);
 	}
 
-	void FRHIDx12::PutRWTextureInHeap(
+	void FRHIDx12::PutRWTextureInTable(
+		FRenderResourceTablePtr RRTable, 
 		FTexturePtr InTexture, 
 		uint32 InMipLevel, 
-		EResourceHeapType InHeapType, 
-		uint32 InHeapSlot)
+		uint32 InTableSlot
+	)
 	{
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
@@ -1465,7 +1495,7 @@ namespace tix
 			RuntimeFail();
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 
 		D3dDevice->CreateUnorderedAccessView(
 			TexDx12->Resource.Get(),
@@ -1474,10 +1504,11 @@ namespace tix
 			Descriptor);
 	}
 
-	void FRHIDx12::PutUniformBufferInHeap(
+	void FRHIDx12::PutUniformBufferInTable(
+		FRenderResourceTablePtr RRTable, 
 		FUniformBufferPtr InBuffer, 
-		EResourceHeapType InHeapType, 
-		uint32 InHeapSlot)
+		uint32 InTableSlot
+	)
 	{
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -1489,14 +1520,15 @@ namespace tix
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(BufferDx12->GetResource(), &SRVDesc, Descriptor);
 	}
 
-	void FRHIDx12::PutTopAccelerationStructureInHeap(
+	void FRHIDx12::PutTopAccelerationStructureInTable(
+		FRenderResourceTablePtr RRTable, 
 		FTopLevelAccelerationStructurePtr InTLAS, 
-		EResourceHeapType InHeapType, 
-		uint32 InHeapSlot)
+		uint32 InTableSlot
+	)
 	{
 		FTopLevelAccelerationStructureDx12* TLASDx12 = static_cast<FTopLevelAccelerationStructureDx12*>(InTLAS.get());
 		// Create shader resource view
@@ -1511,11 +1543,15 @@ namespace tix
 		// the resource parameter must be NULL, as the memory location comes 
 		// as a GPUVA from the view description (D3D12_RAYTRACING_ACCELERATION_STRUCTURE_SRV) 
 		// shown below. E.g. CreateShaderResourceView(NULL,pViewDesc).
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(nullptr, &SRVDesc, Descriptor);
 	}
 
-	void FRHIDx12::PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot)
+	void FRHIDx12::PutRWUniformBufferInTable(
+		FRenderResourceTablePtr RRTable, 
+		FUniformBufferPtr InBuffer, 
+		uint32 InTableSlot
+	)
 	{
 		TI_ASSERT((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0);
 		const bool HasCounter = (InBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0;
@@ -1532,76 +1568,19 @@ namespace tix
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
+		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateUnorderedAccessView(
 			BufferDx12->GetResource(),
 			HasCounter ? BufferDx12->GetResource() : nullptr,
 			&UAVDesc,
 			Descriptor);
 	}
-	
-	void FRHIDx12::PutVertexBufferInHeap(FVertexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InVBHeapSlot)
-	{
-		FGPUBufferDx12* VBDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 
-		// Create shader resource view
-		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-		if (InVBHeapSlot >= 0)
-		{
-			TI_ASSERT(InBuffer->GetDesc().Stride % 4 == 0);
-			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().VertexCount * InBuffer->GetDesc().Stride / sizeof(float);
-			SRVDesc.Buffer.StructureByteStride = sizeof(float);
-
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InVBHeapSlot);
-			D3dDevice->CreateShaderResourceView(VBDx12->GetResource(), &SRVDesc, Descriptor);
-		}
-	}
-
-	void FRHIDx12::PutIndexBufferInHeap(FIndexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InIBHeapSlot)
-	{
-		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
-
-		// Create shader resource view
-		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-		if (InIBHeapSlot >= 0)
-		{
-			TI_ASSERT(InBuffer->GetDesc().IndexType == EIT_32BIT);
-			SRVDesc.Buffer.NumElements = InBuffer->GetDesc().IndexCount;
-			SRVDesc.Buffer.StructureByteStride = sizeof(uint32);
-
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InIBHeapSlot);
-			D3dDevice->CreateShaderResourceView(IBDx12->GetResource(), &SRVDesc, Descriptor);
-		}
-	}
-
-	void FRHIDx12::PutInstanceBufferInHeap(FInstanceBufferPtr InInstanceBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot)
-	{
-		FGPUBufferDx12* IBDx12 = static_cast<FGPUBufferDx12*>(InInstanceBuffer->GetGPUResource().get());
-
-		// Create shader resource view
-		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-		SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		SRVDesc.Buffer.NumElements = InInstanceBuffer->GetDesc().InstanceCount;
-		SRVDesc.Buffer.StructureByteStride = InInstanceBuffer->GetDesc().Stride;
-		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(InHeapType, InHeapSlot);
-		D3dDevice->CreateShaderResourceView(IBDx12->GetResource(), &SRVDesc, Descriptor);
-	}
-
-	void FRHIDx12::PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot)
+	void FRHIDx12::PutRTColorInTable(
+		FRenderResourceTablePtr RRTable, 
+		FTexturePtr InTexture, 
+		uint32 InTableSlot
+	)
 	{
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
@@ -1617,12 +1596,16 @@ namespace tix
 		for (uint32 Mip = 0 ; Mip < Mips ; ++ Mip)
 		{
 			RTVDesc.Texture2D.MipSlice = Mip;
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(EResourceHeapType::RenderTarget, InHeapSlot + Mip);
+			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot + Mip);
 			D3dDevice->CreateRenderTargetView(TexDx12->Resource.Get(), &RTVDesc, Descriptor);
 		}
 	}
 
-	void FRHIDx12::PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot)
+	void FRHIDx12::PutRTDepthInTable(
+		FRenderResourceTablePtr RRTable, 
+		FTexturePtr InTexture, 
+		uint32 InTableSlot
+	)
 	{
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
@@ -1640,31 +1623,29 @@ namespace tix
 		for (uint32 Mip = 0; Mip < Mips; ++Mip)
 		{
 			DsvDesc.Texture2D.MipSlice = Mip;
-			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(EResourceHeapType::DepthStencil, InHeapSlot + Mip);
+			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot + Mip);
 			D3dDevice->CreateDepthStencilView(TexDx12->Resource.Get(), &DsvDesc, Descriptor);
 		}
 	}
 
-
-
-
-	void FRHIDx12::InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset)
+	D3D12_CPU_DESCRIPTOR_HANDLE FRHIDx12::GetCpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex)
 	{
-		int32 HeapIndex = static_cast<int32>(Heap);
-		TI_ASSERT(HeapIndex >= 0 && HeapIndex < NumResourceHeapTypes);
-		RenderResourceHeap[HeapIndex].Create(Heap, HeapSize, HeapOffset);
+		TI_ASSERT(IsRenderThread());
+		FRHIHeap* Heap = GetHeapById(RRTable->GetHeapId());
+		TI_ASSERT(Heap->GetHeapId() == RRTable->GetHeapId() && Heap->GetHeapType() == RRTable->GetHeapType());
+		TI_ASSERT(SlotIndex < RRTable->GetTableSize());
+		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(Heap);
+		return HeapDx12->GetCpuDescriptorHandle(RRTable->GetIndexAt(SlotIndex));
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE FRHIDx12::GetCpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex)
+	D3D12_GPU_DESCRIPTOR_HANDLE FRHIDx12::GetGpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex)
 	{
-		D3D12_DESCRIPTOR_HEAP_TYPE Dx12Heap = GetDxHeapTypeFromTiXHeap(Heap);
-		return DescriptorHeaps[Dx12Heap].GetCpuDescriptorHandle(SlotIndex);
-	}
-
-	D3D12_GPU_DESCRIPTOR_HANDLE FRHIDx12::GetGpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex)
-	{
-		D3D12_DESCRIPTOR_HEAP_TYPE Dx12Heap = GetDxHeapTypeFromTiXHeap(Heap);
-		return DescriptorHeaps[Dx12Heap].GetGpuDescriptorHandle(SlotIndex);
+		TI_ASSERT(IsRenderThread());
+		FRHIHeap* Heap = GetHeapById(RRTable->GetHeapId());
+		TI_ASSERT(Heap->GetHeapId() == RRTable->GetHeapId() && Heap->GetHeapType() == RRTable->GetHeapType());
+		TI_ASSERT(SlotIndex < RRTable->GetTableSize());
+		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(Heap);
+		return HeapDx12->GetGpuDescriptorHandle(RRTable->GetIndexAt(SlotIndex));
 	}
 
 	void FRHIDx12::CreateD3D12Resource(

@@ -298,7 +298,7 @@ namespace tix
 			RuntimeFail();
 			break;
 		}
-		return EResourceHeapType::None;
+		return EResourceHeapType::ShaderResource;
 	}
 
 	inline D3D12_DESCRIPTOR_HEAP_TYPE GetDxHeapTypeFromTiXHeap(EResourceHeapType TiXHeap)

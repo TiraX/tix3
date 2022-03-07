@@ -93,7 +93,7 @@ namespace tix
 		}
 
 		// Dx12 specified
-		void Init(ID3D12Device* D3dDevice, const TString& InNamePrefix, int32 BufferCount);
+		void Init(FRHIDx12* RHIDx12, const TString& InNamePrefix, int32 BufferCount);
 		void BeginFrame(int32 FrameIndex, ID3D12DescriptorHeap* Heap);
 		void EndFrame();
 		void SetBackbufferTarget(D3D12_CPU_DESCRIPTOR_HANDLE InRTView, D3D12_CPU_DESCRIPTOR_HANDLE InDSView);
@@ -130,6 +130,8 @@ namespace tix
 			_In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData);
 
 	protected:
+		FRHIDx12* RHIDx12;
+
 		TVector<ComPtr<ID3D12CommandAllocator>> CommandAllocators;
 		ComPtr<ID3D12CommandQueue> CommandQueue;
 		ComPtr<ID3D12GraphicsCommandList> CommandList;

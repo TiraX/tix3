@@ -107,7 +107,8 @@ namespace tix
 		// acceleration structure build input, it can always put a resource into a combination 
 		// of read states simultaneously, 
 		// e.g.D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-		ID3D12DescriptorHeap* DescriptorHeap = RHIDx12->GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		FDescriptorHeapDx12* HeapCbvSrvUav = static_cast<FDescriptorHeapDx12*>(RHIDx12->GetDefaultHeapCbvSrvUav());
+		ID3D12DescriptorHeap* DescriptorHeap = HeapCbvSrvUav->GetHeap();
 		DXRCommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 		DXRCommandList->BuildRaytracingAccelerationStructure(&BottomLevelBuildDesc, 0, nullptr);
 
@@ -256,7 +257,8 @@ namespace tix
 		// acceleration structure build input, it can always put a resource into a combination 
 		// of read states simultaneously, 
 		// e.g.D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-		ID3D12DescriptorHeap* DescriptorHeap = RHIDx12->GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		FDescriptorHeapDx12* HeapCbvSrvUav = static_cast<FDescriptorHeapDx12*>(RHIDx12->GetDefaultHeapCbvSrvUav());
+		ID3D12DescriptorHeap* DescriptorHeap = HeapCbvSrvUav->GetHeap();
 		DXRCommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 		DXRCommandList->BuildRaytracingAccelerationStructure(&TopLevelBuildDesc, 0, nullptr);
 		Dirty = false;

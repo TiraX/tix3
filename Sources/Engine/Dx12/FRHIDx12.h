@@ -42,6 +42,9 @@ namespace tix
 			const TString& InNamePrefix, 
 			int32 BufferCount) override;
 
+		// Create Resource Heap
+		virtual FRHIHeap* CreateHeap(EResourceHeapType Type) override;
+
 		// Create GPU Resource
 		virtual FGPUBufferPtr CreateGPUBuffer() override;
 		virtual FGPUTexturePtr CreateGPUTexture() override;
@@ -75,21 +78,38 @@ namespace tix
 
 		virtual TStreamPtr ReadGPUBufferToCPU(FGPUBufferPtr GPUBuffer) override;
 
-		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutTextureInHeap(FTexturePtr InTexture, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutRWTextureInHeap(FTexturePtr InTexture, uint32 InMipLevel, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutRWUniformBufferInHeap(FUniformBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutVertexBufferInHeap(FVertexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InVBHeapSlot) override;
-		virtual void PutIndexBufferInHeap(FIndexBufferPtr InBuffer, EResourceHeapType InHeapType, int32 InIBHeapSlot) override;
-		virtual void PutInstanceBufferInHeap(FInstanceBufferPtr InBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
-		virtual void PutRTColorInHeap(FTexturePtr InTexture, uint32 InHeapSlot) override;
-		virtual void PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot) override;
-		virtual void PutTopAccelerationStructureInHeap(FTopLevelAccelerationStructurePtr InTLAS, EResourceHeapType InHeapType, uint32 InHeapSlot) override;
+		virtual void PutConstantBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InUniformBuffer, uint32 InTableSlot) override;
+		virtual void PutTextureInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) override;
+		virtual void PutRWTextureInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InMipLevel, uint32 InTableSlot) override;
+		virtual void PutUniformBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InBuffer, uint32 InTableSlot) override;
+		virtual void PutRWUniformBufferInTable(FRenderResourceTablePtr RRTable, FUniformBufferPtr InBuffer, uint32 InTableSlot) override;
+		virtual void PutRTColorInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) override;
+		virtual void PutRTDepthInTable(FRenderResourceTablePtr RRTable, FTexturePtr InTexture, uint32 InTableSlot) override;
+		virtual void PutTopAccelerationStructureInTable(FRenderResourceTablePtr RRTable, FTopLevelAccelerationStructurePtr InTLAS, uint32 InTableSlot) override;
 
 		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) override;
 		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) override;
 
+		virtual FRHIHeap* GetHeapById(uint32 HeapId) override
+		{
+			return DescriptorHeaps[HeapId];
+		}
+		virtual FRHIHeap* GetDefaultHeapRtv() override
+		{
+			return HeapRtv;
+		}
+		virtual FRHIHeap* GetDefaultHeapDsv() override
+		{
+			return HeapDsv;
+		}
+		virtual FRHIHeap* GetDefaultHeapSampler() override
+		{
+			return HeapSampler;
+		}
+		virtual FRHIHeap* GetDefaultHeapCbvSrvUav() override
+		{
+			return HeapCbvSrvUav;
+		}
 
 		// Direct12 Specified Functions
 		void CreateD3D12Resource(
@@ -105,9 +125,9 @@ namespace tix
 			uint32 FirstSubresource,
 			uint32 NumSubresources);
 
-		ID3D12DescriptorHeap* GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type)
+		ID3D12Device* GetD3dDevice()
 		{
-			return DescriptorHeaps[Type].GetHeap();
+			return D3dDevice.Get();
 		}
 
 		ID3D12Device5* GetDXRDevice()
@@ -130,6 +150,9 @@ namespace tix
 
 		static D3D12_GPU_VIRTUAL_ADDRESS GetGPUBufferGPUAddress(FGPUResourcePtr GPUBuffer);
 		static D3D12_GPU_VIRTUAL_ADDRESS GetGPUTextureGPUAddress(FGPUResourcePtr GPUTexture);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex);
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex);
 	protected: 
 		FRHIDx12();
 
@@ -141,10 +164,6 @@ namespace tix
 		virtual void MoveToNextFrame();
 
 		FShaderBindingPtr CreateShaderBinding(const D3D12_ROOT_SIGNATURE_DESC& RSDesc);
-
-		virtual void InitRHIRenderResourceHeap(EResourceHeapType Heap, uint32 HeapSize, uint32 HeapOffset);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex);
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle(EResourceHeapType Heap, uint32 SlotIndex);
 
 		virtual bool InitRaytracing();
 	protected:
@@ -162,7 +181,11 @@ namespace tix
 		FUInt2 BackBufferSize;
 
 		// Descriptor heaps
-		FDescriptorHeapDx12 DescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+		TVector<FDescriptorHeapDx12*> DescriptorHeaps;
+		FDescriptorHeapDx12* HeapRtv;
+		FDescriptorHeapDx12* HeapDsv;
+		FDescriptorHeapDx12* HeapSampler;
+		FDescriptorHeapDx12* HeapCbvSrvUav;
 
 		uint32 CurrentFrame;
 
