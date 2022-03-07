@@ -23,24 +23,24 @@ namespace tix
 	{
 	}
 
-	void FVertexBuffer::CreateGPUBuffer(TStreamPtr Data)
+	void FVertexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(GPUResourceVB == nullptr);
-		FRHI* RHI = FRHI::Get();
 
 		FGPUBufferDesc VBDesc;
 		VBDesc.Flag = 0;
 		VBDesc.BufferSize = Desc.VertexCount * Desc.Stride;
 
 		// Create GPU resource and copy data
+		FRHI* RHI = FRHI::Get();
 		GPUResourceVB = RHI->CreateGPUBuffer();
-		GPUResourceVB->Init(VBDesc, Data);
+		GPUResourceVB->Init(CmdList, VBDesc, Data);
 		RHI->SetGPUBufferName(GPUResourceVB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
 		if (Data != nullptr)
-			RHI->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
+			CmdList->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -59,24 +59,24 @@ namespace tix
 	{
 	}
 
-	void FIndexBuffer::CreateGPUBuffer(TStreamPtr Data)
+	void FIndexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(GPUResourceIB == nullptr);
-		FRHI* RHI = FRHI::Get();
 
 		FGPUBufferDesc IBDesc;
 		IBDesc.Flag = 0;
 		IBDesc.BufferSize = Desc.IndexCount * (Desc.IndexType == EIT_16BIT ? sizeof(uint16) : sizeof(uint32));
 
 		// Create GPU resource and copy data
+		FRHI* RHI = FRHI::Get();
 		GPUResourceIB = RHI->CreateGPUBuffer();
-		GPUResourceIB->Init(IBDesc, Data);
+		GPUResourceIB->Init(CmdList, IBDesc, Data);
 		RHI->SetGPUBufferName(GPUResourceIB, GetResourceName());
 
 		// Set resource state to IndexBuffer
 		if (Data != nullptr)
-			RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
+			CmdList->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -95,23 +95,23 @@ namespace tix
 	{
 	}
 
-	void FInstanceBuffer::CreateGPUBuffer(TStreamPtr Data)
+	void FInstanceBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(GPUResourceInsB == nullptr);
-		FRHI* RHI = FRHI::Get();
 
 		FGPUBufferDesc InsBDesc;
 		InsBDesc.Flag = 0;
 		InsBDesc.BufferSize = Desc.InstanceCount * Desc.Stride;
 
 		// Create GPU resource and copy data
+		FRHI* RHI = FRHI::Get();
 		GPUResourceInsB = RHI->CreateGPUBuffer();
-		GPUResourceInsB->Init(InsBDesc, Data);
+		GPUResourceInsB->Init(CmdList, InsBDesc, Data);
 		RHI->SetGPUBufferName(GPUResourceInsB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
 		if (Data != nullptr)
-			RHI->SetGPUBufferState(GPUResourceInsB, EGPUResourceState::VertexAndConstantBuffer);
+			CmdList->SetGPUBufferState(GPUResourceInsB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 }

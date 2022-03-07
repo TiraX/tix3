@@ -63,14 +63,14 @@ namespace tix
 			memset(UniformBufferData.data(), 0, GetStructureStrideInBytes() * GetElementsCount() ); \
 		} \
 		FUniformBufferPtr UniformBuffer; \
-		FUniformBufferPtr InitUniformBuffer(uint32 UBFlag = 0) \
+		FUniformBufferPtr InitUniformBuffer(FRHICmdList* CmdList, uint32 UBFlag = 0) \
 		{ \
 			TI_ASSERT(IsRenderThread()); \
 			FRHI * RHI = FRHI::Get(); \
 			UniformBuffer = ti_new FUniformBuffer((uint32)sizeof(StructTypeName::FUniformBufferStruct), GetElementsCount(), UBFlag); \
 			UniformBuffer->SetResourceName(#StructTypeName); \
 			TStreamPtr Data = ti_new TStream(UniformBufferData.data(), UniformBuffer->GetTotalBufferSize()); \
-			UniformBuffer->CreateGPUBuffer(Data); \
+			UniformBuffer->CreateGPUBuffer(CmdList, Data); \
 			return UniformBuffer; \
 		} \
 	}; \
@@ -86,12 +86,12 @@ namespace tix
 		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag = 0);
 		virtual ~FUniformBuffer();
 
-		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return Buffer;
 		}
-		virtual void PrepareDataForCPU() {};
+		virtual void PrepareDataForCPU(FRHICmdList* CmdList) {};
 		virtual TStreamPtr ReadBufferData() { return nullptr; }
 
 		FGPUBufferPtr GetGPUBuffer()
@@ -136,9 +136,9 @@ namespace tix
 		FUniformBufferReadable(uint32 InStructureSizeInBytes, uint32 Elements, uint32 InFlag);
 		virtual ~FUniformBufferReadable();
 
-		virtual void CreateGPUBuffer(TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
 
-		virtual void PrepareDataForCPU() override;
+		virtual void PrepareDataForCPU(FRHICmdList* CmdList) override;
 		virtual TStreamPtr ReadBufferData() override;
 	protected:
 		FGPUBufferPtr ReadbackBuffer;

@@ -106,12 +106,12 @@ namespace tix
 				break;
 			
 			TI_ASSERT(ColorBuffer.Texture != nullptr);
-			ColorBuffer.Texture->CreateGPUTexture();
+			ColorBuffer.Texture->CreateGPUTexture(nullptr);
 		}
 
 		if (RTDepthStencilBuffer.Texture != nullptr)
 		{
-			RTDepthStencilBuffer.Texture->CreateGPUTexture();
+			RTDepthStencilBuffer.Texture->CreateGPUTexture(nullptr);
 		}
 
 		RHI->UpdateHardwareResourceRT(this);

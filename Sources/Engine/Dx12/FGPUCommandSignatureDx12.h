@@ -33,7 +33,9 @@ namespace tix
 		TVector<uint32> ArgumentStrideOffset;
 
 		ComPtr<ID3D12CommandSignature> CommandSignature;
+
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 } // end namespace tix
 #endif

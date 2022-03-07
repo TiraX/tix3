@@ -44,7 +44,7 @@ namespace tix
 				[Primitive, LocalToWorldMat]()
 				{
 					Primitive->SetLocalToWorld(LocalToWorldMat);
-					Primitive->UpdatePrimitiveBuffer_RenderThread();
+					Primitive->UpdatePrimitiveBuffer_RenderThread(FRHI::Get()->GetDefaultCmdList());
 				});
 		}
 	}
@@ -197,7 +197,7 @@ namespace tix
 					for (int32 i = 0; i < (int32)SkeletonDataResources.size(); i++)
 					{
 						TStreamPtr BoneData = ti_new TStream(BoneDatas[i].data(), (uint32)(BoneDatas[i].size() * sizeof(float)));
-						SkeletonDataResources[i]->CreateGPUBuffer(BoneData);
+						SkeletonDataResources[i]->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), BoneData);
 					}
 				});
 

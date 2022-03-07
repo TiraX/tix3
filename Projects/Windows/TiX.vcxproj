@@ -21,6 +21,7 @@
     <ClCompile Include="..\..\Sources\Engine\Dx12\FPipelineDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDXR.cpp" />
@@ -46,6 +47,7 @@
     <ClCompile Include="..\..\Sources\Engine\FRenderResourceTable.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FRenderTarget.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FRHI.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\FRHICmdList.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FRtxPipeline.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FShader.cpp" />
     <ClCompile Include="..\..\Sources\Engine\FShaderBinding.cpp" />
@@ -129,6 +131,7 @@
     <ClInclude Include="..\..\Sources\Engine\Dx12\FPipelineDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.h" />
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12Conversion.h" />
@@ -157,6 +160,7 @@
     <ClInclude Include="..\..\Sources\Engine\FRenderResourceTable.h" />
     <ClInclude Include="..\..\Sources\Engine\FRenderTarget.h" />
     <ClInclude Include="..\..\Sources\Engine\FRHI.h" />
+    <ClInclude Include="..\..\Sources\Engine\FRHICmdList.h" />
     <ClInclude Include="..\..\Sources\Engine\FRHIConfig.h" />
     <ClInclude Include="..\..\Sources\Engine\FRtxPipeline.h" />
     <ClInclude Include="..\..\Sources\Engine\FSceneInterface.h" />
@@ -166,7 +170,6 @@
     <ClInclude Include="..\..\Sources\Engine\FTexture.h" />
     <ClInclude Include="..\..\Sources\Engine\FUniformBuffer.h" />
     <ClInclude Include="..\..\Sources\Engine\FUniformBufferView.h" />
-    <ClInclude Include="..\..\Sources\Engine\FViewport.h" />
     <ClInclude Include="..\..\Sources\Engine\IInstrusivePtr.hpp" />
     <ClInclude Include="..\..\Sources\Engine\IReferenceCounted.h" />
     <ClInclude Include="..\..\Sources\Engine\Math\Box.h" />

@@ -18,7 +18,9 @@ namespace tix
 
 	private:
 		ComPtr<ID3D12PipelineState> PipelineState;
+
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 }
 

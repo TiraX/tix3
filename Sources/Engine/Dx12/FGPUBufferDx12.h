@@ -21,7 +21,7 @@ namespace tix
 		virtual ~FGPUBufferDx12()
 		{}
 
-		virtual void Init(const FGPUBufferDesc& Desc, TStreamPtr Data) override;
+		virtual void Init(FRHICmdList* RHICmdList, const FGPUBufferDesc& Desc, TStreamPtr Data) override;
 		ID3D12Resource* GetResource()
 		{
 			return Resource.Get();
@@ -31,6 +31,7 @@ namespace tix
 		EGPUResourceState ResourceState;
 
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 }
 #endif	// COMPILE_WITH_RHI_DX12

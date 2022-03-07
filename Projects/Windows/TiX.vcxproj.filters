@@ -325,6 +325,12 @@
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.cpp">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\FRHICmdList.cpp">
+      <Filter>Sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Engine\stdafx.h">
@@ -526,9 +532,6 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRenderTarget.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FViewport.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FFullScreenRender.h">
@@ -736,6 +739,12 @@
       <Filter>Sources\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.h">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\FRHICmdList.h">
+      <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.h">
       <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
   </ItemGroup>

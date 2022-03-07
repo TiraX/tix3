@@ -49,7 +49,7 @@ namespace tix
 		return AccelerationStructure != nullptr;
 	}
 
-	void FBottomLevelAccelerationStructureDx12::Build()
+	void FBottomLevelAccelerationStructureDx12::Build(FRHICmdList* RHICmdList)
 	{
 		TI_ASSERT(IsRenderThread());
 		if (!Dirty)
@@ -168,7 +168,7 @@ namespace tix
 		return AccelerationStructure.Get() != nullptr;
 	}
 
-	void FTopLevelAccelerationStructureDx12::Build()
+	void FTopLevelAccelerationStructureDx12::Build(FRHICmdList* RHICmdList)
 	{
 		TI_ASSERT(IsRenderThread());
 		if (!Dirty || InstanceDescData->GetLength() == 0)
@@ -232,7 +232,7 @@ namespace tix
 		// Create Instance Resource
 		const uint32 InstanceBufferSize = InstanceDescData->GetLength();
 		TLASInstanceBuffer = ti_new FUniformBuffer(InstanceBufferSize, 1, (uint32)EGPUResourceFlag::Intermediate);
-		TLASInstanceBuffer->CreateGPUBuffer(InstanceDescData);
+		TLASInstanceBuffer->CreateGPUBuffer(RHICmdList, InstanceDescData);
 
 		// Build top layer AS
 		TopLevelInputs.InstanceDescs = RHIDx12->GetGPUBufferGPUAddress(TLASInstanceBuffer->GetGPUResource());
@@ -241,19 +241,12 @@ namespace tix
 
 		// Be sure we are ready for and read access which may follow.  We only call this function in init so this
 		// should not affect runtime performance.
-		RHIDx12->FlushResourceStateChange();
-		int32 BarrierCount = 0;
+		RHICmdList->FlushBarriers();
 		for (const auto& BLAS : BLASes)
 		{
-			RHIDx12->UAVBarrier(BLAS.first);
-			++BarrierCount;
-			if (BarrierCount >= FRHIConfig::MaxResourceBarrierBuffers)
-			{
-				RHIDx12->FlushResourceStateChange();
-				BarrierCount = 0;
-			}
+			RHICmdList->UAVBarrier(BLAS.first);
 		}
-		RHIDx12->FlushResourceStateChange();
+		RHICmdList->FlushBarriers();
 
 		// https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html
 		// Array of vertex indices.If NULL, triangles are non - indexed.Just as with graphics, 

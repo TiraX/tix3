@@ -77,7 +77,7 @@ namespace tix
 		, Renderer(nullptr)
 		, RenderScene(nullptr)
 	{
-		RHI = FRHI::CreateRHI("Default");
+		RHI = FRHI::CreateRHI();
 	}
 
 	FRenderThread::~FRenderThread()
@@ -149,7 +149,7 @@ namespace tix
 		if (Renderer != nullptr)
 		{
 			Renderer->InitRenderFrame();
-			Renderer->Render(RHI);
+			Renderer->Render();
 			Renderer->EndRenderFrame();
 		}
 		RHI->EndFrame();

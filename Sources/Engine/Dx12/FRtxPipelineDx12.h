@@ -24,6 +24,7 @@ namespace tix
 		FInt2 HitGroupOffsetAndSize;
 
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 }
 

@@ -20,11 +20,11 @@ namespace tix
 		return RHI;
 	}
 
-	FRHI* FRHI::CreateRHI(const TString& InRHIName)
+	FRHI* FRHI::CreateRHI()
 	{
 		TI_ASSERT(RHI == nullptr);
 #if defined (TI_PLATFORM_WIN32) && (COMPILE_WITH_RHI_DX12)
-		RHI = ti_new FRHIDx12(InRHIName);
+		RHI = ti_new FRHIDx12();
 #elif defined (TI_PLATFORM_IOS) && (COMPILE_WITH_RHI_METAL)
         RHI = ti_new FRHIMetal;
 #else
@@ -40,37 +40,28 @@ namespace tix
 		RHI = nullptr;
 	}
 
-	FRHI::FRHI(E_RHI_TYPE InRHIType, const TString& InRHIName)
+	FRHI::FRHI(ERHIType InRHIType)
 		: RHIType(InRHIType)
-		, RHIName(InRHIName)
+		, CmdListDirect(nullptr)
 	{
-		for (int32 i = 0; i < FRHIConfig::FrameBufferNum; ++i)
-		{
-			FrameResources[i] = nullptr;
-		}
 	}
 
 	FRHI::~FRHI()
 	{
-		CurrentRenderTarget = nullptr;
-		CurrentBoundResource.Reset();
+		SAFE_DELETE(CmdListDirect);
+		for (auto CL : CmdListAsyncComputes)
+		{
+			ti_delete CL;
+		}
 	}
 
 	void FRHI::SupportFeature(E_RHI_FEATURE InFeature)
 	{
 		RHIConfig.SupportedFeatures |= InFeature;
 	}
-
-	void FRHI::SetViewport(const FViewport& InViewport)
-	{
-		Viewport = InViewport;
-	}
 	
     void FRHI::BeginFrame()
     {
-        CurrentRenderTarget = nullptr;
-        CurrentBoundResource.Reset();
-
 		FStats::ResetPerFrame();
     }
     
@@ -79,18 +70,5 @@ namespace tix
 		FRenderResourceTablePtr Table = ti_new FRenderResourceTable(InSize);
 		GetRenderResourceHeap(InHeap).InitResourceTable(Table);
 		return Table;
-	}
-
-	void FRHI::BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName, uint32 MipLevel)
-	{
-		CurrentRenderTarget = RT;
-        
-        const FInt2& d = RT->GetDemension();
-		RtViewport.Left = 0;
-		RtViewport.Top = 0;
-		RtViewport.Width = d.X >> MipLevel;
-		RtViewport.Height = d.Y >> MipLevel;
-
-		SetViewport(RtViewport);
 	}
 }

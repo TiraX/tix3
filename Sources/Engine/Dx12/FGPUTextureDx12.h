@@ -21,7 +21,7 @@ namespace tix
 		virtual ~FGPUTextureDx12()
 		{}
 
-		virtual void Init(const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) override;
+		virtual void Init(FRHICmdList* RHICmdList, const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) override;
 		ID3D12Resource* GetResource()
 		{
 			return Resource.Get();
@@ -31,6 +31,7 @@ namespace tix
 		EGPUResourceState ResourceState;
 
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 }
 #endif	// COMPILE_WITH_RHI_DX12

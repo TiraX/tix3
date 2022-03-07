@@ -20,7 +20,7 @@ namespace tix
 		FullScreenShader = nullptr;
 	}
 
-	void FFullScreenRender::InitCommonResources(FRHI* RHI)
+	void FFullScreenRender::InitCommonResources(FRHICmdList* RHICmdList)
 	{
 		if (bInited)
 			return;
@@ -46,8 +46,8 @@ namespace tix
 		IBData->SetIndexData(EIT_16BIT, FullScreenQuadIndices, 6);
 		FullScreenVB = ti_new FVertexBuffer(VBData->GetDesc());
 		FullScreenIB = ti_new FIndexBuffer(IBData->GetDesc());
-		FullScreenVB->CreateGPUBuffer(VBData->GetVertexBufferData());
-		FullScreenIB->CreateGPUBuffer(IBData->GetIndexBufferData());
+		FullScreenVB->CreateGPUBuffer(RHICmdList, VBData->GetVertexBufferData());
+		FullScreenIB->CreateGPUBuffer(RHICmdList, IBData->GetIndexBufferData());
 		VBData = nullptr;
 		IBData = nullptr;
 
@@ -62,8 +62,8 @@ namespace tix
 		// Move this TShader load to Game Thread. Or Make a gloal shader system.
 		TShaderPtr Shader = ti_new TShader(ShaderNames);
 		Shader->LoadShaderCode();
-		Shader->ShaderResource = RHI->CreateShader(ShaderNames, EST_RENDER);
-		RHI->UpdateHardwareResourceShader(Shader->ShaderResource, Shader->GetShaderCodes());
+		Shader->ShaderResource = FRHI::Get()->CreateShader(ShaderNames, EST_RENDER);
+		FRHI::Get()->UpdateHardwareResourceShader(Shader->ShaderResource, Shader->GetShaderCodes());
 		FSMaterial->SetShader(Shader);
 		FullScreenShader = Shader->ShaderResource;
 
@@ -74,45 +74,45 @@ namespace tix
 		FSMaterial->SetRTColor(FRHIConfig::DefaultBackBufferFormat, ERTC_COLOR0);
 
 		// Pipeline
-		FullScreenPipeline = RHI->CreatePipeline(FullScreenShader);
-		RHI->UpdateHardwareResourceGraphicsPipeline(FullScreenPipeline, FSMaterial->GetDesc());
+		FullScreenPipeline = FRHI::Get()->CreatePipeline(FullScreenShader);
+		FRHI::Get()->UpdateHardwareResourceGraphicsPipeline(FullScreenPipeline, FSMaterial->GetDesc());
 		FSMaterial = nullptr;
 
 		bInited = true;
 	}
 
-	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FTexturePtr Texture)
+	void FFullScreenRender::DrawFullScreenTexture(FRHICmdList* RHICmdList, FTexturePtr Texture)
 	{
 		TI_ASSERT(0);
 	}
 
-	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FRenderResourceTablePtr TextureTable)
+	void FFullScreenRender::DrawFullScreenTexture(FRHICmdList* RHICmdList, FRenderResourceTablePtr TextureTable)
 	{
 		TI_ASSERT(bInited);
-		RHI->SetVertexBuffer(FullScreenVB, nullptr);
-		RHI->SetIndexBuffer(FullScreenIB);
-		RHI->SetGraphicsPipeline(FullScreenPipeline);
-		RHI->SetRenderResourceTable(0, TextureTable);
+		RHICmdList->SetVertexBuffer(FullScreenVB, nullptr);
+		RHICmdList->SetIndexBuffer(FullScreenIB);
+		RHICmdList->SetGraphicsPipeline(FullScreenPipeline);
+		RHICmdList->SetRenderResourceTable(0, TextureTable);
 
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
+		RHICmdList->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 
-	void FFullScreenRender::DrawFullScreenTexture(FRHI* RHI, FArgumentBufferPtr ArgumentBuffer)
+	void FFullScreenRender::DrawFullScreenTexture(FRHICmdList* RHICmdList, FArgumentBufferPtr ArgumentBuffer)
 	{
 		TI_ASSERT(bInited);
-        RHI->SetGraphicsPipeline(FullScreenPipeline);
-		RHI->SetVertexBuffer(FullScreenVB, nullptr);
-		RHI->SetIndexBuffer(FullScreenIB);
-		RHI->SetArgumentBuffer(0, ArgumentBuffer);
+		RHICmdList->SetGraphicsPipeline(FullScreenPipeline);
+		RHICmdList->SetVertexBuffer(FullScreenVB, nullptr);
+		RHICmdList->SetIndexBuffer(FullScreenIB);
+		RHICmdList->SetArgumentBuffer(0, ArgumentBuffer);
 
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
+		RHICmdList->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 
-	void FFullScreenRender::DrawFullScreenQuad(FRHI* RHI)
+	void FFullScreenRender::DrawFullScreenQuad(FRHICmdList* RHICmdList)
 	{
 		TI_ASSERT(bInited);
-		RHI->SetVertexBuffer(FullScreenVB, nullptr);
-		RHI->SetIndexBuffer(FullScreenIB);
-		RHI->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
+		RHICmdList->SetVertexBuffer(FullScreenVB, nullptr);
+		RHICmdList->SetIndexBuffer(FullScreenIB);
+		RHICmdList->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}
 }

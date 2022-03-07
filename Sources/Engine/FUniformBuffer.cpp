@@ -20,7 +20,7 @@ namespace tix
 	{
 	}
 
-	void FUniformBuffer::CreateGPUBuffer(TStreamPtr Data)
+	void FUniformBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(Buffer == nullptr);
@@ -35,7 +35,7 @@ namespace tix
 
 		// Create GPU resource and copy data
 		Buffer = RHI->CreateGPUBuffer();
-		Buffer->Init(Desc, Data);
+		Buffer->Init(CmdList, Desc, Data);
 		RHI->SetGPUBufferName(Buffer, GetResourceName());
 	}
 
@@ -49,9 +49,9 @@ namespace tix
 	{
 	}
 
-	void FUniformBufferReadable::CreateGPUBuffer(TStreamPtr Data)
+	void FUniformBufferReadable::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
-		FUniformBuffer::CreateGPUBuffer(Data);
+		FUniformBuffer::CreateGPUBuffer(CmdList, Data);
 		TI_ASSERT(ReadbackBuffer == nullptr);
 		FRHI* RHI = FRHI::Get();
 
@@ -61,19 +61,15 @@ namespace tix
 
 		// Create GPU resource and copy data
 		ReadbackBuffer = RHI->CreateGPUBuffer();
-		ReadbackBuffer->Init(Desc, nullptr);
+		ReadbackBuffer->Init(CmdList, Desc, nullptr);
 		RHI->SetGPUBufferName(ReadbackBuffer, GetResourceName() + "-Readback");
-
-		// Set resource state to VertexAndConstantBuffer
-		//RHI->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
 	}
 
-	void FUniformBufferReadable::PrepareDataForCPU()
+	void FUniformBufferReadable::PrepareDataForCPU(FRHICmdList* CmdList)
 	{
 		// Copy data from Buffer to ReadbackBuffer
-		FRHI* RHI = FRHI::Get();
-		RHI->SetGPUBufferState(Buffer, EGPUResourceState::CopySource);
-		RHI->CopyGPUBuffer(ReadbackBuffer, Buffer);
+		CmdList->SetGPUBufferState(Buffer, EGPUResourceState::CopySource);
+		CmdList->CopyGPUBuffer(ReadbackBuffer, Buffer);
 	}
 
 	TStreamPtr FUniformBufferReadable::ReadBufferData()

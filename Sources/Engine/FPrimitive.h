@@ -98,7 +98,7 @@ namespace tix
 		void SetUVTransform(float UOffset, float VOffset, float UScale, float VScale);
 		void SetVTDebugInfo(float A, float B, float C, float D);
 
-		void UpdatePrimitiveBuffer_RenderThread();
+		void UpdatePrimitiveBuffer_RenderThread(FRHICmdList* RHICmdList);
 	private:
 		uint32 PrimitiveFlag;
 

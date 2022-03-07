@@ -6,44 +6,23 @@
 #pragma once
 
 #include "FRHIConfig.h"
-#include "FViewport.h"
 #include "FRenderResourceHeap.h"
+#include "FRHICmdList.h"
 
 namespace tix
 {
-	enum E_RHI_TYPE
+	enum class ERHIType
 	{
-		ERHI_DX12 = 0,
-		ERHI_METAL = 1,
-
-		ERHI_NUM,
+		Dx12,
+		Metal
 	};
 
-	struct FBoundResource
-	{
-		FBoundResource()
-			: PrimitiveType(EPrimitiveType::Invalid)
-		{}
-
-		EPrimitiveType PrimitiveType;
-		FPipelinePtr Pipeline;
-		FShaderBindingPtr ShaderBinding;
-
-		void Reset()
-		{
-			PrimitiveType = EPrimitiveType::Invalid;
-			Pipeline = nullptr;
-			ShaderBinding = nullptr;
-		}
-	};
-
-	class FFrameResources;
 	// Render hardware interface
 	class FRHI
 	{
 	public: 
 		TI_API static FRHI* Get();
-		static FRHI* CreateRHI(const TString& InRHIName);
+		static FRHI* CreateRHI();
 		static void ReleaseRHI();
 
 		static FRHIConfig RHIConfig;
@@ -59,12 +38,14 @@ namespace tix
 		virtual void EndFrame() = 0;
         virtual void BeginRenderToFrameBuffer() {};
 
-		virtual void BeginEvent(const int8* InEventName) = 0;
-		virtual void BeginEvent(const int8* InEventName, int32 Index) = 0;
-		virtual void EndEvent() = 0;
-
 		virtual int32 GetCurrentEncodingFrameIndex() = 0;
 		virtual void WaitingForGpu() = 0;
+
+		// Create Command List
+		virtual FRHICmdList* CreateRHICommandList(
+			ERHICmdList Type,
+			const TString& InNamePrefix,
+			int32 BufferCount) = 0;
 
 		// Create GPU Resource
 		virtual FGPUBufferPtr CreateGPUBuffer() = 0;
@@ -88,8 +69,6 @@ namespace tix
 
 		// RTX
 		virtual bool UpdateHardwareResourceRtxPL(FRtxPipelinePtr Pipeline, TRtxPipelinePtr InPipelineDesc) = 0;
-		virtual void SetRtxPipeline(FRtxPipelinePtr RtxPipeline) = 0;
-		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) = 0;
 
 		// Graphics and Compute
 		virtual bool UpdateHardwareResourceGraphicsPipeline(FPipelinePtr Pipeline, const TPipelineDesc& Desc) = 0;
@@ -101,9 +80,6 @@ namespace tix
 		virtual bool UpdateHardwareResourceGPUCommandSig(FGPUCommandSignaturePtr GPUCommandSignature) = 0;
 
 		virtual TStreamPtr ReadGPUBufferToCPU(FGPUBufferPtr GPUBuffer) = 0;
-
-		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) = 0;
-		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) = 0;
 
 		virtual void PutConstantBufferInHeap(FUniformBufferPtr InUniformBuffer, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
 		virtual void PutTextureInHeap(FTexturePtr InTexture, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
@@ -117,58 +93,18 @@ namespace tix
 		virtual void PutRTDepthInHeap(FTexturePtr InTexture, uint32 InHeapSlot) = 0;
 		virtual void PutTopAccelerationStructureInHeap(FTopLevelAccelerationStructurePtr InTLAS, EResourceHeapType InHeapType, uint32 InHeapSlot) = 0;
 
-		// Graphics
-		virtual void SetGraphicsPipeline(FPipelinePtr InPipeline) = 0;
-		virtual void SetVertexBuffer(FVertexBufferPtr InVertexBuffer, FInstanceBufferPtr InInstanceBuffer) = 0;
-		virtual void SetIndexBuffer(FIndexBufferPtr InIndexBuffer) = 0;
-
-		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
-		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
-		virtual void SetArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
-
 		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) = 0;
 		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) = 0;
-		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) = 0;
-		virtual void SetGPUTextureState(FGPUTexturePtr GPUTexture, EGPUResourceState NewState) = 0;
-		virtual void FlushResourceStateChange() = 0;
 
-		virtual void SetStencilRef(uint32 InRefValue) = 0;
-		virtual void DrawPrimitiveInstanced(uint32 VertexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
-		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
-		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) = 0;
-        
-        // Tile
-        virtual void SetTilePipeline(FPipelinePtr InPipeline) = 0;
-        virtual void SetTileBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
-        virtual void DispatchTile(const FInt3& GroupSize) = 0;
 
-		// Compute
-		virtual void SetComputePipeline(FPipelinePtr InPipeline) = 0;
-		virtual void SetComputeConstant(int32 BindIndex, const FUInt4& InValue) = 0;
-		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) = 0;
-		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;
-		virtual void SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;
-		virtual void SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
-        virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
-        virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) = 0;
-        
-		virtual void DispatchCompute(const FInt3& GroupSize, const FInt3& GroupCount) = 0;
-
-		// GPU Command buffer
-		virtual void ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
-		virtual void ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
-
-		virtual void SetViewport(const FViewport& InViewport);
-		virtual void BeginRenderToRenderTarget(FRenderTargetPtr RT, const int8* PassName = "UnnamedPass", uint32 MipLevel = 0);
-
-		E_RHI_TYPE GetRHIType() const
+		ERHIType GetRHIType() const
 		{
 			return RHIType;
 		}
 
-		const FViewport& GetViewport() const
+		FRHICmdList* GetDefaultCmdList()
 		{
-			return Viewport;
+			return CmdListDirect;
 		}
 
 		FRenderResourceHeap& GetRenderResourceHeap(EResourceHeapType Type)
@@ -180,7 +116,7 @@ namespace tix
 
 	protected:
 		static FRHI* RHI;
-		FRHI(E_RHI_TYPE InRHIType, const TString& InRHIName);
+		FRHI(ERHIType InRHIType);
 		virtual ~FRHI();
 
 		virtual void FeatureCheck() = 0;
@@ -193,15 +129,12 @@ namespace tix
 		// Frames count that GPU done
 		static TI_API uint32 NumGPUFrames;
 	protected:
-		E_RHI_TYPE RHIType;
-		TString RHIName;
-		FViewport Viewport;
-		FFrameResources * FrameResources[FRHIConfig::FrameBufferNum];
-
-		FRenderTargetPtr CurrentRenderTarget;
-		FViewport RtViewport;
+		ERHIType RHIType;
 
 		FRenderResourceHeap RenderResourceHeap[NumResourceHeapTypes];
-		FBoundResource CurrentBoundResource;
+
+		// Command Lists
+		FRHICmdList* CmdListDirect;
+		TVector<FRHICmdList*> CmdListAsyncComputes;
 	};
 }

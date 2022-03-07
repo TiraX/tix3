@@ -89,7 +89,7 @@ namespace tix
 		virtual ~FGPUBuffer()
 		{}
 
-		virtual void Init(const FGPUBufferDesc & Desc, TStreamPtr Data) = 0;
+		virtual void Init(FRHICmdList* RHICmdList, const FGPUBufferDesc & Desc, TStreamPtr Data) = 0;
 	};
 
 	/////////////////////////////////////////////////////////////
@@ -101,6 +101,6 @@ namespace tix
 		virtual ~FGPUTexture()
 		{}
 
-		virtual void Init(const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) = 0;
+		virtual void Init(FRHICmdList* RHICmdList, const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) = 0;
 	};
 }

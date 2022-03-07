@@ -15,7 +15,7 @@ namespace tix
 		FAccelerationStructure();
 		virtual ~FAccelerationStructure();
 
-		virtual void Build() = 0;
+		virtual void Build(FRHICmdList* RHICmdList) = 0;
 		virtual bool AlreadyBuilt() = 0;
 
 		void MarkDirty()

@@ -8,6 +8,7 @@
 #if COMPILE_WITH_RHI_DX12
 #include "FGPUTextureDx12.h"
 #include "FRHIDx12.h"
+#include "FRHICmdListDx12.h"
 #include "FRHIDx12Conversion.h"
 
 namespace tix
@@ -28,7 +29,7 @@ namespace tix
 		return 0;
 	}
 
-	void FGPUTextureDx12::Init(const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data)
+	void FGPUTextureDx12::Init(FRHICmdList* RHICmdList, const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data)
 	{
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
 
@@ -126,13 +127,14 @@ namespace tix
 			}
 
 			// Upload the buffer data to the GPU.
-			RHIDx12->UpdateD3D12Resource(
+			FRHICmdListDx12* CmdListDx12 = static_cast<FRHICmdListDx12*>(RHICmdList);
+			CmdListDx12->UpdateD3D12Resource(
 				Resource.Get(),
 				BufferUpload.Get(),
 				NumSubResources,
 				TextureDatas);
 			ti_delete[] TextureDatas;
-			RHIDx12->HoldResourceReference(BufferUpload);
+			CmdListDx12->HoldResourceReference(BufferUpload);
 		}
 	}
 }

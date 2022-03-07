@@ -20,7 +20,7 @@ namespace tix
 	{
 	}
 
-	void FGPUCommandBuffer::CreateGPUBuffer(TStreamPtr InData)
+	void FGPUCommandBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr InData)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(CBBuffer == nullptr);
@@ -32,7 +32,7 @@ namespace tix
 
 		// Create GPU resource and copy data
 		CBBuffer = RHI->CreateGPUBuffer();
-		CBBuffer->Init(Desc, CBData);
+		CBBuffer->Init(CmdList, Desc, CBData);
 		RHI->SetGPUBufferName(CBBuffer, GetResourceName());
 
 	}

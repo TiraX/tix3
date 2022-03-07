@@ -34,6 +34,7 @@ namespace tix
 		return Ptr;
 	}
 
+	class FRHICmdList;
 	class TI_API FRenderResource : public IReferenceCounted
 	{
 	public:
@@ -43,8 +44,8 @@ namespace tix
 		virtual ~FRenderResource() 
 		{}
 
-		virtual void CreateGPUBuffer(TStreamPtr Data) {}
-		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) {}
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) {}
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) {}
 		virtual FGPUResourcePtr GetGPUResource()
 		{
 			return nullptr;

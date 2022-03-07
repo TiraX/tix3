@@ -75,7 +75,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TTextureUpdateFTexture)(
 			[Texture_RT, Data]()
 			{
-				Texture_RT->CreateGPUTexture(Data);
+				Texture_RT->CreateGPUTexture(FRHI::Get()->GetDefaultCmdList(), Data);
 			});
 		Data.clear();
 		TextureData.clear();

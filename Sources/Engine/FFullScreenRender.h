@@ -7,7 +7,7 @@
 
 namespace tix
 {
-	class FRHI;
+	class FRHICmdList;
 
 	// Renderer interface
 	class TI_API FFullScreenRender
@@ -21,14 +21,14 @@ namespace tix
 			return FullScreenShader;
 		}
 
-		void InitCommonResources(FRHI* RHI);
-		void DrawFullScreenTexture(FRHI* RHI, FTexturePtr Texture);
+		void InitCommonResources(FRHICmdList* RHICmdList);
+		void DrawFullScreenTexture(FRHICmdList* RHICmdList, FTexturePtr Texture);
 		// Blit the full screen texture to screen directly.
-		void DrawFullScreenTexture(FRHI* RHI, FRenderResourceTablePtr TextureTable);
+		void DrawFullScreenTexture(FRHICmdList* RHICmdList, FRenderResourceTablePtr TextureTable);
 		// Blit the full screen texture to screen directly.
-		void DrawFullScreenTexture(FRHI* RHI, FArgumentBufferPtr ArgumentBuffer);
+		void DrawFullScreenTexture(FRHICmdList* RHICmdList, FArgumentBufferPtr ArgumentBuffer);
 		// Blit a full screen quad. Need to setup pipeline first manually.
-		void DrawFullScreenQuad(FRHI* RHI);
+		void DrawFullScreenQuad(FRHICmdList* RHICmdList);
 
 	protected:
 		bool bInited;

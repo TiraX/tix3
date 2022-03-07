@@ -56,7 +56,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TVertexBufferUpdateFVertexBuffer)(
 			[VertexBuffer, InData]()
 			{
-				VertexBuffer->CreateGPUBuffer(InData);
+				VertexBuffer->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), InData);
 			});
 		// release CPU memory after create render resource
 		Data = nullptr;
@@ -116,7 +116,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TIndexBufferUpdateFIndexBuffer)(
 			[IndexBuffer, InData]()
 			{
-				IndexBuffer->CreateGPUBuffer(InData);
+				IndexBuffer->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), InData);
 			});
 
 		// release CPU memory after create render resource
@@ -223,7 +223,7 @@ namespace tix
 		ENQUEUE_RENDER_COMMAND(TInstanceBufferUpdateFInstanceBuffer)(
 			[InstanceBuffer, InData]()
 			{
-				InstanceBuffer->CreateGPUBuffer(InData);
+				InstanceBuffer->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), InData);
 			});
 
 		TI_TODO("release CPU memory after create GPU resource");

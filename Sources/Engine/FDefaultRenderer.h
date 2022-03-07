@@ -19,9 +19,9 @@ namespace tix
 		virtual void InitInRenderThread() override;
 		virtual void InitRenderFrame() override;
 		virtual void EndRenderFrame() override;
-		virtual void Render(FRHI* RHI) override;
+		virtual void Render() override;
 
-		virtual void ApplyShaderParameter(FRHI * RHI, FPrimitivePtr Primitive, int32 SectionIndex);
+		virtual void ApplyShaderParameter(FRHICmdList* RHICmdList, FPrimitivePtr Primitive, int32 SectionIndex);
 
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() override
 		{
@@ -29,11 +29,11 @@ namespace tix
 		}
 
 	protected:
-		void BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex);
+		void BindEngineBuffer(FRHICmdList* RHICmdList, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex);
 		//void BindMaterialInstanceArgument(FRHI * RHI, FShaderBindingPtr InShaderBinding, FArgumentBufferPtr ArgumentBuffer);
 
-		void DrawPrimitives(FRHI* RHI);
-		void PrepareViewUniforms();
+		void DrawPrimitives(FRHICmdList* RHICmdList);
+		void PrepareViewUniforms(FRHICmdList* RHICmdList);
 
 	protected:
 		// Scene to render

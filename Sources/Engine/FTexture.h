@@ -13,7 +13,7 @@ namespace tix
 		static FTexturePtr CreateTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 		static FTexturePtr CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 
-		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return GPUTexture;
@@ -50,7 +50,7 @@ namespace tix
 			return TextureDesc.Height;
 		}
 
-		virtual void PrepareDataForCPU() {}
+		virtual void PrepareDataForCPU(FRHICmdList* CmdList) {}
 		virtual TImagePtr ReadTextureData() { return nullptr; }
 
 	protected:
@@ -70,9 +70,9 @@ namespace tix
 		FTextureReadable(const TTextureDesc& Desc);
 		virtual ~FTextureReadable();
 
-		virtual void CreateGPUTexture(const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
 
-		virtual void PrepareDataForCPU();
+		virtual void PrepareDataForCPU(FRHICmdList* CmdList) override;
 		virtual TImagePtr ReadTextureData() override;
 
 	protected:

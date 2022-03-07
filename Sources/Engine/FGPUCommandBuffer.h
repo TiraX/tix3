@@ -14,7 +14,7 @@ namespace tix
 		FGPUCommandBuffer(FGPUCommandSignaturePtr Signature, uint32 InCommandsCount, uint32 InBufferFlag);
 		virtual ~FGPUCommandBuffer();
 
-		virtual void CreateGPUBuffer(TStreamPtr InData) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr InData) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return CBBuffer;

@@ -20,7 +20,7 @@ namespace tix
 		virtual ~FBottomLevelAccelerationStructureDx12();
 
 		virtual void AddMeshBuffer(FVertexBufferPtr InVB, FIndexBufferPtr InIB) override;
-		virtual void Build() override;
+		virtual void Build(FRHICmdList* RHICmdList) override;
 		virtual bool AlreadyBuilt() override;
 
 		ID3D12Resource* GetASResource()
@@ -44,7 +44,7 @@ namespace tix
 		virtual void ClearAllInstances() override;
 		virtual void ReserveInstanceCount(uint32 Count) override;
 		virtual void AddBLASInstance(FBottomLevelAccelerationStructurePtr BLAS, const FMat34& Transform) override;
-		virtual void Build() override;
+		virtual void Build(FRHICmdList* RHICmdList) override;
 		virtual bool AlreadyBuilt() override;
 	private:
 		ComPtr<ID3D12Resource> AccelerationStructure;

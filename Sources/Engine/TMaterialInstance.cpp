@@ -43,7 +43,8 @@ namespace tix
 				ENQUEUE_RENDER_COMMAND(UpdateMIUniformBuffer)(
 					[UniformBuffer, _ParamValueBuffer]()
 					{
-						UniformBuffer->CreateGPUBuffer(_ParamValueBuffer);
+						FRHICmdList* CmdList = FRHI::Get()->GetDefaultCmdList();
+						UniformBuffer->CreateGPUBuffer(CmdList, _ParamValueBuffer);
 					});
 
 				ArgumentBuffer->SetBuffer(0, UniformBuffer);

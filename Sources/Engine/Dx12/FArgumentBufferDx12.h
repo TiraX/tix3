@@ -22,6 +22,7 @@ namespace tix
 		FRenderResourceTablePtr ResourceTable;
 
 		friend class FRHIDx12;
+		friend class FRHICmdListDx12;
 	};
 }
 

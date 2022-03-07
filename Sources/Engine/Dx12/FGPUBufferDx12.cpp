@@ -8,11 +8,12 @@
 #if COMPILE_WITH_RHI_DX12
 #include "FGPUBufferDx12.h"
 #include "FRHIDx12.h"
+#include "FRHICmdListDx12.h"
 #include "FRHIDx12Conversion.h"
 
 namespace tix
 {
-	void FGPUBufferDx12::Init(const FGPUBufferDesc& Desc, TStreamPtr Data)
+	void FGPUBufferDx12::Init(FRHICmdList* RHICmdList, const FGPUBufferDesc& Desc, TStreamPtr Data)
 	{
 		FRHIDx12* RHIDx12 = static_cast<FRHIDx12*>(FRHI::Get());
 
@@ -98,12 +99,13 @@ namespace tix
 				BufferData.RowPitch = Desc.BufferSize;
 				BufferData.SlicePitch = Desc.BufferSize;
 
-				RHIDx12->UpdateD3D12Resource(
+				FRHICmdListDx12* CmdListDx12 = static_cast<FRHICmdListDx12*>(RHICmdList);
+				CmdListDx12->UpdateD3D12Resource(
 					Resource.Get(),
 					BufferUpload.Get(),
 					1,
 					&BufferData);
-				RHIDx12->HoldResourceReference(BufferUpload);
+				CmdListDx12->HoldResourceReference(BufferUpload);
 			}
 		}
 	}

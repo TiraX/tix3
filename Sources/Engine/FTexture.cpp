@@ -28,7 +28,7 @@ namespace tix
 		TI_ASSERT(IsRenderThread());
 	}
 
-	void FTexture::CreateGPUTexture(const TVector<TImagePtr>& Data)
+	void FTexture::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(GPUTexture == nullptr);
@@ -43,11 +43,8 @@ namespace tix
 
 		// Create GPU resource and copy data
 		GPUTexture = RHI->CreateGPUTexture();
-		GPUTexture->Init(Desc, Data);
+		GPUTexture->Init(CmdList, Desc, Data);
 		RHI->SetGPUTextureName(GPUTexture, GetResourceName());
-
-		// Set resource state to IndexBuffer
-		//RHI->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
 	}
 	/////////////////////////////////////////////////////////////
 	FTextureReadable::FTextureReadable(const TTextureDesc& Desc)
@@ -60,9 +57,9 @@ namespace tix
 		TI_ASSERT(IsRenderThread());
 	}
 
-	void FTextureReadable::CreateGPUTexture(const TVector<TImagePtr>& Data)
+	void FTextureReadable::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data)
 	{
-		FTexture::CreateGPUTexture(Data);
+		FTexture::CreateGPUTexture(CmdList, Data);
 		// Create GPUReadableTexture on Readback heap
 		TI_ASSERT(GPUReadbackBuffer == nullptr);
 		FRHI* RHI = FRHI::Get();
@@ -73,17 +70,17 @@ namespace tix
 		TI_ASSERT(TextureDesc.Depth == 1 && TextureDesc.Type == ETT_TEXTURE_2D);
 		// Create GPU resource and copy data
 		GPUReadbackBuffer = RHI->CreateGPUBuffer();
-		GPUReadbackBuffer->Init(Desc, nullptr);
+		GPUReadbackBuffer->Init(CmdList, Desc, nullptr);
 		RHI->SetGPUBufferName(GPUReadbackBuffer, GetResourceName() + "-Readback");
 	}
 
-	void FTextureReadable::PrepareDataForCPU()
+	void FTextureReadable::PrepareDataForCPU(FRHICmdList* CmdList)
 	{
 		// Copy data from GPUTexture to GPUReadbackBuffer
 		FRHI* RHI = FRHI::Get();
 		uint32 RowPitch = TImage::GetRowPitch(TextureDesc.Format, TextureDesc.Width);
-		RHI->SetGPUTextureState(GPUTexture, EGPUResourceState::CopySource);
-		RHI->CopyTextureRegion(GPUReadbackBuffer, GPUTexture, RowPitch);
+		CmdList->SetGPUTextureState(GPUTexture, EGPUResourceState::CopySource);
+		CmdList->CopyTextureRegion(GPUReadbackBuffer, GPUTexture, RowPitch);
 	}
 
 	TImagePtr FTextureReadable::ReadTextureData()

@@ -71,7 +71,7 @@ namespace tix
 		OutSkyIrradianceEnvironmentMap[6].W = 1;
 	}
 
-	void FDefaultRenderer::PrepareViewUniforms()
+	void FDefaultRenderer::PrepareViewUniforms(FRHICmdList* RHICmdList)
 	{
 		if (Scene->HasSceneFlag(FDefaultScene::ViewUniformDirty))
 		{
@@ -91,7 +91,7 @@ namespace tix
 			FTexturePtr IBLCube = Scene->GetEnvLight()->GetEnvCubemap();
 			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, IBLCube->GetDesc().SH);
 
-			ViewUniformBuffer->InitUniformBuffer((uint32)EGPUResourceFlag::Intermediate);
+			ViewUniformBuffer->InitUniformBuffer(RHICmdList, (uint32)EGPUResourceFlag::Intermediate);
 		}
 	}
 
@@ -102,13 +102,13 @@ namespace tix
 		uint32 ZeroData[4];
 		memset(ZeroData, 0, sizeof(ZeroData));
 		TStreamPtr Data = ti_new TStream(ZeroData, sizeof(ZeroData));
-		CounterResetUniformBuffer->CreateGPUBuffer(Data);
+		CounterResetUniformBuffer->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), Data);
 	}
 
 	void FDefaultRenderer::InitRenderFrame()
 	{
 		// Prepare frame view uniform buffer
-		PrepareViewUniforms();
+		PrepareViewUniforms(FRHI::Get()->GetDefaultCmdList());
 	}
 
 	void FDefaultRenderer::EndRenderFrame()
@@ -117,13 +117,14 @@ namespace tix
 		Scene->ClearSceneFlags();
 	}
 
-	void FDefaultRenderer::Render(FRHI* RHI)
+	void FDefaultRenderer::Render()
 	{
+		FRHI* RHI = FRHI::Get();
 		RHI->BeginRenderToFrameBuffer();
-		DrawPrimitives(RHI);
+		DrawPrimitives(RHI->GetDefaultCmdList());
 	}
 
-	void FDefaultRenderer::DrawPrimitives(FRHI* RHI)
+	void FDefaultRenderer::DrawPrimitives(FRHICmdList* RHICmdList)
 	{
 		const TVector<FPrimitivePtr>& Prims = Scene->Primitives;
 		for (uint32 PIndex = 0; PIndex < (uint32)Prims.size(); ++PIndex)
@@ -138,11 +139,11 @@ namespace tix
 				for (int32 S = 0; S < Primitive->GetNumSections(); S++)
 				{
 					const FPrimitive::FSection& Section = Primitive->GetSection(S);
-					RHI->SetGraphicsPipeline(Section.Pipeline);
-					RHI->SetVertexBuffer(VB, InstanceBuffer);
-					RHI->SetIndexBuffer(IB);
-					ApplyShaderParameter(RHI, Primitive, S);
-					RHI->DrawPrimitiveIndexedInstanced(
+					RHICmdList->SetGraphicsPipeline(Section.Pipeline);
+					RHICmdList->SetVertexBuffer(VB, InstanceBuffer);
+					RHICmdList->SetIndexBuffer(IB);
+					ApplyShaderParameter(RHICmdList, Primitive, S);
+					RHICmdList->DrawPrimitiveIndexedInstanced(
 						Section.Triangles * 3,
 						InstanceBuffer == nullptr ? 1 : Primitive->GetInstanceCount(),
 						Section.IndexStart,
@@ -152,7 +153,7 @@ namespace tix
 		}
 	}
 
-	void FDefaultRenderer::BindEngineBuffer(FRHI * RHI, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex)
+	void FDefaultRenderer::BindEngineBuffer(FRHICmdList* RHICmdList, E_SHADER_STAGE ShaderStage, const FShaderBinding::FShaderArgument& Argument, FPrimitivePtr Primitive, int32 SectionIndex)
 	{
 		switch (Argument.ArgumentType)
 		{
@@ -160,28 +161,28 @@ namespace tix
 			// A custom argument, do nothing here.
 			break;
 		case ARGUMENT_EB_VIEW:
-			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, ViewUniformBuffer->UniformBuffer);
+			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, ViewUniformBuffer->UniformBuffer);
 			break;
 		case ARGUMENT_EB_PRIMITIVE:
 			TI_ASSERT(Primitive != nullptr);
-			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetPrimitiveUniform()->UniformBuffer);
+			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetPrimitiveUniform()->UniformBuffer);
 			break;
 		case ARGUMENT_EB_BONES:
 			TI_ASSERT(Primitive->GetSection(SectionIndex).SkeletonResourceRef != nullptr);
-			RHI->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
+			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
 			break;
 		case ARGUMENT_EB_ENV_CUBE:
 		{
 			FEnvLightPtr EnvLight = Scene->GetEnvLight();
-			RHI->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
+			RHICmdList->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
 			break;
 #if (COMPILE_WITH_RHI_METAL)
         case ARGUMENT_EB_VT_INDIRECT:
-            RHI->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTIndirectTexture());
+			RHICmdList->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTIndirectTexture());
             break;
         case ARGUMENT_EB_VT_PHYSIC:
-            RHI->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTPhysicTexture());
+			RHICmdList->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTPhysicTexture());
             break;
 #else
 		case ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC:
@@ -190,7 +191,7 @@ namespace tix
 			break;
 #endif
 		case ARGUMENT_MI_ARGUMENTS:
-			RHI->SetArgumentBuffer(Argument.BindingIndex, Primitive->GetSection(SectionIndex).Argument);
+			RHICmdList->SetArgumentBuffer(Argument.BindingIndex, Primitive->GetSection(SectionIndex).Argument);
 			break;
 		default:
 			RuntimeFail();
@@ -198,7 +199,7 @@ namespace tix
 		}
 	}
 
-	void FDefaultRenderer::ApplyShaderParameter(FRHI * RHI, FPrimitivePtr Primitive, int32 SectionIndex)
+	void FDefaultRenderer::ApplyShaderParameter(FRHICmdList * RHICmdList, FPrimitivePtr Primitive, int32 SectionIndex)
 	{
 		FShaderBindingPtr ShaderBinding = Primitive->GetSection(SectionIndex).Pipeline->GetShader()->GetShaderBinding();
 
@@ -206,14 +207,14 @@ namespace tix
 		const TVector<FShaderBinding::FShaderArgument>& VSArguments = ShaderBinding->GetVertexComputeShaderArguments();
 		for (const auto& Arg : VSArguments)
 		{
-			BindEngineBuffer(RHI, ESS_VERTEX_SHADER, Arg, Primitive, SectionIndex);
+			BindEngineBuffer(RHICmdList, ESS_VERTEX_SHADER, Arg, Primitive, SectionIndex);
 		}
 
 		// bind pixel arguments
 		const TVector<FShaderBinding::FShaderArgument>& PSArguments = ShaderBinding->GetPixelShaderArguments();
 		for (const auto& Arg : PSArguments)
 		{
-			BindEngineBuffer(RHI, ESS_PIXEL_SHADER, Arg, Primitive, SectionIndex);
+			BindEngineBuffer(RHICmdList, ESS_PIXEL_SHADER, Arg, Primitive, SectionIndex);
 		}
 	}
 
