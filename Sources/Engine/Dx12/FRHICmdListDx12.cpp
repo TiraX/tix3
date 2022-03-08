@@ -38,7 +38,9 @@ namespace tix
 	FRHICmdListDx12::FRHICmdListDx12(ERHICmdList InType)
 		: FRHICmdList(InType)
 		, RHIDx12(nullptr)
-		, CurrentFrameIndex(0)
+		, ExecIndex(0)
+		, CurrentIndex(0)
+		, FenceEvent(nullptr)
 	{
 		Barriers.reserve(16);
 	}
@@ -127,29 +129,35 @@ namespace tix
 		}
 	}
 
-	void FRHICmdListDx12::BeginFrame(int32 FrameIndex, ID3D12DescriptorHeap* Heap)
+	void FRHICmdListDx12::BeginCmdList()
 	{
+		CurrentIndex = (uint32)(ExecIndex % CommandAllocators.size());
 		CurrentRenderTarget = nullptr;
 		CurrentBoundResource.Reset();
 
 		TI_ASSERT(Barriers.size() == 0);
-		CurrentFrameIndex = FrameIndex;
 
 		// Reset command list
-		VALIDATE_HRESULT(CommandAllocators[CurrentFrameIndex]->Reset());
-		VALIDATE_HRESULT(CommandList->Reset(CommandAllocators[CurrentFrameIndex].Get(), nullptr));
+		VALIDATE_HRESULT(CommandAllocators[CurrentIndex]->Reset());
+		VALIDATE_HRESULT(CommandList->Reset(CommandAllocators[CurrentIndex].Get(), nullptr));
 
 		// Set the descriptor heaps to be used by this frame.
-		ID3D12DescriptorHeap* ppHeaps[] = { Heap };
-		CommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+		CommandList->SetDescriptorHeaps((uint32)HeapsUsed.size(), HeapsUsed.data());
 	}
 
-	void FRHICmdListDx12::EndFrame()
+	void FRHICmdListDx12::EndCmdList()
 	{
 		ReleaseFrameResources();
 
 		CurrentRenderTarget = nullptr;
 		CurrentBoundResource.Reset();
+		++ExecIndex;
+	}
+
+	void FRHICmdListDx12::AddHeap(FRHIHeap* InHeap)
+	{
+		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(InHeap);
+		HeapsUsed.push_back(HeapDx12->GetHeap());
 	}
 
 	void FRHICmdListDx12::SetBackbufferTarget(D3D12_CPU_DESCRIPTOR_HANDLE InRTView, D3D12_CPU_DESCRIPTOR_HANDLE InDSView)
@@ -175,35 +183,35 @@ namespace tix
 	void FRHICmdListDx12::WaitingForGpu()
 	{
 		// Schedule a Signal command in the queue.
-		VALIDATE_HRESULT(CommandQueue->Signal(CommandFence.Get(), FenceValues[CurrentFrameIndex]));
+		VALIDATE_HRESULT(CommandQueue->Signal(CommandFence.Get(), FenceValues[CurrentIndex]));
 
 		// Wait until the fence has been crossed.
-		if (CommandFence->GetCompletedValue() < FenceValues[CurrentFrameIndex])
+		if (CommandFence->GetCompletedValue() < FenceValues[CurrentIndex])
 		{
-			VALIDATE_HRESULT(CommandFence->SetEventOnCompletion(FenceValues[CurrentFrameIndex], FenceEvent));
+			VALIDATE_HRESULT(CommandFence->SetEventOnCompletion(FenceValues[CurrentIndex], FenceEvent));
 			WaitForSingleObjectEx(FenceEvent, INFINITE, FALSE);
 		}
 
 		// Increment the fence value for the current frame.
-		FenceValues[CurrentFrameIndex]++;
+		FenceValues[CurrentIndex]++;
 	}
 
-	void FRHICmdListDx12::MoveToNextFrame(int32 NextFrameIndex)
+	void FRHICmdListDx12::MoveToNextFrame()
 	{
-		TI_ASSERT(NextFrameIndex == (CurrentFrameIndex + 1) % CommandAllocators.size());
+		uint32 NextIndex = (CurrentIndex + 1) % CommandAllocators.size();
 		// Schedule a Signal command in the queue.
-		const uint64 CurrentFenceValue = FenceValues[CurrentFrameIndex];
+		const uint64 CurrentFenceValue = FenceValues[CurrentIndex];
 		VALIDATE_HRESULT(CommandQueue->Signal(CommandFence.Get(), CurrentFenceValue));
 
 		// Check to see if the next frame is ready to start.
-		if (CommandFence->GetCompletedValue() < FenceValues[NextFrameIndex])
+		if (CommandFence->GetCompletedValue() < FenceValues[NextIndex])
 		{
-			VALIDATE_HRESULT(CommandFence->SetEventOnCompletion(FenceValues[NextFrameIndex], FenceEvent));
+			VALIDATE_HRESULT(CommandFence->SetEventOnCompletion(FenceValues[NextIndex], FenceEvent));
 			WaitForSingleObjectEx(FenceEvent, INFINITE, FALSE);
 		}
 
 		// Set the fence value for the next frame.
-		FenceValues[NextFrameIndex] = CurrentFenceValue + 1;
+		FenceValues[NextIndex] = CurrentFenceValue + 1;
 	}
 
 	void FRHICmdListDx12::FlushBarriers()
@@ -259,18 +267,26 @@ namespace tix
 
 	void FRHICmdListDx12::HoldResourceReference(FRenderResourcePtr InResource)
 	{
-		ResourceHolders[CurrentFrameIndex]->HoldReference(InResource);
+		ResourceHolders[CurrentIndex]->HoldReference(InResource);
 	}
 
 	void FRHICmdListDx12::HoldResourceReference(ComPtr<ID3D12Resource> InDxResource)
 	{
-		ResourceHolders[CurrentFrameIndex]->HoldDxReference(InDxResource);
+		ResourceHolders[CurrentIndex]->HoldDxReference(InDxResource);
 	}
 
+	void FRHICmdListDx12::ReleaseAllResources()
+	{
+		// Release resources references for next drawing
+		for (auto R : ResourceHolders)
+		{
+			R->RemoveAllReferences();
+		}
+	}
 	void FRHICmdListDx12::ReleaseFrameResources()
 	{
 		// Release resources references for next drawing
-		ResourceHolders[CurrentFrameIndex]->RemoveAllReferences();
+		ResourceHolders[CurrentIndex]->RemoveAllReferences();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -499,7 +515,7 @@ namespace tix
 
 	void FRHICmdListDx12::SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, RenderResourceTable->GetStartIndex());
+		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, 0);
 		CommandList->SetGraphicsRootDescriptorTable(BindIndex, Descriptor);
 
 		HoldResourceReference(RenderResourceTable);

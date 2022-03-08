@@ -39,6 +39,14 @@ namespace tix
 	public:
 		virtual ~FRHICmdList();
 
+		virtual void BeginCmdList() = 0;
+		virtual void EndCmdList() = 0;
+		virtual void AddHeap(FRHIHeap* InHeap) = 0;
+		virtual void Close() = 0;
+		virtual void Execute() = 0;
+		virtual void WaitingForGpu() = 0;
+		virtual void MoveToNextFrame() = 0;
+
 		virtual void BeginEvent(const int8 * InEventName) = 0;
 		virtual void BeginEvent(const int8 * InEventName, int32 Index) = 0;
 		virtual void EndEvent() = 0;

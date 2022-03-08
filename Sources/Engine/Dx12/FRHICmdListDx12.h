@@ -22,6 +22,14 @@ namespace tix
 	public:
 		virtual ~FRHICmdListDx12();
 
+		virtual void BeginCmdList() override;
+		virtual void EndCmdList() override;
+		virtual void AddHeap(FRHIHeap* InHeap) override;
+		virtual void Close() override;
+		virtual void Execute() override;
+		virtual void WaitingForGpu() override;
+		virtual void MoveToNextFrame() override;
+
 		// Command list methods
 		virtual void BeginEvent(const int8* InEventName) override;
 		virtual void BeginEvent(const int8* InEventName, int32 Index) override;
@@ -97,13 +105,7 @@ namespace tix
 
 		// Dx12 specified
 		void Init(FRHIDx12* RHIDx12, const TString& InNamePrefix, int32 BufferCount);
-		void BeginFrame(int32 FrameIndex, ID3D12DescriptorHeap* Heap);
-		void EndFrame();
 		void SetBackbufferTarget(D3D12_CPU_DESCRIPTOR_HANDLE InRTView, D3D12_CPU_DESCRIPTOR_HANDLE InDSView);
-		void Close();
-		void Execute();
-		void WaitingForGpu();
-		void MoveToNextFrame(int32 NextFrameIndex);
 
 		void Transition(
 			ID3D12Resource* pResource,
@@ -111,7 +113,8 @@ namespace tix
 			D3D12_RESOURCE_STATES stateAfter
 		);
 		void UAVBarrier(ID3D12Resource* pResource);
-
+		
+		void ReleaseAllResources();
 		void ReleaseFrameResources();
 
 		uint64 UpdateSubresources(
@@ -140,7 +143,11 @@ namespace tix
 		ComPtr<ID3D12GraphicsCommandList> CommandList;
 		ComPtr<ID3D12Fence> CommandFence;
 
-		int32 CurrentFrameIndex;
+		uint64 ExecIndex;
+		uint32 CurrentIndex;
+
+		// Heaps Used
+		TVector<ID3D12DescriptorHeap*> HeapsUsed;
 
 		// CPU/GPU Synchronization.
 		TVector<uint64> FenceValues;

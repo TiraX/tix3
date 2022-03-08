@@ -48,23 +48,27 @@ namespace tix
 
 	FRHIDx12::~FRHIDx12()
 	{
+		// Release descriptor tables first.
+		BackBufferDescriptorTable = nullptr;
+		DepthStencilDescriptorTable = nullptr;
+
 		// Clear command lists
 		const uint32 NumCmdList = CmdLists.Size();
-		CmdLists.Lock();
 		for (uint32 i = 0; i < NumCmdList; i++)
 		{
-			ti_delete CmdLists[i];
+			FRHICmdListDx12* CL = CmdLists[i];
+			CL->WaitingForGpu();
+			CL->EndCmdList();
+			CL->ReleaseAllResources();
+			ti_delete CL;
 		}
-		CmdLists.Unlock();
 		CmdLists.Clear();
 
 		const uint32 NumHeaps = DescriptorHeaps.Size();
-		DescriptorHeaps.Lock();
 		for (uint32 i = 0; i < NumHeaps; i++)
 		{
 			ti_delete DescriptorHeaps[i];
 		}
-		DescriptorHeaps.Unlock();
 		DescriptorHeaps.Clear();
 		ti_delete DXR;
 	}
@@ -142,17 +146,18 @@ namespace tix
 		//if (DeveloperModeEnabled)
 		//	D3dDevice->SetStablePowerState(TRUE);
 
-		// Create default direct command list
-		CreateRHICommandList(ERHICmdList::Direct, "Default", FRHIConfig::FrameBufferNum);
-		TI_ASSERT(CmdLists.Size() == 1);
-		CmdListDefault = CmdLists[0];
-
 		// Create default descriptor heaps for render target views and depth stencil views.
 		HeapRtv = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::RenderTarget));
 		HeapDsv = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::DepthStencil));
 		HeapSampler = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::Sampler));
 		// Describe and create a shader resource view (SRV) heap for the texture.
 		HeapCbvSrvUav = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::ShaderResource));
+
+		// Create default direct command list
+		CreateRHICommandList(ERHICmdList::Direct, "Default", FRHIConfig::FrameBufferNum);
+		TI_ASSERT(CmdLists.Size() == 1);
+		CmdListDefault = CmdLists[0];
+		CmdListDefault->AddHeap(HeapCbvSrvUav);
 		
 		CreateWindowsSizeDependentResources();
 
@@ -348,6 +353,7 @@ namespace tix
 			CurrentFrame = SwapChain->GetCurrentBackBufferIndex();
 
 			BackBufferDescriptorTable = HeapRtv->CreateRenderResourceTable(FRHIConfig::FrameBufferNum);
+			BackBufferDescriptorTable->SetResourceName("BackBufferTable");
 			for (uint32 n = 0; n < FRHIConfig::FrameBufferNum; n++)
 			{
 				BackBufferDescriptors[n] = GetCpuDescriptorHandle(BackBufferDescriptorTable, n);
@@ -389,6 +395,7 @@ namespace tix
 			dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
 			DepthStencilDescriptorTable = HeapDsv->CreateRenderResourceTable(1);
+			DepthStencilDescriptorTable->SetResourceName("DepthStencilTable");
 			DepthStencilDescriptor = GetCpuDescriptorHandle(DepthStencilDescriptorTable, 0);
 			D3dDevice->CreateDepthStencilView(DepthStencil.Get(), &dsvDesc, DepthStencilDescriptor);
 		}
@@ -399,7 +406,11 @@ namespace tix
 		FRHI::BeginFrame();
 
 		// Reset command list
-		CmdListDefault->BeginFrame(CurrentFrame, HeapCbvSrvUav->GetHeap());
+		CmdListDefault->BeginCmdList();
+
+		// Set the viewport and scissor rectangle.
+		CmdListDefault->SetViewport(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
+		CmdListDefault->SetScissorRect(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
 	}
 
 	void FRHIDx12::BeginRenderToFrameBuffer()
@@ -415,11 +426,6 @@ namespace tix
 		D3D12_CPU_DESCRIPTOR_HANDLE RTView = BackBufferDescriptors[CurrentFrame];
 		D3D12_CPU_DESCRIPTOR_HANDLE DSView = DepthStencilDescriptor;
 		CmdListDefault->SetBackbufferTarget(RTView, DSView);
-
-		// Set the viewport and scissor rectangle.
-		CmdListDefault->SetViewport(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
-		CmdListDefault->SetScissorRect(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
-
 	}
 
 	void FRHIDx12::EndFrame()
@@ -449,7 +455,7 @@ namespace tix
 			MoveToNextFrame();
 		}
 
-		CmdListDefault->EndFrame();
+		CmdListDefault->EndCmdList();
 	}
 
 	FRHICmdList* FRHIDx12::CreateRHICommandList(
@@ -553,9 +559,7 @@ namespace tix
 	{
 		// Advance the frame index.
 		CurrentFrame = SwapChain->GetCurrentBackBufferIndex();
-		int32 NextFrameIndex = CurrentFrame;
-
-		CmdListDefault->MoveToNextFrame(NextFrameIndex);
+		CmdListDefault->MoveToNextFrame();
 
 		FRHI::GPUFrameDone();
 	}
