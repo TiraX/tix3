@@ -652,7 +652,7 @@ namespace tix
 
 	void FRHICmdListDx12::SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, RenderResourceTable->GetStartIndex());
+		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, 0);
 		CommandList->SetComputeRootDescriptorTable(BindIndex, Descriptor);
 
 		HoldResourceReference(RenderResourceTable);
