@@ -147,7 +147,8 @@ namespace tix
 
 	void FRHICmdListDx12::EndCmdList()
 	{
-		ReleaseFrameResources();
+		uint32 NextIndex = (CurrentIndex + 1) % CommandAllocators.size();
+		ReleaseFrameResources(NextIndex);
 
 		CurrentRenderTarget = nullptr;
 		CurrentBoundResource.Reset();
@@ -283,10 +284,10 @@ namespace tix
 			R->RemoveAllReferences();
 		}
 	}
-	void FRHICmdListDx12::ReleaseFrameResources()
+	void FRHICmdListDx12::ReleaseFrameResources(uint32 FrameIndex)
 	{
 		// Release resources references for next drawing
-		ResourceHolders[CurrentIndex]->RemoveAllReferences();
+		ResourceHolders[FrameIndex]->RemoveAllReferences();
 	}
 
 	//------------------------------------------------------------------------------------------------

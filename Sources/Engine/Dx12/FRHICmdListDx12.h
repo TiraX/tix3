@@ -115,7 +115,7 @@ namespace tix
 		void UAVBarrier(ID3D12Resource* pResource);
 		
 		void ReleaseAllResources();
-		void ReleaseFrameResources();
+		void ReleaseFrameResources(uint32 FrameIndex);
 
 		uint64 UpdateSubresources(
 			_In_ ID3D12Resource* pDestinationResource,

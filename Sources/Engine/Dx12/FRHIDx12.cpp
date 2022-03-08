@@ -688,6 +688,7 @@ namespace tix
 		state.CS = { ShaderDx12->ShaderCodes[0]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[0]->GetLength()) };
 
 		VALIDATE_HRESULT(D3dDevice->CreateComputePipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
+		DX_SETNAME(PipelineDx12->PipelineState.Get(), Pipeline->GetResourceName());
 
 		// Shader data can be deleted once the pipeline state is created.
 		ShaderDx12->ReleaseShaderCode();

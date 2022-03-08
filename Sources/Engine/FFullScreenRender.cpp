@@ -75,6 +75,7 @@ namespace tix
 
 		// Pipeline
 		FullScreenPipeline = FRHI::Get()->CreatePipeline(FullScreenShader);
+		FullScreenPipeline->SetResourceName("FullScreenPipeline");
 		FRHI::Get()->UpdateHardwareResourceGraphicsPipeline(FullScreenPipeline, FSMaterial->GetDesc());
 		FSMaterial = nullptr;
 
