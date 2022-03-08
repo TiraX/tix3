@@ -31,7 +31,6 @@ namespace tix
 			return NumGPUFrames;
 		}
 
-		virtual FRHI* CreateAsyncRHI(const TString& InRHIName) = 0;
 		virtual void InitRHI() = 0;
 		virtual void BeginFrame();
 		virtual void EndFrame() = 0;
@@ -99,11 +98,10 @@ namespace tix
 			return RHIType;
 		}
 
-		FRHICmdList* GetDefaultCmdList()
+		virtual FRHICmdList* GetDefaultCmdList()
 		{
-			return CmdListDirect;
+			return nullptr;
 		}
-
 		virtual FRHIHeap* GetHeapById(uint32 HeapId)
 		{
 			return nullptr;
@@ -141,9 +139,5 @@ namespace tix
 		static TI_API uint32 NumGPUFrames;
 	protected:
 		ERHIType RHIType;
-
-		// Command Lists
-		FRHICmdList* CmdListDirect;
-		TVector<FRHICmdList*> CmdListAsyncComputes;
 	};
 }

@@ -12,28 +12,28 @@
 
 namespace tix
 {
-	static const int32 MaxDescriptorCount[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+	static const int32 MaxDescriptorCount[NumResourceHeapTypes] =
 	{
-		MAX_HEAP_SRV_CBV,	//EHT_CBV_SRV_UAV,
-		MAX_HEAP_SAMPLERS,	//EHT_SAMPLER,
-		MAX_HEAP_RENDERTARGETS,	//EHT_RTV,
-		MAX_HEAP_DEPTHSTENCILS,	//EHT_DSV,
+		MAX_HEAP_RENDERTARGETS,	//EResourceHeapType::RenderTarget,
+		MAX_HEAP_DEPTHSTENCILS,	//EResourceHeapType::DepthStencil,
+		MAX_HEAP_SAMPLERS,	//EResourceHeapType::Sampler,
+		MAX_HEAP_SRV_CBV,	//EResourceHeapType::ShaderResource,
 	};
 
-	static const D3D12_DESCRIPTOR_HEAP_FLAGS k_HEAP_CREATE_FLAGS[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+	static const D3D12_DESCRIPTOR_HEAP_FLAGS k_HEAP_CREATE_FLAGS[NumResourceHeapTypes] =
 	{
-		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,	//EHT_CBV_SRV_UAV,
-		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EHT_SAMPLER,
-		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EHT_RTV,
-		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EHT_DSV,
+		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EResourceHeapType::RenderTarget,
+		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EResourceHeapType::DepthStencil,
+		D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	//EResourceHeapType::Sampler,
+		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,	//EResourceHeapType::ShaderResource,
 	};
 
-	static const LPCWSTR k_HEAP_NAMES[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+	static const LPCWSTR k_HEAP_NAMES[NumResourceHeapTypes] =
 	{
-		L"CBV_SRV_UAV_HEAP",	//EHT_CBV_SRV_UAV,
-		L"SAMPLER_HEAP",	//EHT_SAMPLER,
-		L"RTV_HEAP",	//EHT_RTV,
-		L"DSV_HEAP",	//EHT_DSV,
+		L"RTV_HEAP",	//EResourceHeapType::RenderTarget,
+		L"DSV_HEAP",	//EResourceHeapType::DepthStencil,
+		L"SAMPLER_HEAP",	//EResourceHeapType::Sampler,
+		L"CBV_SRV_UAV_HEAP",	//EResourceHeapType::ShaderResource,
 	};
 
 	FDescriptorHeapDx12::FDescriptorHeapDx12(uint32 InHeapId, EResourceHeapType InType)

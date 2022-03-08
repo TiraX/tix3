@@ -6,13 +6,16 @@
 #pragma once
 
 #if COMPILE_WITH_RHI_DX12
+#include <d3d12.h>
+#include "d3dx12.h"
 #include "FRHICmdList.h"
-#include "FRHIDx12.h"
 
 using namespace Microsoft::WRL;
 
 namespace tix
 {
+	class FRHIDx12;
+	class FFrameResourcesDx12;
 	// Render hardware interface use DirectX 12
 	class FRHICmdListDx12 : public FRHICmdList
 	{

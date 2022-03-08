@@ -19,7 +19,7 @@ namespace tix
 		virtual void InitInRenderThread() override;
 		virtual void InitRenderFrame() override;
 		virtual void EndRenderFrame() override;
-		virtual void Render() override;
+		virtual void Render(FRHICmdList* RHICmdList) override;
 
 		virtual void ApplyShaderParameter(FRHICmdList* RHICmdList, FPrimitivePtr Primitive, int32 SectionIndex);
 

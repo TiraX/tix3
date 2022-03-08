@@ -18,6 +18,7 @@
 #include "FRtxPipelineDx12.h"
 #include "FAccelerationStructureDx12.h"
 #include "FRHIDx12Conversion.h"
+#include "FRHIDx12.h"
 
 #if COMPILE_WITH_RHI_DX12
 
@@ -153,7 +154,7 @@ namespace tix
 
 	void FRHICmdListDx12::SetBackbufferTarget(D3D12_CPU_DESCRIPTOR_HANDLE InRTView, D3D12_CPU_DESCRIPTOR_HANDLE InDSView)
 	{
-		TI_ASSERT(InRTView.ptr != 0 && InDSView.ptr == 0);
+		TI_ASSERT(InRTView.ptr != 0 && InDSView.ptr != 0);
 		CommandList->ClearRenderTargetView(InRTView, DirectX::Colors::CornflowerBlue, 0, nullptr);
 		CommandList->ClearDepthStencilView(InDSView, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 

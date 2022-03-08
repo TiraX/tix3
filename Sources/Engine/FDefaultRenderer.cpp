@@ -117,11 +117,11 @@ namespace tix
 		Scene->ClearSceneFlags();
 	}
 
-	void FDefaultRenderer::Render()
+	void FDefaultRenderer::Render(FRHICmdList* RHICmdList)
 	{
 		FRHI* RHI = FRHI::Get();
 		RHI->BeginRenderToFrameBuffer();
-		DrawPrimitives(RHI->GetDefaultCmdList());
+		DrawPrimitives(RHICmdList);
 	}
 
 	void FDefaultRenderer::DrawPrimitives(FRHICmdList* RHICmdList)

@@ -20,7 +20,6 @@
     <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FPipelineDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.cpp" />
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12.cpp" />
@@ -131,7 +130,6 @@
     <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUTextureDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FPipelineDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRenderTargetDx12.h" />
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.h" />
     <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIDx12.h" />
@@ -245,6 +243,7 @@
     <ClInclude Include="..\..\Sources\Engine\TInputEventType.h" />
     <ClInclude Include="..\..\Sources\Engine\TThreadIO.h" />
     <ClInclude Include="..\..\Sources\Engine\TThreadLoading.h" />
+    <ClInclude Include="..\..\Sources\Engine\TThreadSafeVector.h" />
     <ClInclude Include="..\..\Sources\Engine\TTicker.h" />
     <ClInclude Include="..\..\Sources\Engine\TTimer.h" />
     <ClInclude Include="..\..\Sources\Engine\TMath.h" />

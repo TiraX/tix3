@@ -319,9 +319,6 @@
     <ClCompile Include="..\..\Sources\Engine\TZip.cpp">
       <Filter>Sources\Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FRHICmdList.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -738,9 +735,6 @@
     <ClInclude Include="..\..\Sources\Engine\TZip.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FRHIAsyncDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRHICmdList.h">
       <Filter>Sources\Rendering</Filter>
     </ClInclude>
@@ -752,6 +746,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FRHIHeap.h">
       <Filter>Sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TThreadSafeVector.h">
+      <Filter>Sources\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

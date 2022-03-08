@@ -149,7 +149,7 @@ namespace tix
 		if (Renderer != nullptr)
 		{
 			Renderer->InitRenderFrame();
-			Renderer->Render();
+			Renderer->Render(RHI->GetDefaultCmdList());
 			Renderer->EndRenderFrame();
 		}
 		RHI->EndFrame();

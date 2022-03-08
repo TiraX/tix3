@@ -24,7 +24,6 @@
 #include <DirectXColors.h>
 #include <d3d12shader.h>
 #include <d3dcompiler.h>
-#include "FRHIAsyncDx12.h"
 
 // link libraries
 #pragma comment (lib, "d3d12.lib")
@@ -42,27 +41,32 @@ namespace tix
 		, HeapCbvSrvUav(nullptr)
 		, CurrentFrame(0)
 		, DXR(nullptr)
-		, CmdListDirectDx12Ref(nullptr)
+		, CmdListDefault(nullptr)
 	{
-		DescriptorHeaps.reserve(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES);
-		// Reserve spaces for AsyncRHIs
-		AsyncRHIs.reserve(4);
+		DescriptorHeaps.Reserve(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES);
 	}
 
 	FRHIDx12::~FRHIDx12()
 	{
-		for (auto H : DescriptorHeaps)
+		// Clear command lists
+		const uint32 NumCmdList = CmdLists.Size();
+		CmdLists.Lock();
+		for (uint32 i = 0; i < NumCmdList; i++)
 		{
-			ti_delete H;
+			ti_delete CmdLists[i];
 		}
-		DescriptorHeaps.clear();
-		ti_delete DXR;
-	}
+		CmdLists.Unlock();
+		CmdLists.Clear();
 
-	FRHI* FRHIDx12::CreateAsyncRHI(const TString& InRHIName)
-	{
-		TI_ASSERT(0);
-		return nullptr;
+		const uint32 NumHeaps = DescriptorHeaps.Size();
+		DescriptorHeaps.Lock();
+		for (uint32 i = 0; i < NumHeaps; i++)
+		{
+			ti_delete DescriptorHeaps[i];
+		}
+		DescriptorHeaps.Unlock();
+		DescriptorHeaps.Clear();
+		ti_delete DXR;
 	}
 
 #define ENABLE_DX_DEBUG_LAYER	(1)
@@ -139,8 +143,9 @@ namespace tix
 		//	D3dDevice->SetStablePowerState(TRUE);
 
 		// Create default direct command list
-		CmdListDirect = CreateRHICommandList(ERHICmdList::Direct, "Default", FRHIConfig::FrameBufferNum);
-		CmdListDirectDx12Ref = static_cast<FRHICmdListDx12*>(CmdListDirect);
+		CreateRHICommandList(ERHICmdList::Direct, "Default", FRHIConfig::FrameBufferNum);
+		TI_ASSERT(CmdLists.Size() == 1);
+		CmdListDefault = CmdLists[0];
 
 		// Create default descriptor heaps for render target views and depth stencil views.
 		HeapRtv = static_cast<FDescriptorHeapDx12*>(CreateHeap(EResourceHeapType::RenderTarget));
@@ -181,10 +186,11 @@ namespace tix
 
 	bool FRHIDx12::InitRaytracing()
 	{
-		DXR = ti_new FRHIDXR();
+		//DXR = ti_new FRHIDXR();
 
-		TI_ASSERT(0);// Rework DXR in future
-		return DXR->Init(D3dDevice.Get(), nullptr);
+		//TODO: Rework DXR in future
+		//return DXR->Init(D3dDevice.Get(), nullptr);
+		return false;
 	}
 
 	// This method acquires the first available hardware adapter that supports Direct3D 12.
@@ -321,7 +327,7 @@ namespace tix
 			HWND HWnd = DeviceWin32->GetWnd();
 
 			hr = DxgiFactory->CreateSwapChainForHwnd(
-				CmdListDirectDx12Ref->GetQueueForSwapChain(),	// Swap chains need a reference to the command queue in DirectX 12.
+				CmdListDefault->GetQueueForSwapChain(),	// Swap chains need a reference to the command queue in DirectX 12.
 				HWnd,
 				&swapChainDesc,
 				nullptr,
@@ -393,38 +399,38 @@ namespace tix
 		FRHI::BeginFrame();
 
 		// Reset command list
-		CmdListDirectDx12Ref->BeginFrame(CurrentFrame, HeapCbvSrvUav->GetHeap());
+		CmdListDefault->BeginFrame(CurrentFrame, HeapCbvSrvUav->GetHeap());
 	}
 
 	void FRHIDx12::BeginRenderToFrameBuffer()
 	{
 		// Start render to frame buffer.
 		// Indicate this resource will be in use as a render target.
-		CmdListDirectDx12Ref->Transition(BackBufferRTs[CurrentFrame].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		CmdListDirectDx12Ref->FlushBarriers();
+		CmdListDefault->Transition(BackBufferRTs[CurrentFrame].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		CmdListDefault->FlushBarriers();
 
-		CmdListDirect->EndEvent();
-		CmdListDirect->BeginEvent("RenderToFrameBuffer");
+		CmdListDefault->EndEvent();
+		CmdListDefault->BeginEvent("RenderToFrameBuffer");
 
 		D3D12_CPU_DESCRIPTOR_HANDLE RTView = BackBufferDescriptors[CurrentFrame];
 		D3D12_CPU_DESCRIPTOR_HANDLE DSView = DepthStencilDescriptor;
-		CmdListDirectDx12Ref->SetBackbufferTarget(RTView, DSView);
+		CmdListDefault->SetBackbufferTarget(RTView, DSView);
 
 		// Set the viewport and scissor rectangle.
-		CmdListDirect->SetViewport(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
-		CmdListDirect->SetScissorRect(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
+		CmdListDefault->SetViewport(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
+		CmdListDefault->SetScissorRect(FRecti(0, 0, BackBufferSize.X, BackBufferSize.Y));
 
 	}
 
 	void FRHIDx12::EndFrame()
 	{
 		// Indicate that the render target will now be used to present when the command list is done executing.
-		CmdListDirectDx12Ref->Transition(BackBufferRTs[CurrentFrame].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		CmdListDirect->FlushBarriers();
-		CmdListDirect->EndEvent();
+		CmdListDefault->Transition(BackBufferRTs[CurrentFrame].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		CmdListDefault->FlushBarriers();
+		CmdListDefault->EndEvent();
 
-		CmdListDirectDx12Ref->Close();
-		CmdListDirectDx12Ref->Execute();
+		CmdListDefault->Close();
+		CmdListDefault->Execute();
 
 		// The first argument instructs DXGI to block until VSync, putting the application
 		// to sleep until the next VSync. This ensures we don't waste any cycles rendering
@@ -443,7 +449,7 @@ namespace tix
 			MoveToNextFrame();
 		}
 
-		CmdListDirectDx12Ref->EndFrame();
+		CmdListDefault->EndFrame();
 	}
 
 	FRHICmdList* FRHIDx12::CreateRHICommandList(
@@ -453,17 +459,16 @@ namespace tix
 	{
 		FRHICmdListDx12* RHICmdList = ti_new FRHICmdListDx12(Type);
 		RHICmdList->Init(this, InNamePrefix, BufferCount);
+		CmdLists.PushBack(RHICmdList);
 		return RHICmdList;
 	}
 
 	FRHIHeap* FRHIDx12::CreateHeap(EResourceHeapType Type)
 	{
-		TI_ASSERT(IsRenderThread());
-
-		uint32 HeapId = (uint32)DescriptorHeaps.size();
+		uint32 HeapId = (uint32)DescriptorHeaps.Size();
 		FDescriptorHeapDx12* Heap = ti_new FDescriptorHeapDx12(HeapId, Type);
 		Heap->Create(D3dDevice.Get());
-		DescriptorHeaps.push_back(Heap);
+		DescriptorHeaps.PushBack(Heap);
 		return Heap;
 	}
 
@@ -540,7 +545,7 @@ namespace tix
 	// Wait for pending GPU work to complete.
 	void FRHIDx12::WaitingForGpu()
 	{
-		CmdListDirectDx12Ref->WaitingForGpu();
+		CmdListDefault->WaitingForGpu();
 	}
 
 	// Prepare to render the next frame.
@@ -550,7 +555,7 @@ namespace tix
 		CurrentFrame = SwapChain->GetCurrentBackBufferIndex();
 		int32 NextFrameIndex = CurrentFrame;
 
-		CmdListDirectDx12Ref->MoveToNextFrame(NextFrameIndex);
+		CmdListDefault->MoveToNextFrame(NextFrameIndex);
 
 		FRHI::GPUFrameDone();
 	}

@@ -11,6 +11,7 @@
 #include <d3d12.h>
 #include "FRHIDescriptorHeapDx12.h"
 #include "FRootSignatureDx12.h"
+#include "FRHICmdListDx12.h"
 #include "FRHIDXR.h"
 
 using namespace Microsoft::WRL;
@@ -27,7 +28,6 @@ namespace tix
 		virtual ~FRHIDx12();
 
 		// RHI common methods
-		virtual FRHI* CreateAsyncRHI(const TString& InRHIName) override;
 		virtual void InitRHI() override;
 		virtual void BeginFrame() override;
 		virtual void EndFrame() override;
@@ -90,6 +90,10 @@ namespace tix
 		virtual void SetGPUBufferName(FGPUBufferPtr GPUBuffer, const TString& Name) override;
 		virtual void SetGPUTextureName(FGPUTexturePtr GPUTexture, const TString& Name) override;
 
+		virtual FRHICmdList* GetDefaultCmdList() override
+		{
+			return CmdListDefault;
+		}
 		virtual FRHIHeap* GetHeapById(uint32 HeapId) override
 		{
 			return DescriptorHeaps[HeapId];
@@ -181,7 +185,7 @@ namespace tix
 		FUInt2 BackBufferSize;
 
 		// Descriptor heaps
-		TVector<FDescriptorHeapDx12*> DescriptorHeaps;
+		TThreadSafeVector<FDescriptorHeapDx12*> DescriptorHeaps;
 		FDescriptorHeapDx12* HeapRtv;
 		FDescriptorHeapDx12* HeapDsv;
 		FDescriptorHeapDx12* HeapSampler;
@@ -195,10 +199,9 @@ namespace tix
 		// Raytracing component
 		FRHIDXR* DXR;
 
-		FRHICmdListDx12* CmdListDirectDx12Ref;
-
-		// Asynchronized RHI for Async Compute
-		TVector<FRHI*> AsyncRHIs;
+		// Command Lists
+		TThreadSafeVector<FRHICmdListDx12*> CmdLists;
+		FRHICmdListDx12* CmdListDefault;
 
 		friend class FRHI;
 		friend class FDescriptorHeapDx12;

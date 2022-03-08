@@ -47,6 +47,7 @@ using namespace std;
 // Game thread components
 #include "TThread.h"
 #include "TQueue.h"
+#include "TThreadSafeVector.h"
 #include "TTaskThread.h"
 #include "TInput.h"
 #include "TDevice.h"

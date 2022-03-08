@@ -20,7 +20,7 @@ namespace tix
 		virtual void InitInRenderThread() = 0;
 		virtual void InitRenderFrame() = 0;
 		virtual void EndRenderFrame() = 0;
-		virtual void Render() = 0;
+		virtual void Render(FRHICmdList* RHICmdList) = 0;
 
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() = 0;
 	protected:

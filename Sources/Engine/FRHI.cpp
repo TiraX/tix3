@@ -42,17 +42,11 @@ namespace tix
 
 	FRHI::FRHI(ERHIType InRHIType)
 		: RHIType(InRHIType)
-		, CmdListDirect(nullptr)
 	{
 	}
 
 	FRHI::~FRHI()
 	{
-		SAFE_DELETE(CmdListDirect);
-		for (auto CL : CmdListAsyncComputes)
-		{
-			ti_delete CL;
-		}
 	}
 
 	void FRHI::SupportFeature(E_RHI_FEATURE InFeature)
