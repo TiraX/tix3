@@ -651,6 +651,16 @@ namespace tix
 		HoldResourceReference(InUniformBuffer);
 	}
 
+	void FRHICmdListDx12::SetComputeUnorderedAccessResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
+	{
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
+
+		// Bind the current frame's constant buffer to the pipeline.
+		CommandList->SetComputeRootUnorderedAccessView(BindIndex, BufferDx12->GetResource()->GetGPUVirtualAddress() + BufferOffset);
+
+		HoldResourceReference(InUniformBuffer);
+	}
+
 	void FRHICmdListDx12::SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, 0);

@@ -80,16 +80,16 @@ namespace tix
 
 			const FViewProjectionInfo& VPInfo = Scene->GetViewProjection();
 			const FEnvironmentInfo& EnvInfo = Scene->GetEnvironmentInfo();
-			ViewUniformBuffer->UniformBufferData[0].VP = (VPInfo.MatProj * VPInfo.MatView).GetTransposed();
-			ViewUniformBuffer->UniformBufferData[0].ViewDir = VPInfo.CamDir;
-			ViewUniformBuffer->UniformBufferData[0].ViewPos = VPInfo.CamPos;
+			ViewUniformBuffer->Data[0].VP = (VPInfo.MatProj * VPInfo.MatView).GetTransposed();
+			ViewUniformBuffer->Data[0].ViewDir = VPInfo.CamDir;
+			ViewUniformBuffer->Data[0].ViewPos = VPInfo.CamPos;
 
-			ViewUniformBuffer->UniformBufferData[0].MainLightDirection = -EnvInfo.MainLightDirection;
-			ViewUniformBuffer->UniformBufferData[0].MainLightColor = EnvInfo.MainLightColor * EnvInfo.MainLightIntensity;
+			ViewUniformBuffer->Data[0].MainLightDirection = -EnvInfo.MainLightDirection;
+			ViewUniformBuffer->Data[0].MainLightColor = EnvInfo.MainLightColor * EnvInfo.MainLightIntensity;
 
 			// IBL texture, get SH
 			FTexturePtr IBLCube = Scene->GetEnvLight()->GetEnvCubemap();
-			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->UniformBufferData[0].SkyIrradiance, IBLCube->GetDesc().SH);
+			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->Data[0].SkyIrradiance, IBLCube->GetDesc().SH);
 
 			ViewUniformBuffer->InitUniformBuffer(RHICmdList, (uint32)EGPUResourceFlag::Intermediate);
 		}

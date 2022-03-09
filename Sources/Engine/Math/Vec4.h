@@ -53,6 +53,18 @@ namespace tix
 			, W(other.W)
 		{}
 
+		T& operator [] (uint32 i)
+		{
+			TI_ASSERT(i < 4);
+			return Data()[i];
+		}
+
+		const T& operator [] (uint32 i) const
+		{
+			TI_ASSERT(i < 4);
+			return Data()[i];
+		}
+
 		// overload operator< for std::map compare
 		bool operator<(const FVec4<T>&other) const
 		{

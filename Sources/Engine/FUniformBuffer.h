@@ -35,7 +35,7 @@ namespace tix
 	{ \
 	public: \
 		static const uint32 Elements = ArrayElements; \
-		StructTypeName () { UniformBufferData.resize(StructTypeName::Elements); }\
+		StructTypeName () { Data.resize(StructTypeName::Elements); }\
 		struct FUniformBufferStruct \
 		{ \
 
@@ -43,7 +43,7 @@ namespace tix
 	class StructTypeName : public IReferenceCounted \
 	{ \
 	public: \
-		StructTypeName (uint32 ElementSize) { UniformBufferData.resize(ElementSize); }\
+		StructTypeName (uint32 ElementSize) { Data.resize(ElementSize); }\
 		struct FUniformBufferStruct \
 		{ \
 
@@ -51,16 +51,16 @@ namespace tix
 		}; \
 		uint32 GetElementsCount() const \
 		{ \
-			return (uint32)UniformBufferData.size(); \
+			return (uint32)Data.size(); \
 		} \
 		uint32 GetStructureStrideInBytes() const \
 		{ \
 			return (uint32)sizeof(StructTypeName::FUniformBufferStruct); \
 		} \
-		TVector<FUniformBufferStruct> UniformBufferData; \
+		TVector<FUniformBufferStruct> Data; \
 		void InitToZero() \
 		{ \
-			memset(UniformBufferData.data(), 0, GetStructureStrideInBytes() * GetElementsCount() ); \
+			memset(Data.data(), 0, GetStructureStrideInBytes() * GetElementsCount() ); \
 		} \
 		FUniformBufferPtr UniformBuffer; \
 		FUniformBufferPtr InitUniformBuffer(FRHICmdList* CmdList, uint32 UBFlag = 0) \
@@ -69,8 +69,8 @@ namespace tix
 			FRHI * RHI = FRHI::Get(); \
 			UniformBuffer = ti_new FUniformBuffer((uint32)sizeof(StructTypeName::FUniformBufferStruct), GetElementsCount(), UBFlag); \
 			UniformBuffer->SetResourceName(#StructTypeName); \
-			TStreamPtr Data = ti_new TStream(UniformBufferData.data(), UniformBuffer->GetTotalBufferSize()); \
-			UniformBuffer->CreateGPUBuffer(CmdList, Data); \
+			TStreamPtr UploadData = ti_new TStream(Data.data(), UniformBuffer->GetTotalBufferSize()); \
+			UniformBuffer->CreateGPUBuffer(CmdList, UploadData); \
 			return UniformBuffer; \
 		} \
 	}; \

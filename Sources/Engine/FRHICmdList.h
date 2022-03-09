@@ -83,6 +83,7 @@ namespace tix
 		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) = 0;
 		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;
 		virtual void SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;
+		virtual void SetComputeUnorderedAccessResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;
 		virtual void SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
 		virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
 		virtual void SetComputeTexture(int32 BindIndex, FTexturePtr InTexture) = 0;

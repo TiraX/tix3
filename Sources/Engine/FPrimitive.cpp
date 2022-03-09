@@ -122,21 +122,21 @@ namespace tix
 	void FPrimitive::SetLocalToWorld(const FMat4 InLocalToWorld)
 	{
 		TI_ASSERT(IsRenderThread());
-		PrimitiveUniformBuffer->UniformBufferData[0].LocalToWorld = InLocalToWorld.GetTransposed();
+		PrimitiveUniformBuffer->Data[0].LocalToWorld = InLocalToWorld.GetTransposed();
 		PrimitiveFlag |= PrimitiveUniformBufferDirty;
 	}
 
 	void FPrimitive::SetUVTransform(float UOffset, float VOffset, float UScale, float VScale)
 	{
 		TI_ASSERT(IsRenderThread());
-		PrimitiveUniformBuffer->UniformBufferData[0].VTUVTransform = FFloat4(UOffset, VOffset, UScale, VScale);
+		PrimitiveUniformBuffer->Data[0].VTUVTransform = FFloat4(UOffset, VOffset, UScale, VScale);
 		PrimitiveFlag |= PrimitiveUniformBufferDirty;
 	}
 
 	void FPrimitive::SetVTDebugInfo(float A, float B, float C, float D)
 	{
 		TI_ASSERT(IsRenderThread());
-		PrimitiveUniformBuffer->UniformBufferData[0].VTDebugInfo = FFloat4(A, B, C, D);
+		PrimitiveUniformBuffer->Data[0].VTDebugInfo = FFloat4(A, B, C, D);
 		PrimitiveFlag |= PrimitiveUniformBufferDirty;
 	}
 
