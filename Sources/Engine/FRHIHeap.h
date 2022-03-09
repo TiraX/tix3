@@ -35,6 +35,9 @@ namespace tix
 		{
 			return HeapType;
 		}
+#ifdef TIX_DEBUG
+		TThreadId WorkingThread;
+#endif // TIX_DEBUG
 	protected:
 		uint32 HeapId;
 		EResourceHeapType HeapType;

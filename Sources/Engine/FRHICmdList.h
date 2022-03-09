@@ -110,6 +110,10 @@ namespace tix
 		{
 			return Viewport;
 		}
+#ifdef TIX_DEBUG
+		TThreadId WorkingThread;
+#endif // TIX_DEBUG
+
 	protected:
 		FRHICmdList(ERHICmdList InType);
 

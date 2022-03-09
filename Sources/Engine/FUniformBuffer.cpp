@@ -22,7 +22,7 @@ namespace tix
 
 	void FUniformBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
-		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(TThread::GetThreadId() == CmdList->WorkingThread);
 		TI_ASSERT(Buffer == nullptr);
 		FRHI* RHI = FRHI::Get();
 

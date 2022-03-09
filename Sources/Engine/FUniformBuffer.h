@@ -65,7 +65,7 @@ namespace tix
 		FUniformBufferPtr UniformBuffer; \
 		FUniformBufferPtr InitUniformBuffer(FRHICmdList* CmdList, uint32 UBFlag = 0) \
 		{ \
-			TI_ASSERT(IsRenderThread()); \
+			TI_ASSERT(CmdList->WorkingThread == TThread::GetThreadId()); \
 			FRHI * RHI = FRHI::Get(); \
 			UniformBuffer = ti_new FUniformBuffer((uint32)sizeof(StructTypeName::FUniformBufferStruct), GetElementsCount(), UBFlag); \
 			UniformBuffer->SetResourceName(#StructTypeName); \

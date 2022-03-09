@@ -25,7 +25,7 @@ namespace tix
 
 	void FVertexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
-		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(TThread::GetThreadId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceVB == nullptr);
 
 		FGPUBufferDesc VBDesc;
@@ -61,7 +61,7 @@ namespace tix
 
 	void FIndexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
-		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(TThread::GetThreadId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceIB == nullptr);
 
 		FGPUBufferDesc IBDesc;
@@ -97,7 +97,7 @@ namespace tix
 
 	void FInstanceBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
 	{
-		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(TThread::GetThreadId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceInsB == nullptr);
 
 		FGPUBufferDesc InsBDesc;
