@@ -24,7 +24,7 @@ namespace tix
 		Stop();
 	}
 
-	TThreadId TThread::GetThreadId()
+	TThreadId TThread::AccquireId()
 	{
 		return std::this_thread::get_id();
 	}
@@ -65,32 +65,32 @@ namespace tix
 
 	void TThread::IndicateGameThread()
 	{
-		GameThreadId = GetThreadId();
+		GameThreadId = AccquireId();
 	}
 
 	void TThread::IndicateRenderThread()
 	{
-		RenderThreadId = GetThreadId();
+		RenderThreadId = AccquireId();
 	}
 
 	void TThread::IndicateVTLoadingThread()
 	{
-		VTLoadingThreadId = GetThreadId();
+		VTLoadingThreadId = AccquireId();
 	}
 
 	bool TThread::IsGameThread()
 	{
-		return GetThreadId() == GameThreadId;
+		return AccquireId() == GameThreadId;
 	}
 
 	bool TThread::IsRenderThread()
 	{
-		return GetThreadId() == RenderThreadId;
+		return AccquireId() == RenderThreadId;
 	}
 
 	bool TThread::IsVTLoadingThread()
 	{
-		return GetThreadId() == VTLoadingThreadId;
+		return AccquireId() == VTLoadingThreadId;
 	}
 
 	void* TThread::ThreadExecute(void* param)
@@ -138,7 +138,7 @@ namespace tix
 
 	void TThread::OnThreadStart()
 	{
-		ThreadId = GetThreadId();
+		ThreadId = AccquireId();
 	}
 
 	void TThread::SetPriority(uint32 InPriority)

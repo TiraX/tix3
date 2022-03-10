@@ -17,7 +17,7 @@ namespace tix
 
 		inline static bool IsIOThread()
 		{
-			return TThread::GetThreadId() == IOThreadId;
+			return TThread::AccquireId() == IOThreadId;
 		}
 
 	protected:

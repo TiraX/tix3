@@ -466,7 +466,7 @@ namespace tix
 		FRHICmdListDx12* RHICmdList = ti_new FRHICmdListDx12(Type);
 		RHICmdList->Init(this, InNamePrefix, BufferCount);
 #ifdef TIX_DEBUG
-		RHICmdList->WorkingThread = TThread::GetThreadId();
+		RHICmdList->WorkingThread = TThread::AccquireId();
 #endif // TIX_DEBUG
 		CmdLists.PushBack(RHICmdList);
 		return RHICmdList;
@@ -478,7 +478,7 @@ namespace tix
 		FDescriptorHeapDx12* Heap = ti_new FDescriptorHeapDx12(HeapId, Type);
 		Heap->Create(D3dDevice.Get());
 #ifdef TIX_DEBUG
-		Heap->WorkingThread = TThread::GetThreadId();
+		Heap->WorkingThread = TThread::AccquireId();
 #endif // TIX_DEBUG
 		DescriptorHeaps.PushBack(Heap);
 		return Heap;
@@ -1647,7 +1647,7 @@ namespace tix
 	D3D12_CPU_DESCRIPTOR_HANDLE FRHIDx12::GetCpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex)
 	{
 		FRHIHeap* Heap = GetHeapById(RRTable->GetHeapId());
-		TI_ASSERT(TThread::GetThreadId() == Heap->WorkingThread);
+		TI_ASSERT(TThread::AccquireId() == Heap->WorkingThread);
 		TI_ASSERT(Heap->GetHeapId() == RRTable->GetHeapId() && Heap->GetHeapType() == RRTable->GetHeapType());
 		TI_ASSERT(SlotIndex < RRTable->GetTableSize());
 		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(Heap);
@@ -1657,7 +1657,7 @@ namespace tix
 	D3D12_GPU_DESCRIPTOR_HANDLE FRHIDx12::GetGpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex)
 	{
 		FRHIHeap* Heap = GetHeapById(RRTable->GetHeapId());
-		TI_ASSERT(TThread::GetThreadId() == Heap->WorkingThread);
+		TI_ASSERT(TThread::AccquireId() == Heap->WorkingThread);
 		TI_ASSERT(Heap->GetHeapId() == RRTable->GetHeapId() && Heap->GetHeapType() == RRTable->GetHeapType());
 		TI_ASSERT(SlotIndex < RRTable->GetTableSize());
 		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(Heap);

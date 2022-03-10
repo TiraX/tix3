@@ -54,7 +54,7 @@ namespace tix
 
 	void TTaskThread::DoTasks()
 	{
-		TI_ASSERT(GetThreadId() == ThreadId);
+		TI_ASSERT(AccquireId() == ThreadId);
 		TTask* Task;
 		while (Tasks.GetSize() > 0)
 		{

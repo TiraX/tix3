@@ -63,7 +63,7 @@ namespace tix
 		virtual void OnThreadStart() override;
 		inline static bool IsLoadingThread()
 		{
-			return TThread::GetThreadId() == LoadingThreadId;
+			return TThread::AccquireId() == LoadingThreadId;
 		}
 
 	private:

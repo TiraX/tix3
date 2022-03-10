@@ -13,7 +13,7 @@ namespace tix
 		TThread(const TString& Name);
 		virtual ~TThread();
 
-		static TThreadId GetThreadId();
+		static TThreadId AccquireId();
 		static void ThreadSleep(uint32 milliseconds);
 		static void ThreadSleepAccurate(double milliseconds);
 
@@ -37,6 +37,10 @@ namespace tix
 		virtual bool ThreadRunning()
 		{
 			return	IsRunning;
+		}
+		TThreadId GetThreadId()
+		{
+			return ThreadId;
 		}
 	private:
 		static void* ThreadExecute(void* param);
