@@ -57,6 +57,7 @@ namespace tix
 			return Type;
 		}
 
+		TI_API static TStreamPtr LoadShaderBlob(const TString& ShaderName);
 		void LoadShaderCode();
 
 		const TVector<TStreamPtr>& GetShaderCodes()

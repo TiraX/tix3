@@ -31,33 +31,40 @@ namespace tix
 	{
 	}
 
+	TStreamPtr TShader::LoadShaderBlob(const TString& InShaderName)
+	{
+		TString ShaderName = InShaderName;
+#if defined (COMPILE_WITH_RHI_DX12)
+		if (ShaderName.rfind(".cso") == TString::npos)
+			ShaderName += ".cso";
+		// Load shader code
+		TFile File;
+		if (File.Open(ShaderName, EFA_READ))
+		{
+			TStreamPtr Blob = ti_new TStream;
+			Blob->Put(File);
+			File.Close();
+			return Blob;
+		}
+		else
+		{
+			_LOG(ELog::Fatal, "Failed to load shader code [%s].\n", ShaderName.c_str());
+		}
+#elif defined (COMPILE_WITH_RHI_METAL)
+		// Metal need shader name only
+#else
+		TI_ASSERT(0);
+#endif
+		return nullptr;
+	}
+
 	void TShader::LoadShaderCode()
 	{
 		for (int32 s = 0; s < ESS_COUNT; ++s)
 		{
-			TString ShaderName = Names.ShaderNames[s];
-			if (!ShaderName.empty())
+			if (!Names.ShaderNames[s].empty())
 			{
-#if defined (COMPILE_WITH_RHI_DX12)
-				if (ShaderName.rfind(".cso") == TString::npos)
-					ShaderName += ".cso";
-                // Load shader code
-                TFile File;
-                if (File.Open(ShaderName, EFA_READ))
-                {
-					ShaderCodes[s] = ti_new TStream;
-                    ShaderCodes[s]->Put(File);
-                    File.Close();
-                }
-                else
-                {
-                    _LOG(ELog::Fatal, "Failed to load shader code [%s].\n", ShaderName.c_str());
-                }
-#elif defined (COMPILE_WITH_RHI_METAL)
-                // Metal need shader name only
-#else
-				TI_ASSERT(0);
-#endif
+				ShaderCodes[s] = LoadShaderBlob(Names.ShaderNames[s]);
 			}
 		}
 	}
