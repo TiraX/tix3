@@ -24,6 +24,7 @@ namespace tix
 		, Start(InStart)
 		, Size(InSize)
 	{
+		ResInTable.reserve(InSize);
 	}
 
 	FRenderResourceTable::~FRenderResourceTable()
