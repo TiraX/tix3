@@ -42,7 +42,9 @@ namespace tix
 			: ResourceType(InResourceType)
 		{}
 		virtual ~FRenderResource() 
-		{}
+		{
+			//_LOG(ELog::Log, "Delete.....%s\n", ResourceName.c_str());
+		}
 
 		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) {}
 		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) {}

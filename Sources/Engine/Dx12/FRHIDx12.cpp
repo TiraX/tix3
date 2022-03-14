@@ -1420,6 +1420,7 @@ namespace tix
 		D3D12_CONSTANT_BUFFER_VIEW_DESC CBV = GetConstantBufferView(InUniformBuffer);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateConstantBufferView(&CBV, Descriptor);
+		RRTable->HoldResource(InUniformBuffer);
 	}
 
 	void FRHIDx12::PutTextureInTable(
@@ -1471,6 +1472,7 @@ namespace tix
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(TexDx12->Resource.Get(), &SRVDesc, Descriptor);
+		RRTable->HoldResource(InTexture);
 	}
 
 	void FRHIDx12::PutRWTextureInTable(
@@ -1518,6 +1520,7 @@ namespace tix
 			nullptr,
 			&UAVDesc,
 			Descriptor);
+		RRTable->HoldResource(InTexture);
 	}
 
 	void FRHIDx12::PutUniformBufferInTable(
@@ -1538,6 +1541,7 @@ namespace tix
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(BufferDx12->GetResource(), &SRVDesc, Descriptor);
+		RRTable->HoldResource(InBuffer);
 	}
 
 	void FRHIDx12::PutTopAccelerationStructureInTable(
@@ -1561,6 +1565,7 @@ namespace tix
 		// shown below. E.g. CreateShaderResourceView(NULL,pViewDesc).
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(nullptr, &SRVDesc, Descriptor);
+		RRTable->HoldResource(InTLAS);
 	}
 
 	void FRHIDx12::PutRWUniformBufferInTable(
@@ -1590,6 +1595,8 @@ namespace tix
 			HasCounter ? BufferDx12->GetResource() : nullptr,
 			&UAVDesc,
 			Descriptor);
+
+		RRTable->HoldResource(InBuffer);
 	}
 
 	void FRHIDx12::PutRTColorInTable(
@@ -1615,6 +1622,7 @@ namespace tix
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot + Mip);
 			D3dDevice->CreateRenderTargetView(TexDx12->Resource.Get(), &RTVDesc, Descriptor);
 		}
+		RRTable->HoldResource(InTexture);
 	}
 
 	void FRHIDx12::PutRTDepthInTable(
@@ -1642,6 +1650,7 @@ namespace tix
 			D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot + Mip);
 			D3dDevice->CreateDepthStencilView(TexDx12->Resource.Get(), &DsvDesc, Descriptor);
 		}
+		RRTable->HoldResource(InTexture);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE FRHIDx12::GetCpuDescriptorHandle(FRenderResourceTablePtr RRTable, uint32 SlotIndex)

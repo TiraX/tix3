@@ -31,7 +31,7 @@ namespace tix
 
 		FGPUBufferDesc Desc;
 		Desc.Flag = UBFlag;
-		Desc.BufferSize = GetTotalBufferSize();
+		Desc.BufferSize = TMath::Align16(GetTotalBufferSize());
 
 		// Create GPU resource and copy data
 		Buffer = RHI->CreateGPUBuffer();

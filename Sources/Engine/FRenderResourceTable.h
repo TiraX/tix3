@@ -51,11 +51,17 @@ namespace tix
 		{
 			return HeapType;
 		}
+
+		void HoldResource(FRenderResourcePtr Res)
+		{
+			ResInTable.push_back(Res);
+		}
 	protected:
 		EResourceHeapType HeapType;
 		uint32 HeapId;
 		uint32 Start;
 		uint32 Size;
+		TVector<FRenderResourcePtr> ResInTable;
 
 		friend class FRenderResourceHeap;
 	};
