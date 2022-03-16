@@ -119,6 +119,19 @@ namespace tix
 			RuntimeFail();
 			return 0;
 		}
+
+		static FUniformBufferPtr CreateUavBuffer(
+			FRHICmdList* RHICmdList,
+			const TString& InName,
+			uint32 InStructureSizeInBytes,
+			uint32 InElements,
+			TStreamPtr InInitData = nullptr)
+		{
+			FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav);
+			Buffer->SetResourceName(InName);
+			Buffer->CreateGPUBuffer(RHICmdList, InInitData);
+			return Buffer;
+		}
 	protected:
 
 	protected:
