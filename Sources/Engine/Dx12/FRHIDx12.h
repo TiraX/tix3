@@ -27,6 +27,8 @@ namespace tix
 	public:
 		virtual ~FRHIDx12();
 
+		static void ReportDx12LiveObjects();
+
 		// RHI common methods
 		virtual void InitRHI() override;
 		virtual void BeginFrame() override;

@@ -73,6 +73,27 @@ namespace tix
 		ti_delete DXR;
 	}
 
+	void FRHIDx12::ReportDx12LiveObjects()
+	{
+#ifdef _DEBUG
+		//ComLeakFinder::destroyInstance();
+		auto handle = GetModuleHandle("dxgidebug.dll");
+		if (handle != INVALID_HANDLE_VALUE)
+		{
+			auto fun = reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(handle, "DXGIGetDebugInterface"));
+			if (fun) // TODO FIXME: "DXGIGetDebugInterface" not found on certain systems
+			{
+				IDXGIDebug* pDebug = nullptr;
+				fun(__uuidof(IDXGIDebug), (void**)&pDebug);
+				if (pDebug)
+				{
+					pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+				}
+			}
+		}
+#endif
+	}
+
 #define ENABLE_DX_DEBUG_LAYER	(1)
 	void FRHIDx12::InitRHI()
 	{
