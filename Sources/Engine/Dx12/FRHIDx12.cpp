@@ -1453,6 +1453,7 @@ namespace tix
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
+		TI_ASSERT(TexDx12->ResourceState != EGPUResourceState::UnorderedAccess);
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
@@ -1506,6 +1507,7 @@ namespace tix
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
+		TI_ASSERT(TexDx12->ResourceState == EGPUResourceState::UnorderedAccess);
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
@@ -1560,6 +1562,7 @@ namespace tix
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
+		TI_ASSERT(BufferDx12->ResourceState != EGPUResourceState::UnorderedAccess);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(BufferDx12->GetResource(), &SRVDesc, Descriptor);
 		RRTable->HoldResource(InBuffer);
@@ -1609,6 +1612,7 @@ namespace tix
 		UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
+		TI_ASSERT(BufferDx12->ResourceState == EGPUResourceState::UnorderedAccess);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateUnorderedAccessView(
