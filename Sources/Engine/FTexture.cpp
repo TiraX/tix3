@@ -28,7 +28,7 @@ namespace tix
 		TI_ASSERT(IsRenderThread());
 	}
 
-	void FTexture::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data)
+	void FTexture::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(GPUTexture == nullptr);
@@ -57,7 +57,7 @@ namespace tix
 		TI_ASSERT(IsRenderThread());
 	}
 
-	void FTextureReadable::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data)
+	void FTextureReadable::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data, EGPUResourceState TargetState)
 	{
 		FTexture::CreateGPUTexture(CmdList, Data);
 		// Create GPUReadableTexture on Readback heap

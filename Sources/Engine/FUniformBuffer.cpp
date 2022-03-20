@@ -20,7 +20,7 @@ namespace tix
 	{
 	}
 
-	void FUniformBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
+	void FUniformBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(TThread::AccquireId() == CmdList->WorkingThread);
 		TI_ASSERT(Buffer == nullptr);
@@ -37,6 +37,35 @@ namespace tix
 		Buffer = RHI->CreateGPUBuffer();
 		Buffer->Init(CmdList, Desc, Data);
 		RHI->SetGPUBufferName(Buffer, GetResourceName());
+
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUBufferState(Buffer, TargetState);
+	}
+
+	FUniformBufferPtr FUniformBuffer::CreateUavBuffer(
+		FRHICmdList* RHICmdList,
+		const TString& InName,
+		uint32 InStructureSizeInBytes,
+		uint32 InElements,
+		TStreamPtr InInitData)
+	{
+		FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav);
+		Buffer->SetResourceName(InName);
+		Buffer->CreateGPUBuffer(RHICmdList, InInitData);
+		return Buffer;
+	}
+
+	FUniformBufferPtr FUniformBuffer::CreateReadableUavBuffer(
+		FRHICmdList* RHICmdList,
+		const TString& InName,
+		uint32 InStructureSizeInBytes,
+		uint32 InElements,
+		TStreamPtr InInitData)
+	{
+		FUniformBufferPtr Buffer = ti_new FUniformBufferReadable(InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav);
+		Buffer->SetResourceName(InName);
+		Buffer->CreateGPUBuffer(RHICmdList, InInitData);
+		return Buffer;
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -49,9 +78,9 @@ namespace tix
 	{
 	}
 
-	void FUniformBufferReadable::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
+	void FUniformBufferReadable::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState)
 	{
-		FUniformBuffer::CreateGPUBuffer(CmdList, Data);
+		FUniformBuffer::CreateGPUBuffer(CmdList, Data, TargetState);
 		TI_ASSERT(ReadbackBuffer == nullptr);
 		FRHI* RHI = FRHI::Get();
 

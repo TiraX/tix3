@@ -44,6 +44,8 @@ namespace tix
 		CopySource,
 		AccelerationStructure,
 		GenericRead,
+
+		Ignore = Common,
 	};
 
 	struct FGPUBufferDesc
@@ -79,6 +81,8 @@ namespace tix
 
 	protected:
 	};
+
+	class FRHICmdList;
 
 	/////////////////////////////////////////////////////////////
 	class FGPUBuffer : public FGPUResource

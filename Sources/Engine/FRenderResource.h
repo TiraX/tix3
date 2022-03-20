@@ -46,8 +46,8 @@ namespace tix
 			//_LOG(ELog::Log, "Delete.....%s\n", ResourceName.c_str());
 		}
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) {}
-		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) {}
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::Ignore) {}
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>(), EGPUResourceState TargetState = EGPUResourceState::Ignore) {}
 		virtual FGPUResourcePtr GetGPUResource()
 		{
 			return nullptr;

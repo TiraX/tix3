@@ -14,7 +14,7 @@ namespace tix
 		FVertexBuffer(const TVertexBufferDesc& InDesc);
 		virtual ~FVertexBuffer();
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::VertexAndConstantBuffer) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return GPUResourceVB;
@@ -44,7 +44,7 @@ namespace tix
 		FIndexBuffer(const TIndexBufferDesc& InDesc);
 		virtual ~FIndexBuffer();
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::IndexBuffer) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return GPUResourceIB;
@@ -75,7 +75,7 @@ namespace tix
 		FInstanceBuffer(const TInstanceBufferDesc& InDesc);
 		virtual ~FInstanceBuffer();
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::VertexAndConstantBuffer) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return GPUResourceInsB;

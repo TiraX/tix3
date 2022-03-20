@@ -13,7 +13,7 @@ namespace tix
 		static FTexturePtr CreateTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 		static FTexturePtr CreateReadableTexture(const TTextureDesc& Desc, uint32 InFlag = 0);
 
-		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>(), EGPUResourceState TargetState = EGPUResourceState::Ignore) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return GPUTexture;
@@ -70,7 +70,7 @@ namespace tix
 		FTextureReadable(const TTextureDesc& Desc);
 		virtual ~FTextureReadable();
 
-		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>()) override;
+		virtual void CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data = TVector<TImagePtr>(), EGPUResourceState TargetState = EGPUResourceState::Ignore) override;
 
 		virtual void PrepareDataForCPU(FRHICmdList* CmdList) override;
 		virtual TImagePtr ReadTextureData() override;

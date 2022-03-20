@@ -23,7 +23,7 @@ namespace tix
 	{
 	}
 
-	void FVertexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
+	void FVertexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(TThread::AccquireId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceVB == nullptr);
@@ -39,8 +39,8 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceVB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
-		if (Data != nullptr)
-			CmdList->SetGPUBufferState(GPUResourceVB, EGPUResourceState::VertexAndConstantBuffer);
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUBufferState(GPUResourceVB, TargetState);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ namespace tix
 	{
 	}
 
-	void FIndexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
+	void FIndexBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(TThread::AccquireId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceIB == nullptr);
@@ -75,8 +75,8 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceIB, GetResourceName());
 
 		// Set resource state to IndexBuffer
-		if (Data != nullptr)
-			CmdList->SetGPUBufferState(GPUResourceIB, EGPUResourceState::IndexBuffer);
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUBufferState(GPUResourceIB, TargetState);
 	}
 
 	/////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ namespace tix
 	{
 	}
 
-	void FInstanceBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data)
+	void FInstanceBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(TThread::AccquireId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUResourceInsB == nullptr);
@@ -111,7 +111,7 @@ namespace tix
 		RHI->SetGPUBufferName(GPUResourceInsB, GetResourceName());
 
 		// Set resource state to VertexAndConstantBuffer
-		if (Data != nullptr)
-			CmdList->SetGPUBufferState(GPUResourceInsB, EGPUResourceState::VertexAndConstantBuffer);
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUBufferState(GPUResourceInsB, TargetState);
 	}
 }

@@ -86,7 +86,7 @@ namespace tix
 		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag = 0);
 		virtual ~FUniformBuffer();
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::Ignore) override;
 		virtual FGPUResourcePtr GetGPUResource() override
 		{
 			return Buffer;
@@ -125,13 +125,14 @@ namespace tix
 			const TString& InName,
 			uint32 InStructureSizeInBytes,
 			uint32 InElements,
-			TStreamPtr InInitData = nullptr)
-		{
-			FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav);
-			Buffer->SetResourceName(InName);
-			Buffer->CreateGPUBuffer(RHICmdList, InInitData);
-			return Buffer;
-		}
+			TStreamPtr InInitData = nullptr);
+
+		static FUniformBufferPtr CreateReadableUavBuffer(
+			FRHICmdList* RHICmdList,
+			const TString& InName,
+			uint32 InStructureSizeInBytes,
+			uint32 InElements,
+			TStreamPtr InInitData = nullptr);
 	protected:
 
 	protected:
@@ -149,7 +150,7 @@ namespace tix
 		FUniformBufferReadable(uint32 InStructureSizeInBytes, uint32 Elements, uint32 InFlag);
 		virtual ~FUniformBufferReadable();
 
-		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data) override;
+		virtual void CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr Data, EGPUResourceState TargetState = EGPUResourceState::Ignore) override;
 
 		virtual void PrepareDataForCPU(FRHICmdList* CmdList) override;
 		virtual TStreamPtr ReadBufferData() override;

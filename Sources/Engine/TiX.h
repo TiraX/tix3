@@ -89,9 +89,9 @@ using namespace std;
 #include "TPlatformUtils.h"
 
 // RHI things
+#include "FGPUResource.h"
 #include "FRenderResource.h"
 #include "FRenderResourceTable.h"
-#include "FGPUResource.h"
 #include "FMeshBuffer.h"
 #include "FEnvLight.h"
 #include "FShader.h"

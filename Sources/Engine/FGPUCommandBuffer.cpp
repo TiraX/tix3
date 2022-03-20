@@ -20,7 +20,7 @@ namespace tix
 	{
 	}
 
-	void FGPUCommandBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr InData)
+	void FGPUCommandBuffer::CreateGPUBuffer(FRHICmdList* CmdList, TStreamPtr InData, EGPUResourceState TargetState)
 	{
 		TI_ASSERT(IsRenderThread());
 		TI_ASSERT(CBBuffer == nullptr);
@@ -35,5 +35,7 @@ namespace tix
 		CBBuffer->Init(CmdList, Desc, CBData);
 		RHI->SetGPUBufferName(CBBuffer, GetResourceName());
 
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUBufferState(CBBuffer, TargetState);
 	}
 }
