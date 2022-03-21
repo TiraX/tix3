@@ -112,18 +112,18 @@ namespace tix
 			MouseCurrentPoint.X	= e.posX0;
 			return false;
 		}
-        else if (e.type == EET_ZOOMIN)
-        {
-            Action = ECA_DOLLY;
-            MouseCurrentPoint.X	= e.posX0;
-            return false;
-        }
-        else if (e.type == EET_ZOOMOUT)
-        {
-            Action = ECA_DOLLY;
-            MouseCurrentPoint.X	= -e.posX0;
-            return false;
-        }
+		else if (e.type == EET_ZOOMIN)
+		{
+			Action = ECA_DOLLY;
+			MouseCurrentPoint.X	= e.posX0;
+			return false;
+		}
+		else if (e.type == EET_ZOOMOUT)
+		{
+			Action = ECA_DOLLY;
+			MouseCurrentPoint.X	= -e.posX0;
+			return false;
+		}
 
 		return true;
 	}

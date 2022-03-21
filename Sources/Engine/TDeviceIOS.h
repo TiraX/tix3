@@ -17,26 +17,26 @@ namespace tix
 	public:
 		TDeviceIOS(int32 w, int32 h);
 		virtual ~TDeviceIOS();
-        
+		
 		virtual bool Run();
 		virtual void Resize(int w, int h);
-        virtual int32 GetPreferredLanguage();
-        
-        TViewController* GetViewController()
-        {
-            return ViewController;
-        }
-        UIWindow* GetWindow()
-        {
-            return Window;
-        }
+		virtual int32 GetPreferredLanguage();
+		
+		TViewController* GetViewController()
+		{
+			return ViewController;
+		}
+		UIWindow* GetWindow()
+		{
+			return Window;
+		}
 	protected:
-        void Create();
-        void FindDeviceType();
-        
+		void Create();
+		void FindDeviceType();
+		
 	protected:
-        UIWindow* Window;
-        TViewController* ViewController;
+		UIWindow* Window;
+		TViewController* ViewController;
 	};
 }
 

@@ -18,8 +18,8 @@ namespace tix
 	{
 		EIT_16BIT,
 		EIT_32BIT,
-        
-        EIT_COUNT,
+		
+		EIT_COUNT,
 	};
 
 	enum E_MESH_STREAM_INDEX

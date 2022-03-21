@@ -16,10 +16,10 @@ namespace tix
 		virtual ~FPipelineMetal();
 	protected:
 
-    private:
-        id <MTLRenderPipelineState> RenderPipelineState;
-        id <MTLDepthStencilState> DepthState;
-        id <MTLComputePipelineState> ComputePipelineState;
+	private:
+		id <MTLRenderPipelineState> RenderPipelineState;
+		id <MTLDepthStencilState> DepthState;
+		id <MTLComputePipelineState> ComputePipelineState;
 		friend class FRHIMetal;
 	};
 }

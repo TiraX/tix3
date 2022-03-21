@@ -38,7 +38,7 @@ namespace tix
 		}
 	};
 
-    class TRtxPipeline : public TResource
+	class TRtxPipeline : public TResource
 	{
 	public:
 		TRtxPipeline();

@@ -11,18 +11,18 @@
 
 namespace tix
 {
-    FRenderTargetMetal::FRenderTargetMetal(int32 W, int32 H)
-        : FRenderTarget(W, H)
-        , ThreadGroupMemoryLength(0)
-    {
-        RenderPassDesc = nil;
-    }
+	FRenderTargetMetal::FRenderTargetMetal(int32 W, int32 H)
+		: FRenderTarget(W, H)
+		, ThreadGroupMemoryLength(0)
+	{
+		RenderPassDesc = nil;
+	}
 
-    FRenderTargetMetal::~FRenderTargetMetal()
-    {
-        TI_ASSERT(IsRenderThread());
-        RenderPassDesc = nil;
-    }
+	FRenderTargetMetal::~FRenderTargetMetal()
+	{
+		TI_ASSERT(IsRenderThread());
+		RenderPassDesc = nil;
+	}
 }
 
 #endif	// COMPILE_WITH_RHI_METAL

@@ -17,24 +17,24 @@ namespace tix
 	protected:
 
 	private:
-        id<MTLBuffer> VertexBuffer;
-        id<MTLBuffer> IndexBuffer;
+		id<MTLBuffer> VertexBuffer;
+		id<MTLBuffer> IndexBuffer;
 		friend class FRHIMetal;
 	};
-    
-    /////////////////////////////////////////////////////////////
-    
-    class FInstanceBufferMetal : public FInstanceBuffer
-    {
-    public:
-        FInstanceBufferMetal();
-        virtual ~FInstanceBufferMetal();
-    protected:
-        
-    private:
-        id<MTLBuffer> InstanceBuffer;
-        friend class FRHIMetal;
-    };
+	
+	/////////////////////////////////////////////////////////////
+	
+	class FInstanceBufferMetal : public FInstanceBuffer
+	{
+	public:
+		FInstanceBufferMetal();
+		virtual ~FInstanceBufferMetal();
+	protected:
+		
+	private:
+		id<MTLBuffer> InstanceBuffer;
+		friend class FRHIMetal;
+	};
 }
 
 #endif	// COMPILE_WITH_RHI_METAL

@@ -88,9 +88,9 @@ namespace tix
 		case EPF_DDS_DXT3_SRGB:
 		case EPF_DDS_DXT5_SRGB:
 			return SrcFormat;
-        default:
+		default:
 			RuntimeFail();
-            return EPF_UNKNOWN;
+			return EPF_UNKNOWN;
 		}
 	}
 }

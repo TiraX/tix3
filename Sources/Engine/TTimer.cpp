@@ -20,29 +20,29 @@ namespace tix
 {
 //#if defined (TI_PLATFORM_WIN32)
 //#   define TI_LOCALTIME() \
-//    const time_t _time = time(0); \
-//    struct tm _t, *t; \
-//    localtime_s(&_t, &_time); \
-//    t = &_t
+//	const time_t _time = time(0); \
+//	struct tm _t, *t; \
+//	localtime_s(&_t, &_time); \
+//	t = &_t
 //#else
 //#   define TI_LOCALTIME() \
-//    const time_t _time = time(0); \
-//    struct tm *tm; \
-//    tm = localtime(&time)
+//	const time_t _time = time(0); \
+//	struct tm *tm; \
+//	tm = localtime(&time)
 //#endif
 	uint64 TTimer::GetCurrentTimeMillis()
 	{
 #if defined (TI_PLATFORM_WIN32)
 		return timeGetTime();
 #elif defined (TI_PLATFORM_IOS) || defined (TI_PLATFORM_ANDROID)
-        struct timeval currentTime;
-        gettimeofday(&currentTime, NULL);
-        long long millis = 0;
-        //upscale to milliseconds
-        millis += currentTime.tv_sec * 1e3;
-        //downscale to milliseconds
-        millis += currentTime.tv_usec / 1e3;
-        return millis;
+		struct timeval currentTime;
+		gettimeofday(&currentTime, NULL);
+		long long millis = 0;
+		//upscale to milliseconds
+		millis += currentTime.tv_sec * 1e3;
+		//downscale to milliseconds
+		millis += currentTime.tv_usec / 1e3;
+		return millis;
 //#elif defined (TI_PLATFORM_ANDROID)
 //		struct timespec now;
 //		clock_gettime(CLOCK_MONOTONIC, &now);
@@ -61,10 +61,10 @@ namespace tix
 
 		return	t.tm_hour * 60 * 60 + t.tm_min * 60 + t.tm_sec;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        return tm->tm_hour * 60 * 60 + tm->tm_min * 60 + tm->tm_sec;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		return tm->tm_hour * 60 * 60 + tm->tm_min * 60 + tm->tm_sec;
 #endif
 	}
 
@@ -79,12 +79,12 @@ namespace tix
 		m = t.tm_min;
 		s = t.tm_sec;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        h = tm->tm_hour;
-        m = tm->tm_min;
-        s = tm->tm_sec;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		h = tm->tm_hour;
+		m = tm->tm_min;
+		s = tm->tm_sec;
 #endif
 
 		return	h * 60 * 60 + m * 60 + s;
@@ -98,13 +98,13 @@ namespace tix
 		localtime_s(&t, &_time);
 
 		TI_ASSERT(0); // Not continus
-        
-        return t.tm_year * 366 + t.tm_mon * 31 + t.tm_mday;
+		
+		return t.tm_year * 366 + t.tm_mon * 31 + t.tm_mday;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        return tm->tm_year * 366 + tm->tm_mon * 31 + tm->tm_mday;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		return tm->tm_year * 366 + tm->tm_mon * 31 + tm->tm_mday;
 #endif
 	}
 
@@ -125,14 +125,14 @@ namespace tix
 
 		y = t.tm_year;
 		m = t.tm_mon;
-        d = t.tm_mday;
+		d = t.tm_mday;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        y = tm->tm_year;
-        m = tm->tm_mon;
-        d = tm->tm_mday;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		y = tm->tm_year;
+		m = tm->tm_mon;
+		d = tm->tm_mday;
 #endif
 
 		return y * 366 + m * 31 + d;
@@ -145,12 +145,12 @@ namespace tix
 		struct tm t;
 		localtime_s(&t, &_time);
 
-        d = t.tm_wday;
+		d = t.tm_wday;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        d = tm->tm_wday;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		d = tm->tm_wday;
 #endif
 	}
 
@@ -187,11 +187,11 @@ namespace tix
 		d = t.tm_year * 366 + t.tm_mon * 31 + t.tm_mday;
 		s = t.tm_hour * 60 * 60 + t.tm_min * 60 + t.tm_sec;
 #else
-        struct tm *tm;
-        tm = localtime(&_time);
-        
-        d = tm->tm_year * 366 + tm->tm_mon * 31 + tm->tm_mday;
-        s = tm->tm_hour * 60 * 60 + tm->tm_min * 60 + tm->tm_sec;
+		struct tm *tm;
+		tm = localtime(&_time);
+		
+		d = tm->tm_year * 366 + tm->tm_mon * 31 + tm->tm_mday;
+		s = tm->tm_hour * 60 * 60 + tm->tm_min * 60 + tm->tm_sec;
 #endif
 	}
 

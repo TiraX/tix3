@@ -85,14 +85,14 @@ namespace tix
 		virtual void AddColorBuffer(FTexturePtr Texture, E_RT_COLOR_BUFFER ColorBufferIndex, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
 		virtual void AddDepthStencilBuffer(E_PIXEL_FORMAT Format, uint32 Mips, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
 		virtual void AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction);
-        
-        // For metal tile shader
-        virtual void SetTileSize(const FInt2& InTileSize)
-        {}
-        virtual void SetThreadGroupMemoryLength(uint32 Length)
-        {}
+		
+		// For metal tile shader
+		virtual void SetTileSize(const FInt2& InTileSize)
+		{}
+		virtual void SetThreadGroupMemoryLength(uint32 Length)
+		{}
 
-        virtual void Compile();
+		virtual void Compile();
 	protected:
 		FRenderTarget(int32 W, int32 H);
 		virtual ~FRenderTarget();

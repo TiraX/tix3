@@ -12,15 +12,15 @@ namespace tix
 	class FShaderMetal : public FShader
 	{
 	public:
-        FShaderMetal(const TString& ComputeShaderName);
-        FShaderMetal(const TShaderNames& InNames);
+		FShaderMetal(const TString& ComputeShaderName);
+		FShaderMetal(const TShaderNames& InNames);
 		virtual ~FShaderMetal();
 
 	protected:
 
 	protected:
-        id <MTLFunction> VertexComputeProgram;
-        id <MTLFunction> FragmentProgram;
+		id <MTLFunction> VertexComputeProgram;
+		id <MTLFunction> FragmentProgram;
 		friend class FRHIMetal;
 	};
 }

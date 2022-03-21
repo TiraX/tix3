@@ -32,7 +32,7 @@ namespace tix
 		//ENT_LIGHTSUN		= TI_MAKE_IDENTIFIER('L', 'S', 'U', 'N'),
 		//ENT_LIGHTSHADOW		= TI_MAKE_IDENTIFIER('L', 'S', 'D', 'W'),
 		//ENT_TERRAIN			= TI_MAKE_IDENTIFIER('T', 'E', 'R', 'R'),
-		//ENT_WATER           = TI_MAKE_IDENTIFIER('W', 'T', 'E', 'R'),
+		//ENT_WATER		   = TI_MAKE_IDENTIFIER('W', 'T', 'E', 'R'),
 		//ENT_TILEOBJ			= TI_MAKE_IDENTIFIER('T', 'L', 'O', 'B'),
 		//ENT_TRANSHELPER		= TI_MAKE_IDENTIFIER('H', 'E', 'L', 'P'),
 		//ENT_UVATLAS			= TI_MAKE_IDENTIFIER('U', 'V', 'A', 'T'),

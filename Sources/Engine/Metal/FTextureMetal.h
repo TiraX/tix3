@@ -15,11 +15,11 @@ namespace tix
 		FTextureMetal();
 		FTextureMetal(const TTextureDesc& Desc);
 		virtual ~FTextureMetal();
-        
+		
 	protected:
 
-    private:
-        id <MTLTexture> Texture;
+	private:
+		id <MTLTexture> Texture;
 		friend class FRHIMetal;
 	};
 }

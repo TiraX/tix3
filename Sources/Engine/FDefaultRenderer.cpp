@@ -178,12 +178,12 @@ namespace tix
 		}
 			break;
 #if (COMPILE_WITH_RHI_METAL)
-        case ARGUMENT_EB_VT_INDIRECT:
+		case ARGUMENT_EB_VT_INDIRECT:
 			RHICmdList->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTIndirectTexture());
-            break;
-        case ARGUMENT_EB_VT_PHYSIC:
+			break;
+		case ARGUMENT_EB_VT_PHYSIC:
 			RHICmdList->SetShaderTexture(Argument.BindingIndex, FVTSystem::Get()->GetVTPhysicTexture());
-            break;
+			break;
 #else
 		case ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC:
 			TI_ASSERT(0);

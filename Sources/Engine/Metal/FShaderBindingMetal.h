@@ -22,7 +22,7 @@ namespace tix
 			TI_ASSERT(IsRenderThread());
 		}
 	private:
-        
+		
 	private:
 		friend class FRHIMetal;
 	};

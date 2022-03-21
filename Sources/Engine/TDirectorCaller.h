@@ -8,8 +8,8 @@
 #import <Foundation/Foundation.h>
 
 @interface TDirectorCaller : NSObject {
-        id displayLink;
-        int interval;
+		id displayLink;
+		int interval;
 }
 @property (readwrite) int interval;
 -(void) startMainLoopWithInterval:(double)interval;

@@ -41,8 +41,8 @@ namespace tix
 #if defined (TI_PLATFORM_WIN32)
 		errno_t ret = fopen_s(&File, filename.c_str(), k_file_access[access]);
 #else
-        File = fopen(filename.c_str(), k_file_access[access]);
-        errno_t ret = (File == nullptr) ? 1 : 0;
+		File = fopen(filename.c_str(), k_file_access[access]);
+		errno_t ret = (File == nullptr) ? 1 : 0;
 #endif
 
 		if (ret == 0)

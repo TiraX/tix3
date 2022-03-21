@@ -26,7 +26,7 @@ namespace tix
 #if defined (TI_PLATFORM_WIN32) && (COMPILE_WITH_RHI_DX12)
 		RHI = ti_new FRHIDx12();
 #elif defined (TI_PLATFORM_IOS) && (COMPILE_WITH_RHI_METAL)
-        RHI = ti_new FRHIMetal;
+		RHI = ti_new FRHIMetal;
 #else
 #error("No avaible RHI for this platform.")
 #endif
@@ -54,8 +54,8 @@ namespace tix
 		RHIConfig.SupportedFeatures |= InFeature;
 	}
 	
-    void FRHI::BeginFrame()
-    {
+	void FRHI::BeginFrame()
+	{
 		FStats::ResetPerFrame();
-    }
+	}
 }

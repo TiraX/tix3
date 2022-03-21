@@ -30,14 +30,14 @@ namespace tix
 		EET_KEY_DOWN,
 		EET_KEY_UP,
 
-        EET_HEAVY_CLICK,
-        EET_HEAVY_HOLDDRAG,
+		EET_HEAVY_CLICK,
+		EET_HEAVY_HOLDDRAG,
 
 		EET_ZOOMIN,
 		EET_ZOOMOUT,
 
 		EET_DOUBLE_CLICK,
-        
+		
 		EET_TOTAL,
 	};
 

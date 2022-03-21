@@ -13,19 +13,19 @@ namespace tix
 {
 	FTextureMetal::FTextureMetal()
 	{
-        Texture = nil;
+		Texture = nil;
 	}
 
 	FTextureMetal::FTextureMetal(const TTextureDesc& Desc)
 		: FTexture(Desc)
 	{
-        Texture = nil;
+		Texture = nil;
 	}
 
 	FTextureMetal::~FTextureMetal()
 	{
-        TI_ASSERT(IsRenderThread());
-        Texture = nil;
+		TI_ASSERT(IsRenderThread());
+		Texture = nil;
 	}
 }
 

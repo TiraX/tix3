@@ -185,7 +185,7 @@ namespace tix
 			{
 				return parent;
 			}
-            parent = parent->GetParent();
+			parent = parent->GetParent();
 		}
 		return nullptr;
 	}

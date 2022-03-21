@@ -100,7 +100,7 @@ namespace tix
 			const uint32 PointsOffset = TesselationPoints * f;
 			//   p0
 			//  /  \
-		    // p1---p2
+			// p1---p2
 			const FFloat3& P0 = BasePos[Face.X];
 			const FFloat3& P1 = BasePos[Face.Y];
 			const FFloat3& P2 = BasePos[Face.Z];

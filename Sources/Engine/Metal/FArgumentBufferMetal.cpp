@@ -14,13 +14,13 @@ namespace tix
 	FArgumentBufferMetal::FArgumentBufferMetal(int32 ReservedSlots)
 		: FArgumentBuffer(ReservedSlots)
 	{
-        ArgumentBuffer = nil;
+		ArgumentBuffer = nil;
 	}
 
 	FArgumentBufferMetal::~FArgumentBufferMetal()
 	{
 		TI_ASSERT(IsRenderThread());
-        ArgumentBuffer = nil;
+		ArgumentBuffer = nil;
 	}
 }
 

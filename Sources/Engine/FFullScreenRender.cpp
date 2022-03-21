@@ -67,7 +67,7 @@ namespace tix
 		FSMaterial->SetShader(Shader);
 		FullScreenShader = Shader->ShaderResource;
 
-        FSMaterial->EnableTwoSides(true);
+		FSMaterial->EnableTwoSides(true);
 		FSMaterial->EnableDepthWrite(false);
 		FSMaterial->EnableDepthTest(false);
 		FSMaterial->SetShaderVsFormat(FullScreenVB->GetDesc().VsFormat);

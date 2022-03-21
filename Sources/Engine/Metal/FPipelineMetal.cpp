@@ -12,19 +12,19 @@
 namespace tix
 {
 	FPipelineMetal::FPipelineMetal(FShaderPtr InShader)
-        : FPipeline(InShader)
+		: FPipeline(InShader)
 	{
-        RenderPipelineState = nil;
-        DepthState = nil;
-        ComputePipelineState = nil;
+		RenderPipelineState = nil;
+		DepthState = nil;
+		ComputePipelineState = nil;
 	}
 
 	FPipelineMetal::~FPipelineMetal()
 	{
 		TI_ASSERT(IsRenderThread());
-        RenderPipelineState = nil;
-        DepthState = nil;
-        ComputePipelineState = nil;
+		RenderPipelineState = nil;
+		DepthState = nil;
+		ComputePipelineState = nil;
 	}
 }
 

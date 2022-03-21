@@ -399,7 +399,7 @@ namespace tix
 		float dy = y - yi;
 
 		float Bmdx;	// Bspline m-dx 
-		float Bndy;	// Bspline dy-n    
+		float Bndy;	// Bspline dy-n	
 
 		FFloat4 Result;
 		for (int32 m = -1; m <= 2; m++)
@@ -517,7 +517,7 @@ namespace tix
 		float dy = y - yi;
 
 		float Bmdx;	// Bspline m-dx 
-		float Bndy;	// Bspline dy-n    
+		float Bndy;	// Bspline dy-n	
 
 		FFloat4 Result;
 		for (int32 m = -1; m <= 2; m++)

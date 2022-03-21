@@ -93,13 +93,13 @@ namespace tix
 		return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
 			(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 #elif defined (TI_PLATFORM_IOS)
-        struct stat sb;
-        
-        if (stat(Path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
-        {
-            return true;
-        }
-        return false;
+		struct stat sb;
+		
+		if (stat(Path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+		{
+			return true;
+		}
+		return false;
 #else
 #	error("Not supported platform")
 #endif
@@ -113,10 +113,10 @@ namespace tix
 			_LOG(ELog::Error, "Failed to create directory : %s.\n", Dir.c_str());
 		}
 #elif defined (TI_PLATFORM_IOS)
-        if (mkdir(Dir.c_str(), 0755) != 0)
-        {
-            _LOG(ELog::Error, "Failed to create directory : %s.\n", Dir.c_str());
-        }
+		if (mkdir(Dir.c_str(), 0755) != 0)
+		{
+			_LOG(ELog::Error, "Failed to create directory : %s.\n", Dir.c_str());
+		}
 #else
 #	error("Not supported platform")
 #endif
@@ -174,8 +174,8 @@ namespace tix
 		GetSystemInfo(&sysinfo);
 		return sysinfo.dwNumberOfProcessors;
 #elif defined (TI_PLATFORM_IOS)
-        NSUInteger a = [[NSProcessInfo processInfo] processorCount];
-        return (int32)a;
+		NSUInteger a = [[NSProcessInfo processInfo] processorCount];
+		return (int32)a;
 #else
 #	error("Not supported platform")
 #endif

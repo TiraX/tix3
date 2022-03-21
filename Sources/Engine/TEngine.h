@@ -17,26 +17,26 @@ namespace tix
 		EP_IOS,
 		EP_Android,
 	};
-    
-    struct TAppInfo
-    {
-        int32 Width;
-        int32 Height;
-        float ContentScale;
-        
-        TAppInfo()
-            : Width(0)
-            , Height(0)
-            , ContentScale(1.f)
-        {
-        }
-    };
+	
+	struct TAppInfo
+	{
+		int32 Width;
+		int32 Height;
+		float ContentScale;
+		
+		TAppInfo()
+			: Width(0)
+			, Height(0)
+			, ContentScale(1.f)
+		{
+		}
+	};
 
 	class TEngine
 	{
 	public:
-        TI_API static TAppInfo AppInfo;
-        
+		TI_API static TAppInfo AppInfo;
+		
 		TI_API static TEngine* Get();
 		TI_API static void	Create(const TEngineDesc& Config);
 		TI_API static void	Destroy();
@@ -66,10 +66,10 @@ namespace tix
 		TI_API void FreezeTick();
 		TI_API void TickStepNext();
 
-        TI_API void LowMemoryWarning() {};
-        
+		TI_API void LowMemoryWarning() {};
+		
 #if defined (TI_PLATFORM_IOS)
-        void TickIOS();
+		void TickIOS();
 #endif
 		// Tasks
 		TI_API void AddTask(TTask * Task);

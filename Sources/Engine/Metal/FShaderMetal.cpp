@@ -11,26 +11,26 @@
 
 namespace tix
 {
-    FShaderMetal::FShaderMetal(const TString& ComputeShaderName)
-        : FShader(ComputeShaderName)
-    {
-        VertexComputeProgram = nil;
-        FragmentProgram = nil;
-    }
-    
+	FShaderMetal::FShaderMetal(const TString& ComputeShaderName)
+		: FShader(ComputeShaderName)
+	{
+		VertexComputeProgram = nil;
+		FragmentProgram = nil;
+	}
+	
 	FShaderMetal::FShaderMetal(const TShaderNames& InNames)
 		: FShader(InNames)
 	{
-        VertexComputeProgram = nil;
-        FragmentProgram = nil;
+		VertexComputeProgram = nil;
+		FragmentProgram = nil;
 	}
 
 	FShaderMetal::~FShaderMetal()
 	{
-        TI_ASSERT(IsRenderThread());
-        
-        VertexComputeProgram = nil;
-        FragmentProgram = nil;
+		TI_ASSERT(IsRenderThread());
+		
+		VertexComputeProgram = nil;
+		FragmentProgram = nil;
 	}
 }
 

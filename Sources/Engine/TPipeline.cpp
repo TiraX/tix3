@@ -53,18 +53,18 @@ namespace tix
 			});
 		PipelineResource = nullptr;
 	}
-    
+	
 	/////////////////////////////////////////////////////////////
-    
-    TTilePipeline::TTilePipeline()
-        : TResource(ERES_TILEPIPELINE)
-        , RTCount(0)
-        , SampleCount(1)
-        , ThreadGroupSizeMatchesTileSize(1)
-    {
-    }
-    
-    TTilePipeline::~TTilePipeline()
-    {
-    }
+	
+	TTilePipeline::TTilePipeline()
+		: TResource(ERES_TILEPIPELINE)
+		, RTCount(0)
+		, SampleCount(1)
+		, ThreadGroupSizeMatchesTileSize(1)
+	{
+	}
+	
+	TTilePipeline::~TTilePipeline()
+	{
+	}
 }

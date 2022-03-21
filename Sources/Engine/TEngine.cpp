@@ -25,7 +25,7 @@ namespace tix
 {
 	TEngine* TEngine::s_engine = nullptr;
 	E_Platform TEngine::CurrentPlatform = EP_Unknown;
-    TAppInfo TEngine::AppInfo;
+	TAppInfo TEngine::AppInfo;
 
 	void TEngine::Create(const TEngineDesc& Config)
 	{
@@ -43,9 +43,9 @@ namespace tix
 	void TEngine::Init(const TEngineDesc& Config)
 	{
 		TThread::IndicateGameThread();
-        
-        AppInfo.Width = Config.Width;
-        AppInfo.Height = Config.Height;
+		
+		AppInfo.Width = Config.Width;
+		AppInfo.Height = Config.Height;
 
 #ifdef TI_PLATFORM_WIN32
 		CurrentPlatform = EP_Windows;
@@ -214,7 +214,7 @@ namespace tix
 
 		TEngine::Destroy();
 #elif defined (TI_PLATFORM_IOS)
-        [[TDirectorCaller sharedDirectorCaller] startMainLoopWithInterval: 1.0f / 60.f];
+		[[TDirectorCaller sharedDirectorCaller] startMainLoopWithInterval: 1.0f / 60.f];
 #else
 #	error("Not supported platform")
 #endif
@@ -240,12 +240,12 @@ namespace tix
 		// Tick finished, trigger render thread
 		TickFinished();
 	}
-    
+	
 #if defined (TI_PLATFORM_IOS)
-    void TEngine::TickIOS()
-    {
-        Tick();
-    }
+	void TEngine::TickIOS()
+	{
+		Tick();
+	}
 #endif
 
 	void TEngine::Tick()

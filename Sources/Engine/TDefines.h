@@ -24,9 +24,9 @@ void * operator new (std::size_t count);
 
 #ifdef TIX_DEBUG
 #   if defined (TI_PLATFORM_WIN32)
-#	    define ti_new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#		define ti_new new( _NORMAL_BLOCK, __FILE__, __LINE__)
 #   else
-#       define ti_new new
+#	   define ti_new new
 #   endif
 // Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
 //allocations to be of _CLIENT_BLOCK type

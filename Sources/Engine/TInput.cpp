@@ -78,23 +78,23 @@ namespace tix
 
 	/////////////////////////////////////////////////////////////
 
-    const float _InputCurve::heavy_force_value  = 2.2f;
+	const float _InputCurve::heavy_force_value  = 2.2f;
 	void _InputCurve::Reset()
 	{
 		Type			= EET_INVALID;
 		Start.type		= EET_INVALID;
 		End.type		= EET_INVALID;
 		Current.type	= EET_INVALID;
-        MaxForce        = 0.f;
+		MaxForce		= 0.f;
 	}
-    
-    void _InputCurve::SetMaxForce(float f)
-    {
-        if (f > MaxForce)
-        {
-            MaxForce    = f;
-        }
-    }
+	
+	void _InputCurve::SetMaxForce(float f)
+	{
+		if (f > MaxForce)
+		{
+			MaxForce	= f;
+		}
+	}
 
 	E_EVENT_TYPE _InputCurve::Check()
 	{
@@ -106,16 +106,16 @@ namespace tix
 			{
 				if (dis_sq < 24 * 24)
 				{
-                    if (MaxForce >= heavy_force_value)
-                    {
-                        _EVENT_LOG("  HEAVY CLICK.\n");
-                        Type	= EET_HEAVY_CLICK;
-                    }
-                    else
-                    {
-                        _EVENT_LOG("  CLICK.\n");
-                        Type	= EET_LEFT_CLICK;
-                    }
+					if (MaxForce >= heavy_force_value)
+					{
+						_EVENT_LOG("  HEAVY CLICK.\n");
+						Type	= EET_HEAVY_CLICK;
+					}
+					else
+					{
+						_EVENT_LOG("  CLICK.\n");
+						Type	= EET_LEFT_CLICK;
+					}
 					return Type;
 				}
 				else if (dis_sq > 100 * 100)
@@ -145,7 +145,7 @@ namespace tix
 	/////////////////////////////////////////////////////////////
 	TInput::TInput()
 		: InputFlag(0)
-        , InputCount(0)
+		, InputCount(0)
 		, PosRead(0)
 		, CurvePos(0)
 		, LastClickTime(0)
@@ -175,17 +175,17 @@ namespace tix
 			EventHandlers.erase(it);
 		}
 	}
-    
-    void TInput::IncreaseInputCount(int c)
-    {
-        InputCount  += c;
-    }
-    
-    void TInput::DecreaseInputCount(int c)
-    {
+	
+	void TInput::IncreaseInputCount(int c)
+	{
+		InputCount  += c;
+	}
+	
+	void TInput::DecreaseInputCount(int c)
+	{
 		InputCount  -= c;
-        TI_ASSERT(InputCount >= 0);
-    }
+		TI_ASSERT(InputCount >= 0);
+	}
 
 	void TInput::EnableImmediateSend(bool enable)
 	{
@@ -199,12 +199,12 @@ namespace tix
 		de._id			= touch_id;
 		de.time_stamp	= time_stamp;
 		de.param		= param;
-        de.force        = force;
+		de.force		= force;
 		de.pos.X		= posX;
 		de.pos.Y		= posY;
-        
-        if (InputCount >= 1)
-            de.flag     |= DE_IS_MULTI_INPUT;
+		
+		if (InputCount >= 1)
+			de.flag	 |= DE_IS_MULTI_INPUT;
 
 		AddEventToQuene(de);
 	}
@@ -243,28 +243,28 @@ namespace tix
 
 		if (e.type == EET_LEFT_DOWN)
 		{
-            // if there is multi input, only receive the last one
-            // clear the last input
-            if (InputCount >= 1)
-            {
-                GetCurrentCurve().Reset();
-            }
-            
+			// if there is multi input, only receive the last one
+			// clear the last input
+			if (InputCount >= 1)
+			{
+				GetCurrentCurve().Reset();
+			}
+			
 			_InputCurve& curve			= GetNextCurve();
 			curve.Reset();
 			curve.Start					= e;
 			curve.Current				= e;
-            curve.SetMaxForce(e.force);
+			curve.SetMaxForce(e.force);
 		}
 		else if (e.type == EET_LEFT_UP)
 		{
-            GetCurrentCurve().End		= e;
-            GetCurrentCurve().SetMaxForce(e.force);
+			GetCurrentCurve().End		= e;
+			GetCurrentCurve().SetMaxForce(e.force);
 		}
 		else if (e.type == EET_MOVE)
 		{
-            GetCurrentCurve().Current	= e;
-            GetCurrentCurve().SetMaxForce(e.force);
+			GetCurrentCurve().Current	= e;
+			GetCurrentCurve().SetMaxForce(e.force);
 		}
 //#ifdef TI_PLATFORM_WIN32
 		else if (e.type == EET_ZOOMIN ||
@@ -389,8 +389,8 @@ namespace tix
 					e.posY0				= curve.Current.pos.Y;
 					e.posX1				= curve.Start.pos.X;
 					e.posY1				= curve.Start.pos.Y;
-                    if ((curve.Start.flag & DE_IS_MULTI_INPUT) != 0)
-                        e.SetFlag(EVTF_SECOND, true);
+					if ((curve.Start.flag & DE_IS_MULTI_INPUT) != 0)
+						e.SetFlag(EVTF_SECOND, true);
 					SendEvent(e);
 				}
 			}

@@ -183,8 +183,8 @@ namespace tix
 		}
 #pragma warning(pop)
 #elif defined (TI_PLATFORM_IOS)
-        NSString * NameStr = [NSString stringWithUTF8String: ThreadName.c_str()];
-        [[NSThread currentThread] setName: NameStr];
+		NSString * NameStr = [NSString stringWithUTF8String: ThreadName.c_str()];
+		[[NSThread currentThread] setName: NameStr];
 #else
 #error("TThread::SetThreadName() Not implement for other platform yet.")
 #endif

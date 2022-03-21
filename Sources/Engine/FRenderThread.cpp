@@ -139,9 +139,9 @@ namespace tix
 			RTLiveTime += RTFrameTime;
 			LastRTFrameTime = CurrentFrameTime;
 		}
-        
+		
 		AUTORELEASE_POOL_START
-        
+		
 		RHI->BeginFrame();
 		// Do render thread tasks
 		DoRenderTasks();
@@ -153,9 +153,9 @@ namespace tix
 			Renderer->EndRenderFrame();
 		}
 		RHI->EndFrame();
-        
+		
 		++FrameNum;
-        AUTORELEASE_POOL_END
+		AUTORELEASE_POOL_END
 	}
 
 	void FRenderThread::OnThreadStart()

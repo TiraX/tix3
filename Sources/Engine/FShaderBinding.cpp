@@ -44,19 +44,19 @@ namespace tix
 				if (BufferName == "EnvCube")
 					return ARGUMENT_EB_ENV_CUBE;
 #if (COMPILE_WITH_RHI_METAL)
-                if (BufferName == "VTIndirectTexture")
-                    return ARGUMENT_EB_VT_INDIRECT;
-                if (BufferName == "VTPhysicTexture")
-                    return ARGUMENT_EB_VT_PHYSIC;
+				if (BufferName == "VTIndirectTexture")
+					return ARGUMENT_EB_VT_INDIRECT;
+				if (BufferName == "VTPhysicTexture")
+					return ARGUMENT_EB_VT_PHYSIC;
 #else
-                if (BufferName.substr(0, 6) == "VTArgs")
-                    return ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC;
+				if (BufferName.substr(0, 6) == "VTArgs")
+					return ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC;
 #endif
 			}
-            else if (Prefix == "MI")
-            {
-                return ARGUMENT_MI_ARGUMENTS;
-            }
+			else if (Prefix == "MI")
+			{
+				return ARGUMENT_MI_ARGUMENTS;
+			}
 			RuntimeFail();
 		}
 
@@ -81,7 +81,7 @@ namespace tix
 	{
 		if (ShaderStage == ESS_VERTEX_SHADER)
 		{
-            // Vertex / Compute shader arguments share the same container
+			// Vertex / Compute shader arguments share the same container
 			VertexComputeArguments.push_back(InArgument);
 		}
 		else if (ShaderStage == ESS_PIXEL_SHADER)

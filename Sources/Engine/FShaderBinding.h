@@ -35,10 +35,10 @@ namespace tix
 		ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC,
 		ARGUMENT_MI_ARGUMENTS,
 
-        
-        // Used for ios metal binding
-        ARGUMENT_EB_VT_INDIRECT,
-        ARGUMENT_EB_VT_PHYSIC,
+		
+		// Used for ios metal binding
+		ARGUMENT_EB_VT_INDIRECT,
+		ARGUMENT_EB_VT_PHYSIC,
 
 		ARGUMENT_UNKNOWN,
 	};
@@ -103,9 +103,9 @@ namespace tix
 
 	protected:
 		int32 NumBindings;
-        // Vertex/Compute shader arguments share the same TVector<FShaderArgument> VertexComputeArguments
+		// Vertex/Compute shader arguments share the same TVector<FShaderArgument> VertexComputeArguments
 		TVector<FShaderArgument> VertexComputeArguments;
-        // Pixel shader arguments
+		// Pixel shader arguments
 		TVector<FShaderArgument> PixelArguments;
 #if DEBUG_SHADER_BINDING_TYPE
 		TVector<int32> BindingTypes;
