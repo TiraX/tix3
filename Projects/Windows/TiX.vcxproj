@@ -151,7 +151,6 @@
     <ClInclude Include="..\..\Sources\Engine\FGPUResource.h" />
     <ClInclude Include="..\..\Sources\Engine\FHeapAllocator.h" />
     <ClInclude Include="..\..\Sources\Engine\FMeshBuffer.h" />
-    <ClInclude Include="..\..\Sources\Engine\FMeshRelevance.h" />
     <ClInclude Include="..\..\Sources\Engine\FPipeline.h" />
     <ClInclude Include="..\..\Sources\Engine\FPrimitive.h" />
     <ClInclude Include="..\..\Sources\Engine\FRendererInterface.h" />

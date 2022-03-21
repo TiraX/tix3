@@ -465,9 +465,6 @@
     <ClInclude Include="..\..\Sources\Engine\TNodeCamera.h">
       <Filter>Sources\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FMeshRelevance.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TNodeStaticMesh.h">
       <Filter>Sources\Scene</Filter>
     </ClInclude>
