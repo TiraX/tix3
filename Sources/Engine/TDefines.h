@@ -90,6 +90,16 @@ void * operator new (std::size_t count);
 #	define COMPILE_WITH_RHI_METAL 1
 #endif
 
+// pragma
+#ifdef TI_PLATFORM_WIN32
+#	define TI_PRAGMA(x) __pragma(##x)
+#elif defined (TI_PLATFORM_IOS)
+#	define TI_PRAGMA(x) _Pragma(##x)
+#endif
+
+// Openmp parallel for
+#define OMP_PARALLEL_FOR TI_PRAGMA(omp parallel for)
+
 #if (COMPILE_WITH_RHI_DX12)
 #	define USE_HALF_FOR_INSTANCE_ROTATION 0
 #else
