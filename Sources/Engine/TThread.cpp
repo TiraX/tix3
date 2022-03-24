@@ -139,9 +139,12 @@ namespace tix
 	void TThread::OnThreadStart()
 	{
 		ThreadId = AccquireId();
+#ifdef TIX_DEBUG
+		_LOG(ELog::Log, "Thread %s started with priority %d.\n", ThreadName.c_str(), GetPriority());
+#endif
 	}
 
-	void TThread::SetPriority(uint32 InPriority)
+	void TThread::SetPriority(EPriority InPriority)
 	{
 #ifdef TI_PLATFORM_IOS
 		TI_ASSERT(Thread != nullptr);
@@ -149,8 +152,51 @@ namespace tix
 		param.sched_priority = InPriority;
 		int32 Result = pthread_setschedparam(Thread->native_handle(), SCHED_RR, &param);
 		TI_ASSERT(Result == 0);
+#elif defined (TI_PLATFORM_WIN32)
+		TI_ASSERT(Thread != nullptr);
+		int32 WinPriority;
+		switch (InPriority)
+		{
+		case EPriority::Highest:
+			WinPriority = THREAD_PRIORITY_HIGHEST;
+			break;
+		case EPriority::AboveNormal:
+			WinPriority = THREAD_PRIORITY_ABOVE_NORMAL;
+			break;
+		case EPriority::Normal:
+			WinPriority = THREAD_PRIORITY_NORMAL;
+			break;
+		case EPriority::BelowNormal:
+			WinPriority = THREAD_PRIORITY_BELOW_NORMAL;
+			break;
+		case EPriority::Lowest:
+			WinPriority = THREAD_PRIORITY_LOWEST;
+			break;
+		case EPriority::Idle:
+			WinPriority = THREAD_PRIORITY_IDLE;
+			break;
+		default:
+			WinPriority = THREAD_PRIORITY_NORMAL;
+			break;
+		};
+		bool Result = SetThreadPriority(Thread->native_handle(), WinPriority);
+		TI_ASSERT(Result);
 #else
-#endif // TI_PLATFORM_IOS
+#error("unknown platform.")
+#endif
+	}
+
+	int32 TThread::GetPriority()
+	{
+#ifdef TI_PLATFORM_IOS
+		TI_ASSERT(0);
+		return 0;
+#elif defined (TI_PLATFORM_WIN32)
+		TI_ASSERT(Thread != nullptr);
+		return GetThreadPriority(Thread->native_handle());
+#else
+#error("unknown platform.")
+#endif
 	}
 
 #ifdef TI_PLATFORM_WIN32

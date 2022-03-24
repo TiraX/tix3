@@ -13,6 +13,16 @@ namespace tix
 		TThread(const TString& Name);
 		virtual ~TThread();
 
+		enum class EPriority
+		{
+			Highest,
+			AboveNormal,
+			Normal,
+			BelowNormal,
+			Lowest,
+			Idle
+		};
+
 		static TThreadId AccquireId();
 		static void ThreadSleep(uint32 milliseconds);
 		static void ThreadSleepAccurate(double milliseconds);
@@ -32,7 +42,8 @@ namespace tix
 		virtual void OnThreadStart();
 		virtual void OnThreadEnd() {};
 
-		virtual void SetPriority(uint32 InPriority);
+		virtual void SetPriority(EPriority InPriority);
+		virtual int32 GetPriority();
 		
 		virtual bool ThreadRunning()
 		{

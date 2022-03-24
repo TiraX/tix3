@@ -30,9 +30,11 @@ namespace tix
 		if (FRenderThread::ThreadEnabled)
 		{
 			RenderThread->Start();
+#ifdef TI_PLATFORM_IOS
 			// Give render thread priority, as iOS required 45
 			// 612_hd_metal_game_performance_optimization.mp4 33'35"
 			RenderThread->SetPriority(45);
+#endif
 		}
 		else
 		{
