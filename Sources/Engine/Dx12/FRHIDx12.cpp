@@ -1070,7 +1070,7 @@ namespace tix
 		{
 			const D3D12_ROOT_PARAMETER& Parameter = RSDesc.pParameters[i];
 			// check for shader stage visibility
-			if (Parameter.ShaderVisibility != GetVisibility(Stage))
+			if (Parameter.ShaderVisibility != D3D12_SHADER_VISIBILITY_ALL && Parameter.ShaderVisibility != GetVisibility(Stage))
 			{
 				continue;
 			}
