@@ -18,7 +18,6 @@ namespace tix
 
 	FPipelineDx12::~FPipelineDx12()
 	{
-		TI_ASSERT(IsRenderThread());
 		PipelineState = nullptr;
 	}
 }

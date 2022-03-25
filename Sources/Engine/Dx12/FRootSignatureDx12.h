@@ -24,7 +24,6 @@ namespace tix
 
 		virtual ~FRootSignatureDx12()
 		{
-			TI_ASSERT(IsRenderThread());
 			Signature = nullptr;
 		}
 
