@@ -73,7 +73,7 @@ namespace tix
 
 	void FDefaultRenderer::PrepareViewUniforms(FRHICmdList* RHICmdList)
 	{
-		if (Scene->HasSceneFlag(FDefaultScene::ViewUniformDirty))
+		//if (Scene->HasSceneFlag(FDefaultScene::ViewUniformDirty))
 		{
 			// Always make a new View uniform buffer for on-the-fly rendering
 			ViewUniformBuffer = ti_new FViewUniformBuffer();
@@ -91,7 +91,97 @@ namespace tix
 			FTexturePtr IBLCube = Scene->GetEnvLight()->GetEnvCubemap();
 			SetupSkyIrradianceEnvironmentMapConstantsFromSkyIrradiance(ViewUniformBuffer->Data[0].SkyIrradiance, IBLCube->GetDesc().SH);
 
+			// Shadow VP
+			const TVector<FPrimitivePtr>& Prims = Scene->ShadowPrimitives;
+			if (!Prims.empty())
+			{
+				// Find visible actor bounds, for all actors now
+				FBox BBVisibleActors;
+				BBVisibleActors = Prims[0]->GetVertexBuffer()->GetDesc().BBox;
+
+				for (uint32 PIndex = 1; PIndex < (uint32)Prims.size(); ++PIndex)
+				{
+					FPrimitivePtr Primitive = Prims[PIndex];
+					BBVisibleActors.AddInternalBox(
+						Primitive->GetVertexBuffer()->GetDesc().BBox
+					);
+				}
+
+				const FFloat3& LightDir = EnvInfo.MainLightDirection;
+				FFloat3 LightTarget = BBVisibleActors.GetCenter();
+				FFloat3 LightPos = LightTarget - LightDir * 100.f;
+				FFloat3 Up = FFloat3(0, 0, 1);
+				FMat4 LightViewMat = BuildCameraLookAtMatrix(LightPos, LightTarget, Up);
+				LightViewMat.TransformBoxUE(BBVisibleActors);
+				FMat4 LightProjection = BuildProjectionMatrixOrtho(
+					BBVisibleActors.Min.X,
+					BBVisibleActors.Max.X,
+					BBVisibleActors.Min.Y,
+					BBVisibleActors.Max.Y,
+					BBVisibleActors.Min.Z,
+					BBVisibleActors.Max.Z
+				);
+				ViewUniformBuffer->Data[0].ShadowVP = (LightProjection * LightViewMat).GetTransposed();
+			}
+
 			ViewUniformBuffer->InitUniformBuffer(RHICmdList, (uint32)EGPUResourceFlag::Intermediate);
+		}
+	}
+
+	void FDefaultRenderer::CreateShadowmap()
+	{
+		const int32 ShadowmapSize = 1024;
+		RT_ShadowPass = FRenderTarget::Create(ShadowmapSize, ShadowmapSize);
+		RT_ShadowPass->SetResourceName("RT_ShadowPass");
+		TTextureDesc ShadowDesc;
+		ShadowDesc.Format = EPF_DEPTH16;
+		ShadowDesc.Width = ShadowmapSize;
+		ShadowDesc.Height = ShadowmapSize;
+		ShadowDesc.AddressMode = ETC_CLAMP_TO_EDGE;
+		ShadowDesc.Mips = 1;
+		ShadowDesc.ClearColor = SColorf(0, 0, 0, 0);
+		Shadowmap = FTexture::CreateTexture(ShadowDesc, (uint32)EGPUResourceFlag::DsBuffer);
+		RT_ShadowPass->AddDepthStencilBuffer(Shadowmap, ERenderTargetLoadAction::Clear, ERenderTargetStoreAction::Store);
+		RT_ShadowPass->Compile();
+		ShadowmapTable = FRHI::Get()->GetDefaultHeapCbvSrvUav()->CreateRenderResourceTable(1);
+		FRHI::Get()->PutTextureInTable(ShadowmapTable, Shadowmap, 0);
+	}
+
+	void FDefaultRenderer::RenderShadowMap(FRHICmdList* RHICmdList)
+	{
+		if (Shadowmap == nullptr)
+		{
+			CreateShadowmap();
+		}
+
+		const TVector<FPrimitivePtr>& Prims = Scene->ShadowPrimitives;
+		if (Prims.empty())
+			return;
+
+		RHICmdList->BeginRenderToRenderTarget(RT_ShadowPass, "ShadowPass");
+		for (uint32 PIndex = 0; PIndex < (uint32)Prims.size(); ++PIndex)
+		{
+			FPrimitivePtr Primitive = Prims[PIndex];
+
+			if (Primitive != nullptr)
+			{
+				FInstanceBufferPtr InstanceBuffer = Primitive->GetInstanceBuffer();
+				FVertexBufferPtr VB = Primitive->GetVertexBuffer();
+				FIndexBufferPtr IB = Primitive->GetIndexBuffer();
+				for (int32 S = 0; S < Primitive->GetNumSections(); S++)
+				{
+					const FPrimitive::FSection& Section = Primitive->GetSection(S);
+					RHICmdList->SetGraphicsPipeline(Section.Pipeline);
+					RHICmdList->SetVertexBuffer(VB, InstanceBuffer);
+					RHICmdList->SetIndexBuffer(IB);
+					ApplyShaderParameter(RHICmdList, Primitive, S);
+					RHICmdList->DrawPrimitiveIndexedInstanced(
+						Section.Triangles * 3,
+						InstanceBuffer == nullptr ? 1 : Primitive->GetInstanceCount(),
+						Section.IndexStart,
+						Primitive->GetInstanceOffset());
+				}
+			}
 		}
 	}
 
@@ -176,6 +266,10 @@ namespace tix
 			FEnvLightPtr EnvLight = Scene->GetEnvLight();
 			RHICmdList->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
+			break;
+		case ARGUMENT_EB_SHADOWMAP:
+			RHICmdList->SetGPUTextureState(Shadowmap->GetGPUTexture(), EGPUResourceState::PixelShaderResource);
+			RHICmdList->SetRenderResourceTable(Argument.BindingIndex, ShadowmapTable);
 			break;
 #if (COMPILE_WITH_RHI_METAL)
 		case ARGUMENT_EB_VT_INDIRECT:

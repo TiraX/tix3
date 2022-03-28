@@ -34,6 +34,8 @@ namespace tix
 
 		void DrawPrimitives(FRHICmdList* RHICmdList);
 		void PrepareViewUniforms(FRHICmdList* RHICmdList);
+		void CreateShadowmap();
+		void RenderShadowMap(FRHICmdList* RHICmdList);
 
 	protected:
 		// Scene to render
@@ -44,6 +46,11 @@ namespace tix
 
 		// Common Resources
 		FUniformBufferPtr CounterResetUniformBuffer;
+
+		// Shadow map
+		FRenderTargetPtr RT_ShadowPass;
+		FTexturePtr Shadowmap;
+		FRenderResourceTablePtr ShadowmapTable;
 
 		friend class FDefaultScene;
 	};

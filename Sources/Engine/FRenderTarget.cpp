@@ -87,6 +87,7 @@ namespace tix
 
 	void FRenderTarget::AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
+		TI_ASSERT(Texture->HasTextureFlag(EGPUResourceFlag::DsBuffer));
 		RTDepthStencilBuffer.Texture = Texture;
 		RTDepthStencilBuffer.LoadAction = LoadAction;
 		RTDepthStencilBuffer.StoreAction = StoreAction;

@@ -966,8 +966,8 @@ namespace tix
 	template <class T>
 	inline void FMatrix4<T>::TransformBoxUE(FAABBox<T>& box) const
 	{
-		FVec3<T> Origin = box.getCenter();
-		FVec3<T> Extent = box.getExtent() * 0.5f;
+		FVec3<T> Origin = box.GetCenter();
+		FVec3<T> Extent = box.GetExtent() * 0.5f;
 
 		FVec3<T> Rot0(M[0], M[1], M[2]);
 		FVec3<T> Rot1(M[4], M[5], M[6]);

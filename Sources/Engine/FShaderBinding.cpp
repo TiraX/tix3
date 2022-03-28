@@ -52,6 +52,8 @@ namespace tix
 				if (BufferName.substr(0, 6) == "VTArgs")
 					return ARGUMENT_EB_VT_INDIRECT_AND_PHYSIC;
 #endif
+				if (BufferName == "Shadowmap")
+					return ARGUMENT_EB_SHADOWMAP;
 			}
 			else if (Prefix == "MI")
 			{

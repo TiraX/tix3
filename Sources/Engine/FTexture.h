@@ -19,6 +19,11 @@ namespace tix
 			return GPUTexture;
 		}
 
+		FGPUTexturePtr GetGPUTexture()
+		{
+			return GPUTexture;
+		}
+
 		const TTextureDesc& GetDesc() const
 		{
 			return TextureDesc;

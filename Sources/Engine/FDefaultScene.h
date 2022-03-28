@@ -31,6 +31,7 @@ namespace tix
 		virtual void SetEnvLight(FEnvLightPtr InEnvLight) override;
 		virtual FEnvLightPtr GetEnvLight() override;
 		virtual void AddPrimitive(FPrimitivePtr InPrim) override;
+		virtual void AddShadowPrimitive(FPrimitivePtr InPrim) override;
 
 		bool HasSceneFlag(SceneFlag Flag) const
 		{
@@ -69,6 +70,7 @@ namespace tix
 		FEnvLightPtr EnvLight;
 
 		// Primitives
+		TVector<FPrimitivePtr> ShadowPrimitives;
 		TVector<FPrimitivePtr> Primitives;
 
 		friend class FDefaultRenderer;

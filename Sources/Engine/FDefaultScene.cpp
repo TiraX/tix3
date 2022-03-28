@@ -13,6 +13,7 @@ namespace tix
 	{
 		// Reserve memory for containers
 		Primitives.reserve(128);
+		ShadowPrimitives.reserve(128);
 	}
 
 	FDefaultScene::~FDefaultScene()
@@ -47,5 +48,10 @@ namespace tix
 	void FDefaultScene::AddPrimitive(FPrimitivePtr InPrim)
 	{
 		Primitives.push_back(InPrim);
+	}
+
+	void FDefaultScene::AddShadowPrimitive(FPrimitivePtr InPrim)
+	{
+		ShadowPrimitives.push_back(InPrim);
 	}
 }

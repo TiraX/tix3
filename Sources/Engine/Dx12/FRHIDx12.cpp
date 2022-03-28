@@ -1087,9 +1087,8 @@ namespace tix
 						// If this param in the range of this descriptor table,
 						// If NOT, try next table
 						if (BindDesc.BindPoint >= DescriptorRange.BaseShaderRegister &&
-							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors)
+							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors && BindDesc.Type == D3D_SIT_TEXTURE)
 						{
-							TI_ASSERT(BindDesc.Type == D3D_SIT_TEXTURE);
 							return (int32)i;
 						}
 					}
@@ -1098,9 +1097,8 @@ namespace tix
 						// If this param in the range of this descriptor table,
 						// If NOT, try next table
 						if (BindDesc.BindPoint >= DescriptorRange.BaseShaderRegister &&
-							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors)
+							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors && BindDesc.Type == D3D_SIT_CBUFFER)
 						{
-							TI_ASSERT(BindDesc.Type == D3D_SIT_CBUFFER);
 							return (int32)i;
 						}
 					}

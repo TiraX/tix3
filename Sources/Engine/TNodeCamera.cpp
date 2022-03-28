@@ -202,7 +202,7 @@ namespace tix
 			up.X = up.X + 0.5f;
 		}
 
-		ViewArea.Matrices[ETS_VIEW] = BuildCameraLookAtMatrix(pos, Target, up);;
+		ViewArea.Matrices[ETS_VIEW] = BuildCameraLookAtMatrix(pos, Target, up);
 		ViewArea.SetTransformState(ETS_VIEW);
 
 		RecalculateViewArea();

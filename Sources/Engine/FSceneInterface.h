@@ -26,6 +26,7 @@ namespace tix
 
 		// Scene Primitives
 		virtual void AddPrimitive(FPrimitivePtr InPrim) = 0;
+		virtual void AddShadowPrimitive(FPrimitivePtr InPrim) = 0;
 	private:
 
 	private:
