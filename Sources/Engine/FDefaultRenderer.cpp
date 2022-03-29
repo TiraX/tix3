@@ -122,7 +122,7 @@ namespace tix
 					BBVisibleActors.Max.Z
 				);
 				ViewUniformBuffer->Data[0].ShadowVP = (LightProjection * LightViewMat).GetTransposed();
-				ViewUniformBuffer->Data[0].ShadowParam.X = 0.015f;	// Shadow Bias
+				ViewUniformBuffer->Data[0].ShadowParam.X = ShadowSettings.Bias;	// Shadow Bias
 			}
 
 			ViewUniformBuffer->InitUniformBuffer(RHICmdList, (uint32)EGPUResourceFlag::Intermediate);
@@ -131,13 +131,12 @@ namespace tix
 
 	void FDefaultRenderer::CreateShadowmap()
 	{
-		const int32 ShadowmapSize = 1024;
-		RT_ShadowPass = FRenderTarget::Create(ShadowmapSize, ShadowmapSize);
+		RT_ShadowPass = FRenderTarget::Create(ShadowSettings.W, ShadowSettings.H);
 		RT_ShadowPass->SetResourceName("RT_ShadowPass");
 		TTextureDesc ShadowDesc;
 		ShadowDesc.Format = FRHIConfig::DefaultShadowmapFormat;
-		ShadowDesc.Width = ShadowmapSize;
-		ShadowDesc.Height = ShadowmapSize;
+		ShadowDesc.Width = ShadowSettings.W;
+		ShadowDesc.Height = ShadowSettings.H;
 		ShadowDesc.AddressMode = ETC_CLAMP_TO_EDGE;
 		ShadowDesc.Mips = 1;
 		ShadowDesc.ClearColor = SColorf(0, 0, 0, 0);
@@ -150,7 +149,7 @@ namespace tix
 
 	void FDefaultRenderer::RenderShadowMap(FRHICmdList* RHICmdList)
 	{
-		if (Shadowmap == nullptr)
+		if (Shadowmap == nullptr || Shadowmap->GetDesc().Width != ShadowSettings.W || Shadowmap->GetDesc().Height != ShadowSettings.H)
 		{
 			CreateShadowmap();
 		}

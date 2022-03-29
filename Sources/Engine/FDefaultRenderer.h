@@ -9,6 +9,18 @@ namespace tix
 {
 	class FRHI;
 
+	struct FShadowSettings
+	{
+		int32 W, H;
+		float Bias;
+
+		FShadowSettings()
+			: W(1024)
+			, H(1024)
+			, Bias(0.005f)
+		{}
+	};
+
 	// Default Renderer
 	class TI_API FDefaultRenderer : public FRendererInterface
 	{
@@ -26,6 +38,15 @@ namespace tix
 		virtual FUniformBufferPtr GetCounterResetUniformBuffer() override
 		{
 			return CounterResetUniformBuffer;
+		}
+		void SetShadowSize(int32 W, int32 H)
+		{
+			ShadowSettings.W = W;
+			ShadowSettings.H = H;
+		}
+		void SetShadowBias(float Bias)
+		{
+			ShadowSettings.Bias = Bias;
 		}
 
 	protected:
@@ -48,6 +69,7 @@ namespace tix
 		FUniformBufferPtr CounterResetUniformBuffer;
 
 		// Shadow map
+		FShadowSettings ShadowSettings;
 		FRenderTargetPtr RT_ShadowPass;
 		FTexturePtr Shadowmap;
 		FRenderResourceTablePtr ShadowmapTable;
