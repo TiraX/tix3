@@ -141,7 +141,7 @@ namespace tix
 		ShadowDesc.AddressMode = ETC_CLAMP_TO_EDGE;
 		ShadowDesc.Mips = 1;
 		ShadowDesc.ClearColor = SColorf(0, 0, 0, 0);
-		Shadowmap = FTexture::CreateTexture(ShadowDesc, (uint32)EGPUResourceFlag::DsBuffer);
+		Shadowmap = FTexture::CreateTexture(ShadowDesc);
 		RT_ShadowPass->AddDepthStencilBuffer(Shadowmap, ERenderTargetLoadAction::Clear, ERenderTargetStoreAction::Store);
 		RT_ShadowPass->Compile();
 		ShadowmapTable = FRHI::Get()->GetDefaultHeapCbvSrvUav()->CreateRenderResourceTable(1);

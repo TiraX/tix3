@@ -47,10 +47,9 @@ namespace tix
 			++ColorBuffers;
 		}
 
+		Texture->SetTextureFlag(EGPUResourceFlag::ColorBuffer, true);
 		RTBuffer Buffer;
 		Buffer.Texture = Texture;
-		//Buffer.RTResource = ti_new FRenderTargetResource(EHT_RENDERTARGET);
-		Buffer.Texture->SetTextureFlag(EGPUResourceFlag::ColorBuffer, true);
 		Buffer.BufferIndex = ColorBufferIndex;
 		Buffer.LoadAction = LoadAction;
 		Buffer.StoreAction = StoreAction;
@@ -87,11 +86,10 @@ namespace tix
 
 	void FRenderTarget::AddDepthStencilBuffer(FTexturePtr Texture, ERenderTargetLoadAction LoadAction, ERenderTargetStoreAction StoreAction)
 	{
-		TI_ASSERT(Texture->HasTextureFlag(EGPUResourceFlag::DsBuffer));
+		Texture->SetTextureFlag(EGPUResourceFlag::DsBuffer, true);
 		RTDepthStencilBuffer.Texture = Texture;
 		RTDepthStencilBuffer.LoadAction = LoadAction;
 		RTDepthStencilBuffer.StoreAction = StoreAction;
-		//RTDepthStencilBuffer.RTResource = ti_new FRenderTargetResource(EHT_DEPTHSTENCIL);
 	}
 
 	void FRenderTarget::Compile()

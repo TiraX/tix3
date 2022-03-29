@@ -1436,6 +1436,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		D3D12_CONSTANT_BUFFER_VIEW_DESC CBV = GetConstantBufferView(InUniformBuffer);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateConstantBufferView(&CBV, Descriptor);
@@ -1448,6 +1449,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
@@ -1502,6 +1504,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
@@ -1550,6 +1553,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 		SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -1572,6 +1576,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		FTopLevelAccelerationStructureDx12* TLASDx12 = static_cast<FTopLevelAccelerationStructureDx12*>(InTLAS.get());
 		// Create shader resource view
 		D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -1596,6 +1601,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		TI_ASSERT((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::Uav) != 0);
 		const bool HasCounter = (InBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0;
 		// https://docs.microsoft.com/en-us/windows/win32/direct3d12/uav-counters
@@ -1628,6 +1634,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
@@ -1654,6 +1661,7 @@ namespace tix
 		uint32 InTableSlot
 	)
 	{
+		TI_ASSERT(InTableSlot < RRTable->GetTableSize());
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
