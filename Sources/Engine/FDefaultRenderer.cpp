@@ -122,7 +122,7 @@ namespace tix
 					BBVisibleActors.Max.Z
 				);
 				ViewUniformBuffer->Data[0].ShadowVP = (LightProjection * LightViewMat).GetTransposed();
-				ViewUniformBuffer->Data[0].ShadowParam.X = 0.005f;	// Shadow Bias
+				ViewUniformBuffer->Data[0].ShadowParam.X = 0.015f;	// Shadow Bias
 			}
 
 			ViewUniformBuffer->InitUniformBuffer(RHICmdList, (uint32)EGPUResourceFlag::Intermediate);
