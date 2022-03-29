@@ -35,5 +35,6 @@ namespace tix
 		const FInt2& Dim = RT->GetDemension();
 		FRecti VP(0, 0, Dim.X >> MipLevel, Dim.Y >> MipLevel);
 		SetViewport(VP);
+		SetScissorRect(VP);
 	}
 }

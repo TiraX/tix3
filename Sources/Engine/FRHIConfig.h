@@ -33,6 +33,7 @@ namespace tix
 #else
 	#error("unknown platform.")
 #endif
+		static const E_PIXEL_FORMAT DefaultShadowmapFormat = EPF_DEPTH16;
 
 		static const int32 StaticSamplerNum = 1;
 		static const int32 MaxResourceBarrierBuffers = 16;
