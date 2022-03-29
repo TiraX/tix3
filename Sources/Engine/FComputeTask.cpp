@@ -12,8 +12,6 @@ namespace tix
 		: ShaderName(ComputeShaderName)
 		, Flags(InFlags)
 	{
-		ComputeShader = FRHI::Get()->CreateComputeShader(ComputeShaderName);
-		ComputePipeline = FRHI::Get()->CreatePipeline(ComputeShader);
 	}
 
 	FComputeTask::~FComputeTask()
@@ -41,9 +39,14 @@ namespace tix
 	{
 		TI_ASSERT(IsRenderThread());
 
-		TShaderPtr Shader = ti_new TShader(ShaderName, EST_COMPUTE);
-		Shader->LoadShaderCode();
-		FRHI::Get()->UpdateHardwareResourceShader(ComputeShader, Shader->GetShaderCodes());
+		FShaderPtr ComputeShader = FRHI::Get()->CreateComputeShader(ShaderName);
+		TVector<TStreamPtr> ShaderCodes;
+		ShaderCodes.resize(ESS_COUNT);
+		ShaderCodes[ESS_COMPUTE_SHADER] = TShader::LoadShaderBlob(ShaderName);
+		FRHI::Get()->UpdateHardwareResourceShader(ComputeShader, ShaderCodes);
+
+		ComputePipeline = FRHI::Get()->CreatePipeline(ComputeShader);
+		ComputePipeline->SetResourceName(ShaderName + "-CPSO");
 
 		if (HasFlag(COMPUTE_TILE))
 		{

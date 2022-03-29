@@ -23,7 +23,7 @@ namespace tix
 		virtual ~FComputeTask();
 
 		void Finalize();
-		virtual void Run(FRHI * RHI) = 0;
+		virtual void Run(FRHICmdList * RHICmdList) = 0;
 		
 		bool HasFlag(uint32 InFlag) const
 		{
@@ -43,7 +43,6 @@ namespace tix
 		TString ShaderName;
 		uint32 Flags;
 		
-		FShaderPtr ComputeShader;
 		FPipelinePtr ComputePipeline;
 		
 		TTilePipelinePtr TilePLDesc;
