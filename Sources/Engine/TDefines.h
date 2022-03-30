@@ -111,13 +111,9 @@ void * operator new (std::size_t count);
 
 // Define DEBUG System
 #ifdef TIX_DEBUG
-#	define TIX_DEBUG_RENDER_TASK_NAME 1
+#	define TIX_DEBUG_RENDER_TASK_NAME 0
 #	define TIX_DEBUG_AYNC_LOADING 1
-#	define VT_PRELOADED_REGIONS 1
-#	define GPU_DRIVEN_TEST 1
 #else
 #	define TIX_DEBUG_RENDER_TASK_NAME 0
 #	define TIX_DEBUG_AYNC_LOADING 0
-#	define VT_PRELOADED_REGIONS 0
-#	define GPU_DRIVEN_TEST 0
 #endif
