@@ -27,7 +27,15 @@ namespace tix
 		};
 
 		virtual void SetViewProjection(const FViewProjectionInfo& Info) override;
+		virtual const FViewProjectionInfo& GetViewProjection() const override
+		{
+			return ViewProjection;
+		}
 		virtual void SetEnvironmentInfo(const FEnvironmentInfo& Info) override;
+		virtual const FEnvironmentInfo& GetEnvironmentInfo() const override
+		{
+			return EnvInfo;
+		}
 		virtual void SetEnvLight(FEnvLightPtr InEnvLight) override;
 		virtual FEnvLightPtr GetEnvLight() override;
 		virtual void AddPrimitive(FPrimitivePtr InPrim) override;
@@ -48,15 +56,7 @@ namespace tix
 			SceneFlags = 0;
 		}
 
-		const FViewProjectionInfo& GetViewProjection() const
-		{
-			return ViewProjection;
-		}
 
-		const FEnvironmentInfo& GetEnvironmentInfo() const
-		{
-			return EnvInfo;
-		}
 
 	private:
 

@@ -79,6 +79,7 @@ namespace tix
 
 		// Compute
 		virtual void SetComputePipeline(FPipelinePtr InPipeline) = 0;
+		virtual void SetComputeConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit) = 0;
 		virtual void SetComputeConstant(int32 BindIndex, const FUInt4& InValue) = 0;
 		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) = 0;
 		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) = 0;

@@ -63,6 +63,7 @@ namespace tix
 
 		// Compute
 		virtual void SetComputePipeline(FPipelinePtr InPipeline) override;
+		virtual void SetComputeConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit) override;
 		virtual void SetComputeConstant(int32 BindIndex, const FUInt4& InValue) override;
 		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) override;
 		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;

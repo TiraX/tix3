@@ -18,9 +18,11 @@ namespace tix
 
 		// Camera info
 		virtual void SetViewProjection(const FViewProjectionInfo& Info) = 0;
+		virtual const FViewProjectionInfo& GetViewProjection() const = 0;
 
 		// Lights info
 		virtual void SetEnvironmentInfo(const FEnvironmentInfo& Info) = 0;
+		virtual const FEnvironmentInfo& GetEnvironmentInfo() const = 0;
 		virtual void SetEnvLight(FEnvLightPtr InEnvLight) = 0;
 		virtual FEnvLightPtr GetEnvLight() = 0;
 

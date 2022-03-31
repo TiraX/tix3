@@ -45,6 +45,9 @@ namespace tix
 		GPUTexture = RHI->CreateGPUTexture();
 		GPUTexture->Init(CmdList, Desc, Data);
 		RHI->SetGPUTextureName(GPUTexture, GetResourceName());
+
+		if (TargetState != EGPUResourceState::Ignore)
+			CmdList->SetGPUTextureState(GPUTexture, TargetState);
 	}
 	/////////////////////////////////////////////////////////////
 	FTextureReadable::FTextureReadable(const TTextureDesc& Desc)

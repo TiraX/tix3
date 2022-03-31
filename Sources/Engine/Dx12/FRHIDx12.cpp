@@ -1453,7 +1453,6 @@ namespace tix
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
-		TI_ASSERT(TexDx12->ResourceState != EGPUResourceState::UnorderedAccess);
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);
@@ -1508,7 +1507,7 @@ namespace tix
 		FGPUResourcePtr GPUResource = InTexture->GetGPUResource();
 		FGPUTextureDx12* TexDx12 = static_cast<FGPUTextureDx12*>(GPUResource.get());
 		TI_ASSERT(TexDx12->Resource.Get() != nullptr);
-		TI_ASSERT(TexDx12->ResourceState == EGPUResourceState::UnorderedAccess);
+		TI_ASSERT(InTexture->HasTextureFlag(EGPUResourceFlag::Uav));
 
 		const TTextureDesc& Desc = InTexture->GetDesc();
 		DXGI_FORMAT DxgiFormat = GetDxPixelFormat(Desc.Format);

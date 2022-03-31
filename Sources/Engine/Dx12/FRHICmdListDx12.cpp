@@ -621,6 +621,11 @@ namespace tix
 		HoldResourceReference(InPipeline);
 	}
 
+	void FRHICmdListDx12::SetComputeConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit)
+	{
+		CommandList->SetComputeRoot32BitConstants(BindIndex, Size32Bit, ConstantData, 0);
+	}
+
 	void FRHICmdListDx12::SetComputeConstant(int32 BindIndex, const FUInt4& InValue)
 	{
 		CommandList->SetComputeRoot32BitConstants(BindIndex, 4, &InValue, 0);
