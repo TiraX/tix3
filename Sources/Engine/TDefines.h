@@ -100,12 +100,6 @@ void * operator new (std::size_t count);
 // Openmp parallel for
 #define OMP_PARALLEL_FOR TI_PRAGMA(omp parallel for)
 
-#if (COMPILE_WITH_RHI_DX12)
-#	define USE_HALF_FOR_INSTANCE_ROTATION 0
-#else
-#	define USE_HALF_FOR_INSTANCE_ROTATION 1
-#endif
-
 // We use right hand coordinate
 #define TI_USE_RH 1
 

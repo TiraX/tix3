@@ -661,38 +661,6 @@ namespace tix
 		OutMatrix = MatInstanceTrans;
 	}
 
-	inline void MatrixRotationScaleToHalf3(const FMat4& Mat, FHalf4& Rot0, FHalf4& Rot1, FHalf4& Rot2)
-	{
-		Rot0.X = Mat[0];
-		Rot0.Y = Mat[1];
-		Rot0.Z = Mat[2];
-		Rot0.W = Mat[3];
-		Rot1.X = Mat[4];
-		Rot1.Y = Mat[5];
-		Rot1.Z = Mat[6];
-		Rot1.W = Mat[7];
-		Rot2.X = Mat[8];
-		Rot2.Y = Mat[9];
-		Rot2.Z = Mat[10];
-		Rot2.W = Mat[11];
-	}
-
-	inline void MatrixRotationScaleToFloat3(const FMat4& Mat, FFloat4& Rot0, FFloat4& Rot1, FFloat4& Rot2)
-	{
-		Rot0.X = Mat[0];
-		Rot0.Y = Mat[1];
-		Rot0.Z = Mat[2];
-		Rot0.W = Mat[3];
-		Rot1.X = Mat[4];
-		Rot1.Y = Mat[5];
-		Rot1.Z = Mat[6];
-		Rot1.W = Mat[7];
-		Rot2.X = Mat[8];
-		Rot2.Y = Mat[9];
-		Rot2.Z = Mat[10];
-		Rot2.W = Mat[11];
-	}
-
 	void TAssetFile::CreateSceneTile(TVector<TResourcePtr>& OutResources)
 	{
 		if (ChunkHeader[EChunkLib::SceneTile] == nullptr)
@@ -835,22 +803,25 @@ namespace tix
 					{
 						const TResSMInstance& Instance = SMInstanceData[i + InstanceOffsetSrc];
 
-						FFloat4 Transition(Instance.Position.X, Instance.Position.Y, Instance.Position.Z, 0.f);
 						FMat4 RotationScaleMat;
 						GetInstanceRotationScaleMatrix(RotationScaleMat, Instance.Rotation, Instance.Scale);
-						TI_TODO("Use FMatrix4x3 for instance transform, since RTX also need this 4x3 matrix");
-#if USE_HALF_FOR_INSTANCE_ROTATION
-						FHalf4 RotScaleMat[3];
-						MatrixRotationScaleToHalf3(RotationScaleMat, RotScaleMat[0], RotScaleMat[1], RotScaleMat[2]);
-#else
-						FFloat4 RotScaleMat[3];
-						MatrixRotationScaleToFloat3(RotationScaleMat, RotScaleMat[0], RotScaleMat[1], RotScaleMat[2]);
-#endif
 
-						memcpy(Data + DataOffset, &Transition, sizeof(FFloat4));
-						DataOffset += sizeof(FFloat4);
-						memcpy(Data + DataOffset, RotScaleMat, sizeof(RotScaleMat));
-						DataOffset += sizeof(RotScaleMat);
+						FMat34 Mat34;
+						Mat34.SetTranslation(Instance.Position);
+						Mat34[0] = RotationScaleMat[0];
+						Mat34[1] = RotationScaleMat[1];
+						Mat34[2] = RotationScaleMat[2];
+
+						Mat34[4] = RotationScaleMat[4];
+						Mat34[5] = RotationScaleMat[5];
+						Mat34[6] = RotationScaleMat[6];
+
+						Mat34[8] = RotationScaleMat[8];
+						Mat34[9] = RotationScaleMat[9];
+						Mat34[10] = RotationScaleMat[10];
+
+						memcpy(Data + DataOffset, Mat34.Data(), sizeof(FMat34));
+						DataOffset += sizeof(FMat34);
 					}
 					const int32 InstanceDataLength = DataOffset - InstanceDataStart;
 					// Save instance offset and count

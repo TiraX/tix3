@@ -47,31 +47,22 @@ namespace tix
 	/////////////////////////////////////////////////////////////
 	const int32 TInstanceBuffer::SemanticSize[EISI_TOTAL] =
 	{
-		16,	// EISI_TRANSITION,
-#if USE_HALF_FOR_INSTANCE_ROTATION
-		8,	// EISI_ROT_SCALE_MAT0,
-		8,	// EISI_ROT_SCALE_MAT1,
-		8,	// EISI_ROT_SCALE_MAT2,
-#else
-		16,	// EISI_ROT_SCALE_MAT0,
-		16,	// EISI_ROT_SCALE_MAT1,
-		16,	// EISI_ROT_SCALE_MAT2,
-#endif
+		16,	// EISI_TRANSFORM0,
+		16,	// EISI_TRANSFORM1,
+		16,	// EISI_TRANSFORM2,
 	};
 
 	const int8* TInstanceBuffer::SemanticName[EISI_TOTAL] =
 	{
-		"INS_TRANSITION",		// EISI_TRANSITION,
-		"INS_TRANSFORM",	// EISI_ROT_SCALE_MAT0,
-		"INS_TRANSFORM",	// EISI_ROT_SCALE_MAT1,
-		"INS_TRANSFORM",	// EISI_ROT_SCALE_MAT2,
+		"INS_TRANSFORM",	// EISI_TRANSFORM0,
+		"INS_TRANSFORM",	// EISI_TRANSFORM1,
+		"INS_TRANSFORM",	// EISI_TRANSFORM2,
 	};
 
 	const int32 TInstanceBuffer::SemanticIndex[EISI_TOTAL] =
 	{
-		0,		// EISI_TRANSITION,
-		0,		// EISI_ROT_SCALE_MAT0,
-		1,		// EISI_ROT_SCALE_MAT1,
-		2,		// EISI_ROT_SCALE_MAT2
+		0,		// EISI_TRANSFORM0,
+		1,		// EISI_TRANSFORM1,
+		2,		// EISI_TRANSFORM2
 	};
 }
