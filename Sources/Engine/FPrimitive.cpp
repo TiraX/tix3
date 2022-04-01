@@ -27,7 +27,8 @@ namespace tix
 		FIndexBufferPtr IB, 
 		FInstanceBufferPtr InsB, 
 		FPipelinePtr Pipeline, 
-		FArgumentBufferPtr MIParam
+		FArgumentBufferPtr MIParam,
+		const FBox& InBounding
 	)
 	{
 		TI_ASSERT(IsRenderThread());
@@ -40,6 +41,8 @@ namespace tix
 		InstanceBuffer = InsB;
 		InstanceCount = InsB->GetDesc().InstanceCount;
 		InstanceOffset = 0;
+
+		Bounds = InBounding;
 
 		// Add a default section.
 		Sections.resize(1);

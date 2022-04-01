@@ -28,7 +28,8 @@ namespace tix
 			FIndexBufferPtr IB,
 			FInstanceBufferPtr InsB,
 			FPipelinePtr Pipeline,
-			FArgumentBufferPtr MIParam
+			FArgumentBufferPtr MIParam,
+			const FBox& Bounds
 		);
 		void InitFromInstancedStaticMesh(
 			TStaticMeshPtr InStaticMesh,
@@ -94,6 +95,10 @@ namespace tix
 		{
 			return (PrimitiveFlag & PrimitiveUniformBufferDirty) != 0;
 		}
+		const FBox& GetBounds() const
+		{
+			return Bounds;
+		}
 		void SetLocalToWorld(const FMat4 InLocalToWorld);
 		void SetUVTransform(float UOffset, float VOffset, float UScale, float VScale);
 		void SetVTDebugInfo(float A, float B, float C, float D);
@@ -107,6 +112,7 @@ namespace tix
 		FInstanceBufferPtr InstanceBuffer;
 		uint32 InstanceCount;
 		uint32 InstanceOffset;
+		FBox Bounds;
 
 		TVector<FSection> Sections;
 

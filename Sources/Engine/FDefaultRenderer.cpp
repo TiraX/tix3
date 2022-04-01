@@ -97,13 +97,13 @@ namespace tix
 			{
 				// Find visible actor bounds, for all actors now
 				FBox BBVisibleActors;
-				BBVisibleActors = Prims[0]->GetVertexBuffer()->GetDesc().BBox;
+				BBVisibleActors = Prims[0]->GetBounds();
 
 				for (uint32 PIndex = 1; PIndex < (uint32)Prims.size(); ++PIndex)
 				{
 					FPrimitivePtr Primitive = Prims[PIndex];
 					BBVisibleActors.AddInternalBox(
-						Primitive->GetVertexBuffer()->GetDesc().BBox
+						Primitive->GetBounds()
 					);
 				}
 
