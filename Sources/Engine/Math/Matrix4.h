@@ -723,9 +723,9 @@ namespace tix
 	inline FVec3<T> FMatrix4<T>::GetScale() const
 	{
 		FVec3<T> vScale;
-		vScale.X = FVec3<T>(M[0], M[1], M[2]).getLength();
-		vScale.Y = FVec3<T>(M[4], M[5], M[6]).getLength();
-		vScale.Z = FVec3<T>(M[8], M[9], M[10]).getLength();
+		vScale.X = FVec3<T>(M[0], M[1], M[2]).GetLength();
+		vScale.Y = FVec3<T>(M[4], M[5], M[6]).GetLength();
+		vScale.Z = FVec3<T>(M[8], M[9], M[10]).GetLength();
 		return vScale;
 	}
 

@@ -50,6 +50,7 @@ namespace tix
 		16,	// EISI_TRANSFORM0,
 		16,	// EISI_TRANSFORM1,
 		16,	// EISI_TRANSFORM2,
+		16,	// EISI_CUSTOM0,
 	};
 
 	const int8* TInstanceBuffer::SemanticName[EISI_TOTAL] =
@@ -57,12 +58,14 @@ namespace tix
 		"INS_TRANSFORM",	// EISI_TRANSFORM0,
 		"INS_TRANSFORM",	// EISI_TRANSFORM1,
 		"INS_TRANSFORM",	// EISI_TRANSFORM2,
+		"INS_CUSTOM",	// EISI_CUSTOM0,
 	};
 
 	const int32 TInstanceBuffer::SemanticIndex[EISI_TOTAL] =
 	{
 		0,		// EISI_TRANSFORM0,
 		1,		// EISI_TRANSFORM1,
-		2,		// EISI_TRANSFORM2
+		2,		// EISI_TRANSFORM2,
+		0,	// EISI_CUSTOM0,
 	};
 }

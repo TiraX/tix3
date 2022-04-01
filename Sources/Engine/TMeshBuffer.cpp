@@ -154,7 +154,7 @@ namespace tix
 
 	/////////////////////////////////////////////////////////////
 
-	const uint32 TInstanceBuffer::InstanceFormat = EINSSEG_ALL;
+	const uint32 TInstanceBuffer::InstanceFormat = EINSSEG_TRANSFORM_ALL;
 	const uint32 TInstanceBuffer::InstanceStride =
 		TInstanceBuffer::SemanticSize[EISI_TRANSFORM0] +
 		TInstanceBuffer::SemanticSize[EISI_TRANSFORM1] +
