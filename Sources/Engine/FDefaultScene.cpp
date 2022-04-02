@@ -54,4 +54,10 @@ namespace tix
 	{
 		ShadowPrimitives.push_back(InPrim);
 	}
+
+	void FDefaultScene::ClearAllPrimitives()
+	{
+		Primitives.clear();
+		ShadowPrimitives.clear();
+	}
 }

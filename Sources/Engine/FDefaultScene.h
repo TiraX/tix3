@@ -38,8 +38,10 @@ namespace tix
 		}
 		virtual void SetEnvLight(FEnvLightPtr InEnvLight) override;
 		virtual FEnvLightPtr GetEnvLight() override;
+
 		virtual void AddPrimitive(FPrimitivePtr InPrim) override;
 		virtual void AddShadowPrimitive(FPrimitivePtr InPrim) override;
+		virtual void ClearAllPrimitives() override;
 
 		bool HasSceneFlag(SceneFlag Flag) const
 		{
