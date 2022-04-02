@@ -67,6 +67,66 @@ namespace tix
 		return SS.str();
 	}
 
+	/**
+	 * From Unreal Engine: CString.h
+	 * Returns whether this string contains only numeric characters
+	 * @param Str - string that will be checked
+	 **/
+	enum ENumericType
+	{
+		ENum_NotNum,
+		ENum_Int,
+		ENum_Float,
+		ENum_Double
+	};
+	inline ENumericType IsNumeric(const char* Str)
+	{
+		if (*Str == '-' || *Str == '+')
+		{
+			Str++;
+			if (*Str == '\0')
+				return ENum_NotNum;
+		}
+
+		bool bHasDot = false;
+		bool bHasFloatMark = false;
+		while (*Str != '\0')
+		{
+			if (*Str == '.')
+			{
+				if (bHasDot)
+				{
+					return ENum_NotNum;
+				}
+				bHasDot = true;
+			}
+			else if (*Str == 'f')
+			{
+				if (*(Str + 1) != '\0')
+					return ENum_NotNum;
+				bHasFloatMark = true;
+			}
+			else if (!TIsDigit(*Str))
+			{
+				return ENum_NotNum;
+			}
+
+			++Str;
+		}
+
+		if (bHasDot)
+		{
+			if (bHasFloatMark)
+				return ENum_Float;
+			else
+				return ENum_Double;
+		}
+		else
+		{
+			return ENum_Int;
+		}
+	}
+
 	inline void GetPathAndName(const TString& FullPathName, TString& Path, TString& Name)
 	{
 		TString FullPathName1 = FullPathName;

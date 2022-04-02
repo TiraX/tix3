@@ -43,6 +43,7 @@ typedef double float64;
 #define TFind std::find
 #define TForward std::forward
 #define TMakePair std::make_pair
+#define TIsDigit std::isdigit
 
 // Release memory of TVector
 template<class T>
