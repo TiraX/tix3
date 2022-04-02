@@ -265,14 +265,23 @@ namespace tix
 
 		void operator << (TVector<TString>& OutArray) const
 		{
-			TI_ASSERT(IsNull() || IsArray());
 			if (!IsNull())
 			{
-				OutArray.reserve(OutArray.size() + Size());
-				for (int32 i = 0; i < Size(); i++)
+				if (IsArray())
 				{
+					OutArray.reserve(OutArray.size() + Size());
+					for (int32 i = 0; i < Size(); i++)
+					{
+						TString S;
+						(*this)[i] << S;
+						OutArray.push_back(S);
+					}
+				}
+				else
+				{
+					OutArray.reserve(OutArray.size() + 1);
 					TString S;
-					(*this)[i] << S;
+					(*this) << S;
 					OutArray.push_back(S);
 				}
 			}

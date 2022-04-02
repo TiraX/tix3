@@ -62,7 +62,7 @@ namespace tix
 		TStringStream SS;
 		for (const auto& S : InStrings)
 		{
-			SS << S;
+			SS << S << endl;
 		}
 		return SS.str();
 	}
