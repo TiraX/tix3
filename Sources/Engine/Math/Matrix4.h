@@ -904,7 +904,7 @@ namespace tix
 	{
 		TransformVect(box.Min);
 		TransformVect(box.Max);
-		box.repair();
+		box.Repair();
 	}
 
 	//! Transforms a axis aligned bounding box more accurately than transformBox()

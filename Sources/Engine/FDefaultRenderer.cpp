@@ -113,6 +113,7 @@ namespace tix
 				FFloat3 Up = FFloat3(0, 0, 1);
 				FMat4 LightViewMat = BuildCameraLookAtMatrix(LightPos, LightTarget, Up);
 				LightViewMat.TransformBoxUE(BBVisibleActors);
+				BBVisibleActors.Extend(1.1f);
 				FMat4 LightProjection = BuildProjectionMatrixOrtho(
 					BBVisibleActors.Min.X,
 					BBVisibleActors.Max.X,

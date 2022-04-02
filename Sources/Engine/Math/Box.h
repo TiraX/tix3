@@ -258,19 +258,17 @@ namespace tix
 
 		void Repair()
 		{
-			T t;
-
 			if (Min.X > Max.X)
 			{
-				t = Min.X; Min.setX(Max.X); Max.setX(t);
+				TMath::Swap(Min.X, Max.X);
 			}
 			if (Min.Y > Max.Y)
 			{
-				t = Min.Y; Min.setY(Max.Y); Max.setY(t);
+				TMath::Swap(Min.Y, Max.Y);
 			}
 			if (Min.Z > Max.Z)
 			{
-				t = Min.Z; Min.setZ(Max.Z); Max.setZ(t);
+				TMath::Swap(Min.Z, Max.Z);
 			}
 		}
 
