@@ -23,6 +23,12 @@ namespace tix
 			, Z(z)
 			, W(w) 
 		{}
+		FQuat(const FFloat4& V4)
+			: X(V4.X)
+			, Y(V4.Y)
+			, Z(V4.Z)
+			, W(V4.W)
+		{}
 
 		// Constructor which converts euler angles to a FQuat
 		FQuat(float32 x, float32 y, float32 z);
