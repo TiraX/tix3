@@ -385,6 +385,48 @@ namespace tix
 			JsonValue->AddMember(Value::StringRefType(Name), VObj, *Allocator);
 			return (*this)[Name];
 		}
+		TJSONNode AddArray(const char* Name)
+		{
+			Value VArray(kArrayType);
+			JsonValue->AddMember(Value::StringRefType(Name), VArray, *Allocator);
+			return (*this)[Name];
+		}
+		void Reserve(uint32 NewCap)
+		{
+			TI_ASSERT(JsonValue->IsArray());
+			JsonValue->Reserve(NewCap, *Allocator);
+		}
+		TJSONNode InsertEmptyObjectToArray()
+		{
+			TI_ASSERT(JsonValue->IsArray());
+			Value VObj(kObjectType);
+			JsonValue->PushBack(VObj, *Allocator);
+			return (*this)[JsonValue->Size() - 1];
+		}
+		TJSONNode InsertToArray(const FUInt3& V)
+		{
+			TI_ASSERT(JsonValue->IsArray());
+			Value VArray(kArrayType);
+			VArray.Reserve(3, *Allocator);
+			VArray.PushBack(V.X, *Allocator);
+			VArray.PushBack(V.Y, *Allocator);
+			VArray.PushBack(V.Z, *Allocator);
+			JsonValue->PushBack(VArray, *Allocator);
+			return (*this)[JsonValue->Size() - 1];
+		}
+		template<class T>
+		TJSONNode InsertToArray(const TVector<T>& V)
+		{
+			TI_ASSERT(JsonValue->IsArray());
+			Value VArray(kArrayType);
+			VArray.Reserve((uint32)V.size(), *Allocator);
+			for (const T& v : V)
+			{
+				VArray.PushBack(v, *Allocator);
+			}
+			JsonValue->PushBack(VArray, *Allocator);
+			return (*this)[JsonValue->Size() - 1];
+		}
 
 	protected:
 		Value* JsonValue;
