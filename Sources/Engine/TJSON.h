@@ -369,6 +369,26 @@ namespace tix
 			}
 			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
 		}
+		void AddMember(const char* Name, const int32* IData, int32 Count)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)Count, *Allocator);
+			for (int32 i = 0; i < Count; i++)
+			{
+				VArray.PushBack(IData[i], *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
+		void AddMember(const char* Name, const float* FData, int32 Count)
+		{
+			Value VArray(kArrayType);
+			VArray.Reserve((SizeType)Count, *Allocator);
+			for (int32 i = 0; i < Count; i++)
+			{
+				VArray.PushBack(FData[i], *Allocator);
+			}
+			JsonValue->AddMember(StringRef(Name), VArray, *Allocator);
+		}
 		void AddMember(const char* Name, const TVector<TString>& VS)
 		{
 			Value VArray(kArrayType);
