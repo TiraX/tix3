@@ -187,6 +187,7 @@
     <ClInclude Include="..\..\Sources\Engine\Math\Vec3.h" />
     <ClInclude Include="..\..\Sources\Engine\Math\Vec4.h" />
     <ClInclude Include="..\..\Sources\Engine\stdafx.h" />
+    <ClInclude Include="..\..\Sources\Engine\TAlgo.h" />
     <ClInclude Include="..\..\Sources\Engine\TAnimSequence.h" />
     <ClInclude Include="..\..\Sources\Engine\TAsset.h" />
     <ClInclude Include="..\..\Sources\Engine\TAssetFile.h" />

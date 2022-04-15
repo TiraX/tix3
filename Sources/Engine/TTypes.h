@@ -38,9 +38,6 @@ typedef double float64;
 #define THSet std::unordered_set
 #define TNumLimit std::numeric_limits
 #define TFunction std::function
-#define TSort std::sort
-#define TFill std::fill
-#define TFind std::find
 #define TForward std::forward
 #define TMakePair std::make_pair
 #define TIsDigit std::isdigit

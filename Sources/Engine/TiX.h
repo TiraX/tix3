@@ -39,6 +39,7 @@ using namespace std;
 #include "TPtrTypes.h"
 #include "TStringExt.h"
 #include "TMath.h"
+#include "TAlgo.h"
 #include "TJSON.h"
 #include "TUtils.h"
 #include "TZip.h"
