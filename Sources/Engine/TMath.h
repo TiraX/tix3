@@ -256,6 +256,16 @@ namespace tix
 			return (a + tolerance >= b) && (a - tolerance <= b);
 		}
 
+		static inline bool GreatEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
+		{
+			return (a + tolerance) >= b;
+		}
+
+		static inline bool LessEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
+		{
+			return a <= (b + tolerance);
+		}
+
 		//! returns if a equals zero, taking rounding errors into account
 		static inline bool IsZero(const float32 a, const float32 tolerance = ROUNDING_ERROR_32)
 		{
