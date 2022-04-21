@@ -58,7 +58,7 @@ namespace tix
 		template<class T>
 		static inline void Reorder(TVector<T>& Values, const TVector<int32>& Orders)
 		{
-			TI_ASSERT(Values.size() >= Orders.size());
+			TI_ASSERT(Values.size() == Orders.size());
 			TVector<T> Result;
 			Result.resize(Orders.size());
 
