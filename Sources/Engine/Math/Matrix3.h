@@ -7,34 +7,50 @@
 
 namespace tix
 {
-	class FMat34
+	class FMat3
 	{
 	public:
-		static const int32 NumElements = 12;
-		FMat34()
+		static const int32 NumElements = 9;
+		FMat3()
 		{
 			memset(M, 0, sizeof(float) * NumElements);
 			M[0] = 1.f;
-			M[5] = 1.f;
-			M[10] = 1.f;
+			M[4] = 1.f;
+			M[8] = 1.f;
 		}
 
-		FMat34(const FMat34& Other)
+		FMat3(const FMat3& Other)
 		{
 			*this = Other;
 		}
 
-		~FMat34()
+		~FMat3()
 		{}
 
-		void SetTranslation(const FFloat3& translation)
+		FMat3& MadeBy(FFloat3 VecForward, FFloat3 VecUp)
 		{
-			M[3] = translation.X;
-			M[7] = translation.Y;
-			M[11] = translation.Z;
+			VecForward.Normalize();
+
+			VecUp = VecUp.Cross(VecForward);
+			VecUp = VecUp.Cross(VecForward);
+			VecUp.Normalize();
+
+			FFloat3 T = VecUp.Cross(VecForward);
+			T.Normalize();
+
+			M[0] = T.X;
+			M[1] = T.Y;
+			M[2] = T.Z;
+			M[3] = VecUp.X;
+			M[4] = VecUp.Y;
+			M[5] = VecUp.Z;
+			M[6] = VecForward.X;
+			M[7] = VecForward.Y;
+			M[8] = VecForward.Z;
+			return *this;
 		}
 
-		FMat34& operator = (const FMat34& Other)
+		FMat3& operator = (const FMat3& Other)
 		{
 			M[0] = Other.M[0];
 			M[1] = Other.M[1];
@@ -45,9 +61,6 @@ namespace tix
 			M[6] = Other.M[6];
 			M[7] = Other.M[7];
 			M[8] = Other.M[8];
-			M[9] = Other.M[9];
-			M[10] = Other.M[10];
-			M[11] = Other.M[11];
 			return *this;
 		}
 

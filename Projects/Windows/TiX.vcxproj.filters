@@ -750,6 +750,9 @@
     <ClInclude Include="..\..\Sources\Engine\TAlgo.h">
       <Filter>Sources\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\Math\Matrix3.h">
+      <Filter>Sources\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenPS.hlsl">

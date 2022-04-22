@@ -35,6 +35,7 @@ namespace tix
 		FQuat(const FFloat3& vec);
 
 		// Constructor which converts a matrix to a FQuat
+		FQuat(const FMat3& mat);
 		FQuat(const FMat4& mat);
 
 		float32& operator [] (uint32 i)
@@ -54,6 +55,7 @@ namespace tix
 		bool operator<(const FQuat& other) const;
 
 		inline FQuat& operator=(const FQuat& other);
+		inline FQuat& operator=(const FMat3& other);
 		inline FQuat& operator=(const FMat4& other);
 		FQuat operator+(const FQuat& other) const;
 		FQuat operator*(const FQuat& other) const;
@@ -128,6 +130,10 @@ namespace tix
 	}
 
 	// Constructor which converts a matrix to a FQuat
+	inline FQuat::FQuat(const FMat3& mat)
+	{
+		(*this) = mat;
+	}
 	inline FQuat::FQuat(const FMat4& mat)
 	{
 		(*this) = mat;
@@ -167,6 +173,67 @@ namespace tix
 		Z = other.Z;
 		W = other.W;
 		return *this;
+	}
+
+	inline FQuat& FQuat::operator=(const FMat3& m)
+	{
+		// Determine which of w, x, y, or z has the largest absolute value
+		float fourWSquaredMinus1 = m[0] + m[4] + m[8];
+		float fourXSquaredMinus1 = m[0] - m[4] - m[8];
+		float fourYSquaredMinus1 = m[4] - m[0] - m[8];
+		float fourZSquaredMinus1 = m[8] - m[0] - m[4];
+
+		int biggestIndex = 0;
+		float fourBiggestSquaredMinus1 = fourWSquaredMinus1;
+		if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
+		{
+			fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+			biggestIndex = 1;
+		}
+		if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
+		{
+			fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+			biggestIndex = 2;
+		}
+		if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
+		{
+			fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+			biggestIndex = 3;
+		}
+
+		// Perform square root and division
+		float biggestVal = sqrt(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
+		float mult = 0.25f / biggestVal;
+		// Apply table to compute FQuat values
+		switch (biggestIndex)
+		{
+		case 0:
+			W = biggestVal;
+			X = (m[5] - m[7]) * mult;
+			Y = (m[6] - m[2]) * mult;
+			Z = (m[1] - m[3]) * mult;
+			break;
+		case 1:
+			X = biggestVal;
+			W = (m[5] - m[7]) * mult;
+			Y = (m[1] + m[3]) * mult;
+			Z = (m[6] + m[2]) * mult;
+			break;
+		case 2:
+			Y = biggestVal;
+			W = (m[6] - m[2]) * mult;
+			X = (m[1] + m[3]) * mult;
+			Z = (m[5] + m[7]) * mult;
+			break;
+		case 3:
+			Z = biggestVal;
+			W = (m[1] - m[3]) * mult;
+			X = (m[6] + m[2]) * mult;
+			Y = (m[5] + m[7]) * mult;
+			break;
+		}
+
+		return Normalize();
 	}
 
 	inline FQuat& FQuat::operator=(const FMat4& m)
