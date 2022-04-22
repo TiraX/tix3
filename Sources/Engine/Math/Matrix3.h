@@ -29,9 +29,7 @@ namespace tix
 
 		FMat3& MadeBy(FFloat3 VecForward, FFloat3 VecUp)
 		{
-			VecForward.Normalize();
-
-			VecUp = VecUp.Cross(VecForward);
+			VecUp = VecForward.Cross(VecUp);
 			VecUp = VecUp.Cross(VecForward);
 			VecUp.Normalize();
 
@@ -41,12 +39,12 @@ namespace tix
 			M[0] = T.X;
 			M[1] = T.Y;
 			M[2] = T.Z;
-			M[3] = VecUp.X;
-			M[4] = VecUp.Y;
-			M[5] = VecUp.Z;
-			M[6] = VecForward.X;
-			M[7] = VecForward.Y;
-			M[8] = VecForward.Z;
+			M[3] = VecForward.X;
+			M[4] = VecForward.Y;
+			M[5] = VecForward.Z;
+			M[6] = VecUp.X;
+			M[7] = VecUp.Y;
+			M[8] = VecUp.Z;
 			return *this;
 		}
 
