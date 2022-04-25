@@ -19,6 +19,21 @@ namespace tix
 			M[8] = 1.f;
 		}
 
+		FMat3(float a0, float a1, float a2,
+			float a3, float a4, float a5,
+			float a6, float a7, float a8)
+		{
+			M[0] = a0;
+			M[1] = a1;
+			M[2] = a2;
+			M[3] = a3;
+			M[4] = a4;
+			M[5] = a5;
+			M[6] = a6;
+			M[7] = a7;
+			M[8] = a8;
+		}
+
 		FMat3(const FMat3& Other)
 		{
 			*this = Other;
@@ -60,6 +75,37 @@ namespace tix
 			M[7] = Other.M[7];
 			M[8] = Other.M[8];
 			return *this;
+		}
+
+		// returns transposed matrix
+		inline FMat3 GetTransposed() const
+		{
+			FMat3 T;
+			T.M[0] = M[0];
+			T.M[1] = M[3];
+			T.M[2] = M[6];
+
+			T.M[3] = M[1];
+			T.M[4] = M[4];
+			T.M[5] = M[7];
+
+			T.M[6] = M[2];
+			T.M[7] = M[5];
+			T.M[8] = M[8];
+			return T;
+		}	
+		
+		inline void TransformVect(FFloat3& vect) const
+		{
+			float vector[3];
+
+			vector[0] = vect.X * M[0] + vect.Y * M[3] + vect.Z * M[6];
+			vector[1] = vect.X * M[1] + vect.Y * M[4] + vect.Z * M[7];
+			vector[2] = vect.X * M[2] + vect.Y * M[5] + vect.Z * M[8];
+
+			vect.X = vector[0];
+			vect.Y = vector[1];
+			vect.Z = vector[2];
 		}
 
 		float& operator [] (uint32 Index)
