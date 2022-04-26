@@ -15,7 +15,7 @@ namespace tix
 			: X(0)
 			, Y(0)
 			, Z(0)
-			, W(0)
+			, W(1)
 		{}
 
 		FVec4(T nx, T ny, T nz, T nw)
