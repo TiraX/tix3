@@ -328,7 +328,9 @@ namespace tix
 		}
 		void AddMember(const char* Name, const char* S)
 		{
-			JsonValue->AddMember(StringRef(Name), StringRef(S), *Allocator);
+			Value StrValue;
+			StrValue.SetString(S, strlen(S), *Allocator);
+			JsonValue->AddMember(StringRef(Name), StrValue, *Allocator);
 		}
 		void AddMember(const char* Name, const FFloat3& V)
 		{
