@@ -21,6 +21,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <regex>
 
 using namespace std;
 

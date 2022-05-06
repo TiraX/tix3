@@ -57,6 +57,7 @@ typedef std::mutex TMutex;
 typedef std::condition_variable TCond;
 typedef std::thread::id TThreadId;
 
+#include "TRegex.h"
 #include "TInputEventType.h"
 #include "TTypeCull.h"
 #include "TTypeRenderer.h"
