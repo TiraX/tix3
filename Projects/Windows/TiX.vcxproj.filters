@@ -331,6 +331,9 @@
     <ClCompile Include="..\..\Sources\Engine\FRHIHeap.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12ShaderCompile.cpp">
+      <Filter>Sources\Rendering\dx12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Engine\stdafx.h">

@@ -39,6 +39,8 @@ namespace tix
 		virtual int32 GetCurrentEncodingFrameIndex() = 0;
 		virtual void WaitingForGpu() = 0;
 
+		virtual TStreamPtr CompileShader(const TString& InCode, const TString& Entry, const TString& Target, const TString& IncludePath, bool Debug = false) = 0;
+
 		// Create Command List
 		virtual FRHICmdList* CreateRHICommandList(
 			ERHICmdList Type,

@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHICmdListDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDescriptorHeapDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12.cpp" />
+    <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDx12ShaderCompile.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRHIDXR.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRootSignatureDx12.cpp" />
     <ClCompile Include="..\..\Sources\Engine\Dx12\FRtxPipelineDx12.cpp" />
