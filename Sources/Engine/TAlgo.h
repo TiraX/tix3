@@ -11,6 +11,7 @@ namespace tix
 #define TSort std::sort
 #define TFill std::fill
 #define TFind std::find
+#define TFindIf std::find_if
 #define TDistance std::distance
 
 	class TAlgo
