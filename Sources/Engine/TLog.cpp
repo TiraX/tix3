@@ -73,7 +73,7 @@ namespace tix
 		else
 		{
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-				FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+				FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 #	endif
 
@@ -87,7 +87,7 @@ namespace tix
 #	ifdef TI_PLATFORM_WIN32
 		{
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-				FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+				FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 #	endif
 		ti_delete[] tmp;
