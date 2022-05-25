@@ -30,7 +30,7 @@ namespace tix
 
 	void FTexture::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data, EGPUResourceState TargetState)
 	{
-		TI_ASSERT(IsRenderThread());
+		TI_ASSERT(CmdList == nullptr || TThread::AccquireId() == CmdList->WorkingThread);
 		TI_ASSERT(GPUTexture == nullptr);
 		FRHI* RHI = FRHI::Get();
 
