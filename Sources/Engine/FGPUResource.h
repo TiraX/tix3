@@ -73,13 +73,19 @@ namespace tix
 	{
 	public:
 		FGPUResource()
+			: ResourceState(EGPUResourceState::Common)
 		{}
 		virtual ~FGPUResource()
 		{}
 
+		EGPUResourceState GetResourceState()
+		{
+			return ResourceState;
+		}
 	protected:
 
 	protected:
+		EGPUResourceState ResourceState;
 	};
 
 	class FRHICmdList;
@@ -94,6 +100,8 @@ namespace tix
 		{}
 
 		virtual void Init(FRHICmdList* RHICmdList, const FGPUBufferDesc & Desc, TStreamPtr Data) = 0;
+
+	protected:
 	};
 
 	/////////////////////////////////////////////////////////////
@@ -106,5 +114,7 @@ namespace tix
 		{}
 
 		virtual void Init(FRHICmdList* RHICmdList, const FGPUTextureDesc& Desc, const TVector<TImagePtr>& Data) = 0;
+
+	protected:
 	};
 }

@@ -15,7 +15,6 @@ namespace tix
 	{
 	public:
 		FGPUTextureDx12()
-			: ResourceState(EGPUResourceState::Common)
 		{}
 
 		virtual ~FGPUTextureDx12()
@@ -28,7 +27,6 @@ namespace tix
 		}
 	private:
 		ComPtr<ID3D12Resource> Resource;
-		EGPUResourceState ResourceState;
 
 		friend class FRHIDx12;
 		friend class FRHICmdListDx12;
