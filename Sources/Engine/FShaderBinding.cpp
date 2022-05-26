@@ -59,10 +59,11 @@ namespace tix
 			{
 				return ARGUMENT_MI_ARGUMENTS;
 			}
-			RuntimeFail();
+			//RuntimeFail();
 		}
 
-		return ARGUMENT_UNKNOWN;
+		//return ARGUMENT_UNKNOWN;
+		return ARGUMENT_MI_ARGUMENTS;
 	}
 
 #if DEBUG_SHADER_BINDING_TYPE

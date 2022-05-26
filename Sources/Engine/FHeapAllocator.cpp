@@ -44,7 +44,6 @@ namespace tix
 
 	void FHeapAllocator::RecallTable(uint32 StartIndex, uint32 Size)
 	{
-		TI_ASSERT(IsRenderThread());
 		TVector<uint32>& Avaibles = AvaibleHeapTables[Size];
 		Avaibles.push_back(StartIndex);
 	}

@@ -64,12 +64,14 @@ namespace tix
 		}
 		CmdLists.Clear();
 
+		_DHeapMutex.lock();
 		const uint32 NumHeaps = DescriptorHeaps.Size();
 		for (uint32 i = 0; i < NumHeaps; i++)
 		{
 			ti_delete DescriptorHeaps[i];
 		}
 		DescriptorHeaps.Clear();
+		_DHeapMutex.unlock();
 		ti_delete DXR;
 	}
 
@@ -501,7 +503,9 @@ namespace tix
 #ifdef TIX_DEBUG
 		Heap->WorkingThread = TThread::AccquireId();
 #endif // TIX_DEBUG
+		_DHeapMutex.lock();
 		DescriptorHeaps.PushBack(Heap);
+		_DHeapMutex.unlock();
 		return Heap;
 	}
 

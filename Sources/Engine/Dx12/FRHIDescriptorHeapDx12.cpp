@@ -48,6 +48,7 @@ namespace tix
 
 	FRenderResourceTablePtr FDescriptorHeapDx12::CreateRenderResourceTable(uint32 InSize)
 	{
+		TI_ASSERT(WorkingThread == TThread::AccquireId());
 		uint32 StartIndex = HeapAllocator.AllocateTable(InSize);
 		FRenderResourceTablePtr RT = ti_new FRenderResourceTable(HeapType, HeapId, StartIndex, InSize);
 		return RT;
@@ -55,6 +56,7 @@ namespace tix
 
 	void FDescriptorHeapDx12::RecallRenderResourceTable(uint32 InStart, uint32 InSize)
 	{
+		TI_ASSERT(WorkingThread == TThread::AccquireId());
 		HeapAllocator.RecallTable(InStart, InSize);
 	}
 

@@ -25,7 +25,6 @@ namespace tix
 
 	FTexture::~FTexture()
 	{
-		TI_ASSERT(IsRenderThread());
 	}
 
 	void FTexture::CreateGPUTexture(FRHICmdList* CmdList, const TVector<TImagePtr>& Data, EGPUResourceState TargetState)

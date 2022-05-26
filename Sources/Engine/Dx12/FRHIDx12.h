@@ -188,7 +188,8 @@ namespace tix
 		D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptor;
 		FUInt2 BackBufferSize;
 
-		// Descriptor heaps
+		// Descriptor heaps, canbe access from different threads, make it thread safe.
+		TMutex _DHeapMutex;
 		TThreadSafeVector<FDescriptorHeapDx12*> DescriptorHeaps;
 		FDescriptorHeapDx12* HeapRtv;
 		FDescriptorHeapDx12* HeapDsv;

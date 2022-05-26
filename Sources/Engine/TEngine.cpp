@@ -119,11 +119,7 @@ namespace tix
 	{
 		TEngineResources::DestroyGlobalResources();
 
-		// Remove all tickers
-		for (auto T : Tickers)
-		{
-			ti_delete T;
-		}
+		// Remove all tickers, do not delete ticker, let app manage ticker's lifetime
 		Tickers.clear();
 
 		// delete components
@@ -212,7 +208,6 @@ namespace tix
 			Tick();
 		}
 
-		TEngine::Destroy();
 #elif defined (TI_PLATFORM_IOS)
 		[[TDirectorCaller sharedDirectorCaller] startMainLoopWithInterval: 1.0f / 60.f];
 #else

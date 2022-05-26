@@ -29,9 +29,9 @@ namespace tix
 
 	FRenderResourceTable::~FRenderResourceTable()
 	{
-		TI_ASSERT(IsRenderThread());
 		FRHIHeap* Heap = FRHI::Get()->GetHeapById(HeapId);
 		TI_ASSERT(Heap->GetHeapId() == HeapId && Heap->GetHeapType() == HeapType);
+		//TI_ASSERT(Heap->WorkingThread == TThread::AccquireId());
 		Heap->RecallRenderResourceTable(Start, Size);
 	}
 }
