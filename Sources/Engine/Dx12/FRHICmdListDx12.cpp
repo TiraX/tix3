@@ -131,6 +131,7 @@ namespace tix
 
 	void FRHICmdListDx12::BeginCmdList()
 	{
+		TI_ASSERT(WorkingThread == TThread::AccquireId());
 		CurrentIndex = (uint32)(ExecIndex % CommandAllocators.size());
 		CurrentRenderTarget = nullptr;
 		CurrentBoundResource.Reset();
