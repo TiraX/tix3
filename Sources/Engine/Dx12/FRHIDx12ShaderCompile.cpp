@@ -97,7 +97,7 @@ namespace tix
 			for (int32 l = 0; l < (int32)Lines.size(); l++)
 			{
 				const TString& L = Lines[l];
-				_LOG(ELog::Log, "%04d %s\n", l, L.c_str());
+				_LOG(ELog::Log, "%03d %s\n", l, L.c_str());
 			}
 			CompileErrors->Release();
 			return nullptr;
