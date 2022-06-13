@@ -83,6 +83,12 @@ namespace tix
 	class TI_API FUniformBuffer : public FRenderResource
 	{
 	public:
+#if COMPILE_WITH_RHI_DX12
+		// Dx12 constant buffers need alignment of 256
+		static const uint32 Alignment = 256;
+#else
+		static const uint32 Alignment = 16;
+#endif
 		FUniformBuffer(uint32 InStructureSizeInBytes, uint32 InElements, uint32 InUBFlag = 0);
 		virtual ~FUniformBuffer();
 

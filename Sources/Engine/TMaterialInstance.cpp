@@ -30,13 +30,7 @@ namespace tix
 			if (ParamValueBuffer != nullptr)
 			{
 				uint32 UBFlag = (uint32)(ParamValueBuffer->GetLength() < 4096 ? EGPUResourceFlag::Intermediate : EGPUResourceFlag::None);
-#if COMPILE_WITH_RHI_DX12
-				// Dx12 constant buffers need alignment of 256
-				uint32 Alignment = 256;
-#else
-				uint32 Alignment = 16;
-#endif
-				FUniformBufferPtr UniformBuffer = ti_new FUniformBuffer(TMath::Max(ParamValueBuffer->GetLength(), Alignment), 1, UBFlag);
+				FUniformBufferPtr UniformBuffer = ti_new FUniformBuffer(TMath::Align(ParamValueBuffer->GetLength(), FUniformBuffer::Alignment), 1, UBFlag);
 				UniformBuffer->SetResourceName(GetResourceName());
 
 				TStreamPtr _ParamValueBuffer = ParamValueBuffer;
