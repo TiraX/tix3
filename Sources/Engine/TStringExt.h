@@ -46,7 +46,7 @@ namespace tix
 		TString::size_type Pos1, Pos2;
 		Pos2 = S.find(C);
 		Pos1 = 0;
-		while (std::string::npos != Pos2)
+		while (TString::npos != Pos2)
 		{
 			OutStrings.push_back(S.substr(Pos1, Pos2 - Pos1));
 

@@ -210,6 +210,11 @@ namespace tix
 			return (int32)ceil(x);
 		}
 
+		static inline float Pow(float X, float Y)
+		{
+			return pow(X, Y);
+		}
+
 		static inline int32 CountBitNum(uint32 value)
 		{
 			int32 num = 0;
