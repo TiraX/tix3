@@ -10,6 +10,7 @@ namespace tix
 	enum E_PIXEL_FORMAT
 	{
 		EPF_A8,
+		EPF_RG8,
 		EPF_RGB8,	// As TGA need it
 		EPF_BGR8,	// As TGA need it
 		EPF_RGBA8,

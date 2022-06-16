@@ -15,6 +15,8 @@ namespace tix
 		{
 		case EPF_A8:
 			return 1;
+		case EPF_RG8:
+			return 2;
 		case EPF_RGB8:
 		case EPF_BGR8:
 			return 3;

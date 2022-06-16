@@ -15,6 +15,8 @@ namespace tix
 		{
 		case EPF_A8:
 			return DXGI_FORMAT_R8_UNORM;
+		case EPF_RG8:
+			return DXGI_FORMAT_R8G8_UNORM;
 		case EPF_RGBA8:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
 		case EPF_RGBA8_SRGB:
