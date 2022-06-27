@@ -257,15 +257,22 @@ namespace tix
 	}
 
 	/////////////////////////////////////////////////////////////
-	static int32 TimerRecorderStack = 0;
-	inline void LogSpaceForStack()
+	int32 TTimeRecorder::TimerRecorderStack = 0;
+	TStringStream TTimeRecorder::Profiles;
+	void TTimeRecorder::DumpProfile()
+	{
+		_LOG(ELog::Log, Profiles.str().c_str());
+		Profiles.clear();
+	}
+
+	void TTimeRecorder::LogSpaceForStack()
 	{
 		static char spaces[128] = { 0 };
 		if (TimerRecorderStack > 0)
 		{
 			memset(spaces, ' ', TimerRecorderStack * 2);
 			spaces[TimerRecorderStack * 2] = 0;
-			_LOG(ELog::Log, spaces);
+			Profiles << spaces;
 		}
 	}
 	TTimeRecorder::TTimeRecorder(bool UseHighPrecision)
@@ -295,7 +302,7 @@ namespace tix
 	void TTimeRecorder::Start()
 	{
 		LogSpaceForStack();
-		_LOG(ELog::Log, "%s started.\n", Name.c_str());
+		Profiles << Name << " started." << endl;
 		++TimerRecorderStack;
 		if (High)
 		{
@@ -325,16 +332,16 @@ namespace tix
 		{
 			double Dt = double(EndTime - StartTime) / double(Freq);
 			if (Dt > 0.001)
-				_LOG(ELog::Log, "%s used : %.2f ms\n", Name.c_str(), (Dt * 1000));
+				Profiles << Name << " used : " << Dt * 1000 << " ms." << endl;
 			else
-				_LOG(ELog::Log, "%s used : %.2f us\n", Name.c_str(), (Dt * 1000000));
+				Profiles << Name << " used : " << Dt * 1000000 << " us." << endl;
 		}
 		else
 		{
 			uint32 ms = (uint32)(Diff % 1000);
 			uint32 s = (uint32)((Diff / 1000) % 60);
 			uint32 m = (uint32)((Diff / 1000) / 60);
-			_LOG(ELog::Log, "%s used : %d'%d\"%d\n", Name.c_str(), m, s, ms);
+			Profiles << Name << " used : " << m << ", " << s << ", " << ms << endl;
 		}
 	}
 }

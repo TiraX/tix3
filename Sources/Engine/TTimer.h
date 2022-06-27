@@ -33,6 +33,8 @@ namespace tix
 	class TI_API TTimeRecorder
 	{
 	public:
+		static void DumpProfile();
+
 		TTimeRecorder(bool UseHighPrecision = false);
 		TTimeRecorder(const TString& InName, bool UseHighPrecision = false);
 		~TTimeRecorder();
@@ -41,6 +43,7 @@ namespace tix
 	private:
 		void Start();
 		void End();
+		void LogSpaceForStack();
 
 	private:
 		TString Name;
@@ -48,6 +51,9 @@ namespace tix
 		uint64 StartTime;
 		uint64 EndTime;
 		uint64 Freq;
+
+		static int32 TimerRecorderStack;
+		static TStringStream Profiles;
 	};
 
 #ifdef TIX_SHIPPING
