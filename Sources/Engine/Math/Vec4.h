@@ -92,6 +92,11 @@ namespace tix
 			return FVec4<T>(X + other.X, Y + other.Y, Z + other.Z, W + other.W);
 		}
 
+		FVec4<T> operator+(T other) const
+		{
+			return FVec4<T>(X + other, Y + other, Z + other, W + other);
+		}
+
 		FVec4<T>& operator+=(const FVec4<T>& other)
 		{
 			X += other.X;
@@ -101,9 +106,23 @@ namespace tix
 			return *this;
 		}
 
+		FVec4<T>& operator+=(T other)
+		{
+			X += other;
+			Y += other;
+			Z += other;
+			W += other;
+			return *this;
+		}
+
 		FVec4<T> operator-(const FVec4<T>& other) const
 		{
 			return FVec4<T>(X - other.X, Y - other.Y, Z - other.Z, W - other.W);
+		}
+
+		FVec4<T> operator-(T other) const
+		{
+			return FVec4<T>(X - other, Y - other, Z - other, W - other);
 		}
 
 		FVec4<T>& operator-=(const FVec4<T>& other)
@@ -112,6 +131,15 @@ namespace tix
 			Y -= other.Y;
 			Z -= other.Z;
 			W -= other.W;
+			return *this;
+		}
+
+		FVec4<T>& operator-=(T other)
+		{
+			X -= other;
+			Y -= other;
+			Z -= other;
+			W -= other;
 			return *this;
 		}
 

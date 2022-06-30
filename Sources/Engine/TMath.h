@@ -190,7 +190,8 @@ namespace tix
 			return Modf(x);
 		}
 
-		static inline float Floor(float x)
+		template< class T >
+		static inline T Floor(T x)
 		{
 			return floor(x);
 		}
