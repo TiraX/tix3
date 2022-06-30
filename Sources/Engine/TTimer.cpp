@@ -261,7 +261,16 @@ namespace tix
 	TStringStream TTimeRecorder::Profiles;
 	void TTimeRecorder::DumpProfile()
 	{
-		_LOG(ELog::Log, Profiles.str().c_str());
+		TString Result = Profiles.str();
+		if (Result.length() > 1024)
+		{
+			_LOG(ELog::Log, "Timer profile size is too big (%d), dump to file.\n");
+			DumpProfileToFile();
+		}
+		else
+		{
+			_LOG(ELog::Log, Profiles.str().c_str());
+		}
 		Profiles.clear();
 	}
 	void TTimeRecorder::DumpProfileToFile()
