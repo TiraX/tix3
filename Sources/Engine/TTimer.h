@@ -34,6 +34,7 @@ namespace tix
 	{
 	public:
 		static void DumpProfile();
+		static void DumpProfileToFile();
 
 		TTimeRecorder(bool UseHighPrecision = false);
 		TTimeRecorder(const TString& InName, bool UseHighPrecision = false);

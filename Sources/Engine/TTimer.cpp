@@ -264,6 +264,29 @@ namespace tix
 		_LOG(ELog::Log, Profiles.str().c_str());
 		Profiles.clear();
 	}
+	void TTimeRecorder::DumpProfileToFile()
+	{
+		// Too big, dump to file
+		int32 h, m, s;
+		TTimer::GetCurrentTimeSeconds(h, m, s);
+		int8 LogName[128];
+		sprintf(LogName, "profile_%02d-%02d-%02d.log", h, m, s);
+		TString LogFilename = LogName;
+
+		TString LogPath = "Saved/Profiles/";
+		TPlatformUtils::CreateDirectoryIfNotExist(LogPath);
+
+		TFile LogFile;
+		if (!LogFile.Open(LogPath + LogFilename, EFA_CREATEWRITE))
+		{
+			_LOG(ELog::Error, "Failed to dump time profile file.\n");
+			return;
+		}
+
+		TString Result = Profiles.str();
+		LogFile.Write(Result.c_str(), (int32)Result.size());
+		Profiles.clear();
+	}
 
 	void TTimeRecorder::LogSpaceForStack()
 	{
