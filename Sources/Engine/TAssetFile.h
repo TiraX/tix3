@@ -48,7 +48,7 @@ namespace tix
 		TString Filename;
 		int8* Filebuffer;
 
-		const TResfileChunkHeader* ChunkHeader[EChunkLib::Count];
+		const TResfileChunkHeader* ChunkHeader[EChunkLib::NumChunks];
 		TResfileHeader* Header;
 		int32* StringOffsets;
 

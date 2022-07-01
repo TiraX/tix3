@@ -90,7 +90,7 @@ namespace tix
 		Animation,
 		RtxPipeline,
 
-		Count,
+		NumChunks,
 	};
 	
 	struct TResfileHeader
