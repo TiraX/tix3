@@ -336,6 +336,7 @@ namespace tix
 		//! Remap value v's range[s0, s1] to [t0, t1]
 		static inline float Fit(float v, float s0, float s1, float t0, float t1)
 		{
+			TI_ASSERT(s1 - s0 != 0);
 			return (v - s0) / (s1 - s0) * (t1 - t0) + t0;
 		}
 
@@ -348,6 +349,7 @@ namespace tix
 		//! Equals Fit(v, s0, s1, 0, 1)
 		static inline float FitTo01(float v, float s0, float s1)
 		{
+			TI_ASSERT(s1 - s0 != 0);
 			return (v - s0) / (s1 - s0);
 		}
 
