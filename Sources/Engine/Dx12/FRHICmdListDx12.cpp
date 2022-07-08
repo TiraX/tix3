@@ -143,7 +143,14 @@ namespace tix
 		VALIDATE_HRESULT(CommandList->Reset(CommandAllocators[CurrentIndex].Get(), nullptr));
 
 		// Set the descriptor heaps to be used by this frame.
-		CommandList->SetDescriptorHeaps((uint32)HeapsUsed.size(), HeapsUsed.data());
+		TVector<ID3D12DescriptorHeap*> Dx12Heaps;
+		Dx12Heaps.reserve(HeapsUsed.size());
+		for (auto pHeap : HeapsUsed)
+		{
+			FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(pHeap);
+			Dx12Heaps.push_back(HeapDx12->GetHeap());
+		}
+		CommandList->SetDescriptorHeaps((uint32)Dx12Heaps.size(), Dx12Heaps.data());
 	}
 
 	void FRHICmdListDx12::EndCmdList()
@@ -158,8 +165,12 @@ namespace tix
 
 	void FRHICmdListDx12::AddHeap(FRHIHeap* InHeap)
 	{
-		FDescriptorHeapDx12* HeapDx12 = static_cast<FDescriptorHeapDx12*>(InHeap);
-		HeapsUsed.push_back(HeapDx12->GetHeap());
+		HeapsUsed.push_back(InHeap);
+	}
+
+	FRHIHeap* FRHICmdListDx12::GetHeap(int32 Index)
+	{
+		return HeapsUsed[Index];
 	}
 
 	void FRHICmdListDx12::SetBackbufferTarget(D3D12_CPU_DESCRIPTOR_HANDLE InRTView, D3D12_CPU_DESCRIPTOR_HANDLE InDSView)

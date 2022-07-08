@@ -25,6 +25,7 @@ namespace tix
 		virtual void BeginCmdList() override;
 		virtual void EndCmdList() override;
 		virtual void AddHeap(FRHIHeap* InHeap) override;
+		virtual FRHIHeap* GetHeap(int32 Index) override;
 		virtual void Close() override;
 		virtual void Execute() override;
 		virtual void WaitingForGpu() override;
@@ -149,7 +150,7 @@ namespace tix
 		uint32 CurrentIndex;
 
 		// Heaps Used
-		TVector<ID3D12DescriptorHeap*> HeapsUsed;
+		TVector<FRHIHeap*> HeapsUsed;
 
 		// CPU/GPU Synchronization.
 		TVector<uint64> FenceValues;

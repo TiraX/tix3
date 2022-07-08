@@ -42,6 +42,7 @@ namespace tix
 		virtual void BeginCmdList() = 0;
 		virtual void EndCmdList() = 0;
 		virtual void AddHeap(FRHIHeap* InHeap) = 0;
+		virtual FRHIHeap* GetHeap(int32 Index) = 0;
 		virtual void Close() = 0;
 		virtual void Execute() = 0;
 		virtual void WaitingForGpu() = 0;
