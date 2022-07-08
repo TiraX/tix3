@@ -56,7 +56,6 @@ namespace tix
 	void TTaskThread::DoTasks()
 	{
 		TI_ASSERT(AccquireId() == ThreadId);
-		Busy = true;
 		TTask* Task;
 		while (Tasks.GetSize() > 0)
 		{
@@ -76,6 +75,7 @@ namespace tix
 	void TTaskThread::AddTask(TTask* Task)
 	{
 		unique_lock<TMutex> CLock(TaskMutex);
+		Busy = true;
 		Tasks.PushBack(Task);
 		TaskCond.notify_one();
 	}
