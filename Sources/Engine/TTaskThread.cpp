@@ -19,6 +19,7 @@ namespace tix
 	/////////////////////////////////////////////////////////////
 	TTaskThread::TTaskThread(const TString& Name)
 		: TThread(Name)
+		, Busy(false)
 	{
 	}
 
@@ -55,6 +56,7 @@ namespace tix
 	void TTaskThread::DoTasks()
 	{
 		TI_ASSERT(AccquireId() == ThreadId);
+		Busy = true;
 		TTask* Task;
 		while (Tasks.GetSize() > 0)
 		{
@@ -68,6 +70,7 @@ namespace tix
 				Task = nullptr;
 			}
 		}
+		Busy = false;
 	}
 
 	void TTaskThread::AddTask(TTask* Task)

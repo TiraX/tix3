@@ -47,6 +47,10 @@ namespace tix
 		virtual void Stop() override;
 
 		virtual void AddTask(TTask* Task);
+		bool IsBusy() const
+		{
+			return Busy;
+		}
 		
 	protected:
 		virtual void DoTasks();
@@ -58,5 +62,6 @@ namespace tix
 
 		TMutex TaskMutex;
 		TCond TaskCond;
+		bool Busy;
 	};
 }
