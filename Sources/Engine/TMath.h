@@ -353,6 +353,18 @@ namespace tix
 			return (v - s0) / (s1 - s0);
 		}
 
+		static inline TString IToA(int32 num)
+		{
+			char NumS[32];
+			sprintf(NumS, "%d", num);
+			return TString(NumS);
+		}
+
+		static inline int32 AToI(const TString& S)
+		{
+			return atoi(S.c_str());
+		}
+
 		// From UE4 
 		/**
 		 * Computes the base 2 logarithm for an integer value that is greater than 0.
