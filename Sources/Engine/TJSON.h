@@ -38,6 +38,11 @@ namespace tix
 			return Iter->name.GetString();
 		}
 
+		int32 IntValue()
+		{
+			return Iter->value.GetInt();
+		}
+
 	private:
 		Value::MemberIterator Iter;
 	};
