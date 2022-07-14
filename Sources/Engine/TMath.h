@@ -337,12 +337,14 @@ namespace tix
 		static inline float Fit(float v, float s0, float s1, float t0, float t1)
 		{
 			TI_ASSERT(s1 - s0 != 0);
+			v = TMath::Clamp(v, s0, s1);
 			return (v - s0) / (s1 - s0) * (t1 - t0) + t0;
 		}
 
 		//! Equals Fit(v, 0, 1, t0, t1)
 		static inline float Fit01(float v, float t0, float t1)
 		{
+			v = TMath::Clamp(v, 0.f, 1.f);
 			return v * (t1 - t0) + t0;
 		}
 
@@ -350,7 +352,7 @@ namespace tix
 		static inline float FitTo01(float v, float s0, float s1)
 		{
 			TI_ASSERT(s1 - s0 != 0);
-			return (v - s0) / (s1 - s0);
+			return TMath::Clamp((v - s0) / (s1 - s0), 0.f, 1.f);
 		}
 
 		static inline TString IToA(int32 num)
