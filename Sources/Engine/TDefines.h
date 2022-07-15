@@ -98,7 +98,8 @@ void * operator new (std::size_t count);
 #endif
 
 // Openmp parallel for
-#define OMP_PARALLEL_FOR TI_PRAGMA(omp parallel for)
+//#define OMP_PARALLEL_FOR TI_PRAGMA(omp parallel for)
+#define OMP_PARALLEL_FOR 
 
 // We use right hand coordinate
 #define TI_USE_RH 1
