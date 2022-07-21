@@ -35,8 +35,7 @@ namespace tix
 	class TEngine
 	{
 	public:
-		TI_API static TAppInfo AppInfo;
-		
+		TI_API static const TAppInfo& GetAppInfo();
 		TI_API static TEngine* Get();
 		TI_API static void	Create(const TEngineDesc& Config);
 		TI_API static void	Destroy();
@@ -75,6 +74,7 @@ namespace tix
 		TI_API void AddTask(TTask * Task);
 
 	private:
+		static TAppInfo AppInfo;
 		TEngine();
 		~TEngine();
 		static TEngine* s_engine;
