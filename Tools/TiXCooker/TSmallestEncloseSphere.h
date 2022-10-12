@@ -6,8 +6,6 @@
 // https://github.com/hbf/miniball
 // Porting from this to TiX2.0
 
-#include "TSphere.h"
-
 template<typename T>
 inline void Givens(T& c, T& s, const T a, const T b)
 {

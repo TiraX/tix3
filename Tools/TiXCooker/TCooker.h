@@ -47,7 +47,7 @@ namespace tix
 		bool SaveFile(const TString& Filename);
 
 		TVector<TString> Strings;
-		TStream ChunkStreams[EChunkLib::Count];
+		TStream ChunkStreams[EChunkLib::NumChunks];
 	};
 
 	class TCooker

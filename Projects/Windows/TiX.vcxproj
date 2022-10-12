@@ -183,6 +183,7 @@
     <ClInclude Include="..\..\Sources\Engine\math\Plane3d.h" />
     <ClInclude Include="..\..\Sources\Engine\math\Quaternion.h" />
     <ClInclude Include="..\..\Sources\Engine\math\Rect.h" />
+    <ClInclude Include="..\..\Sources\Engine\Math\Sphere.h" />
     <ClInclude Include="..\..\Sources\Engine\math\SViewFrustum.h" />
     <ClInclude Include="..\..\Sources\Engine\math\Triangle3d.h" />
     <ClInclude Include="..\..\Sources\Engine\Math\Vec2.h" />

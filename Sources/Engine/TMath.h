@@ -414,6 +414,7 @@ namespace tix
 #include "Math/Line3d.h"
 #include "Math/Rect.h"
 #include "Math/Box.h"
+#include "Math/Sphere.h"
 #include "Math/Plane3d.h"
 #include "Math/Matrix4.h"
 #include "Math/Matrix3.h"

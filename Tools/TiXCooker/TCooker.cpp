@@ -246,7 +246,7 @@ int32 DoCook(int32 argc, TIX_COOKER_CONST int8* argv[])
 
 namespace tix
 {
-	const TString ChunkNames[static_cast<int32>(EChunkLib::Count)] =
+	const TString ChunkNames[static_cast<int32>(EChunkLib::NumChunks)] =
 	{
 		"static_mesh",			//	ECL_MESHES,
 		"texture",				//	ECL_TEXTURES,
@@ -318,7 +318,7 @@ namespace tix
 
 	TCooker* TCooker::GetCookerByName(const TString& Name)
 	{
-		const int32 Count = static_cast<int32>(EChunkLib::Count);
+		const int32 Count = static_cast<int32>(EChunkLib::NumChunks);
 		for (int32 i = 0; i < Count; i++)
 		{
 			if (Name == ChunkNames[i])
@@ -378,7 +378,7 @@ namespace tix
 		HeaderResfile.ID = TIRES_ID_RESFILE;
 		HeaderResfile.Version = TIRES_VERSION_MAINFILE;
 		int32 Chunks = 0;
-		for (int32 c = 0; c < EChunkLib::Count; ++c)
+		for (int32 c = 0; c < EChunkLib::NumChunks; ++c)
 		{
 			if (ChunkStreams[c].GetLength() > 0)
 			{
@@ -387,7 +387,7 @@ namespace tix
 		}
 		HeaderResfile.ChunkCount = Chunks;
 		HeaderResfile.FileSize = TMath::Align4((int32)sizeof(TResfileHeader));
-		for (int32 c = 0; c < EChunkLib::Count; ++c)
+		for (int32 c = 0; c < EChunkLib::NumChunks; ++c)
 		{
 			if (ChunkStreams[c].GetLength() > 0)
 			{
@@ -414,7 +414,7 @@ namespace tix
 			file.Write(ChunkHeaderStream.GetBuffer(), ChunkHeaderStream.GetLength());
 
 			// chunk
-			for (int32 c = 0; c < EChunkLib::Count; ++c)
+			for (int32 c = 0; c < EChunkLib::NumChunks; ++c)
 			{
 				if (ChunkStreams[c].GetLength() > 0)
 				{

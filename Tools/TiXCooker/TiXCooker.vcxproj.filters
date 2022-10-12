@@ -130,9 +130,6 @@
     <ClInclude Include="TSmallestEncloseSphere.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="TSphere.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\TThread.h">
       <Filter>Utils</Filter>
     </ClInclude>

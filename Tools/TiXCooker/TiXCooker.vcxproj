@@ -130,7 +130,6 @@ copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Co
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TSmallestEncloseSphere.h" />
-    <ClInclude Include="TSphere.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Sources\Engine\TCrc.cpp" />
