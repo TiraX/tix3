@@ -22,6 +22,12 @@
     <ClCompile Include="NaniteLearningTicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NaniteMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cluster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -31,6 +37,15 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="NaniteLearningTicker.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NaniteMesh.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cluster.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NaniteDefinitions.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

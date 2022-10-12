@@ -52,6 +52,9 @@ const float64 ROUNDING_ERROR_64 = 0.000005;
 //! Constant for PI.
 const float32 PI = 3.14159265359f;
 
+const float32 SMALL_NUMBER = 1.e-8f;
+const float32 KINDA_SMALL_NUMBER = 1.e-4f;
+
 //! Constant for reciprocal of PI.
 const float32 RECIPROCAL_PI = 1.0f/PI;
 

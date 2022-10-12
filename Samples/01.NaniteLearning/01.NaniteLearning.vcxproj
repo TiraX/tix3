@@ -165,17 +165,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Cluster.cpp" />
     <ClCompile Include="NaniteLearningRenderer.cpp" />
     <ClCompile Include="NaniteLearningSample.cpp" />
     <ClCompile Include="NaniteLearningTicker.cpp" />
+    <ClCompile Include="NaniteMesh.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cluster.h" />
+    <ClInclude Include="NaniteDefinitions.h" />
     <ClInclude Include="NaniteLearningRenderer.h" />
     <ClInclude Include="NaniteLearningTicker.h" />
+    <ClInclude Include="NaniteMesh.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

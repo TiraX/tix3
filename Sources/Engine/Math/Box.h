@@ -13,6 +13,8 @@ namespace tix
 	{
 	public:
 		FAABBox()
+			: Min(TNumLimit<T>::max(), TNumLimit<T>::max(), TNumLimit<T>::max())
+			, Max(-TNumLimit<T>::max(), -TNumLimit<T>::max(), -TNumLimit<T>::max())
 		{}
 
 		FAABBox(const FVec3<T>& min, const FVec3<T>& max)

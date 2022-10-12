@@ -4,12 +4,15 @@
 #include "stdafx.h"
 #include "NaniteLearningTicker.h"
 #include "NaniteLearningRenderer.h"
+#include "NaniteMesh.h"
 
 int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(-1);
 	{
+		TNaniteMesh* NanieMesh = TNaniteMesh::LoadMesh();
+
 		TEngineDesc Desc;
 		Desc.Name = "RecipeTrees";
 		Desc.Width = 1920;
@@ -33,6 +36,7 @@ int main()
 		TEngine::Get()->Start();
 
 		// Destory
+		ti_delete NanieMesh;
 		ti_delete Ticker;
 		TEngine::Destroy();
 	}

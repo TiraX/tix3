@@ -100,6 +100,7 @@ namespace tix
 
 		FQuat& RotationFromTo(const FFloat3& from, const FFloat3& to);
 		FQuat& RotationFromToFast(const FFloat3& from_normalized, const FFloat3& to_normalized);
+		FQuat& RotationFromToUE(const FFloat3& from, const FFloat3& to);
 
 		//!
 		const float32* Data() const
@@ -677,6 +678,38 @@ namespace tix
 		Z = c.Z;
 		W = s * 0.5f;
 
+		return *this;
+	}
+
+	// From unreal engine
+	// Based on:
+	// http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+	// http://www.euclideanspace.com/maths/algebra/vectors/angleBetween/index.htm
+	//
+	inline FQuat& FQuat::RotationFromToUE(const FFloat3& A, const FFloat3& B)
+	{
+		const float NormAB = TMath::Sqrt(A.GetLengthSQ() * B.GetLengthSQ());
+		float W = NormAB + A.Dot(B);
+
+		if (W >= 1e-6f * NormAB)
+		{
+			//Axis = FVector::CrossProduct(A, B);
+			*this = FQuat(
+				A.Y * B.Z - A.Z * B.Y,
+				A.Z * B.X - A.X * B.Z,
+				A.X * B.Y - A.Y * B.X,
+				W);
+		}
+		else
+		{
+			// A and B point in opposite directions
+			W = 0.f;
+			*this = TMath::Abs(A.X) > TMath::Abs(A.Y)
+				? FQuat(-A.Z, 0.f, A.X, W)
+				: FQuat(0.f, -A.Z, A.Y, W);
+		}
+
+		Normalize();
 		return *this;
 	}
 
