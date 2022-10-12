@@ -1,0 +1,17 @@
+{
+	"name": "EnvIBL",
+	"file_type": "texture",
+	"version": 1,
+	"desc": "Texture from TiX exporter.",
+	"source": "EnvIBL.hdr",
+	"texture_type": "ETT_TEXTURE_CUBE",
+	"srgb": false,
+	"is_normalmap": false,
+	"has_mips": true,
+	"ibl": true,
+	"width": 256,
+	"height": 256,
+	"mips": 9,
+	"address_mode": "",
+	"lod_bias": 0
+}
