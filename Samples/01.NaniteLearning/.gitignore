@@ -1,4 +1,7 @@
 Content/Cooked/
+Content/Saved/
+Content/Hip/backup/
+Content/Hip/*.json
+Content/*.json
 x64/
-Content/*.tga
-Content/*.zip
+
