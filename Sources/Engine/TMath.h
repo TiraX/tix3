@@ -139,6 +139,12 @@ namespace tix
 		}
 
 		template< class T >
+		static inline T LerpStable(const T src, const T dest, const float t)
+		{
+			return (T)((src * (1.0f - t)) + (dest * t));
+		}
+
+		template< class T >
 		static inline T Max(const T a, const T b)
 		{
 			return a > b ? a : b;
