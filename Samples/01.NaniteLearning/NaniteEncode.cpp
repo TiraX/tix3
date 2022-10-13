@@ -863,8 +863,383 @@ void AssignClusterToPages(
 	}
 }
 
-void BuildHierarchies()
-{}
+
+struct FHierarchyNode
+{
+	FSphere3f		LODBounds[NANITE_MAX_BVH_NODE_FANOUT];
+	FBounds			Bounds[NANITE_MAX_BVH_NODE_FANOUT];
+	float			MinLODErrors[NANITE_MAX_BVH_NODE_FANOUT];
+	float			MaxParentLODErrors[NANITE_MAX_BVH_NODE_FANOUT];
+	uint32			ChildrenStartIndex[NANITE_MAX_BVH_NODE_FANOUT];
+	uint32			NumChildren[NANITE_MAX_BVH_NODE_FANOUT];
+	uint32			ClusterGroupPartIndex[NANITE_MAX_BVH_NODE_FANOUT];
+};
+
+static void PackHierarchyNode(Nanite::FPackedHierarchyNode& OutNode, const FHierarchyNode& InNode, const TArray<FClusterGroup>& Groups, const TArray<FClusterGroupPart>& GroupParts, const uint32 NumResourceRootPages)
+{
+	static_assert(NANITE_MAX_RESOURCE_PAGES_BITS + NANITE_MAX_CLUSTERS_PER_GROUP_BITS + NANITE_MAX_GROUP_PARTS_BITS <= 32, "");
+	for (uint32 i = 0; i < NANITE_MAX_BVH_NODE_FANOUT; i++)
+	{
+		OutNode.LODBounds[i] = FVector4f(InNode.LODBounds[i].Center, InNode.LODBounds[i].W);
+
+		const FBounds& Bounds = InNode.Bounds[i];
+		OutNode.Misc0[i].BoxBoundsCenter = Bounds.GetCenter();
+		OutNode.Misc1[i].BoxBoundsExtent = Bounds.GetExtent();
+
+		check(InNode.NumChildren[i] <= NANITE_MAX_CLUSTERS_PER_GROUP);
+		OutNode.Misc0[i].MinLODError_MaxParentLODError = FFloat16(InNode.MinLODErrors[i]).Encoded | (FFloat16(InNode.MaxParentLODErrors[i]).Encoded << 16);
+		OutNode.Misc1[i].ChildStartReference = InNode.ChildrenStartIndex[i];
+
+		uint32 ResourcePageIndex_NumPages_GroupPartSize = 0;
+		if (InNode.NumChildren[i] > 0)
+		{
+			if (InNode.ClusterGroupPartIndex[i] != INVALID_PART_INDEX)
+			{
+				// Leaf node
+				const FClusterGroup& Group = Groups[GroupParts[InNode.ClusterGroupPartIndex[i]].GroupIndex];
+				uint32 GroupPartSize = InNode.NumChildren[i];
+
+				// If group spans multiple pages, request all of them, except the root pages
+				uint32 PageIndexStart = Group.PageIndexStart;
+				uint32 PageIndexNum = Group.PageIndexNum;
+				RemoveRootPagesFromRange(PageIndexStart, PageIndexNum, NumResourceRootPages);
+				ResourcePageIndex_NumPages_GroupPartSize = (PageIndexStart << (NANITE_MAX_CLUSTERS_PER_GROUP_BITS + NANITE_MAX_GROUP_PARTS_BITS)) | (PageIndexNum << NANITE_MAX_CLUSTERS_PER_GROUP_BITS) | GroupPartSize;
+			}
+			else
+			{
+				// Hierarchy node. No resource page or group size.
+				ResourcePageIndex_NumPages_GroupPartSize = 0xFFFFFFFFu;
+			}
+		}
+		OutNode.Misc2[i].ResourcePageIndex_NumPages_GroupPartSize = ResourcePageIndex_NumPages_GroupPartSize;
+	}
+}
+
+static float BVH_Cost(const TArray<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices)
+{
+	FBounds Bound;
+	for (uint32 NodeIndex : NodeIndices)
+	{
+		Bound += Nodes[NodeIndex].Bound;
+	}
+	return Bound.GetSurfaceArea();
+}
+
+static void BVH_SortNodes(const TArray<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices, const TArray<uint32>& ChildSizes)
+{
+	// Perform NANITE_MAX_BVH_NODE_FANOUT_BITS binary splits
+	for (uint32 Level = 0; Level < NANITE_MAX_BVH_NODE_FANOUT_BITS; Level++)
+	{
+		const uint32 NumBuckets = 1 << Level;
+		const uint32 NumChildrenPerBucket = NANITE_MAX_BVH_NODE_FANOUT >> Level;
+		const uint32 NumChildrenPerBucketHalf = NumChildrenPerBucket >> 1;
+
+		uint32 BucketStartIndex = 0;
+		for (uint32 BucketIndex = 0; BucketIndex < NumBuckets; BucketIndex++)
+		{
+			const uint32 FirstChild = NumChildrenPerBucket * BucketIndex;
+
+			uint32 Sizes[2] = {};
+			for (uint32 i = 0; i < NumChildrenPerBucketHalf; i++)
+			{
+				Sizes[0] += ChildSizes[FirstChild + i];
+				Sizes[1] += ChildSizes[FirstChild + i + NumChildrenPerBucketHalf];
+			}
+			TArrayView<uint32> NodeIndices01 = NodeIndices.Slice(BucketStartIndex, Sizes[0] + Sizes[1]);
+			TArrayView<uint32> NodeIndices0 = NodeIndices.Slice(BucketStartIndex, Sizes[0]);
+			TArrayView<uint32> NodeIndices1 = NodeIndices.Slice(BucketStartIndex + Sizes[0], Sizes[1]);
+
+			BucketStartIndex += Sizes[0] + Sizes[1];
+
+			auto SortByAxis = [&](uint32 AxisIndex)
+			{
+				if (AxisIndex == 0)
+					NodeIndices01.Sort([&Nodes](uint32 A, uint32 B) { return Nodes[A].Bound.GetCenter().X < Nodes[B].Bound.GetCenter().X; });
+				else if (AxisIndex == 1)
+					NodeIndices01.Sort([&Nodes](uint32 A, uint32 B) { return Nodes[A].Bound.GetCenter().Y < Nodes[B].Bound.GetCenter().Y; });
+				else if (AxisIndex == 2)
+					NodeIndices01.Sort([&Nodes](uint32 A, uint32 B) { return Nodes[A].Bound.GetCenter().Z < Nodes[B].Bound.GetCenter().Z; });
+				else
+					check(false);
+			};
+
+			float BestCost = MAX_flt;
+			uint32 BestAxisIndex = 0;
+
+			// Try sorting along different axes and pick the best one
+			const uint32 NumAxes = 3;
+			for (uint32 AxisIndex = 0; AxisIndex < NumAxes; AxisIndex++)
+			{
+				SortByAxis(AxisIndex);
+
+				float Cost = BVH_Cost(Nodes, NodeIndices0) + BVH_Cost(Nodes, NodeIndices1);
+				if (Cost < BestCost)
+				{
+					BestCost = Cost;
+					BestAxisIndex = AxisIndex;
+				}
+			}
+
+			// Resort if we the best one wasn't the last one
+			if (BestAxisIndex != NumAxes - 1)
+			{
+				SortByAxis(BestAxisIndex);
+			}
+		}
+	}
+}
+
+static uint32 BuildHierarchyRecursive(TArray<Nanite::FHierarchyNode>& HierarchyNodes, const TArray<FIntermediateNode>& Nodes, const TArray<Nanite::FClusterGroup>& Groups, TArray<Nanite::FClusterGroupPart>& Parts, uint32 CurrentNodeIndex)
+{
+	const FIntermediateNode& INode = Nodes[CurrentNodeIndex];
+	check(INode.PartIndex == MAX_uint32);
+	check(!INode.bLeaf);
+
+	uint32 HNodeIndex = HierarchyNodes.Num();
+	HierarchyNodes.AddZeroed();
+
+	uint32 NumChildren = INode.Children.Num();
+	check(NumChildren > 0 && NumChildren <= NANITE_MAX_BVH_NODE_FANOUT);
+	for (uint32 ChildIndex = 0; ChildIndex < NumChildren; ChildIndex++)
+	{
+		uint32 ChildNodeIndex = INode.Children[ChildIndex];
+		const FIntermediateNode& ChildNode = Nodes[ChildNodeIndex];
+		if (ChildNode.bLeaf)
+		{
+			// Cluster Group
+			check(ChildNode.bLeaf);
+			FClusterGroupPart& Part = Parts[ChildNode.PartIndex];
+			const FClusterGroup& Group = Groups[Part.GroupIndex];
+
+			FHierarchyNode& HNode = HierarchyNodes[HNodeIndex];
+			HNode.Bounds[ChildIndex] = Part.Bounds;
+			HNode.LODBounds[ChildIndex] = Group.LODBounds;
+			HNode.MinLODErrors[ChildIndex] = Group.MinLODError;
+			HNode.MaxParentLODErrors[ChildIndex] = Group.MaxParentLODError;
+			HNode.ChildrenStartIndex[ChildIndex] = 0xFFFFFFFFu;
+			HNode.NumChildren[ChildIndex] = Part.Clusters.Num();
+			HNode.ClusterGroupPartIndex[ChildIndex] = ChildNode.PartIndex;
+
+			check(HNode.NumChildren[ChildIndex] <= NANITE_MAX_CLUSTERS_PER_GROUP);
+			Part.HierarchyNodeIndex = HNodeIndex;
+			Part.HierarchyChildIndex = ChildIndex;
+		}
+		else
+		{
+
+			// Hierarchy node
+			uint32 ChildHierarchyNodeIndex = BuildHierarchyRecursive(HierarchyNodes, Nodes, Groups, Parts, ChildNodeIndex);
+
+			const Nanite::FHierarchyNode& ChildHNode = HierarchyNodes[ChildHierarchyNodeIndex];
+
+			FBounds Bounds;
+			TArray< FSphere3f, TInlineAllocator<NANITE_MAX_BVH_NODE_FANOUT> > LODBoundSpheres;
+			float MinLODError = MAX_flt;
+			float MaxParentLODError = 0.0f;
+			for (uint32 GrandChildIndex = 0; GrandChildIndex < NANITE_MAX_BVH_NODE_FANOUT && ChildHNode.NumChildren[GrandChildIndex] != 0; GrandChildIndex++)
+			{
+				Bounds += ChildHNode.Bounds[GrandChildIndex];
+				LODBoundSpheres.Add(ChildHNode.LODBounds[GrandChildIndex]);
+				MinLODError = FMath::Min(MinLODError, ChildHNode.MinLODErrors[GrandChildIndex]);
+				MaxParentLODError = FMath::Max(MaxParentLODError, ChildHNode.MaxParentLODErrors[GrandChildIndex]);
+			}
+
+			FSphere3f LODBounds = FSphere3f(LODBoundSpheres.GetData(), LODBoundSpheres.Num());
+
+			Nanite::FHierarchyNode& HNode = HierarchyNodes[HNodeIndex];
+			HNode.Bounds[ChildIndex] = Bounds;
+			HNode.LODBounds[ChildIndex] = LODBounds;
+			HNode.MinLODErrors[ChildIndex] = MinLODError;
+			HNode.MaxParentLODErrors[ChildIndex] = MaxParentLODError;
+			HNode.ChildrenStartIndex[ChildIndex] = ChildHierarchyNodeIndex;
+			HNode.NumChildren[ChildIndex] = NANITE_MAX_CLUSTERS_PER_GROUP;
+			HNode.ClusterGroupPartIndex[ChildIndex] = INVALID_GROUP_INDEX;
+		}
+	}
+
+	return HNodeIndex;
+}
+
+// Build hierarchy using a top-down splitting approach.
+// WIP:	So far it just focuses on minimizing worst-case tree depth/latency.
+//		It does this by building a complete tree with at most one partially filled level.
+//		At most one node is partially filled.
+//TODO:	Experiment with sweeping, even if it results in more total nodes and/or makes some paths slightly longer.
+static uint32 BuildHierarchyTopDown(TArray<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices, bool bSort)
+{
+	const uint32 N = NodeIndices.Num();
+	if (N == 1)
+	{
+		return NodeIndices[0];
+	}
+
+	const uint32 NewRootIndex = Nodes.Num();
+	Nodes.AddDefaulted_GetRef();
+
+	if (N <= NANITE_MAX_BVH_NODE_FANOUT)
+	{
+		Nodes[NewRootIndex].Children = NodeIndices;
+		return NewRootIndex;
+	}
+
+	// Where does the last (incomplete) level start
+	uint32 TopSize = NANITE_MAX_BVH_NODE_FANOUT;
+	while (TopSize * NANITE_MAX_BVH_NODE_FANOUT <= N)
+	{
+		TopSize *= NANITE_MAX_BVH_NODE_FANOUT;
+	}
+
+	const uint32 LargeChildSize = TopSize;
+	const uint32 SmallChildSize = TopSize / NANITE_MAX_BVH_NODE_FANOUT;
+	const uint32 MaxExcessPerChild = LargeChildSize - SmallChildSize;
+
+	TArray<uint32> ChildSizes;
+	ChildSizes.SetNum(NANITE_MAX_BVH_NODE_FANOUT);
+
+	uint32 Excess = N - TopSize;
+	for (int32 i = NANITE_MAX_BVH_NODE_FANOUT - 1; i >= 0; i--)
+	{
+		const uint32 ChildExcess = FMath::Min(Excess, MaxExcessPerChild);
+		ChildSizes[i] = SmallChildSize + ChildExcess;
+		Excess -= ChildExcess;
+	}
+	check(Excess == 0);
+
+	if (bSort)
+	{
+		BVH_SortNodes(Nodes, NodeIndices, ChildSizes);
+	}
+
+	uint32 Offset = 0;
+	for (uint32 i = 0; i < NANITE_MAX_BVH_NODE_FANOUT; i++)
+	{
+		uint32 ChildSize = ChildSizes[i];
+		uint32 NodeIndex = BuildHierarchyTopDown(Nodes, NodeIndices.Slice(Offset, ChildSize), bSort);	// Needs to be separated from next statement with sequence point to order access to Nodes array.
+		Nodes[NewRootIndex].Children.Add(NodeIndex);
+		Offset += ChildSize;
+	}
+
+	return NewRootIndex;
+}
+
+void BuildHierarchies(const TArray<FClusterGroup>& Groups, TArray<FClusterGroupPart>& Parts, uint32 NumMeshes)
+{
+	TArray<TArray<uint32>> PartsByMesh;
+	PartsByMesh.SetNum(NumMeshes);
+
+	// Assign group parts to the meshes they belong to
+	const uint32 NumTotalParts = Parts.Num();
+	for (uint32 PartIndex = 0; PartIndex < NumTotalParts; PartIndex++)
+	{
+		FClusterGroupPart& Part = Parts[PartIndex];
+		PartsByMesh[Groups[Part.GroupIndex].MeshIndex].Add(PartIndex);
+	}
+
+	for (uint32 MeshIndex = 0; MeshIndex < NumMeshes; MeshIndex++)
+	{
+		const TArray<uint32>& PartIndices = PartsByMesh[MeshIndex];
+		const uint32 NumParts = PartIndices.Num();
+
+		int32 MaxMipLevel = 0;
+		for (uint32 i = 0; i < NumParts; i++)
+		{
+			MaxMipLevel = FMath::Max(MaxMipLevel, Groups[Parts[PartIndices[i]].GroupIndex].MipLevel);
+		}
+
+		TArray< FIntermediateNode >	Nodes;
+		Nodes.SetNum(NumParts);
+
+		// Build leaf nodes for each LOD level of the mesh
+		TArray<TArray<uint32>> NodesByMip;
+		NodesByMip.SetNum(MaxMipLevel + 1);
+		for (uint32 i = 0; i < NumParts; i++)
+		{
+			const uint32 PartIndex = PartIndices[i];
+			const FClusterGroupPart& Part = Parts[PartIndex];
+			const FClusterGroup& Group = Groups[Part.GroupIndex];
+
+			const int32 MipLevel = Group.MipLevel;
+			FIntermediateNode& Node = Nodes[i];
+			Node.Bound = Part.Bounds;
+			Node.PartIndex = PartIndex;
+			Node.MipLevel = Group.MipLevel;
+			Node.bLeaf = true;
+			NodesByMip[Group.MipLevel].Add(i);
+		}
+
+
+		uint32 RootIndex = 0;
+		if (Nodes.Num() == 1)
+		{
+			// Just a single leaf.
+			// Needs to be special-cased as root should always be an inner node.
+			FIntermediateNode& Node = Nodes.AddDefaulted_GetRef();
+			Node.Children.Add(0);
+			Node.Bound = Nodes[0].Bound;
+			RootIndex = 1;
+		}
+		else
+		{
+			// Build hierarchy:
+			// Nanite meshes contain cluster data for many levels of detail. Clusters from different levels
+			// of detail can vary wildly in size, which can already be challenge for building a good hierarchy. 
+			// Apart from the visibility bounds, the hierarchy also tracks conservative LOD error metrics for the child nodes.
+			// The runtime traversal descends into children as long as they are visible and the conservative LOD error is not
+			// more detailed than what we are looking for. We have to be very careful when mixing clusters from different LODs
+			// as less detailed clusters can easily end up bloating both bounds and error metrics.
+
+			// We have experimented with a bunch of mixed LOD approached, but currently, it seems, building separate hierarchies
+			// for each LOD level and then building a hierarchy of those hierarchies gives the best and most predictable results.
+
+			// TODO: The roots of these hierarchies all share the same visibility and LOD bounds, or at least close enough that we could
+			//       make a shared conservative bound without losing much. This makes a lot of the work around the root node fairly
+			//       redundant. Perhaps we should consider evaluating a shared root during instance cull instead and enable/disable
+			//       the per-level hierarchies based on 1D range tests for LOD error.
+
+			TArray<uint32> LevelRoots;
+			for (int32 MipLevel = 0; MipLevel <= MaxMipLevel; MipLevel++)
+			{
+				if (NodesByMip[MipLevel].Num() > 0)
+				{
+					// Build a hierarchy for the mip level
+					uint32 NodeIndex = BuildHierarchyTopDown(Nodes, NodesByMip[MipLevel], true);
+
+					if (Nodes[NodeIndex].bLeaf || Nodes[NodeIndex].Children.Num() == NANITE_MAX_BVH_NODE_FANOUT)
+					{
+						// Leaf or filled node. Just add it.
+						LevelRoots.Add(NodeIndex);
+					}
+					else
+					{
+						// Incomplete node. Discard the code and add the children as roots instead.
+						LevelRoots.Append(Nodes[NodeIndex].Children);
+					}
+				}
+			}
+			// Build top hierarchy. A hierarchy of MIP hierarchies.
+			RootIndex = BuildHierarchyTopDown(Nodes, LevelRoots, false);
+		}
+
+		check(Nodes.Num() > 0);
+
+#if BVH_BUILD_WRITE_GRAPHVIZ
+		WriteDotGraph(Nodes);
+#endif
+
+		TArray< FHierarchyNode > HierarchyNodes;
+		BuildHierarchyRecursive(HierarchyNodes, Nodes, Groups, Parts, RootIndex);
+
+		// Convert hierarchy to packed format
+		const uint32 NumHierarchyNodes = HierarchyNodes.Num();
+		const uint32 PackedBaseIndex = Resources.HierarchyNodes.Num();
+		Resources.HierarchyRootOffsets.Add(PackedBaseIndex);
+		Resources.HierarchyNodes.AddDefaulted(NumHierarchyNodes);
+		for (uint32 i = 0; i < NumHierarchyNodes; i++)
+		{
+			PackHierarchyNode(Resources.HierarchyNodes[PackedBaseIndex + i], HierarchyNodes[i], Groups, Parts, Resources.NumRootPages);
+		}
+	}
+}
 
 void WritePages()
 {}
