@@ -1175,6 +1175,7 @@ namespace half_float
 		/// \return non-decremented half value
 		half operator--(int) { half out(*this); --*this; return out; }
 	
+		detail::uint16 data() const { return data_; }
 	private:
 		/// Rounding mode to use
 		static const std::float_round_style round_style = (std::float_round_style)(HALF_ROUND_STYLE);

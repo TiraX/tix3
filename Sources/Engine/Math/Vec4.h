@@ -25,6 +25,13 @@ namespace tix
 			, W(nw)
 		{}
 
+		FVec4(const FVec3<T>& V, T nw)
+			: X(V.X)
+			, Y(V.Y)
+			, Z(V.Z)
+			, W(nw)
+		{}
+
 		FVec4(const SColor& C)
 			: X(C.R)
 			, Y(C.G)
