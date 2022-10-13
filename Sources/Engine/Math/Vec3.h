@@ -295,6 +295,9 @@ namespace tix
 			return reinterpret_cast<T*>(this);
 		}
 
+		static inline FVec3<T> Min(const FVec3<T>& A, const FVec3<T>& B);
+		static inline FVec3<T> Max(const FVec3<T>& A, const FVec3<T>& B);
+
 		T X, Y, Z;
 	};
 
@@ -312,6 +315,26 @@ namespace tix
 		FVec3<T> operator*(const S scalar, const FVec3<T>& vector)
 	{
 		return vector * (T)scalar;
+	}
+
+	template<typename T>
+	inline FVec3<T> FVec3<T>::Min(const FVec3<T>& A, const FVec3<T>& B)
+	{
+		return FVec3<T>(
+			TMath::Min(A.X, B.X),
+			TMath::Min(A.Y, B.Y),
+			TMath::Min(A.Z, B.Z)
+			);
+	}
+
+	template<typename T>
+	inline FVec3<T> FVec3<T>::Max(const FVec3<T>& A, const FVec3<T>& B)
+	{
+		return FVec3<T>(
+			TMath::Max(A.X, B.X),
+			TMath::Max(A.Y, B.Y),
+			TMath::Max(A.Z, B.Z)
+			);
 	}
 
 } // end namespace tix

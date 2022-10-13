@@ -82,7 +82,7 @@ namespace tix
 	class TMath
 	{
 	public:
-		static inline int32 Round(float n)
+		static FORCEINLINE int32 Round(float n)
 		{
 			if (n >= 0.f)
 			{
@@ -94,8 +94,18 @@ namespace tix
 			}
 		}
 
+		/**
+		* Converts a float to the nearest integer. Rounds up when the fraction is .5
+		* @param F		Floating point value to convert
+		* @return		The nearest integer to 'F'.
+		*/
+		static FORCEINLINE float RoundToFloat(float F)
+		{
+			return floorf(F + 0.5f);
+		}
+
 		template< class T >
-		static inline void Swap(T& a, T& b)
+		static FORCEINLINE void Swap(T& a, T& b)
 		{
 			T Tmp = a;
 			a = b;
@@ -103,82 +113,82 @@ namespace tix
 		}
 
 		template< class T >
-		static inline T Sqr(T v)
+		static FORCEINLINE T Sqr(T v)
 		{
 			return v * v;
 		}
 
-		static inline float Sqrt(float v)
+		static FORCEINLINE float Sqrt(float v)
 		{
 			return sqrtf(v);
 		}
 
-		static inline float DegToRad(const float Degree)
+		static FORCEINLINE float DegToRad(const float Degree)
 		{
 			return Degree * DEGTORAD;
 		}
 
-		static inline float RadToDeg(const float Radian)
+		static FORCEINLINE float RadToDeg(const float Radian)
 		{
 			return Radian * RADTODEG;
 		}
 
 		template< class T >
-		static inline bool IsNaN(const T v)
+		static FORCEINLINE bool IsNaN(const T v)
 		{
 			return isnan(v);
 		}
 
 		template< class T >
-		static inline bool IsInF(const T v)
+		static FORCEINLINE bool IsInF(const T v)
 		{
 			return isinf(v);
 		}
 
 		template< class T >
-		static inline T Lerp(const T src, const T dest, const float t)
+		static FORCEINLINE T Lerp(const T src, const T dest, const float t)
 		{
 			return (T)((dest - src) * t + src);
 		}
 
 		template< class T >
-		static inline T LerpStable(const T src, const T dest, const float t)
+		static FORCEINLINE T LerpStable(const T src, const T dest, const float t)
 		{
 			return (T)((src * (1.0f - t)) + (dest * t));
 		}
 
 		template< class T >
-		static inline T Max(const T a, const T b)
+		static FORCEINLINE T Max(const T a, const T b)
 		{
 			return a > b ? a : b;
 		}
 
 		template< class T >
-		static inline T Min(const T a, const T b)
+		static FORCEINLINE T Min(const T a, const T b)
 		{
 			return a < b ? a : b;
 		}
 
 		template< class T >
-		static inline T Max3(const T a, const T b, const T c)
+		static FORCEINLINE T Max3(const T a, const T b, const T c)
 		{
 			return Max(Max(a, b), c);
 		}
 
 		template< class T >
-		static inline T Min3(const T a, const T b, const T c)
+		static FORCEINLINE T Min3(const T a, const T b, const T c)
 		{
 			return Min(Min(a, b), c);
 		}
 
 		template< class T >
-		static inline T Clamp(const T X, const T Min, const T Max)
+		static FORCEINLINE T Clamp(const T X, const T Min, const T Max)
 		{
 			return X < Min ? Min : X < Max ? X : Max;
 		}
 
 		template< class T >
-		static inline T Abs(const T x)
+		static FORCEINLINE T Abs(const T x)
 		{
 			if (x > 0)
 				return x;
@@ -187,45 +197,60 @@ namespace tix
 		}
 
 		template< class T >
-		static inline T Modf(const T x)
+		static FORCEINLINE T Modf(const T x)
 		{
 			float Temp;
 			return modf(x, &Temp);
 		}
 
 		template< class T >
-		static inline T Frac(const T x)
+		static FORCEINLINE T Frac(const T x)
 		{
 			return Modf(x);
 		}
 
 		template< class T >
-		static inline T Floor(T x)
+		static FORCEINLINE T Floor(T x)
 		{
 			return floor(x);
 		}
 
-		static inline int32 FloorToInt(float x)
+		static FORCEINLINE int32 FloorToInt(float x)
 		{
 			return (int32)floor(x);
 		}
 
-		static inline float Ceil(float x)
+		static FORCEINLINE float Ceil(float x)
 		{
 			return ceil(x);
 		}
 
-		static inline int32 CeilToInt(float x)
+		static FORCEINLINE int32 CeilToInt(float x)
 		{
 			return (int32)ceil(x);
 		}
 
-		static inline float Pow(float X, float Y)
+		static FORCEINLINE uint32 CeilLogTwo(uint32 Arg)
 		{
-			return pow(X, Y);
+			int32 Bitmask = ((int32)(CountLeadingZeros(Arg) << 26)) >> 31;
+			return (32 - CountLeadingZeros(Arg - 1)) & (~Bitmask);
 		}
 
-		static inline int32 CountBitNum(uint32 value)
+		static FORCEINLINE float Pow(float X, float Y)
+		{
+			return powf(X, Y);
+		}
+
+		static FORCEINLINE int32 CountBits64(uint64 Bits)
+		{
+			// https://en.wikipedia.org/wiki/Hamming_weight
+			Bits -= (Bits >> 1) & 0x5555555555555555ull;
+			Bits = (Bits & 0x3333333333333333ull) + ((Bits >> 2) & 0x3333333333333333ull);
+			Bits = (Bits + (Bits >> 4)) & 0x0f0f0f0f0f0f0f0full;
+			return (Bits * 0x0101010101010101) >> 56;
+		}
+
+		static FORCEINLINE int32 CountBits32(uint32 value)
 		{
 			int32 num = 0;
 			while (value)
@@ -236,7 +261,7 @@ namespace tix
 			return num;
 		}
 
-		static inline int32 Log(uint32 value)
+		static FORCEINLINE int32 Log(uint32 value)
 		{
 			int num = 0;
 			while (value)
@@ -247,42 +272,59 @@ namespace tix
 			return num;
 		}
 
-		static inline void RandSeed(uint32 Seed)
+
+		static FORCEINLINE float Loge(float Value) { return logf(Value); }
+		/**
+		 * Computes the base 2 logarithm of the specified value
+		 *
+		 * @param Value the value to perform the log on
+		 *
+		 * @return the base 2 log of the value
+		 */
+		static FORCEINLINE float Log2(float Value)
+		{
+			// Cached value for fast conversions
+			constexpr float LogToLog2 = 1.44269502f; // 1.f / Loge(2.f)
+			// Do the platform specific log and convert using the cached value
+			return Loge(Value) * LogToLog2;
+		}
+
+		static FORCEINLINE void RandSeed(uint32 Seed)
 		{
 			srand(Seed);
 		}
 
 		//! returns a random integer
-		static inline int32 Rand()
+		static FORCEINLINE int32 Rand()
 		{
 			return rand();
 		}
 
 		//! returns a float value between 0.0 ~ 1.0
-		static inline float RandomUnit()
+		static FORCEINLINE float RandomUnit()
 		{
 			const float k_inv = 1.0f / RAND_MAX;
 			return rand() * k_inv;
 		}
 
 		//! returns if a equals b, taking possible rounding errors into account
-		static inline bool Equals(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
+		static FORCEINLINE bool Equals(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
 		{
 			return (a + tolerance >= b) && (a - tolerance <= b);
 		}
 
-		static inline bool GreatEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
+		static FORCEINLINE bool GreatEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
 		{
 			return (a + tolerance) >= b;
 		}
 
-		static inline bool LessEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
+		static FORCEINLINE bool LessEqual(const float a, const float b, const float tolerance = ROUNDING_ERROR_32)
 		{
 			return a <= (b + tolerance);
 		}
 
 		//! returns if a equals zero, taking rounding errors into account
-		static inline bool IsZero(const float32 a, const float32 tolerance = ROUNDING_ERROR_32)
+		static FORCEINLINE bool IsZero(const float32 a, const float32 tolerance = ROUNDING_ERROR_32)
 		{
 			return Equals(a, 0.0f, tolerance);
 		}
@@ -293,7 +335,7 @@ namespace tix
 			return (n & (n - 1)) == 0;
 		}
 
-		static inline float ReciprocalSquareroot(const float32 x)
+		static FORCEINLINE float ReciprocalSquareroot(const float32 x)
 		{
 			// comes from Nvidia
 			uint32 tmp = ((unsigned int)(IEEE_1_0 << 1) + IEEE_1_0 - *(uint32*)&x) >> 1;
@@ -302,7 +344,7 @@ namespace tix
 		}
 
 		// from Quake3
-		static inline float Q_rsqrt(float number)
+		static FORCEINLINE float Q_rsqrt(float number)
 		{
 			long i;
 			float x2, y;
@@ -319,31 +361,31 @@ namespace tix
 			return y;
 		}
 
-		static inline float FMod(float x, float y)
+		static FORCEINLINE float FMod(float x, float y)
 		{
 			return fmod(x, y);
 		}
 
 		template<class T>
-		static inline T Align(T n, uint32 align_num)
+		static FORCEINLINE T Align(T n, uint32 align_num)
 		{
 			return (n + align_num - 1) & (~(align_num - 1));
 		}
 
 		template<class T>
-		static inline T Align4(T n)
+		static FORCEINLINE T Align4(T n)
 		{
 			return Align<T>(n, 4);
 		}
 
 		template<class T>
-		static inline T Align16(T n)
+		static FORCEINLINE T Align16(T n)
 		{
 			return Align<T>(n, 16);
 		}
 
 		//! Remap value v's range[s0, s1] to [t0, t1]
-		static inline float Fit(float v, float s0, float s1, float t0, float t1)
+		static FORCEINLINE float Fit(float v, float s0, float s1, float t0, float t1)
 		{
 			TI_ASSERT(s1 - s0 != 0);
 			v = TMath::Clamp(v, s0, s1);
@@ -351,27 +393,27 @@ namespace tix
 		}
 
 		//! Equals Fit(v, 0, 1, t0, t1)
-		static inline float Fit01(float v, float t0, float t1)
+		static FORCEINLINE float Fit01(float v, float t0, float t1)
 		{
 			v = TMath::Clamp(v, 0.f, 1.f);
 			return v * (t1 - t0) + t0;
 		}
 
 		//! Equals Fit(v, s0, s1, 0, 1)
-		static inline float FitTo01(float v, float s0, float s1)
+		static FORCEINLINE float FitTo01(float v, float s0, float s1)
 		{
 			TI_ASSERT(s1 - s0 != 0);
 			return TMath::Clamp((v - s0) / (s1 - s0), 0.f, 1.f);
 		}
 
-		static inline TString IToA(int32 num)
+		static FORCEINLINE TString IToA(int32 num)
 		{
 			char NumS[32];
 			sprintf(NumS, "%d", num);
 			return TString(NumS);
 		}
 
-		static inline int32 AToI(const TString& S)
+		static FORCEINLINE int32 AToI(const TString& S)
 		{
 			return atoi(S.c_str());
 		}
@@ -387,7 +429,7 @@ namespace tix
 #if defined (TI_PLATFORM_WIN32)
 #pragma intrinsic( _BitScanReverse )
 #endif
-		static inline uint32 FloorLog2(uint32 Value)
+		static FORCEINLINE uint32 FloorLog2(uint32 Value)
 		{
 #if defined (TI_PLATFORM_WIN32)
 			// Use BSR to return the log2 of the integer
@@ -409,7 +451,46 @@ namespace tix
 			if (Value >= 1 << 1) { pos += 1; }
 			return (Value == 0) ? 0 : pos;
 #endif
+		}
 
+		static FORCEINLINE uint32 CountTrailingZeros(uint32 Value)
+		{
+			if (Value == 0)
+			{
+				return 32;
+			}
+			unsigned long BitIndex;	// 0-based, where the LSB is 0 and MSB is 31
+			_BitScanForward(&BitIndex, Value);	// Scans from LSB to MSB
+			return BitIndex;
+		}
+
+		static FORCEINLINE uint32 CountLeadingZeros(uint32 Value)
+		{
+			unsigned long Log2;
+			_BitScanReverse64(&Log2, (uint64(Value) << 1) | 1);
+			return 32 - Log2;
+		}
+
+		/** Spreads bits to every 3rd. */
+		static FORCEINLINE uint32 MortonCode3(uint32 x)
+		{
+			x &= 0x000003ff;
+			x = (x ^ (x << 16)) & 0xff0000ff;
+			x = (x ^ (x << 8)) & 0x0300f00f;
+			x = (x ^ (x << 4)) & 0x030c30c3;
+			x = (x ^ (x << 2)) & 0x09249249;
+			return x;
+		}
+
+		/** Reverses MortonCode3. Compacts every 3rd bit to the right. */
+		static FORCEINLINE uint32 ReverseMortonCode3(uint32 x)
+		{
+			x &= 0x09249249;
+			x = (x ^ (x >> 2)) & 0x030c30c3;
+			x = (x ^ (x >> 4)) & 0x0300f00f;
+			x = (x ^ (x >> 8)) & 0xff0000ff;
+			x = (x ^ (x >> 16)) & 0x000003ff;
+			return x;
 		}
 	};
 }

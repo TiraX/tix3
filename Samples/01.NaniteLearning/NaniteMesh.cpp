@@ -6,21 +6,7 @@
 #include "stdafx.h"
 #include "NaniteMesh.h"
 #include "Cluster.h"
-
-struct FClusterGroup
-{
-	FSpheref Bounds;
-	FSpheref LODBounds;
-	float MinLODError;
-	float MaxParentLODError;
-	int32 MipLevel;
-	uint32 MeshIndex;
-	bool bTrimmed;
-
-	uint32 PageIndexStart;
-	uint32 PageIndexNum;
-	TVector<uint32> Children;
-};
+#include "NaniteEncode.h"
 
 TNaniteMesh::TNaniteMesh()
 {
@@ -55,6 +41,8 @@ struct NaniteRawMeshData	// from json
 	TVector<int32> ClusterIdPerTriangle;
 	TVector<int32> GroupIdPerTriangle;
 	TVector<int32> ParentIdPerTriangle;
+
+	TVector<int32> MaterialIndexes ;	// always be 0 for now
 
 	FInt2 ClusterInstanceRange;
 };
@@ -217,6 +205,9 @@ void LoadDataFromJson(
 		}
 		RawData.Idx.swap(IdxBuffer);
 
+		// Materials always be 0 for now
+		RawData.MaterialIndexes.resize(NumTriangles);
+
 		RawData.ClusterIdPerTriangle.swap(ClusterInfo);
 		RawData.GroupIdPerTriangle.swap(GroupInfo);
 		RawData.ParentIdPerTriangle.swap(ParentInfo);
@@ -245,18 +236,19 @@ void LoadDataFromJson(
 void ClusterTrianglesLOD0(
 	const NaniteRawMeshData& RawMeshLOD0,
 	TVector<FClusterInstance>& ClusterInstances,
-	TVector<FCluster>& Clusters
+	TVector<FCluster>& ClusterSources
 )
 {
-	Clusters.resize(RawMeshLOD0.NumClusters);
+	ClusterSources.resize(RawMeshLOD0.NumClusters);
 
 	OMP_PARALLEL_FOR
 	for (int32 c = 0; c < RawMeshLOD0.NumClusters; c++)
 	{
 		TVector<int32> ClusterIndexes;
 		ClusterIndexes.reserve(NANITE_MAX_CLUSTER_TRIANGLES * 3);
+		TVector<int32> ClusterMaterialIndexes;
+		ClusterMaterialIndexes.reserve(NANITE_MAX_CLUSTER_TRIANGLES);
 
-		// TODO: add material back
 		const int32 TargetClusterId = c;
 		for (int32 t = 0; t < RawMeshLOD0.NumTriangles; t++)
 		{
@@ -265,14 +257,15 @@ void ClusterTrianglesLOD0(
 				ClusterIndexes.push_back(RawMeshLOD0.Idx[t * 3 + 0]);
 				ClusterIndexes.push_back(RawMeshLOD0.Idx[t * 3 + 1]);
 				ClusterIndexes.push_back(RawMeshLOD0.Idx[t * 3 + 2]);
+				ClusterMaterialIndexes.push_back(RawMeshLOD0.MaterialIndexes[c]);
 			}
 		}
 
-		Clusters[c].BuildCluster(RawMeshLOD0.Vtx, ClusterIndexes, 1);
-		Clusters[c].GenerateGUID(TargetClusterId);
+		ClusterSources[c].BuildCluster(RawMeshLOD0.Vtx, ClusterIndexes, ClusterMaterialIndexes, 1);
+		ClusterSources[c].GenerateGUID(TargetClusterId);
 
 		// Negative notes it's a leaf
-		Clusters[c].EdgeLength *= -1.0f;
+		ClusterSources[c].EdgeLength *= -1.0f;
 	}
 
 	// Update cluster instance LODBounds and SphereBounds
@@ -280,7 +273,7 @@ void ClusterTrianglesLOD0(
 	for (int32 i = 0; i < NumLOD0Instances; i++)
 	{
 		FClusterInstance& CI = ClusterInstances[i];
-		FCluster& Cluster = Clusters[CI.ClusterId];
+		FCluster& Cluster = ClusterSources[CI.ClusterId];
 
 		if (CI.IsInstanced)
 		{
@@ -309,7 +302,7 @@ void BuildDAGFromLODs(
 	const TVector<int32>& ClusterInsParents,
 	const TVector<float>& FakeLODErrors,
 	TVector<FClusterInstance>& ClusterInstances,
-	TVector<FCluster>& Clusters,
+	TVector<FCluster>& ClusterSources,
 	TVector<FClusterGroup>& ClusterGroups
 )
 {
@@ -319,9 +312,9 @@ void BuildDAGFromLODs(
 	for (int32 lod = 1; lod < NumLODs; lod++)
 	{
 		const NaniteRawMeshData& RawData = RawDatas[lod];
-		const int32 BaseCluster = (int32)Clusters.size();
+		const int32 BaseCluster = (int32)ClusterSources.size();
 		const int32 NumLODClusters = RawData.NumClusters;
-		Clusters.resize(Clusters.size() + NumLODClusters);
+		ClusterSources.resize(ClusterSources.size() + NumLODClusters);
 
 		// Build LOD n Clusters
 		const int32 LODClusterIdStart = BaseCluster;
@@ -329,17 +322,15 @@ void BuildDAGFromLODs(
 		const TVector<RawVertex>& Verts = RawData.Vtx;
 		const TVector<int32>& Indexes = RawData.Idx;
 		const TVector<int32>& ClusterIds = RawData.ClusterIdPerTriangle;
-		// TODO: Add material back
-		//const TVector<int32>& MaterialIndexes = LODMaterialIndexes[LOD];
+		const TVector<int32>& MaterialIndexes = RawData.MaterialIndexes;
 
 		OMP_PARALLEL_FOR
 		for (int32 c = 0; c < NumLODClusters; c++)
 		{
 			TVector<int32> ClusterIndexes;
 			ClusterIndexes.reserve(NANITE_MAX_CLUSTER_TRIANGLES * 3);
-			// TODO: Add material back
-			//TVector<int32> ClusterMaterialIndexes;
-			//ClusterMaterialIndexes.reserve(NANITE_MAX_CLUSTER_TRIANGLES);
+			TVector<int32> ClusterMaterialIndexes;
+			ClusterMaterialIndexes.reserve(NANITE_MAX_CLUSTER_TRIANGLES);
 
 			int32 TargetClusterId = LODClusterIdStart + c;
 			for (int32 i = 0; i < (int32)Indexes.size(); i += 3)
@@ -350,21 +341,20 @@ void BuildDAGFromLODs(
 					ClusterIndexes.push_back(Indexes[i + 0]);
 					ClusterIndexes.push_back(Indexes[i + 1]);
 					ClusterIndexes.push_back(Indexes[i + 2]);
-					// TODO: Add material back
-					//ClusterMaterialIndexes.Add(MaterialIndexes[c]);
+					ClusterMaterialIndexes.push_back(MaterialIndexes[c]);
 				}
 			}
 
-			Clusters[BaseCluster + c].BuildCluster(Verts, ClusterIndexes, 1);
-			Clusters[BaseCluster + c].GenerateGUID(TargetClusterId);
-			Clusters[BaseCluster + c].MipLevel = lod;
+			ClusterSources[BaseCluster + c].BuildCluster(Verts, ClusterIndexes, ClusterMaterialIndexes, 1);
+			ClusterSources[BaseCluster + c].GenerateGUID(TargetClusterId);
+			ClusterSources[BaseCluster + c].MipLevel = lod;
 		}
 
 		// Update cluster instance members
 		for (int32 i = RawData.ClusterInstanceRange.X; i <= RawData.ClusterInstanceRange.Y; i++)
 		{
 			FClusterInstance& CI = ClusterInstances[i];
-			FCluster& Cluster = Clusters[CI.ClusterId];
+			FCluster& Cluster = ClusterSources[CI.ClusterId];
 
 			if (CI.IsInstanced)
 			{
@@ -425,7 +415,7 @@ void BuildDAGFromLODs(
 			{
 				FClusterInstance& CI = ClusterInstances[ClusterInstanceIndex];
 				int32 ClusterIndex = CI.ClusterId;
-				bool bLeaf = Clusters[ClusterIndex].EdgeLength < 0.0f;
+				bool bLeaf = ClusterSources[ClusterIndex].EdgeLength < 0.0f;
 				float LODError = CI.LODError;
 
 				// Bounds on cluster instance already transformed by instance_transform
@@ -474,7 +464,7 @@ void BuildDAGFromLODs(
 	uint32 RootIndex = (uint32)ClusterInstances.size() - 1;
 	FClusterGroup RootClusterGroup;
 	RootClusterGroup.Children.push_back(RootIndex);
-	FCluster& RootCluster = Clusters[ClusterInstances[RootIndex].ClusterId];
+	FCluster& RootCluster = ClusterSources[ClusterInstances[RootIndex].ClusterId];
 	FClusterInstance& RootCI = ClusterInstances[RootIndex];
 	RootClusterGroup.Bounds = RootCluster.SphereBounds;
 	RootClusterGroup.LODBounds = FSpheref();
@@ -488,11 +478,6 @@ void BuildDAGFromLODs(
 	ClusterGroups.push_back(RootClusterGroup);
 }
 
-void Encode()
-{
-
-}
-
 bool TNaniteMesh::ConvertNanieMesh()
 {
 	TVector<NaniteRawMeshData> RawDatas;
@@ -502,15 +487,15 @@ bool TNaniteMesh::ConvertNanieMesh()
 
 	LoadDataFromJson(RawDatas, LODErrors, ClusterInstances, ClusterInsGroups, ClusterInsParents);
 
-	TVector<FCluster> Clusters;
+	TVector<FCluster> ClusterSources;
 	int32 TotalClusters = 0;
 	for (const auto& RawData : RawDatas)
 	{
 		TotalClusters += RawData.NumClusters;
 	}
-	Clusters.reserve(TotalClusters);
+	ClusterSources.reserve(TotalClusters);
 
-	ClusterTrianglesLOD0(RawDatas[0], ClusterInstances, Clusters);
+	ClusterTrianglesLOD0(RawDatas[0], ClusterInstances, ClusterSources);
 
 	TVector<FClusterGroup> ClusterGroups;
 	int32 TotalGroups = 0;
@@ -519,9 +504,10 @@ bool TNaniteMesh::ConvertNanieMesh()
 		TotalGroups += RawData.NumGroups;
 	}
 	ClusterGroups.reserve(TotalGroups);
-	BuildDAGFromLODs(RawDatas, ClusterInsGroups, ClusterInsParents, LODErrors, ClusterInstances, Clusters, ClusterGroups);
 
-	Encode();
+	BuildDAGFromLODs(RawDatas, ClusterInsGroups, ClusterInsParents, LODErrors, ClusterInstances, ClusterSources, ClusterGroups);
+
+	Encode(ClusterGroups, ClusterSources, ClusterInstances);
 	
 	return true;
 }

@@ -30,7 +30,11 @@ void FCluster::GenerateGUID(int32 _Id)
 	_ID = _Id;
 }
 
-void FCluster::BuildCluster(const TVector<RawVertex>& InVerts, const TVector<int32>& InClusterIndexes, int32 InNumTexCoords)
+void FCluster::BuildCluster(
+	const TVector<RawVertex>& InVerts,
+	const TVector<int32>& InClusterIndexes,
+	const TVector<int32>& InMaterialIndexes,
+	int32 InNumTexCoords)
 {
 	NumTris = (uint32)InClusterIndexes.size() / 3;
 
@@ -43,8 +47,7 @@ void FCluster::BuildCluster(const TVector<RawVertex>& InVerts, const TVector<int
 	ExternalEdges.reserve(3 * NumTris);
 	NumExternalEdges = 0;
 
-	// TODO: add material back
-	//check(InMaterialIndexes.Num() * 3 == InClusterIndexes.Num());
+	TI_ASSERT(InMaterialIndexes.size() * 3 == InClusterIndexes.size());
 
 	THMap< uint32, uint32 > OldToNewIndex;
 	OldToNewIndex.reserve(NumTris);
@@ -96,11 +99,10 @@ void FCluster::BuildCluster(const TVector<RawVertex>& InVerts, const TVector<int
 		NumExternalEdges += 0;
 	}
 
-	// TODO: add material back
-	//for (int32 i = 0; i < InClusterIndexes.Num(); i += 3)
-	//{
-	//	MaterialIndexes.Add(InMaterialIndexes[i / 3]);
-	//}
+	for (int32 i = 0; i < (int32)InClusterIndexes.size(); i += 3)
+	{
+		MaterialIndexes.push_back(InMaterialIndexes[i / 3]);
+	}
 
 	Bound();
 }

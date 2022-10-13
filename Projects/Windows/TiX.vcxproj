@@ -196,6 +196,7 @@
     <ClInclude Include="..\..\Sources\Engine\TAssetFile.h" />
     <ClInclude Include="..\..\Sources\Engine\TAssetFileDef.h" />
     <ClInclude Include="..\..\Sources\Engine\TAssetLibrary.h" />
+    <ClInclude Include="..\..\Sources\Engine\TBitWriter.h" />
     <ClInclude Include="..\..\Sources\Engine\TCollisionSet.h" />
     <ClInclude Include="..\..\Sources\Engine\TConsoleVariable.h" />
     <ClInclude Include="..\..\Sources\Engine\TCrc.h" />

@@ -759,6 +759,9 @@
     <ClInclude Include="..\..\Sources\Engine\Math\Sphere.h">
       <Filter>Sources\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TBitWriter.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenPS.hlsl">

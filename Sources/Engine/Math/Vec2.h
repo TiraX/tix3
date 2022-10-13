@@ -312,6 +312,8 @@ namespace tix
 	typedef FVec2<uint32> FUInt2;
 	typedef FVec2<int16> FHInt2;
 
+	typedef FVec2<int64> FDInt2;
+
 	template<class S, class T>
 	FVec2<T> operator*(const S scalar, const FVec2<T>& vector)
 	{

@@ -28,6 +28,12 @@
     <ClCompile Include="Cluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NaniteEncode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Stripifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -46,6 +52,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="NaniteDefinitions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NaniteEncode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Stripifier.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

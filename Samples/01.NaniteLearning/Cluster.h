@@ -38,7 +38,11 @@ public:
 	FCluster() {}
 	void GenerateGUID(int32 _Id);
 
-	void BuildCluster(const TVector<RawVertex>& InVerts, const TVector<int32>& InClusterIndexes, int32 InNumTexCoords);
+	void BuildCluster(
+		const TVector<RawVertex>& InVerts,
+		const TVector<int32>& InClusterIndexes,
+		const TVector<int32>& InMaterialIndexes,
+		int32 InNumTexCoords);
 	void Bound();
 
 private:
@@ -178,4 +182,19 @@ struct FClusterInstance
 		, Transform(InTransform)
 	{}
 
+};
+
+struct FClusterGroup
+{
+	FSpheref Bounds;
+	FSpheref LODBounds;
+	float MinLODError;
+	float MaxParentLODError;
+	int32 MipLevel;
+	uint32 MeshIndex;
+	bool bTrimmed;
+
+	uint32 PageIndexStart;
+	uint32 PageIndexNum;
+	TVector<uint32> Children;
 };
