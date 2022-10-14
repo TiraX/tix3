@@ -479,6 +479,11 @@ void BuildDAGFromLODs(
 	ClusterGroups.push_back(RootClusterGroup);
 }
 
+void SaveToDisk(TNaniteMesh& Mesh)
+{
+	const TString DestFilename = MeshFilename + ".tasset";
+}
+
 bool TNaniteMesh::ConvertNanieMesh(TNaniteMesh& Mesh)
 {
 	TVector<NaniteRawMeshData> RawDatas;
@@ -510,5 +515,7 @@ bool TNaniteMesh::ConvertNanieMesh(TNaniteMesh& Mesh)
 
 	Encode(Mesh, ClusterGroups, ClusterSources, ClusterInstances);
 	
+	SaveToDisk(Mesh);
+
 	return true;
 }

@@ -284,6 +284,11 @@ namespace tix
 			Y += center.Y;
 		}
 
+		FVec3<T> GetAbs() const
+		{
+			return FVec3<T>(TMath::Abs(X), TMath::Abs(Y), TMath::Abs(Z));
+		}
+
 		const T* Data() const
 		{
 			return reinterpret_cast<const T*>(this);
