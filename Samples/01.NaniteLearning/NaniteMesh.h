@@ -120,5 +120,8 @@ public:
 
 protected:
 	TNaniteMesh();
-	static bool ConvertNanieMesh();
+	static bool ConvertNanieMesh(TNaniteMesh& Mesh);
+
+public:
+	TVector<FPackedHierarchyNode> HierarchyNodes;
 };

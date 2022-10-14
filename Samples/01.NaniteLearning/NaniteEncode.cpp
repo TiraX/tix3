@@ -313,7 +313,11 @@ void ExpandClusters(
 	}
 }
 
-int32 QuantizePositions(TVector< FCluster >& Clusters, const FBox& MeshBounds)
+//int32 QuantizePositions(
+//	TVector< FCluster >& Clusters, 
+//	const FBox& MeshBounds)
+int32 QuantizePositions(
+	TVector< FCluster >& Clusters)
 {
 	// Simple global quantization for EA
 	const int32 MaxPositionQuantizedValue = (1 << NANITE_MAX_POSITION_QUANTIZATION_BITS) - 1;
@@ -322,8 +326,8 @@ int32 QuantizePositions(TVector< FCluster >& Clusters, const FBox& MeshBounds)
 	//if (PositionPrecision == MIN_int32)
 	{
 		// Auto: Guess required precision from bounds at leaf level
-		FFloat3 Extent = MeshBounds.GetExtent();
-		const float MaxSize = TMath::Max3(Extent.X, Extent.Y, Extent.Z);
+		//FFloat3 Extent = MeshBounds.GetExtent();
+		//const float MaxSize = TMath::Max3(Extent.X, Extent.Y, Extent.Z);
 
 		// Heuristic: We want higher resolution if the mesh is denser.
 		// Use geometric average of cluster size as a proxy for density.
@@ -795,13 +799,13 @@ void AssignClusterToPages(
 			const FEncodingInfo& EncodingInfo = EncodingInfos[ClusterIndex];
 
 			// Add to page
-			FPage* Page = &Pages.front();
+			FPage* Page = &Pages.back();
 			bool bRootPage = (Pages.size() - 1u) < MaxRootPages;
 			if (Page->GpuSizes.GetTotal() + EncodingInfo.GpuSizes.GetTotal() > (bRootPage ? NANITE_ROOT_PAGE_GPU_SIZE : NANITE_STREAMING_PAGE_GPU_SIZE) || Page->NumClusters + 1 > NANITE_MAX_CLUSTERS_PER_PAGE)
 			{
 				// Page is full. Need to start a new one
 				Pages.push_back(FPage());
-				Page = &Pages.front();
+				Page = &Pages.back();
 			}
 
 			// Start a new part?
@@ -966,17 +970,18 @@ static void PackHierarchyNode(FPackedHierarchyNode& OutNode, const FHierarchyNod
 	}
 }
 
-static float BVH_Cost(const TVector<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices)
+static float BVH_Cost(const TVector<FIntermediateNode>& Nodes, const TVectorView<uint32>& NodeIndices)
 {
 	FBox Bound;
-	for (uint32 NodeIndex : NodeIndices)
+	for (int32 i = 0; i < NodeIndices.Size(); i++)
 	{
+		uint32 NodeIndex = NodeIndices[i];
 		Bound.AddInternalBox(Nodes[NodeIndex].Bound);
 	}
-	return Bound.GetSurfaceArea();
+	return Bound.GetArea();
 }
 
-static void BVH_SortNodes(const TVector<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices, const TVector<uint32>& ChildSizes)
+static void BVH_SortNodes(const TVector<FIntermediateNode>& Nodes, TVectorView<uint32> NodeIndices, const TVector<uint32>& ChildSizes)
 {
 	// Perform NANITE_MAX_BVH_NODE_FANOUT_BITS binary splits
 	for (uint32 Level = 0; Level < NANITE_MAX_BVH_NODE_FANOUT_BITS; Level++)
@@ -996,9 +1001,9 @@ static void BVH_SortNodes(const TVector<FIntermediateNode>& Nodes, TArrayView<ui
 				Sizes[0] += ChildSizes[FirstChild + i];
 				Sizes[1] += ChildSizes[FirstChild + i + NumChildrenPerBucketHalf];
 			}
-			TArrayView<uint32> NodeIndices01 = NodeIndices.Slice(BucketStartIndex, Sizes[0] + Sizes[1]);
-			TArrayView<uint32> NodeIndices0 = NodeIndices.Slice(BucketStartIndex, Sizes[0]);
-			TArrayView<uint32> NodeIndices1 = NodeIndices.Slice(BucketStartIndex + Sizes[0], Sizes[1]);
+			TVectorView<uint32> NodeIndices01 = NodeIndices.Slice(BucketStartIndex, Sizes[0] + Sizes[1]);
+			TVectorView<uint32> NodeIndices0 = NodeIndices.Slice(BucketStartIndex, Sizes[0]);
+			TVectorView<uint32> NodeIndices1 = NodeIndices.Slice(BucketStartIndex + Sizes[0], Sizes[1]);
 
 			BucketStartIndex += Sizes[0] + Sizes[1];
 
@@ -1051,7 +1056,7 @@ static uint32 BuildHierarchyRecursive(TVector<FHierarchyNode>& HierarchyNodes, c
 	uint32 HNodeIndex = (uint32)HierarchyNodes.size();
 	HierarchyNodes.push_back(FHierarchyNode());
 
-	uint32 NumChildren = INode.Children.size();
+	uint32 NumChildren = (uint32)INode.Children.size();
 	TI_ASSERT(NumChildren > 0 && NumChildren <= NANITE_MAX_BVH_NODE_FANOUT);
 	for (uint32 ChildIndex = 0; ChildIndex < NumChildren; ChildIndex++)
 	{
@@ -1070,7 +1075,7 @@ static uint32 BuildHierarchyRecursive(TVector<FHierarchyNode>& HierarchyNodes, c
 			HNode.MinLODErrors[ChildIndex] = Group.MinLODError;
 			HNode.MaxParentLODErrors[ChildIndex] = Group.MaxParentLODError;
 			HNode.ChildrenStartIndex[ChildIndex] = 0xFFFFFFFFu;
-			HNode.NumChildren[ChildIndex] = Part.Clusters.size();
+			HNode.NumChildren[ChildIndex] = (uint32)Part.Clusters.size();
 			HNode.ClusterGroupPartIndex[ChildIndex] = ChildNode.PartIndex;
 
 			TI_ASSERT(HNode.NumChildren[ChildIndex] <= NANITE_MAX_CLUSTERS_PER_GROUP);
@@ -1086,18 +1091,19 @@ static uint32 BuildHierarchyRecursive(TVector<FHierarchyNode>& HierarchyNodes, c
 			const FHierarchyNode& ChildHNode = HierarchyNodes[ChildHierarchyNodeIndex];
 
 			FBox Bounds;
-			TVector< FSpheref, TInlineAllocator<NANITE_MAX_BVH_NODE_FANOUT> > LODBoundSpheres;
+			TVector< FSpheref> LODBoundSpheres;
+			LODBoundSpheres.reserve(NANITE_MAX_BVH_NODE_FANOUT);
 			float MinLODError = MAX_flt;
 			float MaxParentLODError = 0.0f;
 			for (uint32 GrandChildIndex = 0; GrandChildIndex < NANITE_MAX_BVH_NODE_FANOUT && ChildHNode.NumChildren[GrandChildIndex] != 0; GrandChildIndex++)
 			{
 				Bounds.AddInternalBox(ChildHNode.Bounds[GrandChildIndex]);
-				LODBoundSpheres.Add(ChildHNode.LODBounds[GrandChildIndex]);
+				LODBoundSpheres.push_back(ChildHNode.LODBounds[GrandChildIndex]);
 				MinLODError = TMath::Min(MinLODError, ChildHNode.MinLODErrors[GrandChildIndex]);
 				MaxParentLODError = TMath::Max(MaxParentLODError, ChildHNode.MaxParentLODErrors[GrandChildIndex]);
 			}
 
-			FSpheref LODBounds = FSpheref(LODBoundSpheres.GetData(), LODBoundSpheres.size());
+			FSpheref LODBounds = FSpheref(LODBoundSpheres.data(), (int32)LODBoundSpheres.size());
 
 			FHierarchyNode& HNode = HierarchyNodes[HNodeIndex];
 			HNode.Bounds[ChildIndex] = Bounds;
@@ -1118,20 +1124,26 @@ static uint32 BuildHierarchyRecursive(TVector<FHierarchyNode>& HierarchyNodes, c
 //		It does this by building a complete tree with at most one partially filled level.
 //		At most one node is partially filled.
 //TODO:	Experiment with sweeping, even if it results in more total nodes and/or makes some paths slightly longer.
-static uint32 BuildHierarchyTopDown(TVector<FIntermediateNode>& Nodes, TArrayView<uint32> NodeIndices, bool bSort)
+static uint32 BuildHierarchyTopDown(TVector<FIntermediateNode>& Nodes, TVectorView<uint32> NodeIndices, bool bSort)
 {
-	const uint32 N = NodeIndices.size();
+	const uint32 N = (uint32)NodeIndices.Size();
 	if (N == 1)
 	{
 		return NodeIndices[0];
 	}
 
-	const uint32 NewRootIndex = Nodes.size();
-	Nodes.AddDefaulted_GetRef();
+	const uint32 NewRootIndex = (uint32)Nodes.size();
+	//Nodes.AddDefaulted_GetRef();
+	Nodes.push_back(FIntermediateNode());
 
 	if (N <= NANITE_MAX_BVH_NODE_FANOUT)
 	{
-		Nodes[NewRootIndex].Children = NodeIndices;
+		//Nodes[NewRootIndex].Children = NodeIndices;
+		Nodes[NewRootIndex].Children.resize(NodeIndices.Size());
+		for (int32 i = 0; i < NodeIndices.Size(); i++)
+		{
+			Nodes[NewRootIndex].Children[i] = NodeIndices[i];
+		}
 		return NewRootIndex;
 	}
 
@@ -1155,7 +1167,7 @@ static uint32 BuildHierarchyTopDown(TVector<FIntermediateNode>& Nodes, TArrayVie
 		const uint32 ChildExcess = TMath::Min(Excess, MaxExcessPerChild);
 		ChildSizes[i] = SmallChildSize + ChildExcess;
 		Excess -= ChildExcess;
-	}
+	} 
 	TI_ASSERT(Excess == 0);
 
 	if (bSort)
@@ -1168,30 +1180,38 @@ static uint32 BuildHierarchyTopDown(TVector<FIntermediateNode>& Nodes, TArrayVie
 	{
 		uint32 ChildSize = ChildSizes[i];
 		uint32 NodeIndex = BuildHierarchyTopDown(Nodes, NodeIndices.Slice(Offset, ChildSize), bSort);	// Needs to be separated from next statement with sequence point to order access to Nodes array.
-		Nodes[NewRootIndex].Children.Add(NodeIndex);
+		Nodes[NewRootIndex].Children.push_back(NodeIndex);
 		Offset += ChildSize;
 	}
 
 	return NewRootIndex;
 }
 
-void BuildHierarchies(const TVector<FClusterGroup>& Groups, TVector<FClusterGroupPart>& Parts, uint32 NumMeshes)
+void BuildHierarchies(
+	const TVector<FClusterGroup>& Groups,
+	uint32 NumMeshes,
+	TVector<FClusterGroupPart>& Parts,
+	TVector<FPackedHierarchyNode>& PackedHierarchyNodes)
 {
 	TVector<TVector<uint32>> PartsByMesh;
 	PartsByMesh.resize(NumMeshes);
+	for (auto& P : PartsByMesh)
+	{
+		P.reserve(64);
+	}
 
 	// Assign group parts to the meshes they belong to
-	const uint32 NumTotalParts = Parts.size();
+	const uint32 NumTotalParts = (uint32)Parts.size();
 	for (uint32 PartIndex = 0; PartIndex < NumTotalParts; PartIndex++)
 	{
-		FClusterGroupPart& Part = Parts[PartIndex];
-		PartsByMesh[Groups[Part.GroupIndex].MeshIndex].Add(PartIndex);
+		const FClusterGroupPart& Part = Parts[PartIndex];
+		PartsByMesh[Groups[Part.GroupIndex].MeshIndex].push_back(PartIndex);
 	}
 
 	for (uint32 MeshIndex = 0; MeshIndex < NumMeshes; MeshIndex++)
 	{
 		const TVector<uint32>& PartIndices = PartsByMesh[MeshIndex];
-		const uint32 NumParts = PartIndices.size();
+		const uint32 NumParts = (uint32)PartIndices.size();
 
 		int32 MaxMipLevel = 0;
 		for (uint32 i = 0; i < NumParts; i++)
@@ -1217,7 +1237,7 @@ void BuildHierarchies(const TVector<FClusterGroup>& Groups, TVector<FClusterGrou
 			Node.PartIndex = PartIndex;
 			Node.MipLevel = Group.MipLevel;
 			Node.bLeaf = true;
-			NodesByMip[Group.MipLevel].Add(i);
+			NodesByMip[Group.MipLevel].push_back(i);
 		}
 
 
@@ -1226,8 +1246,10 @@ void BuildHierarchies(const TVector<FClusterGroup>& Groups, TVector<FClusterGrou
 		{
 			// Just a single leaf.
 			// Needs to be special-cased as root should always be an inner node.
-			FIntermediateNode& Node = Nodes.AddDefaulted_GetRef();
-			Node.Children.Add(0);
+			//FIntermediateNode& Node = Nodes.AddDefaulted_GetRef();
+			Nodes.push_back(FIntermediateNode());
+			FIntermediateNode& Node = Nodes.back();
+			Node.Children.push_back(0);
 			Node.Bound = Nodes[0].Bound;
 			RootIndex = 1;
 		}
@@ -1260,12 +1282,13 @@ void BuildHierarchies(const TVector<FClusterGroup>& Groups, TVector<FClusterGrou
 					if (Nodes[NodeIndex].bLeaf || Nodes[NodeIndex].Children.size() == NANITE_MAX_BVH_NODE_FANOUT)
 					{
 						// Leaf or filled node. Just add it.
-						LevelRoots.Add(NodeIndex);
+						LevelRoots.push_back(NodeIndex);
 					}
 					else
 					{
 						// Incomplete node. Discard the code and add the children as roots instead.
-						LevelRoots.Append(Nodes[NodeIndex].Children);
+						//LevelRoots.Append(Nodes[NodeIndex].Children);
+						LevelRoots.insert(LevelRoots.end(), Nodes[NodeIndex].Children.begin(), Nodes[NodeIndex].Children.end());
 					}
 				}
 			}
@@ -1283,13 +1306,12 @@ void BuildHierarchies(const TVector<FClusterGroup>& Groups, TVector<FClusterGrou
 		BuildHierarchyRecursive(HierarchyNodes, Nodes, Groups, Parts, RootIndex);
 
 		// Convert hierarchy to packed format
-		const uint32 NumHierarchyNodes = HierarchyNodes.size();
-		const uint32 PackedBaseIndex = Resources.HierarchyNodes.size();
-		Resources.HierarchyRootOffsets.Add(PackedBaseIndex);
-		Resources.HierarchyNodes.AddDefaulted(NumHierarchyNodes);
+		const uint32 NumHierarchyNodes = (uint32)HierarchyNodes.size();
+		TI_ASSERT(PackedHierarchyNodes.size() == 0);
+		PackedHierarchyNodes.resize(NumHierarchyNodes);
 		for (uint32 i = 0; i < NumHierarchyNodes; i++)
 		{
-			PackHierarchyNode(Resources.HierarchyNodes[PackedBaseIndex + i], HierarchyNodes[i], Groups, Parts, Resources.NumRootPages);
+			PackHierarchyNode(PackedHierarchyNodes[i], HierarchyNodes[i], Groups, Parts, 1);
 		}
 	}
 }
@@ -1298,6 +1320,7 @@ void WritePages()
 {}
 
 void Encode(
+	TNaniteMesh& Mesh,
 	TVector<FClusterGroup>& Groups, 
 	TVector<FCluster>& ClusterSources,
 	TVector< FClusterInstance>& ClusterInstances
@@ -1315,7 +1338,7 @@ void Encode(
 		MeshBounds.AddInternalBox(Cluster.Bounds);
 	}
 
-	int32 PositionPrecision = QuantizePositions(Clusters, MeshBounds);
+	int32 PositionPrecision = QuantizePositions(Clusters);
 
 	TVector<FEncodingInfo> EncodingInfos;
 	CalcEncodingInfoFromInstances(EncodingInfos, ClusterSources, Clusters, ClusterInstances, false, 1);
@@ -1324,7 +1347,7 @@ void Encode(
 	TVector<FClusterGroupPart> GroupParts;
 	AssignClusterToPages(Groups, Clusters, EncodingInfos, Pages, GroupParts, 1);
 
-	BuildHierarchies();
+	BuildHierarchies(Groups, 1, GroupParts, Mesh.HierarchyNodes);
 
 	WritePages();
 }

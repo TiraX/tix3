@@ -16,15 +16,16 @@ static const TString MeshFilename = "SM_NaniteMesh";
 
 TNaniteMesh* TNaniteMesh::LoadMesh()
 {
+	TNaniteMesh* Mesh = ti_new TNaniteMesh;
 	const TString DestFilename = MeshFilename + ".tasset";
 	TFile MeshFile;
 	if (!MeshFile.Open(DestFilename, EFA_READ))
 	{
-		bool ConvertResult = ConvertNanieMesh();
+		bool ConvertResult = ConvertNanieMesh(*Mesh);
 		TI_ASSERT(ConvertResult);
 	}
 
-	return nullptr;
+	return Mesh;
 }
 
 struct NaniteRawMeshData	// from json
@@ -478,7 +479,7 @@ void BuildDAGFromLODs(
 	ClusterGroups.push_back(RootClusterGroup);
 }
 
-bool TNaniteMesh::ConvertNanieMesh()
+bool TNaniteMesh::ConvertNanieMesh(TNaniteMesh& Mesh)
 {
 	TVector<NaniteRawMeshData> RawDatas;
 	TVector<float> LODErrors;
@@ -507,7 +508,7 @@ bool TNaniteMesh::ConvertNanieMesh()
 
 	BuildDAGFromLODs(RawDatas, ClusterInsGroups, ClusterInsParents, LODErrors, ClusterInstances, ClusterSources, ClusterGroups);
 
-	Encode(ClusterGroups, ClusterSources, ClusterInstances);
+	Encode(Mesh, ClusterGroups, ClusterSources, ClusterInstances);
 	
 	return true;
 }

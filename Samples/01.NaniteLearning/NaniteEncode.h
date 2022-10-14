@@ -6,7 +6,9 @@
 #pragma once
 #include "Cluster.h"
 
+class TNaniteMesh;
 void Encode(
+	TNaniteMesh& Mesh,
 	TVector<FClusterGroup>& Groups, 
 	TVector<FCluster>& ClusterSources,
 	TVector< FClusterInstance>& ClusterInstances

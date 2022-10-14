@@ -259,6 +259,7 @@
     <ClInclude Include="..\..\Sources\Engine\TTypes.h" />
     <ClInclude Include="..\..\Sources\Engine\TTypeScene.h" />
     <ClInclude Include="..\..\Sources\Engine\TUtils.h" />
+    <ClInclude Include="..\..\Sources\Engine\TVectorView.h" />
     <ClInclude Include="..\..\Sources\Engine\TVersion.h" />
     <ClInclude Include="..\..\Sources\Engine\TiX.h" />
     <ClInclude Include="..\..\Sources\Engine\TZip.h" />

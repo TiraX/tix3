@@ -57,6 +57,7 @@ using namespace std;
 #include "TTimer.h"
 #include "TFile.h"
 #include "TStream.h"
+#include "TVectorView.h"
 #include "TBitWriter.h"
 #include "TShape.h"
 #include "TImage.h"

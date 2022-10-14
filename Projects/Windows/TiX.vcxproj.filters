@@ -762,6 +762,9 @@
     <ClInclude Include="..\..\Sources\Engine\TBitWriter.h">
       <Filter>Sources\Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Sources\Engine\TVectorView.h">
+      <Filter>Sources\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Sources\Engine\Shaders\dx12\FullScreenPS.hlsl">
