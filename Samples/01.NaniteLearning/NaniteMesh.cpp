@@ -14,6 +14,28 @@ TNaniteMesh::TNaniteMesh()
 
 static const TString MeshFilename = "SM_NaniteMesh";
 
+struct FNaniteAssetHeader
+{
+	uint32 RootDataSize;
+	uint32 StreamablePagesSize;
+	uint32 NumBvHNodes;
+	uint32 NumPages;
+	uint32 NumPageDependencies;
+
+	uint32 NumRootPages;
+	uint32 PositionPrecision;
+
+	uint32 GetDataSize() const
+	{
+		return
+			RootDataSize +
+			StreamablePagesSize +
+			NumBvHNodes * sizeof(FPackedHierarchyNode) +
+			NumPages * sizeof(FPageStreamingState) +
+			NumPageDependencies * sizeof(uint32);
+	}
+};
+
 TNaniteMesh* TNaniteMesh::LoadMesh()
 {
 	TNaniteMesh* Mesh = ti_new TNaniteMesh;
@@ -23,6 +45,34 @@ TNaniteMesh* TNaniteMesh::LoadMesh()
 	{
 		bool ConvertResult = ConvertNanieMesh(*Mesh);
 		TI_ASSERT(ConvertResult);
+	}
+	else
+	{
+		FNaniteAssetHeader Header;
+		MeshFile.Read(&Header, sizeof(FNaniteAssetHeader), sizeof(FNaniteAssetHeader));
+
+		Mesh->NumRootPages = Header.NumRootPages;
+		Mesh->PositionPrecision = Header.PositionPrecision;
+
+		int32 Aligned = 0;
+		Mesh->RootData.resize(Header.RootDataSize);
+		MeshFile.Read(Mesh->RootData.data(), Header.RootDataSize, Header.RootDataSize);
+		Aligned = TMath::Align4(Header.RootDataSize);
+		MeshFile.Seek(Header.RootDataSize - Aligned, true);
+
+		Mesh->StreamablePages.resize(Header.StreamablePagesSize);
+		MeshFile.Read(Mesh->StreamablePages.data(), Header.StreamablePagesSize, Header.StreamablePagesSize);
+		Aligned = TMath::Align4(Header.StreamablePagesSize);
+		MeshFile.Seek(Header.StreamablePagesSize - Aligned, true);
+
+		Mesh->HierarchyNodes.resize(Header.NumBvHNodes);
+		MeshFile.Read(Mesh->HierarchyNodes.data(), Header.NumBvHNodes * sizeof(FPackedHierarchyNode), Header.NumBvHNodes * sizeof(FPackedHierarchyNode));
+
+		Mesh->PageStreamingStates.resize(Header.NumPages);
+		MeshFile.Read(Mesh->PageStreamingStates.data(), Header.NumPages * sizeof(FPageStreamingState), Header.NumPages * sizeof(FPageStreamingState));
+
+		Mesh->PageDependencies.resize(Header.NumPageDependencies);
+		MeshFile.Read(Mesh->PageDependencies.data(), Header.NumPageDependencies * sizeof(uint32), Header.NumPageDependencies * sizeof(uint32));
 	}
 
 	return Mesh;
@@ -65,6 +115,8 @@ void LoadDataFromJson(
 
 	int32 TotalClusters = 0;
 	int32 TotalGroups = 0;
+
+	TMap<uint32, uint32> ClusterToInstanceMap;	// cluster<==>intance pair
 
 	for (int32 lod = 0; lod < NumLODs; lod++)
 	{
@@ -169,6 +221,9 @@ void LoadDataFromJson(
 				{
 					// add this as a cluster instance
 					UniqueClusterIds.insert(ClusterId);
+					ClusterToInstanceMap[ClusterId] = (uint32)ClusterInstances.size();
+					TI_ASSERT(ClusterInsGroups.size() == ClusterInstances.size());
+					TI_ASSERT(ClusterInsParents.size() == ClusterInstances.size());
 					ClusterInstances.push_back(FClusterInstance(ClusterId));
 					ClusterInsGroups.push_back(GroupInfo[t]);
 					ClusterInsParents.push_back(ParentInfo[t]);
@@ -214,6 +269,16 @@ void LoadDataFromJson(
 		RawData.ParentIdPerTriangle.swap(ParentInfo);
 
 		ti_delete[] FileContent;
+	}
+
+	// Translate ClusterInsParents
+	for (auto& Parent : ClusterInsParents)
+	{
+		if (Parent >= 0)
+		{
+			TI_ASSERT(ClusterToInstanceMap.find(Parent) != ClusterToInstanceMap.end());
+			Parent = ClusterToInstanceMap[Parent];
+		}
 	}
 
 	// LOD Errors
@@ -482,6 +547,32 @@ void BuildDAGFromLODs(
 void SaveToDisk(TNaniteMesh& Mesh)
 {
 	const TString DestFilename = MeshFilename + ".tasset";
+
+	FNaniteAssetHeader Header;
+	Header.RootDataSize = (uint32)Mesh.RootData.size();
+	Header.StreamablePagesSize = (uint32)Mesh.StreamablePages.size();
+	Header.NumBvHNodes = (uint32)Mesh.HierarchyNodes.size();
+	Header.NumPages = (uint32)Mesh.PageStreamingStates.size();
+	Header.NumPageDependencies = (uint32)Mesh.PageDependencies.size();
+	Header.NumRootPages = Mesh.NumRootPages;
+	Header.PositionPrecision = Mesh.PositionPrecision;
+
+	TStream S(sizeof(Header) + Header.GetDataSize() + 16);
+	S.Put(&Header, sizeof(Header));
+	S.Put(Mesh.RootData.data(), Header.RootDataSize);
+	S.FillZeroToAlign(4);
+	S.Put(Mesh.StreamablePages.data(), Header.StreamablePagesSize);
+	S.FillZeroToAlign(4);
+	S.Put(Mesh.HierarchyNodes.data(), Header.NumBvHNodes * sizeof(FPackedHierarchyNode));
+	S.Put(Mesh.PageStreamingStates.data(), Header.NumPages * sizeof(FPageStreamingState));
+	S.Put(Mesh.PageDependencies.data(), Header.NumPageDependencies * sizeof(uint32));
+
+	TFile F;
+	if (F.Open(DestFilename, EFA_CREATEWRITE))
+	{
+		F.Write(S.GetBuffer(), S.GetBufferSize());
+		F.Close();
+	}
 }
 
 bool TNaniteMesh::ConvertNanieMesh(TNaniteMesh& Mesh)

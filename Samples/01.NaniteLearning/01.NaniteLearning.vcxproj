@@ -99,7 +99,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetDir)*.cso $(ProjectDir)\Content\Cooked\Windows\</Command>
+      <Command>copy $(TargetDir)*.cso $(ProjectDir)\Content\Cooked\Windows\
+copy $(ProjectDir)\$(Platform)\$(Configuration)\*.cso $(ProjectDir)\Content\Cooked\Windows\
+copy $(TargetPath) $(ProjectDir)Content\
+copy $(TargetDir)TiX.dll $(ProjectDir)Content\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

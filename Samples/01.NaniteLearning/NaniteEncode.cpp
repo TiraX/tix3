@@ -151,9 +151,14 @@ struct FVariableVertex
 	const float* Data;
 	uint32 SizeInBytes;
 
-	bool operator==(FVariableVertex Other) const
+	bool operator==(const FVariableVertex& Other) const
 	{
 		return 0 == memcmp(Data, Other.Data, SizeInBytes);
+	}
+
+	bool operator<(const FVariableVertex& Other) const
+	{
+		return memcmp(Data, Other.Data, SizeInBytes) < 0;
 	}
 };
 
@@ -1540,7 +1545,7 @@ void AssignClusterToPages(
 		TI_ASSERT((uint32)Pages.size() >= GroupStartPage);
 		Group.PageIndexStart = GroupStartPage;
 		Group.PageIndexNum = (uint32)Pages.size() - GroupStartPage;
-		TI_ASSERT(Group.PageIndexNum >= 1);
+		TI_ASSERT(Group.PageIndexNum >= 1 && Group.PageIndexNum <= 2);
 		TI_ASSERT(Group.PageIndexNum <= NANITE_MAX_GROUP_PARTS_MASK);
 	}
 
@@ -2218,7 +2223,7 @@ void WritePages(
 			{
 				const FClusterGroupPart& Part = Parts[Page.PartsStartIndex + i];
 				const FClusterGroup& Group = Groups[Part.GroupIndex];
-				const uint32 HierarchyRootOffset = Mesh.HierarchyRootOffsets[Group.MeshIndex];
+				const uint32 HierarchyRootOffset = 0;// Mesh.HierarchyRootOffsets[Group.MeshIndex];
 
 				uint32 PageDependencyStart = Group.PageIndexStart;
 				uint32 PageDependencyNum = Group.PageIndexNum;
@@ -2317,7 +2322,13 @@ void WritePages(
 		TI_ASSERT(GpuSectionOffsets.Attribute == Page.GpuSizes.GetTotal());
 
 		// Dword align index data
-		CombinedIndexData.SetNumZeroed((CombinedIndexData.size() + 3) & -4);
+		//CombinedIndexData.SetNumZeroed((CombinedIndexData.size() + 3) & -4);
+		uint32 ZeroAdded = (CombinedIndexData.size() + 3) & -4;
+		TI_ASSERT(ZeroAdded >= (uint32)CombinedIndexData.size());
+		if (ZeroAdded > (uint32)CombinedIndexData.size())
+		{
+			CombinedIndexData.resize(ZeroAdded);
+		}
 
 		// Perform page-internal fix up directly on PackedClusters
 		for (uint32 LocalPartIndex = 0; LocalPartIndex < Page.PartsNum; LocalPartIndex++)
@@ -2353,7 +2364,7 @@ void WritePages(
 		FPageDiskHeader* PageDiskHeader = PagePointer.Advance<FPageDiskHeader>(1);
 
 		// 16-byte align material range data to make it easy to copy during GPU transcoding
-		MaterialRangeData.resize(TMath::Align(MaterialRangeData.size(), 4));
+		MaterialRangeData.resize(TMath::Align((uint32)MaterialRangeData.size(), 4));
 
 		static_assert(sizeof(FPageGPUHeader) % 16 == 0, "sizeof(FGPUPageHeader) must be a multiple of 16");
 		static_assert(sizeof(FUVRange) % 16 == 0, "sizeof(FUVRange) must be a multiple of 16");
@@ -2586,18 +2597,18 @@ void WritePages(
 
 	const uint32 TotalPageGPUSize = TotalRootGPUSize + TotalStreamingGPUSize;
 	const uint32 TotalPageDiskSize = TotalRootDiskSize + TotalStreamingDiskSize;
-	_LOG(ELog::Log, "WritePages:", NumPages);
-	_LOG(ELog::Log, "  Root: GPU size: %d bytes. %d Pages. %.3f bytes per page (%.3f%% utilization).", TotalRootGPUSize, NumRootPages, TotalRootGPUSize / (float)NumRootPages, TotalRootGPUSize / (float(NumRootPages) * NANITE_ROOT_PAGE_GPU_SIZE) * 100.0f);
+	_LOG(ELog::Log, "WritePages:\n", NumPages);
+	_LOG(ELog::Log, "  Root: GPU size: %d bytes. %d Pages. %.3f bytes per page (%.3f%% utilization).\n", TotalRootGPUSize, NumRootPages, TotalRootGPUSize / (float)NumRootPages, TotalRootGPUSize / (float(NumRootPages) * NANITE_ROOT_PAGE_GPU_SIZE) * 100.0f);
 	if (NumStreamingPages > 0)
 	{
-		_LOG(ELog::Log, "  Streaming: GPU size: %d bytes. %d Pages. %.3f bytes per page (%.3f%% utilization).", TotalStreamingGPUSize, NumStreamingPages, TotalStreamingGPUSize / float(NumStreamingPages), TotalStreamingGPUSize / (float(NumStreamingPages) * NANITE_STREAMING_PAGE_GPU_SIZE) * 100.0f);
+		_LOG(ELog::Log, "  Streaming: GPU size: %d bytes. %d Pages. %.3f bytes per page (%.3f%% utilization).\n", TotalStreamingGPUSize, NumStreamingPages, TotalStreamingGPUSize / float(NumStreamingPages), TotalStreamingGPUSize / (float(NumStreamingPages) * NANITE_STREAMING_PAGE_GPU_SIZE) * 100.0f);
 	}
 	else
 	{
-		_LOG(ELog::Log, "  Streaming: 0 bytes.");
+		_LOG(ELog::Log, "  Streaming: 0 bytes.\n");
 	}
-	_LOG(ELog::Log, "  Page data disk size: %d bytes. Fixup data size: %d bytes.", TotalPageDiskSize, TotalFixupSize);
-	_LOG(ELog::Log, "  Total GPU size: %d bytes, Total disk size: %d bytes.", TotalPageGPUSize, TotalPageDiskSize + TotalFixupSize);
+	_LOG(ELog::Log, "  Page data disk size: %d bytes. Fixup data size: %d bytes.\n", TotalPageDiskSize, TotalFixupSize);
+	_LOG(ELog::Log, "  Total GPU size: %d bytes, Total disk size: %d bytes.\n", TotalPageGPUSize, TotalPageDiskSize + TotalFixupSize);
 
 	// Store PageData
 	Mesh.StreamablePages.swap(StreamableBulkData);
@@ -2630,7 +2641,7 @@ void Encode(
 		MeshBounds.AddInternalBox(Cluster.Bounds);
 	}
 
-	int32 PositionPrecision = QuantizePositions(Clusters);
+	Mesh.PositionPrecision = QuantizePositions(Clusters);
 
 	TVector<FEncodingInfo> EncodingInfos;
 	CalcEncodingInfoFromInstances(EncodingInfos, ClusterSources, Clusters, ClusterInstances, false, 1);

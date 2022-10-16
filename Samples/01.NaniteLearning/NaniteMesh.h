@@ -5,6 +5,8 @@
 
 #pragma once
 
+// Can not understand what's FixupChunk mean, try disable and reading further
+#define FIXUP 0
 
 struct FPackedHierarchyNode
 {
@@ -180,6 +182,7 @@ public:
 	uint32 PageAndClusterIndex;
 	uint32 PageDependencyStartAndNum;
 };
+
 
 class FFixupChunk	//TODO: rename to something else
 {
