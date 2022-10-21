@@ -1,9 +1,9 @@
 /*
-	TiX Engine v2.0 Copyright (C) 2018~2021
+	TiX Engine v3.0 Copyright (C) 2022~2025
 	By ZhaoShuai tirax.cn@gmail.com
 */
 
-#pragma once
+//#pragma once
 
 // Enable to constrain clusters to no more than 256 vertices and no index references outside of trailing window of NANITE_CONSTRAINED_CLUSTER_CACHE_SIZE vertices.
 #define NANITE_USE_CONSTRAINED_CLUSTERS						1
@@ -136,10 +136,3 @@
 #define NANITE_DEBUG_FLAG_DISABLE_CULL_FRUSTUM_BOX			0x8
 #define NANITE_DEBUG_FLAG_DISABLE_CULL_FRUSTUM_SPHERE		0x10
 #define NANITE_DEBUG_FLAG_DRAW_ONLY_VSM_INVALIDATING		0x20
-
-struct RawVertex
-{
-	FFloat3 Pos;
-	FFloat3 Nor;
-	FFloat2 UV;
-};

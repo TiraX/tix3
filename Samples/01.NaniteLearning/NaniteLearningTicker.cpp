@@ -1,5 +1,5 @@
 /*
-	TiX Engine v2.0 Copyright (C) 2018~2021
+	TiX Engine v3.0 Copyright (C) 2022~2025
 	By ZhaoShuai tirax.cn@gmail.com
 */
 
@@ -8,11 +8,13 @@
 #include "NaniteLearningRenderer.h"
 
 TNaniteLearningTicker::TNaniteLearningTicker()
+	: NaniteMesh(nullptr)
 {
 }
 
 TNaniteLearningTicker::~TNaniteLearningTicker()
 {
+	ti_delete NaniteMesh;
 }
 
 void TNaniteLearningTicker::Tick(float Dt)
@@ -30,4 +32,6 @@ void TNaniteLearningTicker::SetupScene()
 	//const TString DefaultMaterialInstance = "DebugMaterial.tasset";
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterial);
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterialInstance);
+	NaniteMesh = TNaniteMesh::LoadMesh();
+
 }

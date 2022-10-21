@@ -92,7 +92,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\rapidjson</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\rapidjson;Shaders\Dx12</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,7 +150,7 @@ copy $(TargetDir)TiX.dll $(ProjectDir)Content\</Command>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\rapidjson</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\rapidjson;Shaders\Dx12</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -174,21 +174,25 @@ copy $(TargetDir)TiX.dll $(ProjectDir)Content\</Command>
     <ClCompile Include="NaniteLearningSample.cpp" />
     <ClCompile Include="NaniteLearningTicker.cpp" />
     <ClCompile Include="NaniteMesh.cpp" />
+    <ClCompile Include="PersistentCull.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Stripifier.cpp" />
+    <ClCompile Include="Transcode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cluster.h" />
-    <ClInclude Include="NaniteDefinitions.h" />
     <ClInclude Include="NaniteEncode.h" />
     <ClInclude Include="NaniteLearningRenderer.h" />
     <ClInclude Include="NaniteLearningTicker.h" />
     <ClInclude Include="NaniteMesh.h" />
+    <ClInclude Include="PersistentCull.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Stripifier.h" />
+    <ClInclude Include="Transcode.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
@@ -202,6 +206,12 @@ copy $(TargetDir)TiX.dll $(ProjectDir)Content\</Command>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

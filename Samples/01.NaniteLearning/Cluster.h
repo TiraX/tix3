@@ -1,9 +1,16 @@
 /*
-	TiX Engine v2.0 Copyright (C) 2018~2021
+	TiX Engine v3.0 Copyright (C) 2022~2025
 	By ZhaoShuai tirax.cn@gmail.com
 */
 
 #pragma once
+
+struct RawVertex
+{
+	FFloat3 Pos;
+	FFloat3 Nor;
+	FFloat2 UV;
+};
 
 struct FMaterialTriangle
 {
