@@ -736,32 +736,32 @@ FNaniteView GetNaniteView( uint ViewIndex )
 	return NaniteView;
 }
 
-// Fill ViewState using data from a NaniteView
-void PatchViewState(FNaniteView NaniteView, inout ViewState InOutView)
-{
-	InOutView.SVPositionToTranslatedWorld	= NaniteView.SVPositionToTranslatedWorld;
-	InOutView.ViewToTranslatedWorld			= NaniteView.ViewToTranslatedWorld;
-	InOutView.ViewTilePosition				= NaniteView.ViewTilePosition;
-	InOutView.MatrixTilePosition			= NaniteView.MatrixTilePosition;
-
-	InOutView.TranslatedWorldToView			= NaniteView.TranslatedWorldToView;
-	InOutView.TranslatedWorldToClip			= NaniteView.TranslatedWorldToClip;
-	InOutView.ViewToClip					= NaniteView.ViewToClip;
-	InOutView.ClipToWorld					= NaniteView.ClipToWorld;
-
-	InOutView.PrevTranslatedWorldToView		= NaniteView.PrevTranslatedWorldToView;
-	InOutView.PrevTranslatedWorldToClip		= NaniteView.PrevTranslatedWorldToClip;
-	InOutView.PrevViewToClip				= NaniteView.PrevViewToClip;
-	InOutView.PrevClipToWorld				= NaniteView.PrevClipToWorld;
-
-	InOutView.ViewSizeAndInvSize			= NaniteView.ViewSizeAndInvSize;
-	InOutView.ViewRectMin.xy				= NaniteView.ViewRect.xy - 0.5f; // Convert from float2 with a half texel offset to an int2 texel coord
-	InOutView.PreViewTranslation			= NaniteView.PreViewTranslation;
-	InOutView.PrevPreViewTranslation		= NaniteView.PrevPreViewTranslation;
-	InOutView.WorldCameraOrigin				= NaniteView.WorldCameraOrigin;
-	InOutView.ViewForward					= NaniteView.ViewForward;
-	InOutView.NearPlane						= NaniteView.NearPlane;
-}
+//// Fill ViewState using data from a NaniteView
+//void PatchViewState(FNaniteView NaniteView, inout ViewState InOutView)
+//{
+//	InOutView.SVPositionToTranslatedWorld	= NaniteView.SVPositionToTranslatedWorld;
+//	InOutView.ViewToTranslatedWorld			= NaniteView.ViewToTranslatedWorld;
+//	InOutView.ViewTilePosition				= NaniteView.ViewTilePosition;
+//	InOutView.MatrixTilePosition			= NaniteView.MatrixTilePosition;
+//
+//	InOutView.TranslatedWorldToView			= NaniteView.TranslatedWorldToView;
+//	InOutView.TranslatedWorldToClip			= NaniteView.TranslatedWorldToClip;
+//	InOutView.ViewToClip					= NaniteView.ViewToClip;
+//	InOutView.ClipToWorld					= NaniteView.ClipToWorld;
+//
+//	InOutView.PrevTranslatedWorldToView		= NaniteView.PrevTranslatedWorldToView;
+//	InOutView.PrevTranslatedWorldToClip		= NaniteView.PrevTranslatedWorldToClip;
+//	InOutView.PrevViewToClip				= NaniteView.PrevViewToClip;
+//	InOutView.PrevClipToWorld				= NaniteView.PrevClipToWorld;
+//
+//	InOutView.ViewSizeAndInvSize			= NaniteView.ViewSizeAndInvSize;
+//	InOutView.ViewRectMin.xy				= NaniteView.ViewRect.xy - 0.5f; // Convert from float2 with a half texel offset to an int2 texel coord
+//	InOutView.PreViewTranslation			= NaniteView.PreViewTranslation;
+//	InOutView.PrevPreViewTranslation		= NaniteView.PrevPreViewTranslation;
+//	InOutView.WorldCameraOrigin				= NaniteView.WorldCameraOrigin;
+//	InOutView.ViewForward					= NaniteView.ViewForward;
+//	InOutView.NearPlane						= NaniteView.NearPlane;
+//}
 
 void WriteDispatchArgsSWHW(RWBuffer<uint> RasterizerArgsSWHW, uint ArgsOffset, uint NumClustersSW, uint NumClustersHW)
 {
