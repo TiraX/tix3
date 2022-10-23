@@ -493,7 +493,7 @@ FNaniteAttributeData GetAttributeData(
 	FNaniteRawAttributeData RawAttributeData1,
 	FNaniteRawAttributeData RawAttributeData2,
 	FBarycentrics Barycentrics,
-	FInstanceSceneData InstanceData,
+	//FInstanceSceneData InstanceData,
 	uint CompileTimeMaxTexCoords
 )
 {
@@ -577,13 +577,15 @@ FNaniteAttributeData GetAttributeData(
 
 				float3x3 TangentToLocal = float3x3(TangentX, TangentY, TangentZ);
 
+				// Tix: no instance data, only apply a default transform
 				// Should be Pow2(InvScale) but that requires renormalization
-				float3x3 LocalToWorld = LWCToFloat3x3(InstanceData.LocalToWorld);
-				float3 InvScale = InstanceData.InvNonUniformScale;
-				LocalToWorld[0] *= InvScale.x;
-				LocalToWorld[1] *= InvScale.y;
-				LocalToWorld[2] *= InvScale.z;
-				AttributeData.TangentToWorld = mul(TangentToLocal, LocalToWorld);
+				//float3x3 LocalToWorld = LWCToFloat3x3(InstanceData.LocalToWorld);
+				//float3 InvScale = InstanceData.InvNonUniformScale;
+				//LocalToWorld[0] *= InvScale.x;
+				//LocalToWorld[1] *= InvScale.y;
+				//LocalToWorld[2] *= InvScale.z;
+				//AttributeData.TangentToWorld = mul(TangentToLocal, LocalToWorld);
+				AttributeData.TangentToWorld = TangentToLocal;
 			}
 		}
 		else
@@ -593,7 +595,9 @@ FNaniteAttributeData GetAttributeData(
 			AttributeData.TexCoords_DDY[TexCoordIndex]	= float2(0, 0);
 			if (TexCoordIndex == 0)
 			{
-				AttributeData.TangentToWorld = float3x3(float3(0, 0, 0), float3(0, 0, 0), LWCMultiplyVector(TangentZ * InstanceData.InvNonUniformScale.z, InstanceData.LocalToWorld));
+				// Tix: no instance data, only apply a default transform
+				//AttributeData.TangentToWorld = float3x3(float3(0, 0, 0), float3(0, 0, 0), LWCMultiplyVector(TangentZ * InstanceData.InvNonUniformScale.z, InstanceData.LocalToWorld));
+				AttributeData.TangentToWorld = float3x3(float3(0, 0, 0), float3(0, 0, 0), TangentZ);
 			}
 		}
 	}

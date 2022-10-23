@@ -4,6 +4,7 @@
 */
 
 // NaniteLearning Sample
+#include "Common.hlsli"
 #include "NaniteDefinitions.h"
 #include "NaniteAttributeDecode.h"
 
@@ -28,7 +29,7 @@ StructuredBuffer<FPageInstallInfo> InstallInfoBuffer : register(t0);
 StructuredBuffer<uint> PageDependenciesBuffer : register(t1);
 ByteAddressBuffer SrcPageBuffer : register(t2);
 
-RWByteAddressBuffer DstPageBuffer : register(u1);
+RWByteAddressBuffer DstPageBuffer : register(u0);
 
 
 struct FPageDiskHeader
@@ -349,7 +350,7 @@ void TranscodeVertexAttributes(FPageDiskHeader PageDiskHeader, FCluster Cluster,
 		const uint2 RangeMin = select(bOverMid, UVRange.GapStart + 1u, 0u);
 		const uint2 RangeMax = select(bOverMid, uint2(BitFieldMaskU32(DstU_NumBits, 0), BitFieldMaskU32(DstV_NumBits, 0)), UVRange.GapStart);
 		DstPackedUV = select(bOverMid, DstPackedUV - UVRange.GapLength, DstPackedUV);
-		DstPackedUV = fastClamp(DstPackedUV, RangeMin, RangeMax);
+		DstPackedUV = clamp(DstPackedUV, RangeMin, RangeMax);
 
 		BitStreamWriter_Writer(DstPageBuffer, OutputStream, (DstPackedUV.y << DstU_NumBits) | DstPackedUV.x, DstU_NumBits + DstV_NumBits, 2 * NANITE_MAX_TEXCOORD_QUANTIZATION_BITS);
 	}
