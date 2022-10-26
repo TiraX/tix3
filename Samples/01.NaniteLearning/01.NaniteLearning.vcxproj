@@ -176,6 +176,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StreamingPageUploader.cpp" />
     <ClCompile Include="Stripifier.cpp" />
     <ClCompile Include="Transcode.cpp" />
   </ItemGroup>
@@ -188,6 +189,7 @@
     <ClInclude Include="PersistentCull.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StreamingPageUploader.h" />
     <ClInclude Include="Stripifier.h" />
     <ClInclude Include="Transcode.h" />
   </ItemGroup>

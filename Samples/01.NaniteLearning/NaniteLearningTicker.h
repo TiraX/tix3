@@ -4,7 +4,6 @@
 */
 
 #pragma once
-#include "NaniteMesh.h"
 
 class TNaniteLearningTicker : public TTicker
 {
@@ -17,5 +16,4 @@ public:
 	void SetupScene();
 
 protected:
-	TNaniteMesh* NaniteMesh;
 };

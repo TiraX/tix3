@@ -236,6 +236,11 @@ namespace tix
 			return (32 - CountLeadingZeros(Arg - 1)) & (~Bitmask);
 		}
 
+		static FORCEINLINE uint32 RoundUpToPowerOfTwo(uint32 Arg)
+		{
+			return 1 << CeilLogTwo(Arg);
+		}
+
 		static FORCEINLINE float Pow(float X, float Y)
 		{
 			return powf(X, Y);

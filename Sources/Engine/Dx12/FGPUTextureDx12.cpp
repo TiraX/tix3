@@ -137,5 +137,16 @@ namespace tix
 			CmdListDx12->HoldResourceReference(BufferUpload);
 		}
 	}
+
+	uint8* FGPUTextureDx12::Lock()
+	{
+		RuntimeFail();
+		return nullptr;
+	}
+
+	void FGPUTextureDx12::Unlock()
+	{
+		RuntimeFail();
+	}
 }
 #endif	// COMPILE_WITH_RHI_DX12

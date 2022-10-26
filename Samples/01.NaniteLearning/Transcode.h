@@ -13,8 +13,26 @@ public:
 
 	virtual void Run(FRHICmdList* RHICmdList) override;
 
+	void SetupParams(FRHICmdList* RHICmdList);
 private:
+	enum
+	{
+		SRV_InstallInfoBuffer,
+		SRV_PageDependenciesBuffer,
+		SRV_SrcPageBuffer,
+
+		UAV_DstPageBuffer,
+
+		PARAM_NUM,
+	};
+
+	enum
+	{
+		RC_StartPageIndex,
+		RT_Table,
+	};
 
 private:
+	FRenderResourceTablePtr ResourceTable;
 
 };

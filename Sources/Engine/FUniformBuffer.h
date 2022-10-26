@@ -126,6 +126,14 @@ namespace tix
 			return 0;
 		}
 
+		static FUniformBufferPtr CreateBuffer(
+			FRHICmdList* RHICmdList,
+			const TString& InName,
+			uint32 InStructureSizeInBytes,
+			uint32 InElements,
+			uint32 Flags,
+			TStreamPtr InInitData = nullptr);
+
 		static FUniformBufferPtr CreateUavBuffer(
 			FRHICmdList* RHICmdList,
 			const TString& InName,

@@ -82,6 +82,9 @@ namespace tix
 		{
 			return ResourceState;
 		}
+
+		virtual uint8* Lock() = 0;
+		virtual void Unlock() = 0;
 	protected:
 
 	protected:

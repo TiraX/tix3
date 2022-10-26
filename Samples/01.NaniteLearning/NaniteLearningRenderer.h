@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "StreamingPageUploader.h"
 
 class FNaniteLearningRenderer : public FDefaultRenderer
 {
@@ -21,4 +22,9 @@ private:
 
 	FFullScreenRender FSRender;
 	FRenderTargetPtr RT_BasePass;
+
+	FGPUBufferPtr ClusterPageData;
+
+	TNaniteMesh* NaniteMesh;
+	FStreamingPageUploader StreamingManager;
 };

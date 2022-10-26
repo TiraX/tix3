@@ -109,5 +109,18 @@ namespace tix
 			}
 		}
 	}
+
+	uint8* FGPUBufferDx12::Lock()
+	{
+		uint8* MappedAddress = nullptr;
+		CD3DX12_RANGE ReadRange(0, 0);		// We do not intend to read from this resource on the CPU.
+		VALIDATE_HRESULT(Resource->Map(0, &ReadRange, reinterpret_cast<void**>(&MappedAddress)));
+		return MappedAddress;
+	}
+
+	void FGPUBufferDx12::Unlock()
+	{
+		Resource->Unmap(0, nullptr);
+	}
 }
 #endif	// COMPILE_WITH_RHI_DX12

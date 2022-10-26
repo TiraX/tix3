@@ -9,7 +9,7 @@
 #include "NaniteMesh.h"
 
 #define CONSTRAINED_CLUSTER_CACHE_SIZE				32
-#define MIN_PAGE_DISTANCE_FOR_RELATIVE_ENCODING		4		// Don't use relative encoding near root to avoid small dependent batches for little compression win.
+#define MAX_DEPENDENCY_CHAIN_FOR_RELATIVE_ENCODING	6
 
 #define INVALID_PART_INDEX				0xFFFFFFFFu
 #define INVALID_GROUP_INDEX				0xFFFFFFFFu
@@ -100,6 +100,7 @@ struct FPage
 	uint32	PartsStartIndex = 0;
 	uint32	PartsNum = 0;
 	uint32	NumClusters = 0;
+	bool	bRelativeEncoding = false;
 
 	FPageSections	GpuSizes;
 };
@@ -2014,55 +2015,104 @@ public:
 	}
 };
 
-static uint32 CalculatePageDistancesToRootRecursive(TVector<uint32>& PageDistances, TNaniteMesh& Mesh, uint32 PageIndex)
+static uint32 MarkRelativeEncodingPagesRecursive(TVector<FPage>& Pages, TVector<uint32>& PageDependentsDepth, const TVector<TVector<uint32>>& PageDependents, uint32 PageIndex)
 {
-	uint32 Distance = PageDistances[PageIndex];
-	if (Distance != MAX_uint32)
+	if (PageDependentsDepth[PageIndex] != MAX_uint32)
 	{
-		return Distance;
+		return PageDependentsDepth[PageIndex];
 	}
 
-	FPageStreamingState& PageStreamingState = Mesh.PageStreamingStates[PageIndex];
-	const uint32 DependenciesStart = PageStreamingState.DependenciesStart;
-	const uint32 DependenciesNum = PageStreamingState.DependenciesNum;
-	for (uint32 i = 0; i < DependenciesNum; i++)
+	uint32 Depth = 0;
+	for (const uint32 DependentPageIndex : PageDependents[PageIndex])
 	{
-		const uint32 DependencyIndex = Mesh.PageDependencies[DependenciesStart + i];
-		const uint32 DependencyDistance = CalculatePageDistancesToRootRecursive(PageDistances, Mesh, DependencyIndex);
-		TI_ASSERT(DependencyDistance != MAX_uint32);
-		Distance = TMath::Min(Distance, DependencyDistance + 1u);
+		const uint32 DependentDepth = MarkRelativeEncodingPagesRecursive(Pages, PageDependentsDepth, PageDependents, DependentPageIndex);
+		Depth = TMath::Max(Depth, DependentDepth + 1u);
 	}
-	TI_ASSERT(Distance != MAX_uint32);
-	PageDistances[PageIndex] = Distance;
-	return Distance;
+
+	FPage& Page = Pages[PageIndex];
+	Page.bRelativeEncoding = true;
+
+	if (Depth >= MAX_DEPENDENCY_CHAIN_FOR_RELATIVE_ENCODING)
+	{
+		// Using relative encoding for this page would make the dependency chain too long. Use direct coding instead and reset depth.
+		Page.bRelativeEncoding = false;
+		Depth = 0;
+	}
+
+	PageDependentsDepth[PageIndex] = Depth;
+	return Depth;
 }
 
-static TVector<uint32> CalculatePageDistancesToRoot(TNaniteMesh& Mesh)
+static uint32 MarkRelativeEncodingPages(TNaniteMesh& Mesh, TVector<FPage>& Pages, const TVector<FClusterGroup>& Groups, const TVector<FClusterGroupPart>& Parts)
 {
 	const uint32 NumPages = (uint32)Mesh.PageStreamingStates.size();
 
-	TVector<uint32> PageDistances;
-	//PageDistances.Init(MAX_uint32, NumPages);
-	PageDistances.resize(NumPages);
-	TFill(PageDistances.begin(), PageDistances.end(), MAX_uint32);
+	// Build list of dependents for each page
+	TVector<TVector<uint32>> PageDependents;
+	PageDependents.resize(NumPages);
 
-	// Mark roots as distance 0
+	// Memorize how many levels of dependency a given page has
+	TVector<uint32> PageDependentsDepth;
+	PageDependentsDepth.resize(NumPages);
+	TFill(PageDependentsDepth.begin(), PageDependentsDepth.end(), MAX_uint32);
+
+	//TBitArray<> PageHasOnlyRootDependencies(false, NumPages);
+	TVector<bool> PageHasOnlyRootDependencies;
+	PageHasOnlyRootDependencies.resize(NumPages);
+	TFill(PageHasOnlyRootDependencies.begin(), PageHasOnlyRootDependencies.end(), false);
+
 	for (uint32 PageIndex = 0; PageIndex < NumPages; PageIndex++)
 	{
-		if (Mesh.PageStreamingStates[PageIndex].DependenciesNum == 0)
+		const FPageStreamingState& PageStreamingState = Mesh.PageStreamingStates[PageIndex];
+
+		bool bHasRootDependency = false;
+		bool bHasStreamingDependency = false;
+		for (uint32 i = 0; i < PageStreamingState.DependenciesNum; i++)
 		{
-			PageDistances[PageIndex] = 0;
+			const uint32 DependencyPageIndex = Mesh.PageDependencies[PageStreamingState.DependenciesStart + i];
+			if (Mesh.IsRootPage(DependencyPageIndex))
+			{
+				bHasRootDependency = true;
+			}
+			else
+			{
+				TVector<uint32>::const_iterator It = TFind(PageDependents[DependencyPageIndex].begin(), PageDependents[DependencyPageIndex].end(), PageIndex);
+				if (It == PageDependents[DependencyPageIndex].end())
+					PageDependents[DependencyPageIndex].push_back(PageIndex);
+				bHasStreamingDependency = true;
+			}
+		}
+
+		PageHasOnlyRootDependencies[PageIndex] = (bHasRootDependency && !bHasStreamingDependency);
+	}
+
+	uint32 NumRelativeEncodingPages = 0;
+	for (uint32 PageIndex = 0; PageIndex < NumPages; PageIndex++)
+	{
+		FPage& Page = Pages[PageIndex];
+
+		MarkRelativeEncodingPagesRecursive(Pages, PageDependentsDepth, PageDependents, PageIndex);
+
+		if (Mesh.IsRootPage(PageIndex))
+		{
+			// Root pages never use relative encoding
+			Page.bRelativeEncoding = false;
+		}
+		else if (PageHasOnlyRootDependencies[PageIndex])
+		{
+			// Root pages are always resident, so dependencies on them shouldn't count towards dependency chain limit.
+			// If a page only has root dependencies, always code it as relative.
+			Page.bRelativeEncoding = true;
+		}
+
+		if (Page.bRelativeEncoding)
+		{
+			NumRelativeEncodingPages++;
 		}
 	}
 
-	// Calculate distance too all other pages
-	for (uint32 PageIndex = 0; PageIndex < NumPages; PageIndex++)
-	{
-		PageDistances[PageIndex] = CalculatePageDistancesToRootRecursive(PageDistances, Mesh, PageIndex);
-	}
-	return PageDistances;
+	return NumRelativeEncodingPages;
 }
-
 
 static TVector<TMap<FVariableVertex, FVertexMapEntry>> BuildVertexMaps(const TVector<FPage>& Pages, const TVector<FCluster>& Clusters, const TVector<FClusterGroupPart>& Parts)
 {
@@ -2202,7 +2252,7 @@ void WritePages(
 	}
 
 	auto PageVertexMaps = BuildVertexMaps(Pages, Clusters, Parts);
-	TVector<uint32> PageDistances = CalculatePageDistancesToRoot(Mesh);
+	const uint32 NumRelativeEncodingPages = MarkRelativeEncodingPages(Mesh, Pages, Groups, Parts);
 
 	// Process pages
 	TVector< TVector<uint8> > PageResults;
@@ -2213,7 +2263,7 @@ void WritePages(
 		const FPage& Page = Pages[PageIndex];
 		FFixupChunk& FixupChunk = FixupChunks[PageIndex];
 
-		Mesh.PageStreamingStates[PageIndex].Flags = (PageDistances[PageIndex] >= MIN_PAGE_DISTANCE_FOR_RELATIVE_ENCODING) ? NANITE_PAGE_FLAG_RELATIVE_ENCODING : 0;
+		Mesh.PageStreamingStates[PageIndex].Flags = Page.bRelativeEncoding ? NANITE_PAGE_FLAG_RELATIVE_ENCODING : 0;
 
 		// Add hierarchy fixups
 		{

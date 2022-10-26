@@ -8,13 +8,11 @@
 #include "NaniteLearningRenderer.h"
 
 TNaniteLearningTicker::TNaniteLearningTicker()
-	: NaniteMesh(nullptr)
 {
 }
 
 TNaniteLearningTicker::~TNaniteLearningTicker()
 {
-	ti_delete NaniteMesh;
 }
 
 void TNaniteLearningTicker::Tick(float Dt)
@@ -32,6 +30,5 @@ void TNaniteLearningTicker::SetupScene()
 	//const TString DefaultMaterialInstance = "DebugMaterial.tasset";
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterial);
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterialInstance);
-	NaniteMesh = TNaniteMesh::LoadMesh();
 
 }

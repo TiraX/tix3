@@ -43,6 +43,9 @@
     <ClCompile Include="Transcode.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
+    <ClCompile Include="StreamingPageUploader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -74,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h">
       <Filter>Source Files\Computes</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamingPageUploader.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

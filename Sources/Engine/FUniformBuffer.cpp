@@ -42,6 +42,20 @@ namespace tix
 			CmdList->SetGPUBufferState(Buffer, TargetState);
 	}
 
+	FUniformBufferPtr FUniformBuffer::CreateBuffer(
+		FRHICmdList* RHICmdList,
+		const TString& InName,
+		uint32 InStructureSizeInBytes,
+		uint32 InElements,
+		uint32 Flags,
+		TStreamPtr InInitData)
+	{
+		FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, Flags);
+		Buffer->SetResourceName(InName);
+		Buffer->CreateGPUBuffer(RHICmdList, InInitData);
+		return Buffer;
+	}
+
 	FUniformBufferPtr FUniformBuffer::CreateUavBuffer(
 		FRHICmdList* RHICmdList,
 		const TString& InName,
@@ -49,10 +63,7 @@ namespace tix
 		uint32 InElements,
 		TStreamPtr InInitData)
 	{
-		FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav);
-		Buffer->SetResourceName(InName);
-		Buffer->CreateGPUBuffer(RHICmdList, InInitData);
-		return Buffer;
+		return CreateBuffer(RHICmdList, InName, InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav, InInitData);
 	}
 
 	FUniformBufferPtr FUniformBuffer::CreateReadableUavBuffer(

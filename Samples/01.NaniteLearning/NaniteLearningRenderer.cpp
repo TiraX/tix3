@@ -5,14 +5,17 @@
 
 #include "stdafx.h"
 #include "NaniteLearningRenderer.h"
+#include "NaniteMesh.h"
 
 FNaniteLearningRenderer::FNaniteLearningRenderer(FSceneInterface* Scene)
-	:FDefaultRenderer(Scene)
+	: FDefaultRenderer(Scene)
+	, NaniteMesh(nullptr)
 {
 }
 
 FNaniteLearningRenderer::~FNaniteLearningRenderer()
 {
+	ti_delete NaniteMesh;
 }
 
 void FNaniteLearningRenderer::InitInRenderThread()
@@ -20,7 +23,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	FDefaultRenderer::InitInRenderThread();
 
 	FRHI * RHI = FRHI::Get();
-	FSRender.InitCommonResources(RHI->GetDefaultCmdList());
+	FRHICmdList* RHICmdList = RHI->GetDefaultCmdList();
+	FSRender.InitCommonResources(RHICmdList);
 
 	const int32 RTWidth = TEngine::GetAppInfo().Width;
 	const int32 RTHeight = TEngine::GetAppInfo().Height;
@@ -67,6 +71,11 @@ void FNaniteLearningRenderer::InitInRenderThread()
 		AB_Result->SetTexture(0, RT_BasePass->GetColorBuffer(0).Texture);
 		RHI->UpdateHardwareResourceAB(AB_Result, FSRender.GetFullScreenShader(), 0);
 	}
+
+	// Setup nanite related
+	// For fast debug, load nanite mesh in render thread here.
+	NaniteMesh = TNaniteMesh::LoadMesh();
+	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh);
 }
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)

@@ -21,10 +21,15 @@ namespace tix
 		{}
 
 		virtual void Init(FRHICmdList* RHICmdList, const FGPUBufferDesc& Desc, TStreamPtr Data) override;
+
+		virtual uint8* Lock() override;
+		virtual void Unlock() override;
+
 		ID3D12Resource* GetResource()
 		{
 			return Resource.Get();
 		}
+
 	private:
 		ComPtr<ID3D12Resource> Resource;
 
