@@ -178,7 +178,7 @@
     </ClCompile>
     <ClCompile Include="StreamingPageUploader.cpp" />
     <ClCompile Include="Stripifier.cpp" />
-    <ClCompile Include="Transcode.cpp" />
+    <ClCompile Include="TranscodeCS.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cluster.h" />
@@ -191,7 +191,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StreamingPageUploader.h" />
     <ClInclude Include="Stripifier.h" />
-    <ClInclude Include="Transcode.h" />
+    <ClInclude Include="TranscodeCS.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">

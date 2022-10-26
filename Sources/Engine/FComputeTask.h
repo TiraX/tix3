@@ -25,6 +25,8 @@ namespace tix
 		void Finalize();
 		virtual void Run(FRHICmdList * RHICmdList) = 0;
 		
+		void BindComputePipeline(FRHICmdList* RHICmdList);
+
 		bool HasFlag(uint32 InFlag) const
 		{
 			return (Flags & InFlag) != 0;

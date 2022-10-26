@@ -4,25 +4,25 @@
 */
 
 #include "stdafx.h"
-#include "Transcode.h"
+#include "TranscodeCS.h"
 
-FTranscode::FTranscode()
+FTranscodeCS::FTranscodeCS()
 	: FComputeTask("S_TranscodeCS")
 {
 }
 
-FTranscode::~FTranscode()
+FTranscodeCS::~FTranscodeCS()
 {
 }
 
-void FTranscode::SetupParams(FRHICmdList* RHICmdList)
+void FTranscodeCS::SetupParams(FRHICmdList* RHICmdList)
 {
 	// Create resource table for SRVs and UAVs
 	TI_ASSERT(ResourceTable == nullptr);
 	ResourceTable = RHICmdList->GetHeap(0)->CreateRenderResourceTable(PARAM_NUM);
 }
 
-void FTranscode::Run(FRHICmdList* RHICmdList)
+void FTranscodeCS::Run(FRHICmdList* RHICmdList)
 {
 	//const FInt3& DispatchSize = TccConfig::GetDispatchSize1();
 	//FInt3 GroupCount = CalcDispatchGroups(DispatchSize);

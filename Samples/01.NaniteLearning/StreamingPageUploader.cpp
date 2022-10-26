@@ -53,6 +53,21 @@ void FStreamingPageUploader::Init(FRHICmdList* RHICmdList)
 
 
 }
+
+FGPUBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList* RHICmdList)
+{
+	const int32 NumAllocatedRootPages = 2048;
+	const int32 NumAllocatedPages = MaxStreamingPages + NumAllocatedRootPages;
+	const uint32 AllocatedPagesSize = GPUPageIndexToGPUOffset(NumAllocatedPages);
+	FGPUBufferDesc Desc;
+	Desc.Flag = (uint32)EGPUResourceFlag::Uav;
+	Desc.BufferSize = AllocatedPagesSize;
+	FGPUBufferPtr Buffer = FRHI::Get()->CreateGPUBuffer();
+	Buffer->Init(RHICmdList, Desc, nullptr);
+	FRHI::Get()->SetGPUBufferName(Buffer, "Nanite.StreamingManager.ClusterPageData");
+	return Buffer;
+}
+
 struct FAddedPageInfo
 {
 	FPageInstallInfo	InstallInfo;
@@ -60,7 +75,7 @@ struct FAddedPageInfo
 	uint32				InstallPassIndex;
 };
 
-void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNaniteMesh* NaniteMesh)
+void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNaniteMesh* NaniteMesh, FGPUBufferPtr DstBuffer)
 {
 	// Tix:Process all pages in this case
 
@@ -294,4 +309,43 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		NumRemainingPages -= NumPassPages;
 	}
 	InstallInfoUploadBuffer->GetGPUBuffer()->Unlock();
+
+	// Create shader
+	TranscodeCS = ti_new FTranscodeCS();
+	TranscodeCS->Finalize();
+
+
+	// Install at once
+	const uint32 NumPasses = (uint32)NumInstalledPagesPerPass.size();
+	FRenderResourceTablePtr ResourceTable = RHICmdList->GetHeap(0)->CreateRenderResourceTable(FTranscodeCS::PARAM_NUM);
+	FRHI::Get()->PutUniformBufferInTable(ResourceTable, InstallInfoUploadBuffer, FTranscodeCS::SRV_InstallInfoBuffer);
+	FRHI::Get()->PutUniformBufferInTable(ResourceTable, PageDependenciesBuffer, FTranscodeCS::SRV_PageDependenciesBuffer);
+	FRHI::Get()->PutUniformBufferInTable(ResourceTable, PageUploadBuffer, FTranscodeCS::SRV_SrcPageBuffer);
+	FRHI::Get()->PutRWUniformBufferInTable(ResourceTable, DstBuffer, FTranscodeCS::UAV_DstPageBuffer);
+
+	TranscodeCS->BindComputePipeline(RHICmdList);
+
+	uint32 StartPageIndex = 0;
+	int8 EventName[128];
+	for (uint32 PassIndex = 0; PassIndex < NumPasses; PassIndex++)
+	{
+		const uint32 NumPagesInPass = NumInstalledPagesPerPass[PassIndex];
+
+		sprintf(EventName, "TranscodePageToGPU (PageOffset: %u, PageCount: %u)", StartPageIndex, NumPagesInPass);
+
+		RHICmdList->BeginEvent(EventName);
+#define TRANSCODE_THREADS_PER_GROUP_BITS	7
+#define TRANSCODE_THREADS_PER_GROUP			(1 << TRANSCODE_THREADS_PER_GROUP_BITS)
+		RHICmdList->SetComputeConstant(FTranscodeCS::RC_StartPageIndex, &StartPageIndex, 1);
+		RHICmdList->SetComputeResourceTable(FTranscodeCS::RT_Table, ResourceTable); 
+		RHICmdList->DispatchCompute(
+			FInt3(TRANSCODE_THREADS_PER_GROUP, 1, 1), 
+			FInt3(NANITE_MAX_TRANSCODE_GROUPS_PER_PAGE, NumPagesInPass, 1)
+		);
+		RHICmdList->EndEvent();
+
+		StartPageIndex += NumPagesInPass;
+	}
 }
+
+void 

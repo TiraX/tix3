@@ -35,6 +35,12 @@ namespace tix
 		}
 	}
 
+	void FComputeTask::BindComputePipeline(FRHICmdList* RHICmdList)
+	{
+		TI_ASSERT(ComputePipeline != nullptr);
+		RHICmdList->SetComputePipeline(ComputePipeline);
+	}
+
 	void FComputeTask::FinalizeInRenderThread()
 	{
 		TI_ASSERT(IsRenderThread());

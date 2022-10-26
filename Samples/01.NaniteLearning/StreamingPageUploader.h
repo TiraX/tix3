@@ -4,6 +4,7 @@
 */
 
 #pragma once
+#include "TranscodeCS.h"
 
 class TNaniteMesh;
 class FStreamingPageUploader
@@ -14,6 +15,8 @@ public:
 
 	void Init(FRHICmdList* RHICmdList);
 	void ProcessNewResources(FRHICmdList* RHICmdLists, TNaniteMesh* NaniteMesh);
+
+	static FGPUBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
 private:
 
 private:
@@ -21,4 +24,5 @@ private:
 	FUniformBufferPtr PageDependenciesBuffer;
 	FGPUBufferPtr PageUploadBuffer;
 
+	FTranscodeCSPtr TranscodeCS;
 };

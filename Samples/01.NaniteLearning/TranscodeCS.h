@@ -5,16 +5,16 @@
 
 #pragma once
 
-class FTranscode : public FComputeTask
+class FTranscodeCS : public FComputeTask
 {
 public:
-	FTranscode();
-	virtual ~FTranscode();
+	FTranscodeCS();
+	virtual ~FTranscodeCS();
 
 	virtual void Run(FRHICmdList* RHICmdList) override;
 
 	void SetupParams(FRHICmdList* RHICmdList);
-private:
+
 	enum
 	{
 		SRV_InstallInfoBuffer,
@@ -33,6 +33,9 @@ private:
 	};
 
 private:
+
+private:
 	FRenderResourceTablePtr ResourceTable;
 
 };
+typedef TI_INTRUSIVE_PTR(FTranscodeCS) FTranscodeCSPtr;

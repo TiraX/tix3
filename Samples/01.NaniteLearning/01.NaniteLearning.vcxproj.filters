@@ -40,7 +40,7 @@
     <ClCompile Include="PersistentCull.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
-    <ClCompile Include="Transcode.cpp">
+    <ClCompile Include="TranscodeCS.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
     <ClCompile Include="StreamingPageUploader.cpp">
@@ -72,7 +72,7 @@
     <ClInclude Include="PersistentCull.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
-    <ClInclude Include="Transcode.h">
+    <ClInclude Include="TranscodeCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h">

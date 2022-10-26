@@ -73,6 +73,9 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	}
 
 	// Setup nanite related
+	TI_ASSERT(ClusterPageData == nullptr);
+	ClusterPageData = FStreamingPageUploader::AllocateClusterPageBuffer(RHICmdList);
+
 	// For fast debug, load nanite mesh in render thread here.
 	NaniteMesh = TNaniteMesh::LoadMesh();
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh);
