@@ -78,7 +78,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 	// For fast debug, load nanite mesh in render thread here.
 	NaniteMesh = TNaniteMesh::LoadMesh();
-	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh);
+	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 }
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)

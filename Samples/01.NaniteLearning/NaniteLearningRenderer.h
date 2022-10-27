@@ -23,7 +23,7 @@ private:
 	FFullScreenRender FSRender;
 	FRenderTargetPtr RT_BasePass;
 
-	FGPUBufferPtr ClusterPageData;
+	FUniformBufferPtr ClusterPageData;
 
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;

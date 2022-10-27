@@ -14,15 +14,15 @@ public:
 	~FStreamingPageUploader();
 
 	void Init(FRHICmdList* RHICmdList);
-	void ProcessNewResources(FRHICmdList* RHICmdLists, TNaniteMesh* NaniteMesh);
+	void ProcessNewResources(FRHICmdList* RHICmdLists, TNaniteMesh* NaniteMesh, FUniformBufferPtr DstBuffer);
 
-	static FGPUBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
+	static FUniformBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
 private:
 
 private:
 	FUniformBufferPtr InstallInfoUploadBuffer;
 	FUniformBufferPtr PageDependenciesBuffer;
-	FGPUBufferPtr PageUploadBuffer;
+	FUniformBufferPtr PageUploadBuffer;
 
 	FTranscodeCSPtr TranscodeCS;
 };

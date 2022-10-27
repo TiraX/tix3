@@ -54,17 +54,20 @@ void FStreamingPageUploader::Init(FRHICmdList* RHICmdList)
 
 }
 
-FGPUBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList* RHICmdList)
+FUniformBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList* RHICmdList)
 {
 	const int32 NumAllocatedRootPages = 2048;
 	const int32 NumAllocatedPages = MaxStreamingPages + NumAllocatedRootPages;
 	const uint32 AllocatedPagesSize = GPUPageIndexToGPUOffset(NumAllocatedPages);
-	FGPUBufferDesc Desc;
-	Desc.Flag = (uint32)EGPUResourceFlag::Uav;
-	Desc.BufferSize = AllocatedPagesSize;
-	FGPUBufferPtr Buffer = FRHI::Get()->CreateGPUBuffer();
-	Buffer->Init(RHICmdList, Desc, nullptr);
-	FRHI::Get()->SetGPUBufferName(Buffer, "Nanite.StreamingManager.ClusterPageData");
+
+	FUniformBufferPtr Buffer = FUniformBuffer::CreateBuffer(
+		RHICmdList,
+		"Nanite.StreamingManager.ClusterPageData",
+		sizeof(uint32),
+		AllocatedPagesSize / sizeof(uint32),
+		(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer
+	);
+
 	return Buffer;
 }
 
@@ -75,7 +78,7 @@ struct FAddedPageInfo
 	uint32				InstallPassIndex;
 };
 
-void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNaniteMesh* NaniteMesh, FGPUBufferPtr DstBuffer)
+void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNaniteMesh* NaniteMesh, FUniformBufferPtr DstBuffer)
 {
 	// Tix:Process all pages in this case
 
@@ -85,12 +88,13 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	// PageUploadBuffer
 	TI_ASSERT(PageUploadBuffer == nullptr);
 	const int32 MaxPageBytes = MaxPageInstallsPerUpdate * NANITE_MAX_PAGE_DISK_SIZE;
-	FGPUBufferDesc Desc;
-	Desc.Flag = (uint32)EGPUResourceFlag::Intermediate;
-	Desc.BufferSize = MaxPageBytes;
-	PageUploadBuffer = RHI->CreateGPUBuffer();
-	PageUploadBuffer->Init(RHICmdList, Desc, nullptr);
-	RHI->SetGPUBufferName(PageUploadBuffer, "Nanite.PageUploadBuffer");
+	PageUploadBuffer = FUniformBuffer::CreateBuffer(
+		RHICmdList,
+		"Nanite.PageUploadBuffer",
+		sizeof(uint32),
+		MaxPageBytes / sizeof(uint32),
+		(uint32)EGPUResourceFlag::Intermediate | (uint32)EGPUResourceFlag::ByteAddressBuffer
+	);
 
 	// InstallInfoUploadBuffer
 	TI_ASSERT(InstallInfoUploadBuffer == nullptr);
@@ -118,7 +122,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	);
 
 	// Fill Src Buffer
-	uint8* PageUploadBufferPtr = PageUploadBuffer->Lock();
+	uint8* PageUploadBufferPtr = PageUploadBuffer->GetGPUBuffer()->Lock();
 	// Install pages
 	// Must be processed in PendingPages order so FFixupChunks are loaded when we need them.
 	TVector<uint32> FlattenedPageDependencies;
@@ -257,6 +261,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 			//INC_DWORD_STAT(STAT_NanitePageInstalls);
 		}
 	}
+	PageUploadBuffer->GetGPUBuffer()->Unlock();
 
 	// Fill Dependency Data
 	uint8* PageDependenciesPtr = PageDependenciesBuffer->GetGPUBuffer()->Lock();
@@ -347,5 +352,3 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		StartPageIndex += NumPagesInPass;
 	}
 }
-
-void 

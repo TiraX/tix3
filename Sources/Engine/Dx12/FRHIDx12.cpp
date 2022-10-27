@@ -1566,6 +1566,9 @@ namespace tix
 		SRVDesc.Buffer.StructureByteStride = InBuffer->GetStructureSizeInBytes();
 		SRVDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
+		if ((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::ByteAddressBuffer) != 0)
+			SRVDesc.Buffer.Flags |= D3D12_BUFFER_SRV_FLAG_RAW;
+
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 		TI_ASSERT(BufferDx12->ResourceState != EGPUResourceState::UnorderedAccess);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
@@ -1617,6 +1620,9 @@ namespace tix
 		UAVDesc.Buffer.StructureByteStride = InBuffer->GetStructureSizeInBytes();
 		UAVDesc.Buffer.CounterOffsetInBytes = HasCounter ? GetUavCounterOffset(InBuffer->GetTotalBufferSize()) : 0;
 		UAVDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+		if ((InBuffer->GetFlag() & (uint32)EGPUResourceFlag::ByteAddressBuffer) != 0)
+			UAVDesc.Buffer.Flags |= D3D12_BUFFER_UAV_FLAG_RAW;
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
 		TI_ASSERT(BufferDx12->ResourceState == EGPUResourceState::UnorderedAccess);

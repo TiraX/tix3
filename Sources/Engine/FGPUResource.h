@@ -25,6 +25,9 @@ namespace tix
 
 		// Used for iOS Metal
 		MemoryLess = 1 << 6,
+
+		// Raw buffer
+		ByteAddressBuffer = 1 << 7,
 	};
 
 	enum class EGPUResourceState : uint8
