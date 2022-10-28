@@ -67,6 +67,7 @@ FUniformBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList*
 		AllocatedPagesSize / sizeof(uint32),
 		(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer
 	);
+	RHICmdList->SetGPUBufferState(Buffer->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 
 	return Buffer;
 }
@@ -100,8 +101,8 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	TI_ASSERT(InstallInfoUploadBuffer == nullptr);
 	// UE dynamically update this 'NumPages' to alloc a suitable buffer size.
 	// We have totally 43 pages, load them all 
-	const int32 NumPages = 64;
-	const int32 InstallInfoAllocationSize = TMath::RoundUpToPowerOfTwo(NumPages * sizeof(FPageInstallInfo));
+	const int32 NumAllocPages = 64;
+	const int32 InstallInfoAllocationSize = TMath::RoundUpToPowerOfTwo(NumAllocPages * sizeof(FPageInstallInfo));
 	InstallInfoUploadBuffer = FUniformBuffer::CreateBuffer(
 		RHICmdList,
 		"Nanite.InstallInfoUploadBuffer",
@@ -275,13 +276,16 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	FPageInstallInfo* InstallInfoPtr = (FPageInstallInfo*)InstallInfoUploadBuffer->GetGPUBuffer()->Lock();
 	TVector<uint32> NumInstalledPagesPerPass;
 	NumInstalledPagesPerPass.reserve(1024);
+	const uint32 NumPages = (uint32)AddedPageInfos.size();
 	uint32 NumRemainingPages = NumPages;
 	while (NumRemainingPages > 0)
 	{
 		const uint32 CurrentPassIndex = (uint32)NumInstalledPagesPerPass.size();
 		uint32 NumPassPages = 0;
+		int32 PIndex = -1;
 		for (FAddedPageInfo& PageInfo : AddedPageInfos)
 		{
+			PIndex++;
 			if (PageInfo.InstallPassIndex < CurrentPassIndex)
 				continue;	// Page already installed in an earlier pass
 
@@ -338,10 +342,14 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 
 		sprintf(EventName, "TranscodePageToGPU (PageOffset: %u, PageCount: %u)", StartPageIndex, NumPagesInPass);
 
+		FDecodeInfo DecodeInfo;
+		DecodeInfo.StartPageIndex = StartPageIndex;
+		DecodeInfo.PageConstants.Y = MaxStreamingPages;
+
 		RHICmdList->BeginEvent(EventName);
 #define TRANSCODE_THREADS_PER_GROUP_BITS	7
 #define TRANSCODE_THREADS_PER_GROUP			(1 << TRANSCODE_THREADS_PER_GROUP_BITS)
-		RHICmdList->SetComputeConstant(FTranscodeCS::RC_StartPageIndex, &StartPageIndex, 1);
+		RHICmdList->SetComputeConstant(FTranscodeCS::RC_DecodeInfo, &DecodeInfo, sizeof(FDecodeInfo) / sizeof(uint32));
 		RHICmdList->SetComputeResourceTable(FTranscodeCS::RT_Table, ResourceTable); 
 		RHICmdList->DispatchCompute(
 			FInt3(TRANSCODE_THREADS_PER_GROUP, 1, 1), 

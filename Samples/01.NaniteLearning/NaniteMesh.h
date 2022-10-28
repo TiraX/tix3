@@ -8,6 +8,25 @@
 // Can not understand what's FixupChunk mean, try disable and reading further
 #define FIXUP 0
 
+struct FDecodeInfo
+{
+	FUInt4 PageConstants;
+	uint32 MaxNodes;
+	uint32 MaxVisibleClusters;
+	uint32 RenderFlags;
+	uint32 DebugFlags;
+	uint32 StartPageIndex;
+
+	FDecodeInfo()
+		: PageConstants(0, 0, 0, 0)
+		, MaxNodes(0)
+		, MaxVisibleClusters(0)
+		, RenderFlags(0)
+		, DebugFlags(0)
+		, StartPageIndex(0)
+	{}
+};
+
 struct FPackedHierarchyNode
 {
 	FFloat4 LODBounds[NANITE_MAX_BVH_NODE_FANOUT];

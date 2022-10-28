@@ -23,8 +23,6 @@ struct FPageInstallInfo
 };
 
 // Params
-uint StartPageIndex : register(b0);
-
 StructuredBuffer<FPageInstallInfo> InstallInfoBuffer : register(t0);
 StructuredBuffer<uint> PageDependenciesBuffer : register(t1);
 ByteAddressBuffer SrcPageBuffer : register(t2);
@@ -364,14 +362,14 @@ groupshared uint GroupNonRefToVertex[NANITE_MAX_CLUSTER_VERTICES];
 
 
 #define TranscodeRS \
-	"RootConstants(num32BitConstants=1, b0)," \
+	"RootConstants(num32BitConstants=9, b0)," \
     "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=1))" 
 
 [RootSignature(TranscodeRS)]
 [numthreads(TRANSCODE_THREADS_PER_GROUP, 1, 1)]
 void main(uint2 GroupID : SV_GroupID, uint GroupIndex : SV_GroupIndex)
 {
-	uint	LocalPageIndex			= StartPageIndex + GroupID.y;
+	uint	LocalPageIndex			= DecodeInfo.StartPageIndex + GroupID.y;
 
 	FPageInstallInfo InstallInfo	= InstallInfoBuffer[LocalPageIndex];
 	uint	SrcPageBaseOffset		= InstallInfo.SrcPageOffset;

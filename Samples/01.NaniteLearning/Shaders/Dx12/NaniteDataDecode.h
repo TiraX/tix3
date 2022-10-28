@@ -172,42 +172,49 @@ struct FNaniteFullscreenVSToPS
 	nointerpolation uint ViewIndex : PACKED_VIEW_INDEX;
 };
 
-#if NANITE_USE_UNIFORM_BUFFER
-	#define PageConstants			Nanite.PageConstants
-	#define MaxNodes				Nanite.MaxNodes
-	#define MaxVisibleClusters		Nanite.MaxVisibleClusters
-	#define RenderFlags				Nanite.RenderFlags
-	#define RayTracingCutError		Nanite.RayTracingCutError
-	#define DebugFlags				Nanite.DebugFlags
-	#define ClusterPageData			Nanite.ClusterPageData
-	#define VisibleClustersSWHW		Nanite.VisibleClustersSWHW
-	#define HierarchyBuffer			Nanite.HierarchyBuffer
-	#define RayTracingDataBuffer	Nanite.RayTracingDataBuffer
-#elif NANITE_USE_RAYTRACING_UNIFORM_BUFFER
-	#define PageConstants			NaniteRayTracing.PageConstants
-	#define MaxNodes				NaniteRayTracing.MaxNodes
-	#define MaxVisibleClusters		NaniteRayTracing.MaxVisibleClusters
-	#define RenderFlags				NaniteRayTracing.RenderFlags
-	#define RayTracingCutError		NaniteRayTracing.RayTracingCutError
-	#define ClusterPageData			NaniteRayTracing.ClusterPageData
-	#define HierarchyBuffer			NaniteRayTracing.HierarchyBuffer
-	#define RayTracingDataBuffer	NaniteRayTracing.RayTracingDataBuffer
+// #if NANITE_USE_UNIFORM_BUFFER
+// 	#define PageConstants			Nanite.PageConstants
+// 	#define MaxNodes				Nanite.MaxNodes
+// 	#define MaxVisibleClusters		Nanite.MaxVisibleClusters
+// 	#define RenderFlags				Nanite.RenderFlags
+// 	#define RayTracingCutError		Nanite.RayTracingCutError
+// 	#define DebugFlags				Nanite.DebugFlags
+// 	#define ClusterPageData			Nanite.ClusterPageData
+// 	#define VisibleClustersSWHW		Nanite.VisibleClustersSWHW
+// 	#define HierarchyBuffer			Nanite.HierarchyBuffer
+// 	#define RayTracingDataBuffer	Nanite.RayTracingDataBuffer
+// #elif NANITE_USE_RAYTRACING_UNIFORM_BUFFER
+// 	#define PageConstants			NaniteRayTracing.PageConstants
+// 	#define MaxNodes				NaniteRayTracing.MaxNodes
+// 	#define MaxVisibleClusters		NaniteRayTracing.MaxVisibleClusters
+// 	#define RenderFlags				NaniteRayTracing.RenderFlags
+// 	#define RayTracingCutError		NaniteRayTracing.RayTracingCutError
+// 	#define ClusterPageData			NaniteRayTracing.ClusterPageData
+// 	#define HierarchyBuffer			NaniteRayTracing.HierarchyBuffer
+// 	#define RayTracingDataBuffer	NaniteRayTracing.RayTracingDataBuffer
 
-	// These parameters shouldn't be used in RT shaders
-	//uint							DebugFlags;
-	//ByteAddressBuffer				VisibleClustersSWHW;
-#else
-	uint4 							PageConstants;
-	uint							MaxNodes;
-	uint							MaxVisibleClusters;
-	uint							RenderFlags;
-	float							RayTracingCutError;
-	uint							DebugFlags;
-	ByteAddressBuffer 				ClusterPageData;
-	ByteAddressBuffer				VisibleClustersSWHW;
-	ByteAddressBuffer				HierarchyBuffer;
-	StructuredBuffer<uint>			RayTracingDataBuffer;
-#endif
+// 	// These parameters shouldn't be used in RT shaders
+// 	//uint							DebugFlags;
+// 	//ByteAddressBuffer				VisibleClustersSWHW;
+// #else
+
+struct FDecodeInfo
+{
+	uint4 PageConstants;
+	uint MaxNodes;
+	uint MaxVisibleClusters;
+	uint RenderFlags;
+	uint DebugFlags;
+	uint StartPageIndex;
+};
+
+FDecodeInfo DecodeInfo : register(b0);
+
+ByteAddressBuffer 				ClusterPageData;
+ByteAddressBuffer				VisibleClustersSWHW;
+ByteAddressBuffer				HierarchyBuffer;
+StructuredBuffer<uint>			RayTracingDataBuffer;
+//#endif
 
 uint4 PackVisibleCluster(FVisibleCluster VisibleCluster, bool bHasPageData)
 {
@@ -425,7 +432,7 @@ FCluster UnpackCluster(uint4 ClusterData[NANITE_NUM_PACKED_CLUSTER_FLOAT4S])
 
 uint GPUPageIndexToGPUOffset(uint PageIndex)
 {
-	const uint MaxStreamingPages = PageConstants.y;
+	const uint MaxStreamingPages = DecodeInfo.PageConstants.y;
 	return (min(PageIndex, MaxStreamingPages) << NANITE_STREAMING_PAGE_GPU_SIZE_BITS) + ((uint)max((int)PageIndex - (int)MaxStreamingPages, 0) << NANITE_ROOT_PAGE_GPU_SIZE_BITS);
 }
 
@@ -784,13 +791,13 @@ void WriteRasterizerArgsSWHW(RWBuffer<uint> RasterizerArgsSWHW, uint ArgsOffset,
 	RasterizerArgsSWHW[ArgsOffset + 3] = 0;										// padding
 
 	uint3 HWArgs;	// Assign to local before writing to RasterizerArgsSWHW to work around an FXC issue where the write to RasterizerArgsSWHW[ArgsOffset + 4] would be omitted
-	if (RenderFlags & NANITE_RENDER_FLAG_MESH_SHADER)
+	if (DecodeInfo.RenderFlags & NANITE_RENDER_FLAG_MESH_SHADER)
 	{
 		HWArgs.x = NumClustersHW;						// HW: ThreadGroupCountX
 		HWArgs.y = 1;									// HW: ThreadGroupCountY
 		HWArgs.z = 1;									// HW: ThreadGroupCountZ
 	}
-	else if (RenderFlags & NANITE_RENDER_FLAG_PRIMITIVE_SHADER)
+	else if (DecodeInfo.RenderFlags & NANITE_RENDER_FLAG_PRIMITIVE_SHADER)
 	{
 		HWArgs.x = NumClustersHW;						// HW: VertexCountPerInstance
 		HWArgs.y = 1;									// HW: InstanceCount

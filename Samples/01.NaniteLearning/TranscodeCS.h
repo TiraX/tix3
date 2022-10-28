@@ -28,7 +28,7 @@ public:
 
 	enum
 	{
-		RC_StartPageIndex,
+		RC_DecodeInfo,
 		RT_Table,
 	};
 
