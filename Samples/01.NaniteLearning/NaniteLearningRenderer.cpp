@@ -79,6 +79,10 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	// For fast debug, load nanite mesh in render thread here.
 	NaniteMesh = TNaniteMesh::LoadMesh();
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
+
+	// Create shaders
+	PersistentCullCS = ti_new FPersistentCullCS();
+	PersistentCullCS->Finalize();
 }
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
@@ -90,6 +94,25 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	// Ignore instance cull
 
 	// node and cluster cull
+	{
+		const int32 GNaniteMaxNodes = 2 * 1048576;
+		const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
+
+		FDecodeInfo DecodeInfo;
+		DecodeInfo.StartPageIndex = 0;
+		DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
+		DecodeInfo.MaxNodes = GNaniteMaxNodes & -NANITE_MAX_BVH_NODES_PER_GROUP;
+		DecodeInfo.MaxVisibleClusters = GNaniteMaxVisibleClusters;
+
+		RHICmdList->BeginEvent("PersistentCull");
+		RHICmdList->SetComputeConstant(FPersistentCullCS::RC_DecodeInfo, &DecodeInfo, sizeof(FDecodeInfo) / sizeof(uint32));
+		RHICmdList->SetComputeResourceTable(FPersistentCullCS::RT_Table, ResourceTable);
+		RHICmdList->DispatchCompute(
+			FInt3(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1),
+			FInt3(1440, 1, 1)
+		);
+		RHICmdList->EndEvent();
+	}
 
 	DrawPrimitives(RHICmdList);
 

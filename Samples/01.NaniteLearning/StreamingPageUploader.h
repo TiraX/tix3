@@ -17,6 +17,7 @@ public:
 	void ProcessNewResources(FRHICmdList* RHICmdLists, TNaniteMesh* NaniteMesh, FUniformBufferPtr DstBuffer);
 
 	static FUniformBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
+	static int32 GetMaxStreamingPages();
 private:
 
 private:

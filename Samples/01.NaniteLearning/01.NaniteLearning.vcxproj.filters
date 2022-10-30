@@ -37,7 +37,7 @@
     <ClCompile Include="Stripifier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PersistentCull.cpp">
+    <ClCompile Include="PersistentCullCS.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
     <ClCompile Include="TranscodeCS.cpp">
@@ -69,7 +69,7 @@
     <ClInclude Include="Stripifier.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="PersistentCull.h">
+    <ClInclude Include="PersistentCullCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
     <ClInclude Include="TranscodeCS.h">

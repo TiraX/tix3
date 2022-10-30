@@ -33,6 +33,11 @@ uint32 GPUPageIndexToGPUOffset(int32 PageIndex)
 	return (TMath::Min(PageIndex, MaxStreamingPages) << NANITE_STREAMING_PAGE_GPU_SIZE_BITS) + ((uint32)TMath::Max((int32)PageIndex - (int32)MaxStreamingPages, 0) << NANITE_ROOT_PAGE_GPU_SIZE_BITS);
 }
 
+int32 FStreamingPageUploader::GetMaxStreamingPages()
+{
+	return MaxStreamingPages;
+}
+
 FStreamingPageUploader::FStreamingPageUploader()
 {
 }

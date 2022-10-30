@@ -5,6 +5,7 @@
 
 #pragma once
 #include "StreamingPageUploader.h"
+#include "PersistentCullCS.h"
 
 class FNaniteLearningRenderer : public FDefaultRenderer
 {
@@ -27,4 +28,6 @@ private:
 
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;
+
+	FPersistentCullCSPtr PersistentCullCS;
 };

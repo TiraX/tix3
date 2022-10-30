@@ -10,14 +10,20 @@
 //	DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FFloat4, Radius)		// x = radius; y = radius^2; z = 1.0/radius
 //END_UNIFORM_BUFFER_STRUCT(FGTAOUniform)
 
-class FPersistentCull : public FComputeTask
+class FPersistentCullCS : public FComputeTask
 {
 public:
-	FPersistentCull();
-	virtual ~FPersistentCull();
+	FPersistentCullCS();
+	virtual ~FPersistentCullCS();
 
 	virtual void Run(FRHICmdList* RHICmdList) override;
 
+
+	enum
+	{
+		RC_DecodeInfo,
+		RT_Table,
+	};
 private:
 	//enum
 	//{
@@ -43,3 +49,4 @@ private:
 
 	//FTexturePtr AOTexture;
 };
+typedef TI_INTRUSIVE_PTR(FPersistentCullCS) FPersistentCullCSPtr;
