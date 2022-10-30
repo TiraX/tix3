@@ -367,7 +367,7 @@ groupshared uint GroupNonRefToVertex[NANITE_MAX_CLUSTER_VERTICES];
 
 [RootSignature(TranscodeRS)]
 [numthreads(TRANSCODE_THREADS_PER_GROUP, 1, 1)]
-void main(uint2 GroupID : SV_GroupID, uint GroupIndex : SV_GroupIndex)
+void TranscodePageToGPU(uint2 GroupID : SV_GroupID, uint GroupIndex : SV_GroupIndex)
 {
 	uint	LocalPageIndex			= DecodeInfo.StartPageIndex + GroupID.y;
 

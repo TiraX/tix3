@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-//#pragma once
+#pragma once
 
 //#include "../Common.ush"
 #include "BitPacking.h"
@@ -210,10 +210,10 @@ struct FDecodeInfo
 
 FDecodeInfo DecodeInfo : register(b0);
 
-ByteAddressBuffer 				ClusterPageData;
-ByteAddressBuffer				VisibleClustersSWHW;
-ByteAddressBuffer				HierarchyBuffer;
-StructuredBuffer<uint>			RayTracingDataBuffer;
+ByteAddressBuffer ClusterPageData : register(t0);
+ByteAddressBuffer HierarchyBuffer : register(t1);
+ByteAddressBuffer VisibleClustersSWHW;
+//StructuredBuffer<uint> RayTracingDataBuffer;
 //#endif
 
 uint4 PackVisibleCluster(FVisibleCluster VisibleCluster, bool bHasPageData)

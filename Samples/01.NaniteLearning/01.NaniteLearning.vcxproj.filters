@@ -81,12 +81,33 @@
     <ClInclude Include="StreamingPageUploader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Shaders\Dx12\BitPacking.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteAttributeDecode.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteDataDecode.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteCulling.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteHierarchyTraversalCommon.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\WaveOpUtil.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaqueVS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_PersistentCullCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
@@ -104,6 +125,12 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Dx12\VS_Instanced.hlsli">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dx12\BitStreamReaderImplementation.ush">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dx12\NanitePackedNaniteView.ush">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

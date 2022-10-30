@@ -84,6 +84,13 @@ void FNaniteLearningRenderer::InitInRenderThread()
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 {
 	RHICmdList->BeginRenderToRenderTarget(RT_BasePass, "BasePass", 0);
+
+	// Init args
+
+	// Ignore instance cull
+
+	// node and cluster cull
+
 	DrawPrimitives(RHICmdList);
 
 	FRHI::Get()->BeginRenderToFrameBuffer();

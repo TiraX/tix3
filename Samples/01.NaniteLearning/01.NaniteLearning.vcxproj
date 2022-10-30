@@ -187,7 +187,13 @@
     <ClInclude Include="NaniteLearningTicker.h" />
     <ClInclude Include="NaniteMesh.h" />
     <ClInclude Include="PersistentCull.h" />
+    <ClInclude Include="Shaders\Dx12\BitPacking.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteAttributeDecode.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteCulling.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteDataDecode.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteHierarchyTraversalCommon.h" />
+    <ClInclude Include="Shaders\Dx12\WaveOpUtil.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StreamingPageUploader.h" />
     <ClInclude Include="Stripifier.h" />
@@ -206,15 +212,31 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_PersistentCullCS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NodeAndClusterCull</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NodeAndClusterCull</EntryPointName>
+    </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TranscodePageToGPU</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TranscodePageToGPU</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Dx12\BitStreamReaderImplementation.ush" />
     <None Include="Shaders\Dx12\Common.hlsli" />
+    <None Include="Shaders\Dx12\NanitePackedNaniteView.ush" />
     <None Include="Shaders\Dx12\PS_Common.hlsli" />
     <None Include="Shaders\Dx12\S_BasePassRS.hlsli" />
     <None Include="Shaders\Dx12\VS_Instanced.hlsli" />
