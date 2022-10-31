@@ -6,6 +6,7 @@
 #include "stdafx.h"
 #include "NaniteLearningRenderer.h"
 #include "NaniteMesh.h"
+#include "NaniteView.h"
 
 inline uint32 GetMaxNodes()
 {
@@ -170,6 +171,17 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 		DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
 		DecodeInfo.MaxNodes = GetMaxNodes();
 		DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
+
+		FPackedView PackedView = CreatePackedViewFromViewInfo(
+			Scene->GetViewProjection(),
+			FInt2(TEngine::GetAppInfo().Width, TEngine::GetAppInfo().Height),
+			NANITE_VIEW_FLAG_HZBTEST | NANITE_VIEW_FLAG_NEAR_CLIP,
+			/* StreamingPriorityCategory = */ 3,
+			/* MinBoundsRadius = */ 0.0f,
+			LODScaleFactor,
+			/* viewport rect in HZB space. HZB is built per view and is always 0,0-based */
+			&HZBTestRect
+		);
 
 		PersistentCullCS->ApplyParameters(
 			RHICmdList,

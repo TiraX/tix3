@@ -26,6 +26,7 @@ private:
 
 	FUniformBufferPtr ClusterPageData;
 	FUniformBufferPtr Hierarchy;
+	FUniformBufferPtr View;
 	FUniformBufferPtr QueueState;
 	FUniformBufferPtr MainAndPostNodesAndClusterBatchesBuffer;
 	FUniformBufferPtr MainAndPostCandididateClustersBuffer;

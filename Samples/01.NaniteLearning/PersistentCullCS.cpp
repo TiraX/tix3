@@ -20,8 +20,7 @@ void FPersistentCullCS::ApplyParameters(
 	const FDecodeInfo& InDecodeInfo,
 	FUniformBufferPtr InClusterPageData,
 	FUniformBufferPtr InHierachyBuffer,
-	FUniformBufferPtr InBuffer1,
-	FUniformBufferPtr InBuffer2,
+	FUniformBufferPtr InView,
 	FUniformBufferPtr InQueueState,
 	FUniformBufferPtr InClusterBatches,
 	FUniformBufferPtr InCandididateClusters,
@@ -42,8 +41,7 @@ void FPersistentCullCS::ApplyParameters(
 #define _AssignValue(x) if (x != In##x) { x = In##x; UpdateResourceTable = true; }
 	_AssignValue(ClusterPageData);
 	_AssignValue(HierachyBuffer);
-	_AssignValue(Buffer1);
-	_AssignValue(Buffer2);
+	_AssignValue(View);
 	_AssignValue(QueueState);
 	_AssignValue(ClusterBatches);
 	_AssignValue(CandididateClusters);
@@ -55,11 +53,11 @@ void FPersistentCullCS::ApplyParameters(
 	if (UpdateResourceTable)
 	{
 		FRHI* RHI = FRHI::Get();
+		// Crack, set ClusterPageData state to unordered access
 		RHICmdList->SetGPUBufferState(ClusterPageData->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 		RHI->PutUniformBufferInTable(ResourceTable, ClusterPageData, SRV_ClusterPageData);
 		RHI->PutUniformBufferInTable(ResourceTable, HierachyBuffer, SRV_HierachyBuffer);
-		//RHI->PutUniformBufferInTable(ResourceTable, Buffer1, SRV_UNKNOWN1);
-		//RHI->PutUniformBufferInTable(ResourceTable, Buffer2, SRV_UNKNOWN2);
+		RHI->PutUniformBufferInTable(ResourceTable, View, SRV_View);
 
 		RHI->PutRWUniformBufferInTable(ResourceTable, QueueState, UAV_QueueState);
 		RHI->PutRWUniformBufferInTable(ResourceTable, ClusterBatches, UAV_MainAndPostNodesAndClusterBatches);
@@ -76,6 +74,7 @@ void FPersistentCullCS::Run(FRHICmdList* RHICmdList)
 
 	RHICmdList->SetGPUBufferState(ClusterPageData->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 	RHICmdList->SetGPUBufferState(HierachyBuffer->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
+	RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 
 	RHICmdList->SetGPUBufferState(QueueState->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 	RHICmdList->SetGPUBufferState(ClusterBatches->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);

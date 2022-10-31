@@ -19,8 +19,7 @@ public:
 		const FDecodeInfo& InDecodeInfo,
 		FUniformBufferPtr InClusterPageData,
 		FUniformBufferPtr InHierachyBuffer,
-		FUniformBufferPtr InBuffer1,
-		FUniformBufferPtr InBuffer2,
+		FUniformBufferPtr InView,
 		FUniformBufferPtr InQueueState,
 		FUniformBufferPtr InClusterBatches,
 		FUniformBufferPtr InCandididateClusters,
@@ -39,8 +38,7 @@ private:
 	{
 		SRV_ClusterPageData,
 		SRV_HierachyBuffer,
-		SRV_UNKNOWN1,
-		SRV_UNKNOWN2,
+		SRV_View,
 		
 		UAV_QueueState,
 		UAV_MainAndPostNodesAndClusterBatches,
@@ -59,8 +57,7 @@ private:
 
 	FUniformBufferPtr ClusterPageData;
 	FUniformBufferPtr HierachyBuffer;
-	FUniformBufferPtr Buffer1;
-	FUniformBufferPtr Buffer2;
+	FUniformBufferPtr View;
 	FUniformBufferPtr QueueState;
 	FUniformBufferPtr ClusterBatches;
 	FUniformBufferPtr CandididateClusters;
