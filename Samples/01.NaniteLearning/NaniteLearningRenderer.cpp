@@ -7,6 +7,32 @@
 #include "NaniteLearningRenderer.h"
 #include "NaniteMesh.h"
 
+inline uint32 GetMaxNodes()
+{
+	const int32 GNaniteMaxNodes = 2 * 1048576;
+	return GNaniteMaxNodes & -NANITE_MAX_BVH_NODES_PER_GROUP;
+}
+
+inline uint32 GetMaxCandidateClusters()
+{
+	int32 GNaniteMaxCandidateClusters = 16 * 1048576;
+	const uint32 MaxCandidateClusters = GNaniteMaxCandidateClusters & -NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
+	return MaxCandidateClusters;
+}
+
+inline uint32 GetMaxClusterBatches()
+{
+	const uint32 MaxCandidateClusters = GetMaxCandidateClusters();
+	TI_ASSERT(MaxCandidateClusters % NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE == 0);
+	return MaxCandidateClusters / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
+}
+
+inline uint32 GetMaxVisibleClusters()
+{
+	const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
+	return GNaniteMaxVisibleClusters;
+}
+
 FNaniteLearningRenderer::FNaniteLearningRenderer(FSceneInterface* Scene)
 	: FDefaultRenderer(Scene)
 	, NaniteMesh(nullptr)
@@ -72,12 +98,55 @@ void FNaniteLearningRenderer::InitInRenderThread()
 		RHI->UpdateHardwareResourceAB(AB_Result, FSRender.GetFullScreenShader(), 0);
 	}
 
+	// For fast debug, load nanite mesh in render thread here.
+	NaniteMesh = TNaniteMesh::LoadMesh();
+
 	// Setup nanite related
 	TI_ASSERT(ClusterPageData == nullptr);
 	ClusterPageData = FStreamingPageUploader::AllocateClusterPageBuffer(RHICmdList);
+	Hierarchy = FStreamingPageUploader::AllocateHierarchyBuffer(RHICmdList, NaniteMesh->HierarchyNodes);
+	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", (6 * 2 + 1) * sizeof(uint32), 1, nullptr, EGPUResourceState::UnorderedAccess);
+	const uint32 MaxNodes = GetMaxNodes();
+	const uint32 MaxCullingBatches = GetMaxClusterBatches();
+	MainAndPostNodesAndClusterBatchesBuffer = 
+		FUniformBuffer::CreateBuffer(
+			RHICmdList, 
+			"Nanite.MainAndPostNodesAndClusterBatchesBuffer", 
+			4, 
+			MaxCullingBatches * 2 + MaxNodes * (2 + 3), 
+			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
+			nullptr,
+			EGPUResourceState::UnorderedAccess);
 
-	// For fast debug, load nanite mesh in render thread here.
-	NaniteMesh = TNaniteMesh::LoadMesh();
+	MainAndPostCandididateClustersBuffer = 
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.MainAndPostCandididateClustersBuffer",
+			4,
+			GetMaxCandidateClusters() * 2,
+			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
+			nullptr,
+			EGPUResourceState::UnorderedAccess);
+	VisibleClustersSWHW =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.VisibleClustersSWHW",
+			4,
+			3 * GetMaxVisibleClusters(),
+			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
+			nullptr,
+			EGPUResourceState::UnorderedAccess);
+	// TODO: VisibleClustersArgsSWHW also will be indirect command buffer
+	VisibleClustersArgsSWHW =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.MainRasterizeArgsSWHW",
+			4,
+			NANITE_RASTERIZER_ARG_COUNT,
+			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
+			nullptr,
+			EGPUResourceState::UnorderedAccess);
+
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
 	// Create shaders
@@ -95,23 +164,28 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 
 	// node and cluster cull
 	{
-		const int32 GNaniteMaxNodes = 2 * 1048576;
-		const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
 
 		FDecodeInfo DecodeInfo;
 		DecodeInfo.StartPageIndex = 0;
 		DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
-		DecodeInfo.MaxNodes = GNaniteMaxNodes & -NANITE_MAX_BVH_NODES_PER_GROUP;
-		DecodeInfo.MaxVisibleClusters = GNaniteMaxVisibleClusters;
+		DecodeInfo.MaxNodes = GetMaxNodes();
+		DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 
-		RHICmdList->BeginEvent("PersistentCull");
-		RHICmdList->SetComputeConstant(FPersistentCullCS::RC_DecodeInfo, &DecodeInfo, sizeof(FDecodeInfo) / sizeof(uint32));
-		RHICmdList->SetComputeResourceTable(FPersistentCullCS::RT_Table, ResourceTable);
-		RHICmdList->DispatchCompute(
-			FInt3(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1),
-			FInt3(1440, 1, 1)
-		);
-		RHICmdList->EndEvent();
+		PersistentCullCS->ApplyParameters(
+			RHICmdList,
+			DecodeInfo,
+			ClusterPageData,
+			Hierarchy,
+			nullptr,
+			nullptr,
+			QueueState,
+			MainAndPostNodesAndClusterBatchesBuffer,
+			MainAndPostCandididateClustersBuffer,
+			nullptr,
+			VisibleClustersSWHW,
+			VisibleClustersArgsSWHW
+			);
+		PersistentCullCS->Run(RHICmdList);
 	}
 
 	DrawPrimitives(RHICmdList);

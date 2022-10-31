@@ -25,6 +25,12 @@ private:
 	FRenderTargetPtr RT_BasePass;
 
 	FUniformBufferPtr ClusterPageData;
+	FUniformBufferPtr Hierarchy;
+	FUniformBufferPtr QueueState;
+	FUniformBufferPtr MainAndPostNodesAndClusterBatchesBuffer;
+	FUniformBufferPtr MainAndPostCandididateClustersBuffer;
+	FUniformBufferPtr VisibleClustersSWHW;
+	FUniformBufferPtr VisibleClustersArgsSWHW;
 
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;

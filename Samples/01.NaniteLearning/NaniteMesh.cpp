@@ -65,6 +65,7 @@ TNaniteMesh* TNaniteMesh::LoadMesh()
 		Aligned = TMath::Align4(Header.StreamablePagesSize);
 		MeshFile.Seek(Header.StreamablePagesSize - Aligned, true);
 
+		TI_ASSERT(Header.NumBvHNodes <= TNaniteMesh::MaxHierarchyNodes);
 		Mesh->HierarchyNodes.resize(Header.NumBvHNodes);
 		MeshFile.Read(Mesh->HierarchyNodes.data(), Header.NumBvHNodes * sizeof(FPackedHierarchyNode), Header.NumBvHNodes * sizeof(FPackedHierarchyNode));
 

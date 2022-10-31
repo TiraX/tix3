@@ -224,6 +224,7 @@ public:
 class TNaniteMesh
 {
 public:
+	static const int32 MaxHierarchyNodes = 256;
 	~TNaniteMesh() = default;
 	static TNaniteMesh* LoadMesh();
 

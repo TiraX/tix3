@@ -49,7 +49,8 @@ namespace tix
 				uint8* MappedAddress = nullptr;
 				CD3DX12_RANGE ReadRange(0, 0);		// We do not intend to read from this resource on the CPU.
 				VALIDATE_HRESULT(Resource->Map(0, &ReadRange, reinterpret_cast<void**>(&MappedAddress)));
-				memcpy(MappedAddress, Data->GetBuffer(), Desc.BufferSize);
+				const int32 CopySize = TMath::Min(Desc.BufferSize, Data->GetLength());
+				memcpy(MappedAddress, Data->GetBuffer(), CopySize);
 				Resource->Unmap(0, nullptr);
 			}
 		}
@@ -94,10 +95,11 @@ namespace tix
 				BufferUpload->SetName(L"TccBufferUpload");
 
 				// Upload the buffer data to the GPU.
+				const int32 CopySize = TMath::Min(Desc.BufferSize, Data->GetLength());
 				D3D12_SUBRESOURCE_DATA BufferData = {};
 				BufferData.pData = reinterpret_cast<const uint8*>(Data->GetBuffer());
-				BufferData.RowPitch = Desc.BufferSize;
-				BufferData.SlicePitch = Desc.BufferSize;
+				BufferData.RowPitch = CopySize;
+				BufferData.SlicePitch = CopySize;
 
 				FRHICmdListDx12* CmdListDx12 = static_cast<FRHICmdListDx12*>(RHICmdList);
 				CmdListDx12->UpdateD3D12Resource(

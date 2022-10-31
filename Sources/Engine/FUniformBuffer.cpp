@@ -48,11 +48,12 @@ namespace tix
 		uint32 InStructureSizeInBytes,
 		uint32 InElements,
 		uint32 Flags,
-		TStreamPtr InInitData)
+		TStreamPtr InInitData,
+		EGPUResourceState TargetState)
 	{
 		FUniformBufferPtr Buffer = ti_new FUniformBuffer(InStructureSizeInBytes, InElements, Flags);
 		Buffer->SetResourceName(InName);
-		Buffer->CreateGPUBuffer(RHICmdList, InInitData);
+		Buffer->CreateGPUBuffer(RHICmdList, InInitData, TargetState);
 		return Buffer;
 	}
 
@@ -61,9 +62,10 @@ namespace tix
 		const TString& InName,
 		uint32 InStructureSizeInBytes,
 		uint32 InElements,
-		TStreamPtr InInitData)
+		TStreamPtr InInitData,
+		EGPUResourceState TargetState)
 	{
-		return CreateBuffer(RHICmdList, InName, InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav, InInitData);
+		return CreateBuffer(RHICmdList, InName, InStructureSizeInBytes, InElements, (uint32)EGPUResourceFlag::Uav, InInitData, TargetState);
 	}
 
 	FUniformBufferPtr FUniformBuffer::CreateReadableUavBuffer(

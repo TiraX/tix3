@@ -77,6 +77,30 @@ FUniformBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList*
 	return Buffer;
 }
 
+FUniformBufferPtr FStreamingPageUploader::AllocateHierarchyBuffer(FRHICmdList* RHICmdList, const TVector<FPackedHierarchyNode>& HierarchyNodes)
+{
+	const int32 MaxHierarchyNodes = TNaniteMesh::MaxHierarchyNodes;
+	const uint32 AllocatedNodesSize = TMath::RoundUpToPowerOfTwo(MaxHierarchyNodes) * sizeof(FPackedHierarchyNode);
+
+	TStreamPtr NodesData = nullptr;
+	if (HierarchyNodes.size() > 0)
+	{
+		NodesData = ti_new TStream(HierarchyNodes.data(), (uint32)(HierarchyNodes.size() * sizeof(FPackedHierarchyNode)));
+	}
+
+	FUniformBufferPtr Buffer = FUniformBuffer::CreateBuffer(
+		RHICmdList,
+		"Nanite.StreamingManager.Hierarchy",
+		sizeof(uint32),
+		AllocatedNodesSize / sizeof(uint32),
+		(uint32)EGPUResourceFlag::ByteAddressBuffer,
+		NodesData
+	);
+	RHICmdList->SetGPUBufferState(Buffer->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
+
+	return Buffer;
+}
+
 struct FAddedPageInfo
 {
 	FPageInstallInfo	InstallInfo;

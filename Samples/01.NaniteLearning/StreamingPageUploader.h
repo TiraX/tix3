@@ -5,8 +5,8 @@
 
 #pragma once
 #include "TranscodeCS.h"
+#include "NaniteMesh.h"
 
-class TNaniteMesh;
 class FStreamingPageUploader
 {
 public:
@@ -17,6 +17,7 @@ public:
 	void ProcessNewResources(FRHICmdList* RHICmdLists, TNaniteMesh* NaniteMesh, FUniformBufferPtr DstBuffer);
 
 	static FUniformBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
+	static FUniformBufferPtr AllocateHierarchyBuffer(FRHICmdList* RHICmdList, const TVector<FPackedHierarchyNode>& HierarchyNodes);
 	static int32 GetMaxStreamingPages();
 private:
 

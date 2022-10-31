@@ -1966,6 +1966,7 @@ void BuildHierarchies(
 		TVector< FHierarchyNode > HierarchyNodes;
 		BuildHierarchyRecursive(HierarchyNodes, Nodes, Groups, Parts, RootIndex);
 
+		TI_ASSERT((int32)HierarchyNodes.size() <= TNaniteMesh::MaxHierarchyNodes);
 		// Convert hierarchy to packed format
 		const uint32 NumHierarchyNodes = (uint32)HierarchyNodes.size();
 		TI_ASSERT(PackedHierarchyNodes.size() == 0);

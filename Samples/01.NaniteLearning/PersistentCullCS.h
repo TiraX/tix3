@@ -4,11 +4,7 @@
 */
 
 #pragma once
-//BEGIN_UNIFORM_BUFFER_STRUCT(FGTAOUniform)
-//	DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FFloat4, ScreenSize)	// xy = Size; zw = InvSize;
-//	DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FFloat4, FocalLen)		// xy = FocalLen; zw = InvFocalLen;
-//	DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FFloat4, Radius)		// x = radius; y = radius^2; z = 1.0/radius
-//END_UNIFORM_BUFFER_STRUCT(FGTAOUniform)
+#include "NaniteMesh.h"
 
 class FPersistentCullCS : public FComputeTask
 {
@@ -18,35 +14,59 @@ public:
 
 	virtual void Run(FRHICmdList* RHICmdList) override;
 
-
+	void ApplyParameters(
+		FRHICmdList* RHICmdList,
+		const FDecodeInfo& InDecodeInfo,
+		FUniformBufferPtr InClusterPageData,
+		FUniformBufferPtr InHierachyBuffer,
+		FUniformBufferPtr InBuffer1,
+		FUniformBufferPtr InBuffer2,
+		FUniformBufferPtr InQueueState,
+		FUniformBufferPtr InClusterBatches,
+		FUniformBufferPtr InCandididateClusters,
+		FUniformBufferPtr InStreamingRequest,
+		FUniformBufferPtr InVisibleClustersSWHW,
+		FUniformBufferPtr InVisibleClustersArgsSWHW
+		);
+private:
 	enum
 	{
 		RC_DecodeInfo,
 		RT_Table,
 	};
+
+	enum
+	{
+		SRV_ClusterPageData,
+		SRV_HierachyBuffer,
+		SRV_UNKNOWN1,
+		SRV_UNKNOWN2,
+		
+		UAV_QueueState,
+		UAV_MainAndPostNodesAndClusterBatches,
+		UAV_MainAndPostCandididateClusters,
+		UAV_OutStreamingRequests,
+		UAV_OutVisibleClustersSWHW,
+		UAV_VisibleClustersArgsSWHW,
+
+		NumParams
+	};
+
 private:
-	//enum
-	//{
-	//	SRV_SCENE_NORMAL,
-	//	SRV_SCENE_DEPTH,
-	//	SRV_RANDOM_TEXTURE,
+	FDecodeInfo DecodeInfo;
 
-	//	UAV_AO_RESULT,
+	FRenderResourceTablePtr ResourceTable;
 
-	//	PARAM_TOTAL_COUNT,
-	//};
+	FUniformBufferPtr ClusterPageData;
+	FUniformBufferPtr HierachyBuffer;
+	FUniformBufferPtr Buffer1;
+	FUniformBufferPtr Buffer2;
+	FUniformBufferPtr QueueState;
+	FUniformBufferPtr ClusterBatches;
+	FUniformBufferPtr CandididateClusters;
+	FUniformBufferPtr StreamingRequest;
+	FUniformBufferPtr VisibleClustersSWHW;
+	FUniformBufferPtr VisibleClustersArgsSWHW;
 
-private:
-	//FGTAOUniformPtr InfoUniform;
-
-	//FRenderResourceTablePtr ResourceTable;
-
-	//FTexturePtr SceneNormal;
-	//FTexturePtr SceneDepth;
-	//FTexturePtr RandomTex;
-
-	//float FoV;
-
-	//FTexturePtr AOTexture;
 };
 typedef TI_INTRUSIVE_PTR(FPersistentCullCS) FPersistentCullCSPtr;

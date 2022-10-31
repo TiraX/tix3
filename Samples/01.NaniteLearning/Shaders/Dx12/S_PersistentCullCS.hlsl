@@ -659,7 +659,7 @@ struct FNaniteTraversalClusterCullCallback
 
 		if (bVisible)
 		{
-			const uint2 TotalPrevDrawClusters = (DecodeInfo.RenderFlags & NANITE_RENDER_FLAG_HAS_PREV_DRAW_DATA) ? InTotalPrevDrawClusters[0] : 0;
+			const uint2 TotalPrevDrawClusters = 0;// (DecodeInfo.RenderFlags & NANITE_RENDER_FLAG_HAS_PREV_DRAW_DATA) ? InTotalPrevDrawClusters[0] : 0;
 
 			if (!bWasOccluded)
 			{

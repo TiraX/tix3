@@ -132,14 +132,16 @@ namespace tix
 			uint32 InStructureSizeInBytes,
 			uint32 InElements,
 			uint32 Flags,
-			TStreamPtr InInitData = nullptr);
+			TStreamPtr InInitData = nullptr,
+			EGPUResourceState TargetState = EGPUResourceState::Ignore);
 
 		static FUniformBufferPtr CreateUavBuffer(
 			FRHICmdList* RHICmdList,
 			const TString& InName,
 			uint32 InStructureSizeInBytes,
 			uint32 InElements,
-			TStreamPtr InInitData = nullptr);
+			TStreamPtr InInitData = nullptr,
+			EGPUResourceState TargetState = EGPUResourceState::Ignore);
 
 		static FUniformBufferPtr CreateReadableUavBuffer(
 			FRHICmdList* RHICmdList,
