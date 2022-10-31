@@ -14,7 +14,7 @@ namespace tix
 		, UpVector(0.0f, 0.0f, 1.0f)
 		, ZNear(1.0f)
 		, ZFar(3000.0f)
-		, Fovy(PI / 4.0f)
+		, Fovy(PI / 2.0f)
 		, Aspect(1280.f / 720.f)
 	{
 		SetPosition(FFloat3(-2, 0, 1.0));
@@ -216,7 +216,8 @@ namespace tix
 
 	void TNodeCamera::RecalculateProjectionMatrix()
 	{
-		ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+		//ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+		ViewArea.Matrices[ETS_PROJECTION] = BuildReversedProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
 		//const FMat4& mat	= ViewArea.Matrices[ETS_PROJECTION];
 
 		ViewArea.SetTransformState(ETS_PROJECTION);

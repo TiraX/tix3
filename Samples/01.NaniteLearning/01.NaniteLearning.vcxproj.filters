@@ -46,6 +46,9 @@
     <ClCompile Include="StreamingPageUploader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NaniteView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -98,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="Shaders\Dx12\WaveOpUtil.h">
       <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="NaniteView.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

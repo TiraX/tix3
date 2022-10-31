@@ -171,6 +171,12 @@
     <ClCompile Include="NaniteLearningSample.cpp" />
     <ClCompile Include="NaniteLearningTicker.cpp" />
     <ClCompile Include="NaniteMesh.cpp" />
+    <ClCompile Include="NaniteView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="PersistentCullCS.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -186,6 +192,7 @@
     <ClInclude Include="NaniteLearningRenderer.h" />
     <ClInclude Include="NaniteLearningTicker.h" />
     <ClInclude Include="NaniteMesh.h" />
+    <ClInclude Include="NaniteView.h" />
     <ClInclude Include="PersistentCullCS.h" />
     <ClInclude Include="Shaders\Dx12\BitPacking.h" />
     <ClInclude Include="Shaders\Dx12\NaniteAttributeDecode.h" />

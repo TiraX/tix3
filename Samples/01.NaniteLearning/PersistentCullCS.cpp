@@ -55,6 +55,7 @@ void FPersistentCullCS::ApplyParameters(
 		FRHI* RHI = FRHI::Get();
 		// Crack, set ClusterPageData state to unordered access
 		RHICmdList->SetGPUBufferState(ClusterPageData->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
+		//RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 		RHI->PutUniformBufferInTable(ResourceTable, ClusterPageData, SRV_ClusterPageData);
 		RHI->PutUniformBufferInTable(ResourceTable, HierachyBuffer, SRV_HierachyBuffer);
 		RHI->PutUniformBufferInTable(ResourceTable, View, SRV_View);
@@ -74,7 +75,7 @@ void FPersistentCullCS::Run(FRHICmdList* RHICmdList)
 
 	RHICmdList->SetGPUBufferState(ClusterPageData->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 	RHICmdList->SetGPUBufferState(HierachyBuffer->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
-	RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
+	//RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 
 	RHICmdList->SetGPUBufferState(QueueState->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 	RHICmdList->SetGPUBufferState(ClusterBatches->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);

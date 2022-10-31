@@ -116,46 +116,46 @@ struct FInstanceDynamicData
 
 struct FNaniteView
 {
-	float4x4	SVPositionToTranslatedWorld;
-	float4x4	ViewToTranslatedWorld;
+	//float4x4	SVPositionToTranslatedWorld;
+	//float4x4	ViewToTranslatedWorld;
 
-	float4x4	TranslatedWorldToView;
-	float4x4	TranslatedWorldToClip;
-	float4x4	TranslatedWorldToSubpixelClip;	// Divide by w to get to absolute subpixel coordinates
+	//float4x4	TranslatedWorldToView;
+	//float4x4	TranslatedWorldToClip;
+	//float4x4	TranslatedWorldToSubpixelClip;	// Divide by w to get to absolute subpixel coordinates
 	float4x4	ViewToClip;
-	//FLWCMatrix	ClipToWorld;
-	float4x4	ClipToWorld;
-	
-	float4x4	PrevTranslatedWorldToView;
-	float4x4	PrevTranslatedWorldToClip;
-	float4x4	PrevViewToClip;
-	//FLWCMatrix	PrevClipToWorld;
-	float4x4	PrevClipToWorld;
+	////FLWCMatrix	ClipToWorld;
+	//float4x4	ClipToWorld;
+	//
+	//float4x4	PrevTranslatedWorldToView;
+	//float4x4	PrevTranslatedWorldToClip;
+	//float4x4	PrevViewToClip;
+	////FLWCMatrix	PrevClipToWorld;
+	//float4x4	PrevClipToWorld;
 
-	int4		ViewRect;
-	float4		ViewSizeAndInvSize;
-	float4		ClipSpaceScaleOffset;
-	//FLWCVector3	PreViewTranslation;
-	//FLWCVector3	PrevPreViewTranslation;
-	//FLWCVector3	WorldCameraOrigin;
-	float3		PreViewTranslation;
-	float3		PrevPreViewTranslation;
-	float3		WorldCameraOrigin;
+	//int4		ViewRect;
+	//float4		ViewSizeAndInvSize;
+	//float4		ClipSpaceScaleOffset;
+	////FLWCVector3	PreViewTranslation;
+	////FLWCVector3	PrevPreViewTranslation;
+	////FLWCVector3	WorldCameraOrigin;
+	//float3		PreViewTranslation;
+	//float3		PrevPreViewTranslation;
+	//float3		WorldCameraOrigin;
 	float3		ViewForward;
-	float3		ViewTilePosition;
-	float3		MatrixTilePosition;
+	//float3		ViewTilePosition;
+	//float3		MatrixTilePosition;
 	float		NearPlane;
 	float		LODScale;
 	float		LODScaleHW;
-	float		MinBoundsRadiusSq;
-	uint		StreamingPriorityCategory;
-    uint		Flags;
-	int			TargetLayerIndex;
-	int			TargetMipLevel;
-	int			TargetNumMipLevels;
-	int			TargetPrevLayerIndex;
-	float		RangeBasedCullingDistance;
-	int4		HZBTestViewRect;
+	//float		MinBoundsRadiusSq;
+	//uint		StreamingPriorityCategory;
+	uint		Flags;
+	//int			TargetLayerIndex;
+	//int			TargetMipLevel;
+	//int			TargetNumMipLevels;
+	//int			TargetPrevLayerIndex;
+	//float		RangeBasedCullingDistance;
+	//int4		HZBTestViewRect;
 };
 
 struct FInstanceDraw
@@ -637,50 +637,50 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 {
 	FNaniteView NaniteView;
 	
-	NaniteView.SVPositionToTranslatedWorld	= PackedView.SVPositionToTranslatedWorld;
-	NaniteView.ViewToTranslatedWorld		= PackedView.ViewToTranslatedWorld;
-	NaniteView.ViewTilePosition				= PackedView.ViewTilePosition;
-	NaniteView.MatrixTilePosition			= PackedView.MatrixTilePosition;
+	//NaniteView.SVPositionToTranslatedWorld	= PackedView.SVPositionToTranslatedWorld;
+	//NaniteView.ViewToTranslatedWorld		= PackedView.ViewToTranslatedWorld;
+	//NaniteView.ViewTilePosition				= PackedView.ViewTilePosition;
+	//NaniteView.MatrixTilePosition			= PackedView.MatrixTilePosition;
 
-	NaniteView.TranslatedWorldToView		= PackedView.TranslatedWorldToView;
-	NaniteView.TranslatedWorldToClip		= PackedView.TranslatedWorldToClip;
-	NaniteView.TranslatedWorldToSubpixelClip= PackedView.TranslatedWorldToSubpixelClip;
+	//NaniteView.TranslatedWorldToView		= PackedView.TranslatedWorldToView;
+	//NaniteView.TranslatedWorldToClip		= PackedView.TranslatedWorldToClip;
+	//NaniteView.TranslatedWorldToSubpixelClip= PackedView.TranslatedWorldToSubpixelClip;
 	NaniteView.ViewToClip					= PackedView.ViewToClip;
-	//NaniteView.ClipToWorld					= MakeLWCMatrix(PackedView.MatrixTilePosition, PackedView.ClipToRelativeWorld);
-	NaniteView.ClipToWorld					= PackedView.ClipToRelativeWorld;
+	// -- NaniteView.ClipToWorld					= MakeLWCMatrix(PackedView.MatrixTilePosition, PackedView.ClipToRelativeWorld);
+	//NaniteView.ClipToWorld					= PackedView.ClipToRelativeWorld;
 	
-	NaniteView.PrevTranslatedWorldToView	= PackedView.PrevTranslatedWorldToView;
-	NaniteView.PrevTranslatedWorldToClip	= PackedView.PrevTranslatedWorldToClip;
-	NaniteView.PrevViewToClip				= PackedView.PrevViewToClip;
-	//NaniteView.PrevClipToWorld				= MakeLWCMatrix(PackedView.MatrixTilePosition, PackedView.PrevClipToRelativeWorld);
-	NaniteView.PrevClipToWorld				= PackedView.PrevClipToRelativeWorld;
+	//NaniteView.PrevTranslatedWorldToView	= PackedView.PrevTranslatedWorldToView;
+	//NaniteView.PrevTranslatedWorldToClip	= PackedView.PrevTranslatedWorldToClip;
+	//NaniteView.PrevViewToClip				= PackedView.PrevViewToClip;
+	// -- NaniteView.PrevClipToWorld				= MakeLWCMatrix(PackedView.MatrixTilePosition, PackedView.PrevClipToRelativeWorld);
+	//NaniteView.PrevClipToWorld				= PackedView.PrevClipToRelativeWorld;
 
 
-	NaniteView.ViewRect						= PackedView.ViewRect;
-	NaniteView.ViewSizeAndInvSize			= PackedView.ViewSizeAndInvSize;
-	NaniteView.ClipSpaceScaleOffset			= PackedView.ClipSpaceScaleOffset;
-	//NaniteView.PreViewTranslation			= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PreViewTranslation.xyz);
-	//NaniteView.PrevPreViewTranslation		= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PrevPreViewTranslation.xyz);
-	//NaniteView.WorldCameraOrigin			= MakeLWCVector3(PackedView.ViewTilePosition, PackedView.WorldCameraOrigin.xyz);
+	//NaniteView.ViewRect						= PackedView.ViewRect;
+	//NaniteView.ViewSizeAndInvSize			= PackedView.ViewSizeAndInvSize;
+	//NaniteView.ClipSpaceScaleOffset			= PackedView.ClipSpaceScaleOffset;
+	// -- NaniteView.PreViewTranslation			= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PreViewTranslation.xyz);
+	// -- NaniteView.PrevPreViewTranslation		= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PrevPreViewTranslation.xyz);
+	// -- NaniteView.WorldCameraOrigin			= MakeLWCVector3(PackedView.ViewTilePosition, PackedView.WorldCameraOrigin.xyz);
 	
-	NaniteView.PreViewTranslation			= PackedView.PreViewTranslation.xyz;
-	NaniteView.PrevPreViewTranslation		= PackedView.PrevPreViewTranslation.xyz;
-	NaniteView.WorldCameraOrigin			= PackedView.WorldCameraOrigin.xyz;
+	//NaniteView.PreViewTranslation			= PackedView.PreViewTranslation.xyz;
+	//NaniteView.PrevPreViewTranslation		= PackedView.PrevPreViewTranslation.xyz;
+	//NaniteView.WorldCameraOrigin			= PackedView.WorldCameraOrigin.xyz;
 	NaniteView.ViewForward					= PackedView.ViewForwardAndNearPlane.xyz;
 	NaniteView.NearPlane					= PackedView.ViewForwardAndNearPlane.w;
 	NaniteView.LODScale						= PackedView.LODScales.x;
 	NaniteView.LODScaleHW					= PackedView.LODScales.y;
-	NaniteView.MinBoundsRadiusSq			= PackedView.MinBoundsRadiusSq;
-	NaniteView.StreamingPriorityCategory	= PackedView.StreamingPriorityCategory_AndFlags & NANITE_STREAMING_PRIORITY_CATEGORY_MASK;
+	//NaniteView.MinBoundsRadiusSq			= PackedView.MinBoundsRadiusSq;
+	//NaniteView.StreamingPriorityCategory	= PackedView.StreamingPriorityCategory_AndFlags & NANITE_STREAMING_PRIORITY_CATEGORY_MASK;
 	NaniteView.Flags						= PackedView.StreamingPriorityCategory_AndFlags >> NANITE_NUM_STREAMING_PRIORITY_CATEGORY_BITS;
 	
-	NaniteView.TargetLayerIndex				= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.x;
-	NaniteView.TargetMipLevel				= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.y;
-	NaniteView.TargetNumMipLevels			= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.z;
-	NaniteView.TargetPrevLayerIndex			= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.w;
-	NaniteView.RangeBasedCullingDistance	= PackedView.RangeBasedCullingDistance;
+	//NaniteView.TargetLayerIndex				= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.x;
+	//NaniteView.TargetMipLevel				= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.y;
+	//NaniteView.TargetNumMipLevels			= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.z;
+	//NaniteView.TargetPrevLayerIndex			= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.w;
+	//NaniteView.RangeBasedCullingDistance	= PackedView.RangeBasedCullingDistance;
 
-	NaniteView.HZBTestViewRect				= PackedView.HZBTestViewRect;
+	//NaniteView.HZBTestViewRect				= PackedView.HZBTestViewRect;
 
 	return NaniteView;
 }

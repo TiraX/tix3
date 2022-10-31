@@ -272,14 +272,15 @@ struct FNaniteTraversalClusterCullCallback
 			const float3 NodeBoxBoundsCenter = HierarchyNodeSlice.BoxBoundsCenter;
 			const float3 NodeBoxBoundsExtent = HierarchyNodeSlice.BoxBoundsExtent;// *GetPrimitiveData(InstanceData.PrimitiveId).BoundsScale;
 
-			[branch]
-			if (bUseViewRangeDistanceCull)
-			{
-				const float3 BoundsCenterTranslatedWorld = NodeBoxBoundsCenter;// mul(float4(NodeBoxBoundsCenter, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
-				const float BoundsRadius = length(NodeBoxBoundsExtent);// length(NodeBoxBoundsExtent * InstanceData.NonUniformScale.xyz);
+			// tix: ignore culling in this case
+			//[branch]
+			//if (bUseViewRangeDistanceCull)
+			//{
+			//	const float3 BoundsCenterTranslatedWorld = NodeBoxBoundsCenter;// mul(float4(NodeBoxBoundsCenter, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
+			//	const float BoundsRadius = length(NodeBoxBoundsExtent);// length(NodeBoxBoundsExtent * InstanceData.NonUniformScale.xyz);
 
-				bVisible = length2(BoundsCenterTranslatedWorld) <= Square(NaniteView.RangeBasedCullingDistance + BoundsRadius);
-			}
+			//	bVisible = length2(BoundsCenterTranslatedWorld) <= Square(NaniteView.RangeBasedCullingDistance + BoundsRadius);
+			//}
 
 		#if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
 			if (bVisible && CandidateNode.Flags & NANITE_CULLING_FLAG_TEST_LOD)
@@ -494,14 +495,15 @@ struct FNaniteTraversalClusterCullCallback
 //		uint4 RectPages = uint4(1U, 1U, 0U, 0U);
 //#endif // VIRTUAL_TEXTURE_TARGET
 		{
-			[branch]
-			if (bUseViewRangeDistanceCull)
-			{
-				const float3 BoundsCenterTranslatedWorld = ClusterBoxBoundsCenter;// mul(float4(ClusterBoxBoundsCenter, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
-				const float BoundsRadius = length(ClusterBoxBoundsExtent);// length(ClusterBoxBoundsExtent * InstanceData.NonUniformScale.xyz);
+			// tix: ignore culling in this case
+			//[branch]
+			//if (bUseViewRangeDistanceCull)
+			//{
+			//	const float3 BoundsCenterTranslatedWorld = ClusterBoxBoundsCenter;// mul(float4(ClusterBoxBoundsCenter, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
+			//	const float BoundsRadius = length(ClusterBoxBoundsExtent);// length(ClusterBoxBoundsExtent * InstanceData.NonUniformScale.xyz);
 
-				bVisible = length2(BoundsCenterTranslatedWorld) <= Square(NaniteView.RangeBasedCullingDistance + BoundsRadius);
-			}
+			//	bVisible = length2(BoundsCenterTranslatedWorld) <= Square(NaniteView.RangeBasedCullingDistance + BoundsRadius);
+			//}
 
 			[branch]
 			if (bVisible)
@@ -1040,7 +1042,7 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 
 #define PersistentCullRS \
 	"RootConstants(num32BitConstants=9, b0)," \
-    "DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0, numDescriptors=6))" 
+    "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=6))" 
 
 [RootSignature(PersistentCullRS)]
 [numthreads(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1)]

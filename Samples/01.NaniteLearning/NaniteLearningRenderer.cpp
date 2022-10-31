@@ -106,6 +106,13 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	TI_ASSERT(ClusterPageData == nullptr);
 	ClusterPageData = FStreamingPageUploader::AllocateClusterPageBuffer(RHICmdList);
 	Hierarchy = FStreamingPageUploader::AllocateHierarchyBuffer(RHICmdList, NaniteMesh->HierarchyNodes);
+	View = FUniformBuffer::CreateBuffer(
+		RHICmdList,
+		"Nanite.Views",
+		sizeof(FPackedView),
+		1,
+		(uint32)EGPUResourceFlag::Intermediate
+	);
 	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", (6 * 2 + 1) * sizeof(uint32), 1, nullptr, EGPUResourceState::UnorderedAccess);
 	const uint32 MaxNodes = GetMaxNodes();
 	const uint32 MaxCullingBatches = GetMaxClusterBatches();
@@ -178,18 +185,19 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			NANITE_VIEW_FLAG_HZBTEST | NANITE_VIEW_FLAG_NEAR_CLIP,
 			/* StreamingPriorityCategory = */ 3,
 			/* MinBoundsRadius = */ 0.0f,
-			LODScaleFactor,
-			/* viewport rect in HZB space. HZB is built per view and is always 0,0-based */
-			&HZBTestRect
+			1.0
 		);
+		// Update View uniform buffer
+		uint8* ViewDataPtr = View->GetGPUBuffer()->Lock();
+		memcpy(ViewDataPtr, &PackedView, sizeof(FPackedView));
+		View->GetGPUBuffer()->Unlock();
 
 		PersistentCullCS->ApplyParameters(
 			RHICmdList,
 			DecodeInfo,
 			ClusterPageData,
 			Hierarchy,
-			nullptr,
-			nullptr,
+			View,
 			QueueState,
 			MainAndPostNodesAndClusterBatchesBuffer,
 			MainAndPostCandididateClustersBuffer,
