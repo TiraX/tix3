@@ -68,7 +68,6 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 	//PackedView.RangeBasedCullingDistance = Params.RangeBasedCullingDistance;
 	//PackedView.MatrixTilePosition = RelativeMatrices.TilePosition;
 	PackedView.Padding1 = 0u;
-	PackedView.Padding2 = 0u;
 
 	//PackedView.PrevTranslatedWorldToView = FMat4(Params.PrevViewMatrices.GetOverriddenTranslatedViewMatrix()); // LWC_TODO: Precision loss? (and below)
 	//PackedView.PrevTranslatedWorldToClip = FMat4(Params.PrevViewMatrices.GetTranslatedViewProjectionMatrix());
@@ -100,7 +99,7 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 	//PackedView.ViewToTranslatedWorld = FMat4(Params.ViewMatrices.GetOverriddenInvTranslatedViewMatrix());
 
 	TI_ASSERT(Params.StreamingPriorityCategory <= NANITE_STREAMING_PRIORITY_CATEGORY_MASK);
-	//PackedView.StreamingPriorityCategory_AndFlags = (Params.Flags << NANITE_NUM_STREAMING_PRIORITY_CATEGORY_BITS) | Params.StreamingPriorityCategory;
+	PackedView.StreamingPriorityCategory_AndFlags = (Params.Flags << NANITE_NUM_STREAMING_PRIORITY_CATEGORY_BITS) | Params.StreamingPriorityCategory;
 	//PackedView.MinBoundsRadiusSq = Params.MinBoundsRadius * Params.MinBoundsRadius;
 	PackedView.UpdateLODScales(ViewSizeAndInvSize.Y);
 

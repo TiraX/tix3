@@ -3,7 +3,6 @@
 #pragma once
 
 #include "NaniteDataDecode.h"
-#include "NaniteHierarchyTraversalCommon.h"
 
 #define CULLING_PASS_NO_OCCLUSION				0
 #define CULLING_PASS_OCCLUSION_MAIN				1

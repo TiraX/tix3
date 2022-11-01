@@ -199,7 +199,7 @@
     <ClInclude Include="Shaders\Dx12\NaniteCulling.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDataDecode.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
-    <ClInclude Include="Shaders\Dx12\NaniteHierarchyTraversalCommon.h" />
+    <ClInclude Include="Shaders\Dx12\NanitePackedNaniteView.h" />
     <ClInclude Include="Shaders\Dx12\WaveOpUtil.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StreamingPageUploader.h" />
@@ -245,7 +245,6 @@
   <ItemGroup>
     <None Include="Shaders\Dx12\BitStreamReaderImplementation.ush" />
     <None Include="Shaders\Dx12\Common.hlsli" />
-    <None Include="Shaders\Dx12\NanitePackedNaniteView.ush" />
     <None Include="Shaders\Dx12\PS_Common.hlsli" />
     <None Include="Shaders\Dx12\S_BasePassRS.hlsli" />
     <None Include="Shaders\Dx12\VS_Instanced.hlsli" />

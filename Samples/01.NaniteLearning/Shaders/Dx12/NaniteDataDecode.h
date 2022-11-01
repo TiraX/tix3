@@ -6,7 +6,7 @@
 #include "BitPacking.h"
 //#include "../SceneData.ush"
 #include "NaniteDefinitions.h"
-#include "NanitePackedNaniteView.ush"
+#include "NanitePackedNaniteView.h"
 
 #ifndef DEBUG_FLAGS
     #define DEBUG_FLAGS 0
@@ -148,7 +148,7 @@ struct FNaniteView
 	float		LODScale;
 	float		LODScaleHW;
 	//float		MinBoundsRadiusSq;
-	//uint		StreamingPriorityCategory;
+	uint		StreamingPriorityCategory;
 	uint		Flags;
 	//int			TargetLayerIndex;
 	//int			TargetMipLevel;
@@ -203,6 +203,7 @@ struct FDecodeInfo
 	uint4 PageConstants;
 	uint MaxNodes;
 	uint MaxVisibleClusters;
+	uint MaxCandidateClusters;
 	uint RenderFlags;
 	uint DebugFlags;
 	uint StartPageIndex;
@@ -215,6 +216,28 @@ ByteAddressBuffer HierarchyBuffer : register(t1);
 ByteAddressBuffer VisibleClustersSWHW;
 //StructuredBuffer<uint> RayTracingDataBuffer;
 //#endif
+
+
+struct FQueuePassState
+{
+	uint	ClusterBatchReadOffset;	// Offset in batches
+	uint	ClusterWriteOffset;		// Offset in individual clusters
+	uint	NodeReadOffset;
+	uint	NodeWriteOffset;
+	uint	NodePrevWriteOffset;	// Helper used by non-persistent culling
+	int		NodeCount;				// Can temporarily be conservatively higher
+};
+
+struct FQueueState
+{
+	uint			TotalClusters;
+	FQueuePassState PassState[2];
+};
+
+
+uint GetMaxClusterBatches() { return DecodeInfo.MaxCandidateClusters / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE; }
+
+
 
 uint4 PackVisibleCluster(FVisibleCluster VisibleCluster, bool bHasPageData)
 {
@@ -671,7 +694,7 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 	NaniteView.LODScale						= PackedView.LODScales.x;
 	NaniteView.LODScaleHW					= PackedView.LODScales.y;
 	//NaniteView.MinBoundsRadiusSq			= PackedView.MinBoundsRadiusSq;
-	//NaniteView.StreamingPriorityCategory	= PackedView.StreamingPriorityCategory_AndFlags & NANITE_STREAMING_PRIORITY_CATEGORY_MASK;
+	NaniteView.StreamingPriorityCategory	= PackedView.StreamingPriorityCategory_AndFlags & NANITE_STREAMING_PRIORITY_CATEGORY_MASK;
 	NaniteView.Flags						= PackedView.StreamingPriorityCategory_AndFlags >> NANITE_NUM_STREAMING_PRIORITY_CATEGORY_BITS;
 	
 	//NaniteView.TargetLayerIndex				= PackedView.TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ.x;

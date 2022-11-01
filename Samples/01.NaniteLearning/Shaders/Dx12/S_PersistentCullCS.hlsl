@@ -1,9 +1,8 @@
-
+#define CULLING_PASS CULLING_PASS_OCCLUSION_MAIN
 
 #include "Common.hlsli"
 #include "WaveOpUtil.h"
 #include "NaniteDataDecode.h"
-#include "NaniteHierarchyTraversalCommon.h"
 
 #define NANITE_HIERARCHY_TRAVERSAL 1
 
@@ -40,6 +39,8 @@ static const uint QueueStateIndex = 0;
 
 groupshared uint GroupOccludedBitmask[NANITE_MAX_BVH_NODES_PER_GROUP];
 
+RWCoherentStructuredBuffer(FQueueState)	QueueState : register(u0);
+
 RWCoherentByteAddressBuffer	MainAndPostNodesAndClusterBatches : register(u1);
 RWCoherentByteAddressBuffer	MainAndPostCandididateClusters : register(u2);
 
@@ -62,9 +63,9 @@ RWBuffer<uint>							VisibleClustersArgsSWHW : register(u5);
 RWStructuredBuffer<FNaniteStats>		OutStatsBuffer;
 #endif
 
-float									DisocclusionLodScaleFactor;	// TODO: HACK: Force LOD down first frame an instance is visible to mitigate disocclusion spikes.
-uint									LargePageRectThreshold;
-uint									StreamingRequestsBufferVersion;
+//float									DisocclusionLodScaleFactor;	// TODO: HACK: Force LOD down first frame an instance is visible to mitigate disocclusion spikes.
+//uint									LargePageRectThreshold;
+//uint									StreamingRequestsBufferVersion;
 
 RWStructuredBuffer<uint>				OutDirtyPageFlags;
 
@@ -356,7 +357,7 @@ struct FNaniteTraversalClusterCullCallback
 			WaveInterlockedAddScalar_(QueueState[0].PassState[1].NodeWriteOffset, 1, OccludedNodesOffset);
 			WaveInterlockedAddScalar(QueueState[0].PassState[1].NodeCount, 1);
 
-			if (OccludedNodesOffset < MaxNodes)
+			if (OccludedNodesOffset < DecodeInfo.MaxNodes)
 			{
 				FCandidateNode Node;
 				Node.Flags = CandidateNode.Flags & ~NANITE_CULLING_FLAG_TEST_LOD;
@@ -385,7 +386,7 @@ struct FNaniteTraversalClusterCullCallback
 
 	void StoreCluster(uint StoreIndex, FHierarchyNodeSlice HierarchyNodeSlice, uint ClusterIndex)
 	{
-		StoreIndex = bIsPostPass ? (MaxCandidateClusters - 1 - StoreIndex) : StoreIndex;
+		StoreIndex = bIsPostPass ? (DecodeInfo.MaxCandidateClusters - 1 - StoreIndex) : StoreIndex;
 
 		FVisibleCluster CandidateCluster;
 		CandidateCluster.Flags = CandidateNode.Flags | NANITE_CULLING_FLAG_TEST_LOD;
@@ -400,7 +401,7 @@ struct FNaniteTraversalClusterCullCallback
 
 	uint4 LoadPackedCluster(uint CandidateIndex)
 	{
-		const uint LoadIndex = bIsPostPass ? (MaxCandidateClusters - 1 - CandidateIndex) : CandidateIndex;
+		const uint LoadIndex = bIsPostPass ? (DecodeInfo.MaxCandidateClusters - 1 - CandidateIndex) : CandidateIndex;
 		return uint4(MainAndPostCandididateClusters.Load2(GetCandidateClusterOffset() + LoadIndex * GetCandidateClusterSize()), 0u, 0u);
 	}
 
@@ -740,13 +741,13 @@ struct FNaniteTraversalClusterCullCallback
 			{
 				uint ClusterIndex = 0;
 				WaveInterlockedAddScalar_(QueueState[0].TotalClusters, 1, ClusterIndex);
-				if (ClusterIndex < MaxCandidateClusters)
+				if (ClusterIndex < DecodeInfo.MaxCandidateClusters)
 				{
 					uint OccludedClusterOffset = 0;
 					WaveInterlockedAddScalar_(QueueState[0].PassState[1].ClusterWriteOffset, 1, OccludedClusterOffset);
 					VisibleCluster.Flags = (bUseHWRaster ? NANITE_CULLING_FLAG_USE_HW : 0u);
 
-					StoreCandidateClusterCoherent(MainAndPostCandididateClusters, (MaxCandidateClusters - 1) - OccludedClusterOffset, VisibleCluster);
+					StoreCandidateClusterCoherent(MainAndPostCandididateClusters, (DecodeInfo.MaxCandidateClusters - 1) - OccludedClusterOffset, VisibleCluster);
 
 					DeviceMemoryBarrier();
 					const uint BatchIndex = OccludedClusterOffset / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
@@ -766,8 +767,6 @@ struct FNaniteTraversalClusterCullCallback
 #	define CHECK_AND_TRIM_CLUSTER_COUNT 0
 #endif
 
-
-RWCoherentStructuredBuffer(FQueueState)	QueueState : register(u0);
 
 groupshared uint	GroupNumCandidateNodes;
 groupshared uint	GroupCandidateNodesOffset;
@@ -852,7 +851,7 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex)
 
 		const uint BaseClusterIndex = HierarchyNodeSlice.ChildStartReference & NANITE_MAX_CLUSTERS_PER_PAGE_MASK;
 		const uint StartIndex = CandidateClustersOffset;
-		const uint EndIndex = min(CandidateClustersOffset + NumClusters, MaxCandidateClusters);
+		const uint EndIndex = min(CandidateClustersOffset + NumClusters, DecodeInfo.MaxCandidateClusters);
 
 		for (uint Index = StartIndex; Index < EndIndex; Index++)
 		{
@@ -1041,7 +1040,7 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 
 
 #define PersistentCullRS \
-	"RootConstants(num32BitConstants=9, b0)," \
+	"RootConstants(num32BitConstants=10, b0)," \
     "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=6))" 
 
 [RootSignature(PersistentCullRS)]

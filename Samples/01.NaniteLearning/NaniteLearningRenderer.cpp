@@ -178,6 +178,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 		DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
 		DecodeInfo.MaxNodes = GetMaxNodes();
 		DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
+		DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
 
 		FPackedView PackedView = CreatePackedViewFromViewInfo(
 			Scene->GetViewProjection(),

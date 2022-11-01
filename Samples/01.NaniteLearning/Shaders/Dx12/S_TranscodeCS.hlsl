@@ -362,7 +362,7 @@ groupshared uint GroupNonRefToVertex[NANITE_MAX_CLUSTER_VERTICES];
 
 
 #define TranscodeRS \
-	"RootConstants(num32BitConstants=9, b0)," \
+	"RootConstants(num32BitConstants=10, b0)," \
     "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=1))" 
 
 [RootSignature(TranscodeRS)]

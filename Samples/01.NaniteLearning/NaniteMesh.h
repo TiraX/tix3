@@ -13,6 +13,7 @@ struct FDecodeInfo
 	FUInt4 PageConstants;
 	uint32 MaxNodes;
 	uint32 MaxVisibleClusters;
+	uint32 MaxCandidateClusters;
 	uint32 RenderFlags;
 	uint32 DebugFlags;
 	uint32 StartPageIndex;
@@ -21,6 +22,7 @@ struct FDecodeInfo
 		: PageConstants(0, 0, 0, 0)
 		, MaxNodes(0)
 		, MaxVisibleClusters(0)
+		, MaxCandidateClusters(0)
 		, RenderFlags(0)
 		, DebugFlags(0)
 		, StartPageIndex(0)

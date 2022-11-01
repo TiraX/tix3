@@ -96,14 +96,14 @@
     <ClInclude Include="Shaders\Dx12\NaniteCulling.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\Dx12\NaniteHierarchyTraversalCommon.h">
-      <Filter>Source Files\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Shaders\Dx12\WaveOpUtil.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="NaniteView.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NanitePackedNaniteView.h">
+      <Filter>Source Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,9 +134,6 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Dx12\BitStreamReaderImplementation.ush">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Dx12\NanitePackedNaniteView.ush">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

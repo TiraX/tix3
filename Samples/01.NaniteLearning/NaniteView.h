@@ -36,10 +36,9 @@ struct FPackedView
 	//uint32 Padding1;
 
 	FFloat2 LODScales;
-	uint32 Padding1;
-	uint32 Padding2;
 	//float MinBoundsRadiusSq;
-	//uint32 StreamingPriorityCategory_AndFlags;
+	uint32 StreamingPriorityCategory_AndFlags;
+	uint32 Padding1;
 
 	//FInt4 TargetLayerIdX_AndMipLevelY_AndNumMipLevelsZ;
 
