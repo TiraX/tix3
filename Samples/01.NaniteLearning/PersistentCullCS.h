@@ -25,7 +25,8 @@ public:
 		FUniformBufferPtr InCandididateClusters,
 		FUniformBufferPtr InStreamingRequest,
 		FUniformBufferPtr InVisibleClustersSWHW,
-		FUniformBufferPtr InVisibleClustersArgsSWHW
+		FUniformBufferPtr InVisibleClustersArgsSWHW,
+		FUniformBufferPtr InDebugInfo
 		);
 private:
 	enum
@@ -46,6 +47,7 @@ private:
 		UAV_OutStreamingRequests,
 		UAV_OutVisibleClustersSWHW,
 		UAV_VisibleClustersArgsSWHW,
+		UAV_DebugInfo,
 
 		NumParams
 	};
@@ -64,6 +66,7 @@ private:
 	FUniformBufferPtr StreamingRequest;
 	FUniformBufferPtr VisibleClustersSWHW;
 	FUniformBufferPtr VisibleClustersArgsSWHW;
+	FUniformBufferPtr DebugInfo;
 
 };
 typedef TI_INTRUSIVE_PTR(FPersistentCullCS) FPersistentCullCSPtr;

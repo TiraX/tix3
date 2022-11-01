@@ -7,6 +7,7 @@
 #include "NaniteLearningRenderer.h"
 #include "NaniteMesh.h"
 #include "NaniteView.h"
+#include "NaniteDebug.h"
 
 inline uint32 GetMaxNodes()
 {
@@ -113,7 +114,10 @@ void FNaniteLearningRenderer::InitInRenderThread()
 		1,
 		(uint32)EGPUResourceFlag::Intermediate
 	);
-	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", (6 * 2 + 1) * sizeof(uint32), 1, nullptr, EGPUResourceState::UnorderedAccess);
+	const uint32 QueueStateSize = (6 * 2 + 1) * sizeof(uint32);
+	TStreamPtr ZeroData = ti_new TStream(1024);
+	ZeroData->FillWithZero(1024);
+	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", QueueStateSize, 1, ZeroData, EGPUResourceState::UnorderedAccess);
 	const uint32 MaxNodes = GetMaxNodes();
 	const uint32 MaxCullingBatches = GetMaxClusterBatches();
 	MainAndPostNodesAndClusterBatchesBuffer = 
@@ -154,6 +158,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
 			nullptr,
 			EGPUResourceState::UnorderedAccess);
+
+	DebugInfo = CreateDebugInfoUniform(RHICmdList, FNaniteDebug::MaxDebugInfo);
 
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
@@ -204,7 +210,8 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			MainAndPostCandididateClustersBuffer,
 			nullptr,
 			VisibleClustersSWHW,
-			VisibleClustersArgsSWHW
+			VisibleClustersArgsSWHW,
+			DebugInfo
 			);
 		PersistentCullCS->Run(RHICmdList);
 	}

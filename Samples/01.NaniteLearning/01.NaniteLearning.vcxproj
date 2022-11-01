@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cluster.cpp" />
+    <ClCompile Include="NaniteDebug.cpp" />
     <ClCompile Include="NaniteEncode.cpp" />
     <ClCompile Include="NaniteLearningRenderer.cpp" />
     <ClCompile Include="NaniteLearningSample.cpp" />
@@ -188,6 +189,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cluster.h" />
+    <ClInclude Include="NaniteDebug.h" />
     <ClInclude Include="NaniteEncode.h" />
     <ClInclude Include="NaniteLearningRenderer.h" />
     <ClInclude Include="NaniteLearningTicker.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="Shaders\Dx12\NaniteAttributeDecode.h" />
     <ClInclude Include="Shaders\Dx12\NaniteCulling.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDataDecode.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteDebugInfo.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
     <ClInclude Include="Shaders\Dx12\NanitePackedNaniteView.h" />
     <ClInclude Include="Shaders\Dx12\WaveOpUtil.h" />

@@ -26,7 +26,8 @@ void FPersistentCullCS::ApplyParameters(
 	FUniformBufferPtr InCandididateClusters,
 	FUniformBufferPtr InStreamingRequest,
 	FUniformBufferPtr InVisibleClustersSWHW,
-	FUniformBufferPtr InVisibleClustersArgsSWHW
+	FUniformBufferPtr InVisibleClustersArgsSWHW,
+	FUniformBufferPtr InDebugInfo
 )
 {
 	DecodeInfo = InDecodeInfo;
@@ -48,6 +49,7 @@ void FPersistentCullCS::ApplyParameters(
 	_AssignValue(StreamingRequest);
 	_AssignValue(VisibleClustersSWHW);
 	_AssignValue(VisibleClustersArgsSWHW);
+	_AssignValue(DebugInfo);
 #undef _AssignValue
 
 	if (UpdateResourceTable)
@@ -66,6 +68,7 @@ void FPersistentCullCS::ApplyParameters(
 		//RHI->PutRWUniformBufferInTable(ResourceTable, StreamingRequest, UAV_OutStreamingRequests);
 		RHI->PutRWUniformBufferInTable(ResourceTable, VisibleClustersSWHW, UAV_OutVisibleClustersSWHW);
 		RHI->PutRWUniformBufferInTable(ResourceTable, VisibleClustersArgsSWHW, UAV_VisibleClustersArgsSWHW);
+		RHI->PutRWUniformBufferInTable(ResourceTable, DebugInfo, UAV_DebugInfo);
 	}
 }
 
@@ -89,7 +92,7 @@ void FPersistentCullCS::Run(FRHICmdList* RHICmdList)
 	RHICmdList->SetComputeResourceTable(FPersistentCullCS::RT_Table, ResourceTable);
 	RHICmdList->DispatchCompute(
 		FInt3(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1),
-		FInt3(1440, 1, 1)
+		FInt3(16, 1, 1)
 	);
 	RHICmdList->EndEvent();
 }

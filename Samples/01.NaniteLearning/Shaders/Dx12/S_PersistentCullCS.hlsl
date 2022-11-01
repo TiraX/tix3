@@ -1,4 +1,5 @@
 #define CULLING_PASS CULLING_PASS_OCCLUSION_MAIN
+#define CHECK_AND_TRIM_CLUSTER_COUNT 1
 
 #include "Common.hlsli"
 #include "WaveOpUtil.h"
@@ -7,6 +8,7 @@
 #define NANITE_HIERARCHY_TRAVERSAL 1
 
 #include "NaniteCulling.h"
+#include "NaniteDebugInfo.h"
 
 #define GROUP_NODE_SIZE 2
 
@@ -44,6 +46,7 @@ RWCoherentStructuredBuffer(FQueueState)	QueueState : register(u0);
 RWCoherentByteAddressBuffer	MainAndPostNodesAndClusterBatches : register(u1);
 RWCoherentByteAddressBuffer	MainAndPostCandididateClusters : register(u2);
 
+
 struct FStreamingRequest
 {
 	uint RuntimeResourceID_Magic;
@@ -58,6 +61,7 @@ RWStructuredBuffer<FStreamingRequest>	OutStreamingRequests : register(u3);			// 
 
 RWByteAddressBuffer						OutVisibleClustersSWHW : register(u4);
 RWBuffer<uint>							VisibleClustersArgsSWHW : register(u5);
+RWStructuredBuffer<FNaniteDebugInfo>	DebugInfo : register(u6);
 
 #if DEBUG_FLAGS
 RWStructuredBuffer<FNaniteStats>		OutStatsBuffer;
@@ -410,9 +414,14 @@ struct FNaniteTraversalClusterCullCallback
 		return RawData.x != 0xFFFFFFFFu && RawData.y != 0xFFFFFFFFu && (!bIsPostPass || RawData.z != 0xFFFFFFFFu);
 	}
 
-	bool LoadCandidateNodeDataToGroup(uint NodeIndex, uint GroupIndex, bool bCheckIfReady = true)
+	bool LoadCandidateNodeDataToGroup(uint NodeIndex, uint GroupIndex, uint GroupID, int LoopIndex, bool bCheckIfReady = true)
 	{
 		uint4 NodeData = LoadCandidateNodeDataCoherent(MainAndPostNodesAndClusterBatches, NodeIndex, bIsPostPass);
+		if (LoopIndex == 1 && GroupID < MaxDebugInfo)
+		{
+			DebugInfo[GroupID].NodeData[GroupIndex] = NodeData;
+			DebugInfo[GroupID].NodeIndex[GroupIndex] = NodeIndex;
+		}
 
 		bool bNodeReady = IsNodeDataReady(NodeData);
 		if (!bCheckIfReady || bNodeReady)
@@ -842,7 +851,7 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex)
 		WaveInterlockedAdd_(QueueState[0].TotalClusters, NumClusters, ClusterIndex);
 
 		// Trim any clusters above MaxCandidateClusters
-		const uint ClusterIndexEnd = min(ClusterIndex + NumClusters, MaxCandidateClusters);
+		const uint ClusterIndexEnd = min(ClusterIndex + NumClusters, DecodeInfo.MaxCandidateClusters);
 		NumClusters = (uint)max((int)ClusterIndexEnd - (int)ClusterIndex, 0);
 #endif
 
@@ -904,7 +913,7 @@ void ProcessClusterBatch(uint BatchStartIndex, uint BatchSize, uint GroupIndex)
 }
 
 
-void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
+void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueStateIndex)
 {
 	FNaniteTraversalClusterCullCallback TraversalCallback;
 
@@ -913,8 +922,10 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 	uint NodeBatchStartIndex = 0;
 	uint ClusterBatchStartIndex = 0xFFFFFFFFu;
 
+	int LoopIndex = 0;
 	while (true)
 	{
+		LoopIndex++;
 		GroupMemoryBarrierWithGroupSync();	// Make sure we are done reading from group shared
 		if (GroupIndex == 0)
 		{
@@ -935,6 +946,10 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 				if (GroupIndex == 0)
 				{
 					InterlockedAdd(QueueState[0].PassState[QueueStateIndex].NodeReadOffset, NANITE_MAX_BVH_NODES_PER_GROUP, GroupNodeBatchStartIndex);
+					if (LoopIndex == 1 && GroupID < MaxDebugInfo)
+					{
+						DebugInfo[GroupID].GroupNodeBatchStartIndex = GroupNodeBatchStartIndex;
+					}
 				}
 				GroupMemoryBarrierWithGroupSync();
 
@@ -953,7 +968,7 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 			bool bNodeReady = (NodeBatchReadyOffset + GroupIndex < NANITE_MAX_BVH_NODES_PER_GROUP);
 			if (bNodeReady)
 			{
-				bNodeReady = TraversalCallback.LoadCandidateNodeDataToGroup(NodeIndex, GroupIndex);
+				bNodeReady = TraversalCallback.LoadCandidateNodeDataToGroup(NodeIndex, GroupIndex, GroupID, LoopIndex);
 			}
 
 			if (bNodeReady)
@@ -1041,11 +1056,11 @@ void PersistentNodeAndClusterCull(uint GroupIndex, uint QueueStateIndex)
 
 #define PersistentCullRS \
 	"RootConstants(num32BitConstants=10, b0)," \
-    "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=6))" 
+    "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=7))" 
 
 [RootSignature(PersistentCullRS)]
 [numthreads(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1)]
 void NodeAndClusterCull(uint GroupID : SV_GroupID, uint GroupIndex : SV_GroupIndex)
 {
-	PersistentNodeAndClusterCull(GroupIndex, QueueStateIndex);
+	PersistentNodeAndClusterCull(GroupID, GroupIndex, QueueStateIndex);
 }

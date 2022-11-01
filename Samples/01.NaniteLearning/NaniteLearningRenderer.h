@@ -33,6 +33,8 @@ private:
 	FUniformBufferPtr VisibleClustersSWHW;
 	FUniformBufferPtr VisibleClustersArgsSWHW;
 
+	FUniformBufferPtr DebugInfo;
+
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;
 
