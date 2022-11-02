@@ -208,7 +208,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			VisibleClustersArgsSWHW,
 			DebugInfo
 			);
-		//PersistentCullCS->Run(RHICmdList);
+		PersistentCullCS->Run(RHICmdList);
 	}
 
 	DrawPrimitives(RHICmdList);
