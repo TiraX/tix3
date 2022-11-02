@@ -21,7 +21,7 @@ public:
 		FUniformBufferPtr InHierachyBuffer,
 		FUniformBufferPtr InView,
 		FUniformBufferPtr InQueueState,
-		FUniformBufferPtr InClusterBatches,
+		FUniformBufferPtr InNodesAndClusterBatches,
 		FUniformBufferPtr InCandididateClusters,
 		FUniformBufferPtr InStreamingRequest,
 		FUniformBufferPtr InVisibleClustersSWHW,
@@ -61,7 +61,7 @@ private:
 	FUniformBufferPtr HierachyBuffer;
 	FUniformBufferPtr View;
 	FUniformBufferPtr QueueState;
-	FUniformBufferPtr ClusterBatches;
+	FUniformBufferPtr NodesAndClusterBatches;
 	FUniformBufferPtr CandididateClusters;
 	FUniformBufferPtr StreamingRequest;
 	FUniformBufferPtr VisibleClustersSWHW;

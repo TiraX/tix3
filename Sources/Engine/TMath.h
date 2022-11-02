@@ -104,6 +104,13 @@ namespace tix
 			return floorf(F + 0.5f);
 		}
 
+		/** Divides two integers and rounds up */
+		template <class T>
+		static constexpr FORCEINLINE T DivideAndRoundUp(T Dividend, T Divisor)
+		{
+			return (Dividend + Divisor - 1) / Divisor;
+		}
+
 		template< class T >
 		static FORCEINLINE void Swap(T& a, T& b)
 		{

@@ -52,6 +52,15 @@
     <ClCompile Include="NaniteDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="InitCandidateNodesCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
+    <ClCompile Include="InitClusterBatchesCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
+    <ClCompile Include="FakeInstanceCullCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -114,6 +123,15 @@
     <ClInclude Include="NaniteDebug.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="InitCandidateNodesCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
+    <ClInclude Include="InitClusterBatchesCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
+    <ClInclude Include="FakeInstanceCullCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
@@ -126,6 +144,15 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_InitCandidateNodesCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_InitClusterBatchesCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_FakeInstanceCullCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

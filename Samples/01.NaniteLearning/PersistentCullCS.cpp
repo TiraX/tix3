@@ -22,7 +22,7 @@ void FPersistentCullCS::ApplyParameters(
 	FUniformBufferPtr InHierachyBuffer,
 	FUniformBufferPtr InView,
 	FUniformBufferPtr InQueueState,
-	FUniformBufferPtr InClusterBatches,
+	FUniformBufferPtr InNodesAndClusterBatches,
 	FUniformBufferPtr InCandididateClusters,
 	FUniformBufferPtr InStreamingRequest,
 	FUniformBufferPtr InVisibleClustersSWHW,
@@ -44,7 +44,7 @@ void FPersistentCullCS::ApplyParameters(
 	_AssignValue(HierachyBuffer);
 	_AssignValue(View);
 	_AssignValue(QueueState);
-	_AssignValue(ClusterBatches);
+	_AssignValue(NodesAndClusterBatches);
 	_AssignValue(CandididateClusters);
 	_AssignValue(StreamingRequest);
 	_AssignValue(VisibleClustersSWHW);
@@ -63,7 +63,7 @@ void FPersistentCullCS::ApplyParameters(
 		RHI->PutUniformBufferInTable(ResourceTable, View, SRV_View);
 
 		RHI->PutRWUniformBufferInTable(ResourceTable, QueueState, UAV_QueueState);
-		RHI->PutRWUniformBufferInTable(ResourceTable, ClusterBatches, UAV_MainAndPostNodesAndClusterBatches);
+		RHI->PutRWUniformBufferInTable(ResourceTable, NodesAndClusterBatches, UAV_MainAndPostNodesAndClusterBatches);
 		RHI->PutRWUniformBufferInTable(ResourceTable, CandididateClusters, UAV_MainAndPostCandididateClusters);
 		//RHI->PutRWUniformBufferInTable(ResourceTable, StreamingRequest, UAV_OutStreamingRequests);
 		RHI->PutRWUniformBufferInTable(ResourceTable, VisibleClustersSWHW, UAV_OutVisibleClustersSWHW);
@@ -81,7 +81,7 @@ void FPersistentCullCS::Run(FRHICmdList* RHICmdList)
 	//RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 
 	RHICmdList->SetGPUBufferState(QueueState->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
-	RHICmdList->SetGPUBufferState(ClusterBatches->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
+	RHICmdList->SetGPUBufferState(NodesAndClusterBatches->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 	RHICmdList->SetGPUBufferState(CandididateClusters->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 	//RHICmdList->SetGPUBufferState(StreamingRequest->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 	RHICmdList->SetGPUBufferState(VisibleClustersSWHW->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);

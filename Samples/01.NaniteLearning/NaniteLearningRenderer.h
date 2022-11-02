@@ -5,6 +5,9 @@
 
 #pragma once
 #include "StreamingPageUploader.h"
+#include "InitCandidateNodesCS.h"
+#include "InitClusterBatchesCS.h"
+#include "FakeInstanceCullCS.h"
 #include "PersistentCullCS.h"
 
 class FNaniteLearningRenderer : public FDefaultRenderer
@@ -38,5 +41,8 @@ private:
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;
 
+	FInitCandidateNodesCSPtr InitCandidateNodesCS;
+	FInitClusterBatchesCSPtr InitClusterBatchesCS;
+	FFakeInstanceCullCSPtr FakeInstanceCullCS;
 	FPersistentCullCSPtr PersistentCullCS;
 };

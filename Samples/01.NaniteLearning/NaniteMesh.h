@@ -244,3 +244,30 @@ public:
 	uint32 NumRootPages = 0;
 	int32 PositionPrecision = 0;
 };
+
+
+inline uint32 GetMaxNodes()
+{
+	const int32 GNaniteMaxNodes = 2 * 1048576;
+	return GNaniteMaxNodes & -NANITE_MAX_BVH_NODES_PER_GROUP;
+}
+
+inline uint32 GetMaxCandidateClusters()
+{
+	int32 GNaniteMaxCandidateClusters = 16 * 1048576;
+	const uint32 MaxCandidateClusters = GNaniteMaxCandidateClusters & -NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
+	return MaxCandidateClusters;
+}
+
+inline uint32 GetMaxClusterBatches()
+{
+	const uint32 MaxCandidateClusters = GetMaxCandidateClusters();
+	TI_ASSERT(MaxCandidateClusters % NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE == 0);
+	return MaxCandidateClusters / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
+}
+
+inline uint32 GetMaxVisibleClusters()
+{
+	const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
+	return GNaniteMaxVisibleClusters;
+}

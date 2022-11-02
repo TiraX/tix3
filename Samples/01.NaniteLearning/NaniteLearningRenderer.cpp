@@ -9,31 +9,6 @@
 #include "NaniteView.h"
 #include "NaniteDebug.h"
 
-inline uint32 GetMaxNodes()
-{
-	const int32 GNaniteMaxNodes = 2 * 1048576;
-	return GNaniteMaxNodes & -NANITE_MAX_BVH_NODES_PER_GROUP;
-}
-
-inline uint32 GetMaxCandidateClusters()
-{
-	int32 GNaniteMaxCandidateClusters = 16 * 1048576;
-	const uint32 MaxCandidateClusters = GNaniteMaxCandidateClusters & -NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
-	return MaxCandidateClusters;
-}
-
-inline uint32 GetMaxClusterBatches()
-{
-	const uint32 MaxCandidateClusters = GetMaxCandidateClusters();
-	TI_ASSERT(MaxCandidateClusters % NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE == 0);
-	return MaxCandidateClusters / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
-}
-
-inline uint32 GetMaxVisibleClusters()
-{
-	const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
-	return GNaniteMaxVisibleClusters;
-}
 
 FNaniteLearningRenderer::FNaniteLearningRenderer(FSceneInterface* Scene)
 	: FDefaultRenderer(Scene)
@@ -119,7 +94,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	ZeroData->FillWithZero(1024);
 	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", QueueStateSize, 1, ZeroData, EGPUResourceState::UnorderedAccess);
 	const uint32 MaxNodes = GetMaxNodes();
-	const uint32 MaxCullingBatches = GetMaxClusterBatches();
+ 	const uint32 MaxCullingBatches = GetMaxClusterBatches();
 	MainAndPostNodesAndClusterBatchesBuffer = 
 		FUniformBuffer::CreateBuffer(
 			RHICmdList, 
@@ -164,8 +139,26 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
 	// Create shaders
+	InitCandidateNodesCS = ti_new FInitCandidateNodesCS;
+	InitCandidateNodesCS->Finalize();
+	InitClusterBatchesCS = ti_new FInitClusterBatchesCS;
+	InitClusterBatchesCS->Finalize();
+	FakeInstanceCullCS = ti_new FFakeInstanceCullCS;
+	FakeInstanceCullCS->Finalize();
 	PersistentCullCS = ti_new FPersistentCullCS();
 	PersistentCullCS->Finalize();
+
+	FDecodeInfo DecodeInfo;
+	DecodeInfo.StartPageIndex = 0;
+	DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
+	DecodeInfo.MaxNodes = GetMaxNodes();
+	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
+	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
+
+	InitCandidateNodesCS->ApplyParameters(RHICmdList, DecodeInfo, MainAndPostNodesAndClusterBatchesBuffer);
+	InitCandidateNodesCS->Run(RHICmdList);
+	InitClusterBatchesCS->ApplyParameters(RHICmdList, DecodeInfo, MainAndPostNodesAndClusterBatchesBuffer);
+	InitClusterBatchesCS->Run(RHICmdList);
 }
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
@@ -173,19 +166,21 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	RHICmdList->BeginRenderToRenderTarget(RT_BasePass, "BasePass", 0);
 
 	// Init args
+	FDecodeInfo DecodeInfo;
+	DecodeInfo.StartPageIndex = 0;
+	DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
+	DecodeInfo.MaxNodes = GetMaxNodes();
+	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
+	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
 
-	// Ignore instance cull
+	// Fake instance cull
+	{
+		FakeInstanceCullCS->ApplyParameters(RHICmdList, DecodeInfo, QueueState, MainAndPostNodesAndClusterBatchesBuffer);
+		FakeInstanceCullCS->Run(RHICmdList);
+	}
 
 	// node and cluster cull
 	{
-
-		FDecodeInfo DecodeInfo;
-		DecodeInfo.StartPageIndex = 0;
-		DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
-		DecodeInfo.MaxNodes = GetMaxNodes();
-		DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
-		DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
-
 		FPackedView PackedView = CreatePackedViewFromViewInfo(
 			Scene->GetViewProjection(),
 			FInt2(TEngine::GetAppInfo().Width, TEngine::GetAppInfo().Height),
@@ -213,7 +208,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			VisibleClustersArgsSWHW,
 			DebugInfo
 			);
-		PersistentCullCS->Run(RHICmdList);
+		//PersistentCullCS->Run(RHICmdList);
 	}
 
 	DrawPrimitives(RHICmdList);
