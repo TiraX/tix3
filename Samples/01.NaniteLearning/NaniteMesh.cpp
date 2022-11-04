@@ -76,6 +76,16 @@ TNaniteMesh* TNaniteMesh::LoadMesh()
 		MeshFile.Read(Mesh->PageDependencies.data(), Header.NumPageDependencies * sizeof(uint32), Header.NumPageDependencies * sizeof(uint32));
 	}
 
+	const int32 NumPages = (int32)Mesh->PageStreamingStates.size();
+	int32 NumClusters = 0;
+	for (int32 i = 0; i < NumPages; i++)
+	{
+		const bool bIsRoot = Mesh->IsRootPage(i);
+		const auto& State = Mesh->PageStreamingStates[i];
+		const FFixupChunk* Fixup = (const FFixupChunk*)((bIsRoot ? Mesh->RootData.data() : Mesh->StreamablePages.data()) + State.BulkOffset);
+		NumClusters += Fixup->Header.NumClusters;
+	}
+
 	return Mesh;
 }
 

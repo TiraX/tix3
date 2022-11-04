@@ -49,7 +49,7 @@ struct FNaniteDebug
 	uint32 NumLeaves;
 	uint32 Padding1;
 	//uint32 bOutput[64];
-	uint32 LoadedLeaf[64];
+	uint32 bUseHWRaster[64];
 
 	FNaniteDebug()
 		: GroupNodeBatchStartIndex(0)

@@ -38,5 +38,5 @@ struct FNaniteDebugInfo
 	uint NumLeaves;
 	uint Padding1;
 	//uint bOutput[64];
-	uint LoadedLeaf[64];
+	uint bUseHWRaster[64];
 };

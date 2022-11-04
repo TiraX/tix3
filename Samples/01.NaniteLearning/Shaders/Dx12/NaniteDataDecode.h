@@ -14,13 +14,16 @@
 
 uint GetHWClusterCounterIndex(uint InRenderFlags)
 {
+	// tix: do not use mesh shader for now.
+	// mesh shader should be 4, others 5.
+	return 5;
 // Ensure rasterizer uses compile time constants.
-#ifdef NANITE_HW_COUNTER_INDEX
-	return NANITE_HW_COUNTER_INDEX;
-#else
-	// Other passes use a uniform branch to minimize permutations.
-	return CondMask(InRenderFlags & (NANITE_RENDER_FLAG_MESH_SHADER | NANITE_RENDER_FLAG_PRIMITIVE_SHADER), 4u, 5u);
-#endif
+//#ifdef NANITE_HW_COUNTER_INDEX
+//	return NANITE_HW_COUNTER_INDEX;
+//#else
+//	// Other passes use a uniform branch to minimize permutations.
+//	return CondMask(InRenderFlags & (NANITE_RENDER_FLAG_MESH_SHADER | NANITE_RENDER_FLAG_PRIMITIVE_SHADER), 4u, 5u);
+//#endif
 }
 
 struct FVisibleCluster

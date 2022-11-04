@@ -2171,11 +2171,13 @@ void WritePages(
 
 	TVector<FFixupChunk> FixupChunks;
 	FixupChunks.resize(NumPages);
+	int32 TotalClusters = 0;
 	for (uint32 PageIndex = 0; PageIndex < NumPages; PageIndex++)
 	{
 		const FPage& Page = Pages[PageIndex];
 		FFixupChunk& FixupChunk = FixupChunks[PageIndex];
 		FixupChunk.Header.NumClusters = Page.NumClusters;
+		TotalClusters += Page.NumClusters;
 
 		uint32 NumHierarchyFixups = 0;
 		for (uint32 i = 0; i < Page.PartsNum; i++)
