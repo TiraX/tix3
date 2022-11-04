@@ -39,6 +39,10 @@ static const bool bIsPostPass = false;
 static const uint QueueStateIndex = 0;
 //#endif
 
+
+#define DEBUG_MODE 1
+#define DEBUG_INFO 1
+
 groupshared uint GroupOccludedBitmask[NANITE_MAX_BVH_NODES_PER_GROUP];
 
 RWCoherentStructuredBuffer(FQueueState)	QueueState : register(u0);
@@ -61,7 +65,9 @@ RWStructuredBuffer<FStreamingRequest>	OutStreamingRequests : register(u3);			// 
 
 RWByteAddressBuffer						OutVisibleClustersSWHW : register(u4);
 RWBuffer<uint>							VisibleClustersArgsSWHW : register(u5);
+#if DEBUG_INFO
 RWStructuredBuffer<FNaniteDebugInfo>	DebugInfo : register(u6);
+#endif
 
 #if DEBUG_FLAGS
 RWStructuredBuffer<FNaniteStats>		OutStatsBuffer;
@@ -216,10 +222,6 @@ struct FNaniteTraversalClusterCullCallback
 		const uint4 NodeData = GetGroupNodeData(GroupNodeFetchIndex);
 
 		CandidateNode = UnpackCandidateNode(NodeData, bIsPostPass);
-		//if (LoopIndex == 1 && GroupID < MaxDebugInfo)
-		//{
-		//	DebugInfo[GroupID].CandidateNodes[ChildIndex] = CandidateNode;
-		//}
 
 		NaniteView = GetNaniteView(CandidateNode.ViewId);
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
@@ -422,10 +424,6 @@ struct FNaniteTraversalClusterCullCallback
 	bool LoadCandidateNodeDataToGroup(uint NodeIndex, uint GroupIndex, uint GroupID, int LoopIndex, bool bCheckIfReady = true)
 	{
 		uint4 NodeData = LoadCandidateNodeDataCoherent(MainAndPostNodesAndClusterBatches, NodeIndex, bIsPostPass);
-		//if (LoopIndex < MaxDebugInfo)
-		//{
-		//	DebugInfo[LoopIndex].NodeData[GroupIndex] = NodeData.x;
-		//}
 
 		bool bNodeReady = IsNodeDataReady(NodeData);
 		if (!bCheckIfReady || bNodeReady)
@@ -539,10 +537,12 @@ struct FNaniteTraversalClusterCullCallback
 			}
 		}
 
+#if DEBUG_INFO
 		if (LoopIndex < MaxDebugInfo)
 		{
 			DebugInfo[LoopIndex].bUseHWRaster[GroupIndex] = bUseHWRaster ? 1 : 0;
 		}
+#endif
 		
 		// tix: ignore culling in this case
 		//FFrustumCullData Cull;
@@ -651,16 +651,6 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 	TraversalCallback.Init(ChildIndex, LocalNodeIndex, FetchIndex, GroupId, LoopIndex);
 
 	const FHierarchyNodeSlice HierarchyNodeSlice = GetHierarchyNodeSlice(TraversalCallback.GetHierarchyNodeIndex(), ChildIndex);
-	// if (LoopIndex < MaxDebugInfo && GroupIndex < 16)
-	// {
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].MinLODError = HierarchyNodeSlice.MinLODError;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].MaxParentLODError = HierarchyNodeSlice.MaxParentLODError;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].ChildStartReference = HierarchyNodeSlice.ChildStartReference;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].NumChildren = HierarchyNodeSlice.NumChildren;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].bEnabled = HierarchyNodeSlice.bEnabled;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].bLoaded = HierarchyNodeSlice.bLoaded;
-	// 	DebugInfo[LoopIndex].NodeSlice[GroupIndex].bLeaf = HierarchyNodeSlice.bLeaf;
-	// }
 
 	bool bVisible = HierarchyNodeSlice.bEnabled;
 	bool bLoaded = HierarchyNodeSlice.bLoaded;
@@ -681,10 +671,12 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 
 	GroupMemoryBarrierWithGroupSync();
 
+#if DEBUG_INFO
 	if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
 	{
 		DebugInfo[LoopIndex].GroupNumCandidateNodes = GroupNumCandidateNodes;
 	}
+#endif
 
 	if (GroupIndex == 0)
 	{
@@ -693,17 +685,9 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 	}
 
 	AllMemoryBarrierWithGroupSync();
-	//if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
-	//{
-	//	DebugInfo[LoopIndex].GroupCandidateNodesOffset = GroupCandidateNodesOffset;
-	//}
 
 	// GPU might not be filled, so latency is important here. Kick new jobs as soon as possible.
 	bool bOutputChild = bVisible && bLoaded;
-	//if (LoopIndex < MaxDebugInfo)
-	//{
-	//	DebugInfo[LoopIndex].bOutput[GroupIndex] = bOutputChild ? 1:0;
-	//}
 	if (bOutputChild && !HierarchyNodeSlice.bLeaf)
 	{
 		CandidateNodesOffset += GroupCandidateNodesOffset;
@@ -714,24 +698,17 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 		}
 	}
 	DeviceMemoryBarrierWithGroupSync();
-
-	if (LoopIndex < MaxDebugInfo)
-	{
-		//DebugInfo[LoopIndex].bShouldVisitChild[GroupIndex] = bOutputChild && HierarchyNodeSlice.bLeaf ? HierarchyNodeSlice.NumChildren : 0;
-		//DebugInfo[LoopIndex].P[GroupIndex].bVisible = bVisible ? 1 : 0;
-		//DebugInfo[LoopIndex].P[GroupIndex].bLoaded = bLoaded ? 1 : 0;
-		//DebugInfo[LoopIndex].P[GroupIndex].bLeaf = HierarchyNodeSlice.bLeaf ? 1 : 0;
-		//DebugInfo[LoopIndex].LoadedLeaf[GroupIndex] = bOutputChild && HierarchyNodeSlice.bLeaf ? 1 : 0;
-
-	}
+	
 	uint NumToAdd = WaveActiveCountBits( HierarchyNodeSlice.bLeaf && LocalNodeIndex < BatchSize );
 	if (WaveIsFirstLane())
 		InterlockedAdd( GroupDebugNum, NumToAdd );
 	GroupMemoryBarrierWithGroupSync();
+#if DEBUG_INFO
 	if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
 	{
 		DebugInfo[LoopIndex].NumLeaves = GroupDebugNum;
 	}
+#endif
 
 
 	// Continue with remaining independent work
@@ -802,10 +779,9 @@ void ProcessClusterBatch(uint BatchStartIndex, uint BatchSize, uint GroupIndex, 
 	}
 
 	// Clear batch so the buffer is cleared for next pass.
-	//TraversalCallback.ClearClusterBatch(BatchStartIndex);
+	TraversalCallback.ClearClusterBatch(BatchStartIndex);
 }
 
-#define DEBUG_MODE 1
 
 void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueStateIndex)
 {
@@ -821,7 +797,7 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 	while (true)
 #else
 	[loop]
-	for (int __i = 0; __i < 20; __i ++)
+	for (int __i = 0; __i < MaxDebugInfo; __i ++)
 #endif
 	{
 		LoopIndex++;
@@ -831,10 +807,6 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 			GroupNumCandidateNodes = 0;
 			GroupNodeMask = 0;
 		}
-		// if (LoopIndex < MaxDebugInfo)
-		// {
-		// 	DebugInfo[LoopIndex].Step[GroupIndex] = 0;
-		// }
 
 		TraversalCallback.OnPreProcessNodeBatch(GroupIndex);
 
@@ -843,20 +815,18 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 		uint NodeReadyMask = 0;
 		if (bProcessNodes)	// Try grabbing and processing nodes if they could be available.
 		{
-			// if (LoopIndex < MaxDebugInfo)
-			// {
-			// 	DebugInfo[LoopIndex].Step[GroupIndex] = 1;
-			// }
 			if (NodeBatchReadyOffset == NANITE_MAX_BVH_NODES_PER_GROUP)
 			{
 				// No more data in current batch. Grab a new batch.
 				if (GroupIndex == 0)
 				{
 					InterlockedAdd(QueueState[0].PassState[QueueStateIndex].NodeReadOffset, NANITE_MAX_BVH_NODES_PER_GROUP, GroupNodeBatchStartIndex);
+#if DEBUG_INFO
 					if (LoopIndex < MaxDebugInfo)
 					{
 						DebugInfo[LoopIndex].GroupNodeBatchStartIndex = GroupNodeBatchStartIndex;
 					}
+#endif
 				}
 				GroupMemoryBarrierWithGroupSync();
 
@@ -869,10 +839,6 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 					continue;
 				}
 			}
-			// if (LoopIndex < MaxDebugInfo)
-			// {
-			// 	DebugInfo[LoopIndex].Step[GroupIndex] = 2;
-			// }
 
 			// Check which nodes in the range have been completely written and are ready for processing.
 			const uint NodeIndex = NodeBatchStartIndex + NodeBatchReadyOffset + GroupIndex;
@@ -892,24 +858,23 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 			// Process nodes if at least the first one is ready.
 			if (NodeReadyMask & 1u)
 			{
-				// if (LoopIndex < MaxDebugInfo)
-				// {
-				// 	DebugInfo[LoopIndex].Step[GroupIndex] = 3;
-				// }
 				uint BatchSize = firstbitlow(~NodeReadyMask);
+#if DEBUG_INFO
 				if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
 					DebugInfo[LoopIndex].BatchSize = BatchSize;
+#endif
 				ProcessNodeBatch(BatchSize, GroupIndex, QueueStateIndex, GroupID, LoopIndex);
 				if (GroupIndex < BatchSize)
 				{
 					// Clear processed element so we leave the buffer cleared for next pass.
 					TraversalCallback.ClearCandidateNodeData(NodeIndex);
 				}
-
+#if DEBUG_INFO
 				if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
 				{
 					DebugInfo[LoopIndex].NodeCount = QueueState[0].PassState[QueueStateIndex].NodeCount;
 				}
+#endif
 
 				NodeBatchReadyOffset += BatchSize;
 				continue;
@@ -917,10 +882,6 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 		}
 
 		// No nodes were ready. Process clusters instead.
-		// if (LoopIndex < MaxDebugInfo)
-		// {
-		// 	DebugInfo[LoopIndex].Step[GroupIndex] = 4;
-		// }
 
 		// Grab a range of clusters, if we don't already have one.
 		if (ClusterBatchStartIndex == 0xFFFFFFFFu)
@@ -936,35 +897,30 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 		if (!bProcessNodes && GroupClusterBatchStartIndex >= GetMaxClusterBatches())
 			break;	// Has to be break instead of return to make FXC happy.
 
-		// if (LoopIndex < MaxDebugInfo)
-		// {
-		// 	DebugInfo[LoopIndex].Step[GroupIndex] = 5;
-		// }
-		
-		if (LoopIndex < MaxDebugInfo)
-		{
-			//DebugInfo[LoopIndex].LoadedLeaf[GroupIndex] = bProcessNodes ? 1 : 0;
-		}
 		if (GroupIndex == 0)
 		{
 			GroupNodeCount = QueueState[0].PassState[QueueStateIndex].NodeCount;
 			GroupClusterBatchReadySize = TraversalCallback.LoadClusterBatch(ClusterBatchStartIndex);
 		}
 		GroupMemoryBarrierWithGroupSync();
+#if DEBUG_INFO
 		if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
 		{
 			DebugInfo[LoopIndex].ClusterBatchStartIndex = ClusterBatchStartIndex;
 			DebugInfo[LoopIndex].GroupClusterBatchReadySize = GroupClusterBatchReadySize;
 		}
+#endif
 
 		uint ClusterBatchReadySize = GroupClusterBatchReadySize;
 		if (!bProcessNodes && ClusterBatchReadySize == 0)	// No more clusters to process and no nodes are available to 
 			break;	// Has to be break instead of return to make FXC happy.
 
-		// if (LoopIndex < MaxDebugInfo)
-		// {
-		// 	DebugInfo[LoopIndex].Step[GroupIndex] = 6;
-		// }
+#if DEBUG_INFO
+		if (LoopIndex < MaxDebugInfo && GroupIndex == 0)
+		{
+			DebugInfo[LoopIndex].Padding1 = LoopIndex;
+		}
+#endif
 		if ((bProcessNodes && ClusterBatchReadySize == NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE) || (!bProcessNodes && ClusterBatchReadySize > 0))
 		{
 			ProcessClusterBatch(ClusterBatchStartIndex, ClusterBatchReadySize, GroupIndex, LoopIndex);
@@ -975,10 +931,6 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 		{
 			bProcessNodes = false;
 		}
-		// if (LoopIndex < MaxDebugInfo)
-		// {
-		// 	DebugInfo[LoopIndex].Step[GroupIndex] = 7;
-		// }
 	}
 }
 

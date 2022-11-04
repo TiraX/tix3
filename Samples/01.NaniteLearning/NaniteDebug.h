@@ -34,7 +34,7 @@ struct FPair_
 
 struct FNaniteDebug
 {
-	static const int32 MaxDebugInfo = 32;
+	static const int32 MaxDebugInfo = 128;
 	uint32 GroupNodeBatchStartIndex;
 	uint32 GroupNumCandidateNodes;
 	uint32 NodeCount;

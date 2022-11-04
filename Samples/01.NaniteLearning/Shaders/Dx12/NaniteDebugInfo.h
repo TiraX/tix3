@@ -2,7 +2,7 @@
 
 #pragma once
 
-static const int MaxDebugInfo = 32;
+static const int MaxDebugInfo = 128;
 
 struct FHierarchyNodeSliceSimple
 {
