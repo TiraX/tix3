@@ -34,21 +34,32 @@ struct FPair_
 
 struct FNaniteDebug
 {
-	static const int32 MaxDebugInfo = 16;
+	static const int32 MaxDebugInfo = 32;
 	uint32 GroupNodeBatchStartIndex;
 	uint32 GroupNumCandidateNodes;
-	uint32 GroupCandidateNodesOffset;
+	uint32 NodeCount;
 	uint32 BatchSize;
-	uint32 NodeData[NANITE_MAX_BVH_NODES_PER_GROUP];
+	//uint32 NodeData[NANITE_MAX_BVH_NODES_PER_GROUP];
 	//FHierarchyNodeSliceSimple NodeSlice[16];
 	//uint32 bShouldVisitChild[64];
-	FPair_ P[64];
+	//FPair_ P[64];
+
+	uint32 ClusterBatchStartIndex;
+	uint32 GroupClusterBatchReadySize;
+	uint32 NumLeaves;
+	uint32 Padding1;
+	//uint32 bOutput[64];
+	uint32 LoadedLeaf[64];
 
 	FNaniteDebug()
 		: GroupNodeBatchStartIndex(0)
 		, GroupNumCandidateNodes(0)
-		, GroupCandidateNodesOffset(0)
+		, NodeCount(0)
 		, BatchSize(0)
+		, ClusterBatchStartIndex(0)
+		, GroupClusterBatchReadySize(0)
+		, NumLeaves(0)
+		, Padding1(0)
 	{
 		//memset(bShouldVisitChild, 0, sizeof(bShouldVisitChild));
 	}

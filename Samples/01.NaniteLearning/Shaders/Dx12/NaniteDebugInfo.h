@@ -2,7 +2,7 @@
 
 #pragma once
 
-static const int MaxDebugInfo = 16;
+static const int MaxDebugInfo = 32;
 
 struct FHierarchyNodeSliceSimple
 {
@@ -26,10 +26,17 @@ struct FNaniteDebugInfo
 {
 	uint GroupNodeBatchStartIndex;
 	uint GroupNumCandidateNodes;
-	uint GroupCandidateNodesOffset;
+	uint NodeCount;
 	uint BatchSize;
-	uint NodeData[NANITE_MAX_BVH_NODES_PER_GROUP];
+	//uint NodeData[NANITE_MAX_BVH_NODES_PER_GROUP];
 	//FHierarchyNodeSliceSimple NodeSlice[16];
 	//uint bShouldVisitChild[64];
-	FPair_ P[64];
+	//FPair_ P[64];
+
+	uint ClusterBatchStartIndex;
+	uint GroupClusterBatchReadySize;
+	uint NumLeaves;
+	uint Padding1;
+	//uint bOutput[64];
+	uint LoadedLeaf[64];
 };

@@ -2159,6 +2159,8 @@ void WritePages(
 	uint32 NumTexCoords
 )
 {
+	Mesh.NumRootPageClusters = Pages[0].NumClusters;
+
 	TI_ASSERT(Mesh.PageStreamingStates.size() == 0);
 
 	TVector< uint8 > StreamableBulkData;

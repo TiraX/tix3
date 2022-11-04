@@ -8,7 +8,6 @@
 #include "NaniteMesh.h"
 
 const int32 MaxPageInstallsPerUpdate = 128;
-const int32 MaxStreamingPages = 4096;
 
 struct FPageInstallInfo
 {
@@ -30,12 +29,7 @@ struct FPageKey
 };
 uint32 GPUPageIndexToGPUOffset(int32 PageIndex)
 {
-	return (TMath::Min(PageIndex, MaxStreamingPages) << NANITE_STREAMING_PAGE_GPU_SIZE_BITS) + ((uint32)TMath::Max((int32)PageIndex - (int32)MaxStreamingPages, 0) << NANITE_ROOT_PAGE_GPU_SIZE_BITS);
-}
-
-int32 FStreamingPageUploader::GetMaxStreamingPages()
-{
-	return MaxStreamingPages;
+	return (TMath::Min(PageIndex, (int32)GetMaxStreamingPages()) << NANITE_STREAMING_PAGE_GPU_SIZE_BITS) + ((uint32)TMath::Max((int32)PageIndex - (int32)GetMaxStreamingPages(), 0) << NANITE_ROOT_PAGE_GPU_SIZE_BITS);
 }
 
 FStreamingPageUploader::FStreamingPageUploader()
@@ -56,13 +50,12 @@ void FStreamingPageUploader::Init(FRHICmdList* RHICmdList)
 	// PageDependenciesBuffer
 	TI_ASSERT(PageDependenciesBuffer == nullptr);
 
-
 }
 
 FUniformBufferPtr FStreamingPageUploader::AllocateClusterPageBuffer(FRHICmdList* RHICmdList)
 {
 	const int32 NumAllocatedRootPages = 2048;
-	const int32 NumAllocatedPages = MaxStreamingPages + NumAllocatedRootPages;
+	const int32 NumAllocatedPages = GetMaxStreamingPages() + NumAllocatedRootPages;
 	const uint32 AllocatedPagesSize = GPUPageIndexToGPUOffset(NumAllocatedPages);
 
 	FUniformBufferPtr Buffer = FUniformBuffer::CreateBuffer(
@@ -151,6 +144,12 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		(uint32)EGPUResourceFlag::Intermediate
 	);
 
+	// We upload all pages at once
+	const int32 MaxInstallPages = 200;
+	ClusterFixupUploadCS = ti_new FScatterUploadCS;
+	ClusterFixupUploadCS->Finalize();
+	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTERS_PER_PAGE, DstBuffer);
+
 	// Fill Src Buffer
 	uint8* PageUploadBufferPtr = PageUploadBuffer->GetGPUBuffer()->Lock();
 	// Install pages
@@ -165,7 +164,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		uint32 NumInstalledPages = 0;
 		int32 NextPageByteOffset = 0;
 		// Tix: PageIndex 0 is the RootPage
-		for (uint32 TaskIndex = 0; TaskIndex < NumReadyPages; TaskIndex++)
+		for (uint32 TaskIndex = 1; TaskIndex < NumReadyPages; TaskIndex++)
 		{
 			//uint32 PendingPageIndex = (StartPendingPageIndex + TaskIndex) % MaxPendingPages;
 			//FPendingPage& PendingPage = PendingPages[PendingPageIndex];
@@ -218,12 +217,9 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 //			const uint8* SrcPtr = PendingPage.RequestBuffer.GetData();
 //#endif
 
-			//const uint32 FixupChunkSize = ((const FFixupChunk*)SrcPtr)->GetSize();
 			//FFixupChunk* FixupChunk = (FFixupChunk*)FMemory::Realloc(StreamingPageFixupChunks[PendingPage.GPUPageIndex], FixupChunkSize, sizeof(uint16));
 			//StreamingPageFixupChunks[PendingPage.GPUPageIndex] = FixupChunk;
 			//FMemory::Memcpy(FixupChunk, SrcPtr, FixupChunkSize);
-
-			const uint32 FixupChunkSize = ((const FFixupChunk*)SrcPtr)->GetSize();
 
 			// Build list of GPU page dependencies
 			TVector<uint32> GPUPageDependencies;
@@ -236,7 +232,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 					if (NaniteMesh->IsRootPage(DependencyPageIndex))
 					{
 						// Tix:NaniteMesh->RootPageIndex always = ZERO in this case
-						GPUPageDependencies.push_back(MaxStreamingPages + 0/*NaniteMesh->RootPageIndex*/ + DependencyPageIndex);
+						GPUPageDependencies.push_back(GetMaxStreamingPages() + 0/*NaniteMesh->RootPageIndex*/ + DependencyPageIndex);
 					}
 					else
 					{
@@ -250,12 +246,18 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 				}
 			}
 
-			uint32 PageOffset = GPUPageIndexToGPUOffset(TaskIndex);
+			uint32 GPUPageIndex = TaskIndex - 1;
+
+			const uint32 FixupChunkSize = ((const FFixupChunk*)SrcPtr)->GetSize();
+			const FFixupChunk* FixupChunkPtr = (const FFixupChunk*)SrcPtr;
+			FixupMap[GPUPageIndex] = FixupChunkPtr;
+
+			uint32 PageOffset = GPUPageIndexToGPUOffset(GPUPageIndex);
 			uint32 DataSize = PageStreamingState.BulkSize - FixupChunkSize;
 			TI_ASSERT(NumInstalledPages < MaxPageInstallsPerUpdate);
 
-			const FPageKey GPUPageKey = FPageKey{ 0, TaskIndex};
-			const uint32 PageIndex = (uint32)AddedPageInfos.size();
+			const FPageKey GPUPageKey = FPageKey{ 0, GPUPageIndex };
+			const uint32 AddedPageIndex = (uint32)AddedPageInfos.size();
 
 			const uint8* UploadSrc = SrcPtr + FixupChunkSize;
 			uint8* UploadDst = PageUploadBufferPtr + NextPageByteOffset;
@@ -270,7 +272,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 
 			//FlattenedPageDependencies.Append(PageDependencies);
 			FlattenedPageDependencies.insert(FlattenedPageDependencies.end(), GPUPageDependencies.begin(), GPUPageDependencies.end());
-			GPUPageKeyToAddedIndex[GPUPageKey] = PageIndex;
+			GPUPageKeyToAddedIndex[GPUPageKey] = AddedPageIndex;
 
 			NextPageByteOffset += DataSize;
 
@@ -285,10 +287,11 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 
 			// Apply fixups to install page
 			//StreamingPage->ResidentKey = PendingPage.InstallKey;
-			//ApplyFixups(*FixupChunk, **Resources, false);
+			ApplyFixups(*FixupChunkPtr, NaniteMesh);
 
 			//INC_DWORD_STAT(STAT_NaniteInstalledPages);
 			//INC_DWORD_STAT(STAT_NanitePageInstalls);
+
 		}
 	}
 	PageUploadBuffer->GetGPUBuffer()->Unlock();
@@ -373,7 +376,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 
 		FDecodeInfo DecodeInfo;
 		DecodeInfo.StartPageIndex = StartPageIndex;
-		DecodeInfo.PageConstants.Y = MaxStreamingPages;
+		DecodeInfo.PageConstants.Y = GetMaxStreamingPages();
 
 		RHICmdList->BeginEvent(EventName);
 #define TRANSCODE_THREADS_PER_GROUP_BITS	7
@@ -387,5 +390,111 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		RHICmdList->EndEvent();
 
 		StartPageIndex += NumPagesInPass;
+	}
+
+	// Copy fixups
+	ClusterFixupUploadCS->Run(RHICmdList);
+}
+
+void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh)
+{
+	// tix : since we upload all pages at once. 
+	// we can apply Cluster and Hierarchy fixup here for easy case
+
+	uint32 Flags = false ? NANITE_CLUSTER_FLAG_LEAF : 0;
+	// Fixup clusters
+	for (uint32 i = 0; i < FixupChunk.Header.NumClusterFixups; i++)
+	{
+		const FClusterFixup& Fixup = FixupChunk.GetClusterFixup(i);
+
+		//bool bPageDependenciesCommitted = bUninstall || ArePageDependenciesCommitted(RuntimeResourceID, Fixup.GetPageDependencyStart(), Fixup.GetPageDependencyNum());
+		//if (!bPageDependenciesCommitted)
+		//	continue;
+
+		uint32 TargetPageIndex = Fixup.GetPageIndex();
+		uint32 TargetGPUPageIndex = 0xffffffffu;
+		uint32 NumTargetPageClusters = 0;
+
+		if (NaniteMesh->IsRootPage(TargetPageIndex))
+		{
+			TargetGPUPageIndex = GetMaxStreamingPages() + 0/*Resources.RootPageIndex*/ + TargetPageIndex;
+			NumTargetPageClusters = NaniteMesh->NumRootPageClusters;
+				//RootPageInfos[Resources.RootPageIndex + TargetPageIndex].NumClusters;
+		}
+		else
+		{
+			TI_ASSERT(TargetPageIndex > 0);
+			uint32 TargetGPUIndex = TargetPageIndex - 1;
+			//FPageKey TargetKey = { RuntimeResourceID, TargetPageIndex };
+			//FStreamingPageInfo** TargetPagePtr = CommittedStreamingPageMap.Find(TargetKey);
+
+			//check(bUninstall || TargetPagePtr);
+			//if (TargetPagePtr)
+			//{
+				THMap<uint32, const FFixupChunk*>::const_iterator It = FixupMap.find(TargetGPUIndex);
+				TI_ASSERT(It != FixupMap.end());
+				const FFixupChunk* TargetFixupChunk = It->second;
+				//FStreamingPageInfo* TargetPage = *TargetPagePtr;
+				//FFixupChunk& TargetFixupChunk = *StreamingPageFixupChunks[TargetPage->GPUPageIndex];
+				//check(StreamingPageInfos[TargetPage->GPUPageIndex].ResidentKey == TargetKey);
+
+				NumTargetPageClusters = TargetFixupChunk->Header.NumClusters;
+				TI_ASSERT(Fixup.GetClusterIndex() < NumTargetPageClusters);
+
+				TargetGPUPageIndex = TargetGPUIndex;
+			//}
+		}
+
+		//if (TargetGPUPageIndex != INVALID_PAGE_INDEX)
+		{
+			uint32 ClusterIndex = Fixup.GetClusterIndex();
+			uint32 FlagsOffset = offsetof(FPackedCluster, Flags);
+			uint32 Offset = GPUPageIndexToGPUOffset(TargetGPUPageIndex) + NANITE_GPU_PAGE_HEADER_SIZE + ((FlagsOffset >> 4) * NumTargetPageClusters + ClusterIndex) * 16 + (FlagsOffset & 15);
+			// TIX: todo: fixup here
+			ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
+		}
+	}
+
+
+
+	// Fixup hierarchy
+	for (uint32 i = 0; i < FixupChunk.Header.NumHierachyFixups; i++)
+	{
+		const FHierarchyFixup& Fixup = FixupChunk.GetHierarchyFixup(i);
+
+		//bool bPageDependenciesCommitted = true;// bUninstall || ArePageDependenciesCommitted(RuntimeResourceID, Fixup.GetPageDependencyStart(), Fixup.GetPageDependencyNum());
+		//if (!bPageDependenciesCommitted)
+		//	continue;
+
+		uint32 Target_PageIndex = Fixup.GetPageIndex();
+		//FPageKey TargetKey = { RuntimeResourceID, Fixup.GetPageIndex() };
+		uint32 TargetGPUPageIndex = 0xFFFFFFFFu;
+		//if (!bUninstall)
+		{
+			if (NaniteMesh->IsRootPage(Target_PageIndex))
+			{
+				TargetGPUPageIndex = GetMaxStreamingPages() + 0 /*Resources.RootPageIndex*/ + Target_PageIndex;
+			}
+			else
+			{
+				TI_ASSERT(Target_PageIndex > 0);
+				uint32 TargetGPUIndex = Target_PageIndex - 1;
+				//FStreamingPageInfo** TargetPagePtr = CommittedStreamingPageMap.Find(TargetKey);
+				//check(TargetPagePtr);
+				//check((*TargetPagePtr)->ResidentKey == TargetKey);
+				TargetGPUPageIndex = TargetGPUIndex;
+			}
+		}
+
+		// Uninstalls are unconditional. The same uninstall might happen more than once.
+		// If this page is getting uninstalled it also means it wont be reinstalled and any split groups can't be satisfied, so we can safely uninstall them.	
+
+		uint32 HierarchyNodeIndex = Fixup.GetNodeIndex();
+		TI_ASSERT(HierarchyNodeIndex < (uint32)NaniteMesh->HierarchyNodes.size());
+		uint32 ChildIndex = Fixup.GetChildIndex();
+		uint32 ChildStartReference = false ? 0xFFFFFFFFu : ((TargetGPUPageIndex << NANITE_MAX_CLUSTERS_PER_PAGE_BITS) | Fixup.GetClusterGroupPartStartIndex());
+		//uint32 Offset = (size_t) & (((FPackedHierarchyNode*)0)[0/*HierarchyOffset*/ + HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference);
+		//Hierarchy.UploadBuffer.Add(Offset / sizeof(uint32), &ChildStartReference);
+		NaniteMesh->HierarchyNodes[HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference = ChildStartReference;
 	}
 }

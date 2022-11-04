@@ -182,6 +182,7 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="PersistentCullCS.cpp" />
+    <ClCompile Include="ScatterUploadCS.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -202,6 +203,7 @@
     <ClInclude Include="NaniteMesh.h" />
     <ClInclude Include="NaniteView.h" />
     <ClInclude Include="PersistentCullCS.h" />
+    <ClInclude Include="ScatterUploadCS.h" />
     <ClInclude Include="Shaders\Dx12\BitPacking.h" />
     <ClInclude Include="Shaders\Dx12\NaniteAttributeDecode.h" />
     <ClInclude Include="Shaders\Dx12\NaniteCulling.h" />
@@ -261,6 +263,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NodeAndClusterCull</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NodeAndClusterCull</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_ScatterUploadCS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ScatterCopyCS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ScatterCopyCS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>

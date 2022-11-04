@@ -6,6 +6,7 @@
 #pragma once
 #include "TranscodeCS.h"
 #include "NaniteMesh.h"
+#include "ScatterUploadCS.h"
 
 class FStreamingPageUploader
 {
@@ -18,13 +19,16 @@ public:
 
 	static FUniformBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
 	static FUniformBufferPtr AllocateHierarchyBuffer(FRHICmdList* RHICmdList, const TVector<FPackedHierarchyNode>& HierarchyNodes);
-	static int32 GetMaxStreamingPages();
 private:
+	void ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh);
 
 private:
 	FUniformBufferPtr InstallInfoUploadBuffer;
 	FUniformBufferPtr PageDependenciesBuffer;
 	FUniformBufferPtr PageUploadBuffer;
 
+	THMap<uint32, const FFixupChunk*> FixupMap;	// key = GPUPageIndex, value = FixupPtr
+
 	FTranscodeCSPtr TranscodeCS;
+	FScatterUploadCSPtr ClusterFixupUploadCS;
 };

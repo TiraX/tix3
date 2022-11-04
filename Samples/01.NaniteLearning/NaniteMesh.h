@@ -242,6 +242,7 @@ public:
 	TVector<FPageStreamingState> PageStreamingStates;
 	TVector<uint32> PageDependencies;
 	uint32 NumRootPages = 0;
+	uint32 NumRootPageClusters = 0;
 	int32 PositionPrecision = 0;
 };
 
@@ -270,4 +271,10 @@ inline uint32 GetMaxVisibleClusters()
 {
 	const int32 GNaniteMaxVisibleClusters = 4 * 1048576;
 	return GNaniteMaxVisibleClusters;
+}
+
+inline uint32 GetMaxStreamingPages()
+{
+	const int32 MaxStreamingPages = 4096;
+	return MaxStreamingPages;
 }

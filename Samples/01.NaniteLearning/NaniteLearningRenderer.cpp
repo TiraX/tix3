@@ -81,7 +81,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	// Setup nanite related
 	TI_ASSERT(ClusterPageData == nullptr);
 	ClusterPageData = FStreamingPageUploader::AllocateClusterPageBuffer(RHICmdList);
-	Hierarchy = FStreamingPageUploader::AllocateHierarchyBuffer(RHICmdList, NaniteMesh->HierarchyNodes);
+
 	View = FUniformBuffer::CreateBuffer(
 		RHICmdList,
 		"Nanite.Views",
@@ -138,6 +138,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
+	Hierarchy = FStreamingPageUploader::AllocateHierarchyBuffer(RHICmdList, NaniteMesh->HierarchyNodes);
+
 	// Create shaders
 	InitCandidateNodesCS = ti_new FInitCandidateNodesCS;
 	InitCandidateNodesCS->Finalize();
@@ -150,7 +152,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
-	DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
+	DecodeInfo.PageConstants.Y = GetMaxStreamingPages();
 	DecodeInfo.MaxNodes = GetMaxNodes();
 	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
@@ -168,7 +170,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	// Init args
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
-	DecodeInfo.PageConstants.Y = FStreamingPageUploader::GetMaxStreamingPages();
+	DecodeInfo.PageConstants.Y = GetMaxStreamingPages();
 	DecodeInfo.MaxNodes = GetMaxNodes();
 	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
