@@ -145,7 +145,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	);
 
 	// We upload all pages at once
-	const int32 MaxInstallPages = 200;
+	const int32 MaxInstallPages = 32;
 	ClusterFixupUploadCS = ti_new FScatterUploadCS;
 	ClusterFixupUploadCS->Finalize();
 	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTERS_PER_PAGE, DstBuffer);
@@ -164,7 +164,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 		uint32 NumInstalledPages = 0;
 		int32 NextPageByteOffset = 0;
 		// Tix: PageIndex 0 is the RootPage
-		for (uint32 TaskIndex = 1; TaskIndex < NumReadyPages; TaskIndex++)
+		for (uint32 PageIndex = 0; PageIndex < NumReadyPages; PageIndex++)
 		{
 			//uint32 PendingPageIndex = (StartPendingPageIndex + TaskIndex) % MaxPendingPages;
 			//FPendingPage& PendingPage = PendingPages[PendingPageIndex];
@@ -179,15 +179,17 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 			//	continue;	// Skip resource install. Resource no longer exists or page has already been overwritten.
 			//}
 
-			TVector< FPageStreamingState >& PageStreamingStates = NaniteMesh->PageStreamingStates;
-			const FPageStreamingState& PageStreamingState = PageStreamingStates[TaskIndex];
+			const TVector< FPageStreamingState >& PageStreamingStates = NaniteMesh->PageStreamingStates;
+			const FPageStreamingState& PageStreamingState = PageStreamingStates[PageIndex];
 			//FStreamingPageInfo* StreamingPage = &StreamingPageInfos[PendingPage.GPUPageIndex];
 
 			//CommittedStreamingPageMap.Add(PendingPage.InstallKey, StreamingPage);
 
 			//ModifiedResources.Add(PendingPage.InstallKey.RuntimeResourceID);
 
-			const TVector<uint8>& BulkData = NaniteMesh->StreamablePages;
+			bool bIsRootPage = NaniteMesh->IsRootPage(PageIndex);
+
+			const TVector<uint8>& BulkData = bIsRootPage ? NaniteMesh->RootData : NaniteMesh->StreamablePages;
 			TI_ASSERT(BulkData.size() > 0);
 			const uint8* SrcPtr = BulkData.data() + PageStreamingState.BulkOffset;
 //#if WITH_EDITOR
@@ -246,11 +248,12 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 				}
 			}
 
-			uint32 GPUPageIndex = TaskIndex - 1;
+			uint32 GPUPageIndex = bIsRootPage ? GetMaxStreamingPages() : PageIndex - 1;
 
 			const uint32 FixupChunkSize = ((const FFixupChunk*)SrcPtr)->GetSize();
 			const FFixupChunk* FixupChunkPtr = (const FFixupChunk*)SrcPtr;
 			FixupMap[GPUPageIndex] = FixupChunkPtr;
+			TI_ASSERT(PageStreamingState.PageSize == PageStreamingState.BulkSize - FixupChunkSize);
 
 			uint32 PageOffset = GPUPageIndexToGPUOffset(GPUPageIndex);
 			uint32 DataSize = PageStreamingState.BulkSize - FixupChunkSize;
