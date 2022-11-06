@@ -165,8 +165,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClearCandidateBufferCS.cpp" />
     <ClCompile Include="Cluster.cpp" />
     <ClCompile Include="FakeInstanceCullCS.cpp" />
+    <ClCompile Include="InitArgsCS.cpp" />
     <ClCompile Include="InitCandidateNodesCS.cpp" />
     <ClCompile Include="InitClusterBatchesCS.cpp" />
     <ClCompile Include="NaniteDebug.cpp" />
@@ -192,8 +194,10 @@
     <ClCompile Include="TranscodeCS.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClearCandidateBufferCS.h" />
     <ClInclude Include="Cluster.h" />
     <ClInclude Include="FakeInstanceCullCS.h" />
+    <ClInclude Include="InitArgsCS.h" />
     <ClInclude Include="InitCandidateNodesCS.h" />
     <ClInclude Include="InitClusterBatchesCS.h" />
     <ClInclude Include="NaniteDebug.h" />
@@ -218,6 +222,14 @@
     <ClInclude Include="TranscodeCS.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\Dx12\S_ClearCandidateBufferCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClearCandidateBuffer</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClearCandidateBuffer</EntryPointName>
+    </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -237,6 +249,14 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">FakeInstanceCull</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_InitArgsCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">InitArgs</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">InitArgs</EntryPointName>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_InitCandidateNodesCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>

@@ -9,6 +9,8 @@
 #include "InitClusterBatchesCS.h"
 #include "FakeInstanceCullCS.h"
 #include "PersistentCullCS.h"
+#include "InitArgsCS.h"
+#include "ClearCandidateBufferCS.h"
 
 class FNaniteLearningRenderer : public FDefaultRenderer
 {
@@ -43,6 +45,8 @@ private:
 
 	FInitCandidateNodesCSPtr InitCandidateNodesCS;
 	FInitClusterBatchesCSPtr InitClusterBatchesCS;
+	FInitArgsCSPtr InitArgsCS;
+	FClearCandidateBufferCSPtr ClearCandidateBufferCS;
 	FFakeInstanceCullCSPtr FakeInstanceCullCS;
 	FPersistentCullCSPtr PersistentCullCS;
 };

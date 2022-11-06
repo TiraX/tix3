@@ -145,6 +145,10 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	InitCandidateNodesCS->Finalize();
 	InitClusterBatchesCS = ti_new FInitClusterBatchesCS;
 	InitClusterBatchesCS->Finalize();
+	InitArgsCS = ti_new FInitArgsCS;
+	InitArgsCS->Finalize();
+	ClearCandidateBufferCS = ti_new FClearCandidateBufferCS;
+	ClearCandidateBufferCS->Finalize();
 	FakeInstanceCullCS = ti_new FFakeInstanceCullCS;
 	FakeInstanceCullCS->Finalize();
 	PersistentCullCS = ti_new FPersistentCullCS();
@@ -165,15 +169,21 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 {
-	RHICmdList->BeginRenderToRenderTarget(RT_BasePass, "BasePass", 0);
-
-	// Init args
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
 	DecodeInfo.PageConstants.Y = GetMaxStreamingPages();
 	DecodeInfo.MaxNodes = GetMaxNodes();
 	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
+
+	RHICmdList->BeginEvent("Nanite.VisBuffer");
+	// Init args
+	{
+		InitArgsCS->ApplyParameters(RHICmdList, DecodeInfo, QueueState, VisibleClustersArgsSWHW);
+		InitArgsCS->Run(RHICmdList);
+		ClearCandidateBufferCS->ApplyParameters(RHICmdList, MainAndPostCandididateClustersBuffer);
+		ClearCandidateBufferCS->Run(RHICmdList);
+	}
 
 	// Fake instance cull
 	{
@@ -212,7 +222,9 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			);
 		PersistentCullCS->Run(RHICmdList);
 	}
+	RHICmdList->EndEvent();
 
+	RHICmdList->BeginRenderToRenderTarget(RT_BasePass, "BasePass", 0);
 	DrawPrimitives(RHICmdList);
 
 	FRHI::Get()->BeginRenderToFrameBuffer();

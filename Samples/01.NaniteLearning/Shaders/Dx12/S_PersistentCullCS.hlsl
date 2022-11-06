@@ -40,8 +40,8 @@ static const uint QueueStateIndex = 0;
 //#endif
 
 
-#define DEBUG_MODE 1
-#define DEBUG_INFO 1
+#define DEBUG_MODE 0
+#define DEBUG_INFO 0
 
 groupshared uint GroupOccludedBitmask[NANITE_MAX_BVH_NODES_PER_GROUP];
 

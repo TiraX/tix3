@@ -64,6 +64,12 @@
     <ClCompile Include="ScatterUploadCS.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
+    <ClCompile Include="InitArgsCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
+    <ClCompile Include="ClearCandidateBufferCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -138,6 +144,12 @@
     <ClInclude Include="ScatterUploadCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
+    <ClInclude Include="InitArgsCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
+    <ClInclude Include="ClearCandidateBufferCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
@@ -162,6 +174,12 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_ScatterUploadCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_InitArgsCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_ClearCandidateBufferCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
