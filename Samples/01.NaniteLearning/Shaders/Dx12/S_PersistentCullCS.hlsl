@@ -41,7 +41,7 @@ static const uint QueueStateIndex = 0;
 
 
 #define DEBUG_MODE 0
-#define DEBUG_INFO 0
+#define DEBUG_INFO 1
 
 groupshared uint GroupOccludedBitmask[NANITE_MAX_BVH_NODES_PER_GROUP];
 
@@ -538,10 +538,10 @@ struct FNaniteTraversalClusterCullCallback
 		}
 
 #if DEBUG_INFO
-		if (LoopIndex < MaxDebugInfo)
-		{
-			DebugInfo[LoopIndex].bUseHWRaster[GroupIndex] = bUseHWRaster ? 1 : 0;
-		}
+		//if (LoopIndex < MaxDebugInfo)
+		//{
+		//	DebugInfo[LoopIndex].bUseHWRaster[GroupIndex] = bUseHWRaster ? 1 : 0;
+		//}
 #endif
 		
 		// tix: ignore culling in this case
@@ -563,6 +563,13 @@ struct FNaniteTraversalClusterCullCallback
 				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[0], 1, ClusterOffsetSW);
 			}
 		}
+
+#if DEBUG_INFO
+		if (LoopIndex < MaxDebugInfo)
+		{
+			DebugInfo[LoopIndex].ClusterOffsetHW[GroupIndex] = ClusterOffsetHW;
+		}
+#endif
 
 		if (bVisible)
 		{
