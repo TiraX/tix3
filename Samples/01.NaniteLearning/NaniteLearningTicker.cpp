@@ -31,4 +31,9 @@ void TNaniteLearningTicker::SetupScene()
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterial);
 	//TAssetLibrary::Get()->LoadAsset(DefaultMaterialInstance);
 
+	// Setup camera
+	TNodeCamera* Cam = TEngine::Get()->GetScene()->GetActiveCamera();
+	Cam->SetPosition(FFloat3(7.42432976f, 2.80526447f, 4.27628517f));
+	Cam->SetTarget(FFloat3(-1.16132188f, -0.711122870f, 6.25598240f));
+
 }

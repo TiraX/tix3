@@ -46,7 +46,7 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 
 	FPackedView PackedView;
 	//PackedView.TranslatedWorldToView = FMat4(Params.ViewMatrices.GetOverriddenTranslatedViewMatrix());	// LWC_TODO: Precision loss? (and below)
-	PackedView.TranslatedWorldToClip = FMat4((Params.ViewInfo.MatProj * Params.ViewInfo.MatView));
+	PackedView.TranslatedWorldToClip = FMat4((Params.ViewInfo.MatProj * Params.ViewInfo.MatView).GetTransposed());
 		//(VPInfo.MatProj * VPInfo.MatView).GetTransposed();
 		//Params.ViewMatrices.GetTranslatedViewProjectionMatrix());
 	//PackedView.TranslatedWorldToSubpixelClip = FPackedView::CalcTranslatedWorldToSubpixelClip(PackedView.TranslatedWorldToClip, Params.ViewRect);
