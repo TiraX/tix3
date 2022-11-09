@@ -404,7 +404,8 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 	// tix : since we upload all pages at once. 
 	// we can apply Cluster and Hierarchy fixup here for easy case
 
-	uint32 Flags = false ? NANITE_CLUSTER_FLAG_LEAF : 0;
+	bool bUninstall = false;
+	uint32 Flags = bUninstall ? NANITE_CLUSTER_FLAG_LEAF : 0;
 	// Fixup clusters
 	for (uint32 i = 0; i < FixupChunk.Header.NumClusterFixups; i++)
 	{
