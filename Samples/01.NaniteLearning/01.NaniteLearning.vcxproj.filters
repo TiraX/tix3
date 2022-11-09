@@ -158,9 +158,6 @@
     <FxCompile Include="Shaders\Dx12\S_DebugOpaqueVS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Dx12\S_PersistentCullCS.hlsl">
-      <Filter>Source Files\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_TranscodeCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
@@ -182,6 +179,15 @@
     <FxCompile Include="Shaders\Dx12\S_ClearCandidateBufferCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_PersistentCullCS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_RasterizerPS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_RasterizerVS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Dx12\Common.hlsli">
@@ -197,6 +203,9 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Dx12\BitStreamReaderImplementation.ush">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dx12\S_Rasterizer.hlsli">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

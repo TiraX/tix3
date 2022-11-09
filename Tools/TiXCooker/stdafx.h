@@ -98,6 +98,14 @@ namespace tix
 		ReturnEnumValue(name, EPF_RGBA32F);
 		ReturnEnumValue(name, EPF_R11G11B10F);
 		ReturnEnumValue(name, EPF_R10G10B10A2F_RESERVED);
+		ReturnEnumValue(name, EPF_R16U);
+		ReturnEnumValue(name, EPF_RG16U);
+		ReturnEnumValue(name, EPF_RGBA16U);
+		ReturnEnumValue(name, EPF_R32U);
+		ReturnEnumValue(name, EPF_RG32U);
+		ReturnEnumValue(name, EPF_RGB32U);
+		ReturnEnumValue(name, EPF_RGBA32U);
+		ReturnEnumValue(name, EPF_R10G10B10A2U);
 		ReturnEnumValue(name, EPF_DEPTH16);
 		ReturnEnumValue(name, EPF_DEPTH32);
 		ReturnEnumValue(name, EPF_DEPTH24_STENCIL8);

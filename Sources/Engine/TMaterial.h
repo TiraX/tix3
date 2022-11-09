@@ -35,7 +35,7 @@ namespace tix
 	//	}
 	//};
 
-	class TMaterial : public TPipeline
+	class TI_API TMaterial : public TPipeline
 	{
 	public:
 		TMaterial();

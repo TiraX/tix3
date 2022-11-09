@@ -963,7 +963,7 @@ void PersistentNodeAndClusterCull(uint GroupID, uint GroupIndex, uint QueueState
 
 #define PersistentCullRS \
 	"RootConstants(num32BitConstants=10, b0)," \
-    "DescriptorTable(SRV(t0, numDescriptors=3), UAV(u0, numDescriptors=7))" 
+    "DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0, numDescriptors=7))" 
 
 [RootSignature(PersistentCullRS)]
 [numthreads(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1)]

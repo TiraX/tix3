@@ -40,12 +40,16 @@ namespace tix
 		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) override;
 
 		// Graphics
+		virtual void SetPrimitiveTopology(EPrimitiveType PrimitiveType) override;
 		virtual void SetGraphicsPipeline(FPipelinePtr InPipeline) override;
 		virtual void SetVertexBuffer(FVertexBufferPtr InVertexBuffer, FInstanceBufferPtr InInstanceBuffer) override;
 		virtual void SetIndexBuffer(FIndexBufferPtr InIndexBuffer) override;
 
-		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) override;
-		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
+		virtual void SetGraphicsConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit) override;
+		virtual void SetGraphicsConstant(int32 BindIndex, const FUInt4& InValue) override;
+		virtual void SetGraphicsConstant(int32 BindIndex, const FFloat4& InValue) override;
+		virtual void SetGraphicsUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) override;
+		virtual void SetGraphicsResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
 		virtual void SetArgumentBuffer(int32 InBindIndex, FArgumentBufferPtr InArgumentBuffer) override;
 
 		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) override;

@@ -252,25 +252,25 @@ namespace tix
 			// A custom argument, do nothing here.
 			break;
 		case ARGUMENT_EB_VIEW:
-			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, ViewUniformBuffer->UniformBuffer);
+			RHICmdList->SetGraphicsUniformBuffer(ShaderStage, Argument.BindingIndex, ViewUniformBuffer->UniformBuffer);
 			break;
 		case ARGUMENT_EB_PRIMITIVE:
 			TI_ASSERT(Primitive != nullptr);
-			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetPrimitiveUniform()->UniformBuffer);
+			RHICmdList->SetGraphicsUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetPrimitiveUniform()->UniformBuffer);
 			break;
 		case ARGUMENT_EB_BONES:
 			TI_ASSERT(Primitive->GetSection(SectionIndex).SkeletonResourceRef != nullptr);
-			RHICmdList->SetUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
+			RHICmdList->SetGraphicsUniformBuffer(ShaderStage, Argument.BindingIndex, Primitive->GetSection(SectionIndex).SkeletonResourceRef);
 			break;
 		case ARGUMENT_EB_ENV_CUBE:
 		{
 			FEnvLightPtr EnvLight = Scene->GetEnvLight();
-			RHICmdList->SetRenderResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
+			RHICmdList->SetGraphicsResourceTable(Argument.BindingIndex, EnvLight->GetResourceTable());
 		}
 			break;
 		case ARGUMENT_EB_SHADOWMAP:
 			RHICmdList->SetGPUTextureState(Shadowmap->GetGPUTexture(), EGPUResourceState::PixelShaderResource);
-			RHICmdList->SetRenderResourceTable(Argument.BindingIndex, ShadowmapTable);
+			RHICmdList->SetGraphicsResourceTable(Argument.BindingIndex, ShadowmapTable);
 			break;
 #if (COMPILE_WITH_RHI_METAL)
 		case ARGUMENT_EB_VT_INDIRECT:

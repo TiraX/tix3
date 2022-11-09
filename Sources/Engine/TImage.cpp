@@ -27,20 +27,28 @@ namespace tix
 			return 4;
 
 		case EPF_R16F:
+		case EPF_R16U:
 			return 2;
 		case EPF_RG16F:
+		case EPF_RG16U:
 			return 4;
 		case EPF_RGBA16F:
+		case EPF_RGBA16U:
 			return 8;
 		case EPF_R32F:
+		case EPF_R32U:
 			return 4;
 		case EPF_RG32F:
+		case EPF_RG32U:
 			return 8;
 		case EPF_RGB32F:
+		case EPF_RGB32U:
 			return 12;
 		case EPF_RGBA32F:
+		case EPF_RGBA32U:
 			return 16;
 		case EPF_R11G11B10F:
+		case EPF_R10G10B10A2U:
 			return 4;
 				// Depth formats
 		case EPF_DEPTH16:

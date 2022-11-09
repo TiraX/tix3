@@ -214,7 +214,7 @@ namespace tix
 		}
 	};
 
-	class TPipeline : public TResource
+	class TI_API TPipeline : public TResource
 	{
 	public:
 		TPipeline();

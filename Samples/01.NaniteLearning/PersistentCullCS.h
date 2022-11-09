@@ -39,6 +39,7 @@ private:
 	{
 		SRV_ClusterPageData,
 		SRV_HierachyBuffer,
+		SRV_VisibleClusterSWHW,
 		SRV_View,
 		
 		UAV_QueueState,

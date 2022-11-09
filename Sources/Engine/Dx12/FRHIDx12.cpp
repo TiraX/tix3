@@ -643,7 +643,10 @@ namespace tix
 		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
-		state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
+		if (InputLayout.size() > 0)
+			state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
+		else
+			state.InputLayout = { nullptr, 0 };
 		state.pRootSignature = PipelineRS->Get();
 
 		state.VS = { ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_VERTEX_SHADER]->GetLength()) };
@@ -1062,6 +1065,21 @@ namespace tix
 		return D3D12_SHADER_VISIBILITY_ALL;
 	}
 
+	inline bool IsSRV(D3D_SHADER_INPUT_TYPE Type)
+	{
+		return Type == D3D_SIT_TEXTURE ||
+			Type == D3D_SIT_STRUCTURED ||
+			Type == D3D_SIT_BYTEADDRESS;
+	}
+
+	inline bool IsUAV(D3D_SHADER_INPUT_TYPE Type)
+	{
+		return Type == D3D_SIT_UAV_RWTYPED ||
+			Type == D3D_SIT_UAV_RWSTRUCTURED ||
+			Type == D3D_SIT_UAV_RWBYTEADDRESS ||
+			Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER;
+	}
+
 	inline int32 GetBindIndex(const D3D12_SHADER_INPUT_BIND_DESC& BindDesc, const D3D12_ROOT_SIGNATURE_DESC& RSDesc, E_SHADER_STAGE Stage)
 	{
 		if (BindDesc.Type == D3D_SIT_SAMPLER)
@@ -1086,35 +1104,54 @@ namespace tix
 				for (uint32 range = 0; range < DescriptorTable.NumDescriptorRanges; ++range)
 				{
 					const D3D12_DESCRIPTOR_RANGE& DescriptorRange = DescriptorTable.pDescriptorRanges[range];
-					if (DescriptorRange.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV)
+					if (DescriptorRange.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV &&
+						IsSRV(BindDesc.Type))
 					{
 						// If this param in the range of this descriptor table,
 						// If NOT, try next table
 						if (BindDesc.BindPoint >= DescriptorRange.BaseShaderRegister &&
-							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors && BindDesc.Type == D3D_SIT_TEXTURE)
+							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors)
 						{
 							return (int32)i;
 						}
 					}
-					else if (DescriptorRange.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
+					else if (DescriptorRange.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV &&
+						BindDesc.Type == D3D_SIT_CBUFFER)
 					{
 						// If this param in the range of this descriptor table,
 						// If NOT, try next table
 						if (BindDesc.BindPoint >= DescriptorRange.BaseShaderRegister &&
-							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors && BindDesc.Type == D3D_SIT_CBUFFER)
+							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors)
 						{
 							return (int32)i;
 						}
 					}
-					else
+					else if (DescriptorRange.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV &&
+						IsUAV(BindDesc.Type))
 					{
-						// Not support yet.
-						RuntimeFail();
+						// If this param in the range of this descriptor table,
+						// If NOT, try next table
+						if (BindDesc.BindPoint >= DescriptorRange.BaseShaderRegister &&
+							BindDesc.BindPoint < DescriptorRange.BaseShaderRegister + DescriptorRange.NumDescriptors)
+						{
+							return (int32)i;
+						}
 					}
 				}
 			}
 				break;
 			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+			{
+				const D3D12_ROOT_CONSTANTS& RootConstants = Parameter.Constants;
+				if (BindDesc.Type == D3D_SIT_CBUFFER)
+				{
+					if (BindDesc.BindPoint == RootConstants.ShaderRegister)
+					{
+						return (int32)i;
+					}
+				}
+			}
+				break;
 			case D3D12_ROOT_PARAMETER_TYPE_SRV:
 			case D3D12_ROOT_PARAMETER_TYPE_UAV:
 			{
@@ -1574,7 +1611,6 @@ namespace tix
 		}
 
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InBuffer->GetGPUResource().get());
-		TI_ASSERT(BufferDx12->ResourceState != EGPUResourceState::UnorderedAccess);
 		D3D12_CPU_DESCRIPTOR_HANDLE Descriptor = GetCpuDescriptorHandle(RRTable, InTableSlot);
 		D3dDevice->CreateShaderResourceView(BufferDx12->GetResource(), &SRVDesc, Descriptor);
 		RRTable->HoldResource(InBuffer);

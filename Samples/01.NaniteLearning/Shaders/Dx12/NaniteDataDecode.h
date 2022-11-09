@@ -123,7 +123,7 @@ struct FNaniteView
 	//float4x4	ViewToTranslatedWorld;
 
 	//float4x4	TranslatedWorldToView;
-	//float4x4	TranslatedWorldToClip;
+	float4x4	TranslatedWorldToClip;
 	//float4x4	TranslatedWorldToSubpixelClip;	// Divide by w to get to absolute subpixel coordinates
 	float4x4	ViewToClip;
 	////FLWCMatrix	ClipToWorld;
@@ -135,8 +135,8 @@ struct FNaniteView
 	////FLWCMatrix	PrevClipToWorld;
 	//float4x4	PrevClipToWorld;
 
-	//int4		ViewRect;
-	//float4		ViewSizeAndInvSize;
+	int4		ViewRect;
+	float4		ViewSizeAndInvSize;
 	//float4		ClipSpaceScaleOffset;
 	////FLWCVector3	PreViewTranslation;
 	////FLWCVector3	PrevPreViewTranslation;
@@ -216,7 +216,8 @@ FDecodeInfo DecodeInfo : register(b0);
 
 ByteAddressBuffer ClusterPageData : register(t0);
 ByteAddressBuffer HierarchyBuffer : register(t1);
-ByteAddressBuffer VisibleClustersSWHW;
+ByteAddressBuffer VisibleClustersSWHW : register(t2);
+StructuredBuffer< FPackedNaniteView > InViews : register(t3);
 //StructuredBuffer<uint> RayTracingDataBuffer;
 //#endif
 
@@ -669,7 +670,7 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 	//NaniteView.MatrixTilePosition			= PackedView.MatrixTilePosition;
 
 	//NaniteView.TranslatedWorldToView		= PackedView.TranslatedWorldToView;
-	//NaniteView.TranslatedWorldToClip		= PackedView.TranslatedWorldToClip;
+	NaniteView.TranslatedWorldToClip		= PackedView.TranslatedWorldToClip;
 	//NaniteView.TranslatedWorldToSubpixelClip= PackedView.TranslatedWorldToSubpixelClip;
 	NaniteView.ViewToClip					= PackedView.ViewToClip;
 	// -- NaniteView.ClipToWorld					= MakeLWCMatrix(PackedView.MatrixTilePosition, PackedView.ClipToRelativeWorld);
@@ -682,8 +683,8 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 	//NaniteView.PrevClipToWorld				= PackedView.PrevClipToRelativeWorld;
 
 
-	//NaniteView.ViewRect						= PackedView.ViewRect;
-	//NaniteView.ViewSizeAndInvSize			= PackedView.ViewSizeAndInvSize;
+	NaniteView.ViewRect						= PackedView.ViewRect;
+	NaniteView.ViewSizeAndInvSize			= PackedView.ViewSizeAndInvSize;
 	//NaniteView.ClipSpaceScaleOffset			= PackedView.ClipSpaceScaleOffset;
 	// -- NaniteView.PreViewTranslation			= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PreViewTranslation.xyz);
 	// -- NaniteView.PrevPreViewTranslation		= MakeLWCVector3(-PackedView.ViewTilePosition, PackedView.PrevPreViewTranslation.xyz);
@@ -711,7 +712,6 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 	return NaniteView;
 }
 
-StructuredBuffer< FPackedNaniteView > InViews;
 FNaniteView GetNaniteView( uint ViewIndex )
 {
 // #if NANITE_USE_VIEW_UNIFORM_BUFFER

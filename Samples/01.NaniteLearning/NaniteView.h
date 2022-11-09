@@ -11,7 +11,7 @@ struct FPackedView
 	//FMat4 ViewToTranslatedWorld;
 		  
 	//FMat4 TranslatedWorldToView;
-	//FMat4 TranslatedWorldToClip;
+	FMat4 TranslatedWorldToClip;
 	//FMat4 TranslatedWorldToSubpixelClip;
 	FMat4 ViewToClip;
 	//FMat4 ClipToRelativeWorld;
@@ -21,8 +21,8 @@ struct FPackedView
 	//FMat4 PrevViewToClip;
 	//FMat4 PrevClipToRelativeWorld;
 
-	//FInt4 ViewRect;
-	//FFloat4 ViewSizeAndInvSize;
+	FInt4 ViewRect;
+	FFloat4 ViewSizeAndInvSize;
 	//FFloat4 ClipSpaceScaleOffset;
 	//FFloat4 PreViewTranslation;
 	//FFloat4 PrevPreViewTranslation;
@@ -55,7 +55,7 @@ struct FPackedView
 	/**
 	 * Helper to compute the derived subpixel transform.
 	 */
-	static FMat4 CalcTranslatedWorldToSubpixelClip(const FMat4& TranslatedWorldToClip, const FRecti& ViewRect);
+	//static FMat4 CalcTranslatedWorldToSubpixelClip(const FMat4& TranslatedWorldToClip, const FRecti& ViewRect);
 };
 
 struct FPackedViewParams

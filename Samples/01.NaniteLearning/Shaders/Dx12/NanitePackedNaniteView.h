@@ -8,7 +8,7 @@ struct FPackedNaniteView
 	//float4x4	ViewToTranslatedWorld;
 
 	//float4x4	TranslatedWorldToView;
-	//float4x4	TranslatedWorldToClip;
+	float4x4	TranslatedWorldToClip;
 	//float4x4	TranslatedWorldToSubpixelClip;	// Divide by w to get to absolute subpixel coordinates
 	float4x4	ViewToClip;
 	//float4x4	ClipToRelativeWorld;
@@ -18,8 +18,8 @@ struct FPackedNaniteView
 	//float4x4	PrevViewToClip;
 	//float4x4	PrevClipToRelativeWorld;
 
-	//int4		ViewRect;
-	//float4		ViewSizeAndInvSize;
+	int4		ViewRect;
+	float4		ViewSizeAndInvSize;
 	//float4		ClipSpaceScaleOffset;
 	//float4		PreViewTranslation;
 	//float4		PrevPreViewTranslation;

@@ -55,8 +55,6 @@ void FPersistentCullCS::ApplyParameters(
 	if (UpdateResourceTable)
 	{
 		FRHI* RHI = FRHI::Get();
-		// Crack, set ClusterPageData state to unordered access
-		RHICmdList->SetGPUBufferState(ClusterPageData->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 		//RHICmdList->SetGPUBufferState(View->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 		RHI->PutUniformBufferInTable(ResourceTable, ClusterPageData, SRV_ClusterPageData);
 		RHI->PutUniformBufferInTable(ResourceTable, HierachyBuffer, SRV_HierachyBuffer);

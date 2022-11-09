@@ -56,12 +56,16 @@ namespace tix
 		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) = 0;
 
 		// Graphics
+		virtual void SetPrimitiveTopology(EPrimitiveType PrimitiveType) = 0;
 		virtual void SetGraphicsPipeline(FPipelinePtr InPipeline) = 0;
 		virtual void SetVertexBuffer(FVertexBufferPtr InVertexBuffer, FInstanceBufferPtr InInstanceBuffer) = 0;
 		virtual void SetIndexBuffer(FIndexBufferPtr InIndexBuffer) = 0;
 
-		virtual void SetUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
-		virtual void SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
+		virtual void SetGraphicsConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit) = 0;
+		virtual void SetGraphicsConstant(int32 BindIndex, const FUInt4& InValue) = 0;
+		virtual void SetGraphicsConstant(int32 BindIndex, const FFloat4& InValue) = 0;
+		virtual void SetGraphicsUniformBuffer(E_SHADER_STAGE ShaderStage, int32 BindIndex, FUniformBufferPtr InUniformBuffer) = 0;
+		virtual void SetGraphicsResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) = 0;
 		virtual void SetArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) = 0;
 
 		virtual void SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState) = 0;

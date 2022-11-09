@@ -49,4 +49,25 @@ private:
 	FClearCandidateBufferCSPtr ClearCandidateBufferCS;
 	FFakeInstanceCullCSPtr FakeInstanceCullCS;
 	FPersistentCullCSPtr PersistentCullCS;
+
+
+	enum
+	{
+		RC_DecodeInfo,
+		RT_Table,
+	};
+	enum
+	{
+		SRV_ClusterPageData,
+		SRV_HierarchyBuffer,
+		SRV_VisibleClusterSWHW,
+		SRV_Views,
+
+		UAV_VisBuffer,
+
+		NumHWRasterizeParams
+	};
+	FPipelinePtr HWRasterizerPL;
+	FTexturePtr VisBuffer;
+	FRenderResourceTablePtr RT_HWRasterize;
 };

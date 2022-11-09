@@ -93,7 +93,7 @@ namespace tix
 		RHICmdList->SetVertexBuffer(FullScreenVB, nullptr);
 		RHICmdList->SetIndexBuffer(FullScreenIB);
 		RHICmdList->SetGraphicsPipeline(FullScreenPipeline);
-		RHICmdList->SetRenderResourceTable(0, TextureTable);
+		RHICmdList->SetGraphicsResourceTable(0, TextureTable);
 
 		RHICmdList->DrawPrimitiveIndexedInstanced(FullScreenIB->GetDesc().IndexCount, 1, 0);
 	}

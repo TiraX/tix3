@@ -46,7 +46,9 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 
 	FPackedView PackedView;
 	//PackedView.TranslatedWorldToView = FMat4(Params.ViewMatrices.GetOverriddenTranslatedViewMatrix());	// LWC_TODO: Precision loss? (and below)
-	//PackedView.TranslatedWorldToClip = FMat4(Params.ViewMatrices.GetTranslatedViewProjectionMatrix());
+	PackedView.TranslatedWorldToClip = FMat4((Params.ViewInfo.MatProj * Params.ViewInfo.MatView));
+		//(VPInfo.MatProj * VPInfo.MatView).GetTransposed();
+		//Params.ViewMatrices.GetTranslatedViewProjectionMatrix());
 	//PackedView.TranslatedWorldToSubpixelClip = FPackedView::CalcTranslatedWorldToSubpixelClip(PackedView.TranslatedWorldToClip, Params.ViewRect);
 	PackedView.ViewToClip = Params.ViewInfo.MatProj;// RelativeMatrices.ViewToClip;
 	//PackedView.ClipToRelativeWorld = RelativeMatrices.ClipToRelativeWorld;
@@ -76,8 +78,8 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 	//PackedView.PrevPreViewTranslation = FFloat4(FFloat3(Params.PrevViewMatrices.GetPreViewTranslation() + ViewTileOffset)); // LWC_TODO: precision loss
 
 
-	//PackedView.ViewRect = FInt4(ViewRect.Left, ViewRect.Upper, ViewRect.Right, ViewRect.Lower);
-	//PackedView.ViewSizeAndInvSize = ViewSizeAndInvSize;
+	PackedView.ViewRect = FInt4(ViewRect.Left, ViewRect.Upper, ViewRect.Right, ViewRect.Lower);
+	PackedView.ViewSizeAndInvSize = ViewSizeAndInvSize;
 
 	// Transform clip from full screen to viewport.
 	FFloat2 RcpRasterContextSize = FFloat2(1.0f / Params.RasterContextSize.X, 1.0f / Params.RasterContextSize.Y);

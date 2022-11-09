@@ -455,6 +455,11 @@ namespace tix
 		UAVBarrier(ASDx12->GetASResource());
 	}
 
+	void FRHICmdListDx12::SetPrimitiveTopology(EPrimitiveType PrimitiveType)
+	{
+		CommandList->IASetPrimitiveTopology(GetDx12Topology(PrimitiveType));
+	}
+
 	void FRHICmdListDx12::SetGraphicsPipeline(FPipelinePtr InPipeline)
 	{
 		if (CurrentBoundResource.Pipeline != InPipeline)
@@ -516,7 +521,22 @@ namespace tix
 		HoldResourceReference(InIB);
 	}
 
-	void FRHICmdListDx12::SetUniformBuffer(E_SHADER_STAGE, int32 BindIndex, FUniformBufferPtr InUniformBuffer)
+	void FRHICmdListDx12::SetGraphicsConstant(int32 BindIndex, const void* ConstantData, int32 Size32Bit)
+	{
+		CommandList->SetGraphicsRoot32BitConstants(BindIndex, Size32Bit, ConstantData, 0);
+	}
+
+	void FRHICmdListDx12::SetGraphicsConstant(int32 BindIndex, const FUInt4& InValue)
+	{
+		CommandList->SetGraphicsRoot32BitConstants(BindIndex, 4, &InValue, 0);
+	}
+
+	void FRHICmdListDx12::SetGraphicsConstant(int32 BindIndex, const FFloat4& InValue)
+	{
+		CommandList->SetGraphicsRoot32BitConstants(BindIndex, 4, &InValue, 0);
+	}
+
+	void FRHICmdListDx12::SetGraphicsUniformBuffer(E_SHADER_STAGE, int32 BindIndex, FUniformBufferPtr InUniformBuffer)
 	{
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
 
@@ -526,7 +546,7 @@ namespace tix
 		HoldResourceReference(InUniformBuffer);
 	}
 
-	void FRHICmdListDx12::SetRenderResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
+	void FRHICmdListDx12::SetGraphicsResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE Descriptor = RHIDx12->GetGpuDescriptorHandle(RenderResourceTable, 0);
 		CommandList->SetGraphicsRootDescriptorTable(BindIndex, Descriptor);
@@ -538,7 +558,7 @@ namespace tix
 	{
 		TI_ASSERT(InBindIndex >= 0);
 		FArgumentBufferDx12* ArgDx12 = static_cast<FArgumentBufferDx12*>(InArgumentBuffer.get());
-		SetRenderResourceTable(InBindIndex, ArgDx12->ResourceTable);
+		SetGraphicsResourceTable(InBindIndex, ArgDx12->ResourceTable);
 	}
 
 	void FRHICmdListDx12::SetGPUBufferState(FGPUBufferPtr GPUBuffer, EGPUResourceState NewState)

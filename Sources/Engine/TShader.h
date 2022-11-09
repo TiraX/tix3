@@ -42,7 +42,7 @@ namespace tix
 		}
 	};
 
-	class TShader : public TResource
+	class TI_API TShader : public TResource
 	{
 	public:
 		// Used for Single Compute Shader or RTX Shaderlib
@@ -57,7 +57,7 @@ namespace tix
 			return Type;
 		}
 
-		TI_API static TStreamPtr LoadShaderBlob(const TString& ShaderName);
+		static TStreamPtr LoadShaderBlob(const TString& ShaderName);
 		void LoadShaderCode();
 
 		const TVector<TStreamPtr>& GetShaderCodes()
