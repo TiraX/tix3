@@ -6,13 +6,11 @@ static const int MaxDebugInfo = 128;
 
 struct FHierarchyNodeSliceSimple
 {
-	float	MinLODError;
-	float	MaxParentLODError;
-	uint	ChildStartReference;	// Can be node (index) or cluster (page:cluster)
-	uint	NumChildren;
-	bool	bEnabled;
-	bool	bLoaded;
-	bool	bLeaf;
+	float4	LODBounds;
+	float	MinE;
+	float	MaxE;
+	float	ProjectedEdgeScale;
+	float	NodeCullThres;
 };
 
 struct FPair_
@@ -38,5 +36,5 @@ struct FNaniteDebugInfo
 	uint NumLeaves;
 	uint Padding1;
 	//uint bOutput[64];
-	uint ClusterOffsetHW[64];
+	FHierarchyNodeSliceSimple Nd[4];
 };

@@ -16,13 +16,11 @@ struct FCandidateNode
 
 struct FHierarchyNodeSliceSimple
 {
+	FFloat4	LODBounds;
 	float	MinLODError;
 	float	MaxParentLODError;
-	uint32	ChildStartReference;	// Can be node (index) or cluster (page:cluster)
-	uint32	NumChildren;
-	bool	bEnabled;
-	bool	bLoaded;
-	bool	bLeaf;
+	float	ProjectedEdgeScale;
+	float	NodeCullThres;
 };
 
 struct FPair_
@@ -49,7 +47,7 @@ struct FNaniteDebug
 	uint32 NumLeaves;
 	uint32 Padding1;
 	//uint32 bOutput[64];
-	uint32 ClusterOffsetHW[64];
+	FHierarchyNodeSliceSimple Nd[4];
 
 	FNaniteDebug()
 		: GroupNodeBatchStartIndex(0)

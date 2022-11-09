@@ -53,12 +53,13 @@ FPackedView CreatePackedView(const FPackedViewParams& Params)
 	PackedView.ViewToClip = Params.ViewInfo.MatProj;// RelativeMatrices.ViewToClip;
 	//PackedView.ClipToRelativeWorld = RelativeMatrices.ClipToRelativeWorld;
 	//PackedView.PreViewTranslation = FFloat4(FFloat3(Params.ViewMatrices.GetPreViewTranslation() + ViewTileOffset)); // LWC_TODO: precision loss
-	//PackedView.WorldCameraOrigin = FFloat4(FFloat3(Params.ViewMatrices.GetViewOrigin() - ViewTileOffset), 0.0f);
+	PackedView.WorldCameraOrigin = FFloat4(Params.ViewInfo.CamPos, 0.0f);
 	FMat4 ViewTrans;
 	ViewTrans.SetTranslation(Params.ViewInfo.CamPos);
 	FMat4 TranslatedViewMat = ViewTrans * Params.ViewInfo.MatView;
 
 	const FMat4& MatProj = Params.ViewInfo.MatProj;
+	TI_ASSERT(TI_USE_REVERSED_DEPTH);
 	float NearPlane = (MatProj(3, 3) - MatProj(3, 2)) / (MatProj(2, 2) - MatProj(2, 3));
 	
 	PackedView.ViewForwardAndNearPlane = FFloat4(

@@ -16,6 +16,14 @@ namespace tix
 		virtual void Tick(float Dt);
 		virtual bool OnEvent(const TEvent& e);
 		
+		float GetMoveSpeed() const
+		{
+			return MoveSpeed;
+		}
+		float GetDollySpeed() const
+		{
+			return DollySpeed;
+		}
 		void SetDollySpeed(float s)
 		{
 			DollySpeed	= s;

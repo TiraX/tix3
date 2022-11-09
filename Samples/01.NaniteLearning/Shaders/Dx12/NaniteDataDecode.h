@@ -143,7 +143,7 @@ struct FNaniteView
 	////FLWCVector3	WorldCameraOrigin;
 	//float3		PreViewTranslation;
 	//float3		PrevPreViewTranslation;
-	//float3		WorldCameraOrigin;
+	float4		WorldCameraOrigin;
 	float3		ViewForward;
 	//float3		ViewTilePosition;
 	//float3		MatrixTilePosition;
@@ -692,7 +692,7 @@ FNaniteView UnpackNaniteView(FPackedNaniteView PackedView)
 	
 	//NaniteView.PreViewTranslation			= PackedView.PreViewTranslation.xyz;
 	//NaniteView.PrevPreViewTranslation		= PackedView.PrevPreViewTranslation.xyz;
-	//NaniteView.WorldCameraOrigin			= PackedView.WorldCameraOrigin.xyz;
+	NaniteView.WorldCameraOrigin			= PackedView.WorldCameraOrigin;
 	NaniteView.ViewForward					= PackedView.ViewForwardAndNearPlane.xyz;
 	NaniteView.NearPlane					= PackedView.ViewForwardAndNearPlane.w;
 	NaniteView.LODScale						= PackedView.LODScales.x;

@@ -98,8 +98,11 @@ float2 GetProjectedEdgeScales(FNaniteView NaniteView, float4 Bounds)	// float2(m
 		// Ortho
 		return float2( 1, 1 );
 	}
-	float3 Center = Bounds.xyz;// mul(float4(Bounds.xyz, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
+	float3 Center = Bounds.xyz - NaniteView.WorldCameraOrigin.xyz;// mul(float4(Bounds.xyz, 1.0f), DynamicData.LocalToTranslatedWorld).xyz;
 	float Radius = Bounds.w;// Bounds.w* InstanceData.NonUniformScale.w;
+
+	//Center *= 100.0;
+	//Radius *= 100.0;
 
 	float ZNear = NaniteView.NearPlane;
 	float DistToClusterSq = length2( Center );	// camera origin in (0,0,0)
@@ -139,11 +142,15 @@ float2 GetProjectedEdgeScales(FNaniteView NaniteView, float4 Bounds)	// float2(m
 		return float2( 0.0f, 0.0f );
 }
 
-bool ShouldVisitChildInternal( FNaniteView NaniteView, float4 LODBounds, float MinLODError, float MaxParentLODError, inout float Priority )
+bool ShouldVisitChildInternal( FNaniteView NaniteView, float4 LODBounds, float MinLODError, float MaxParentLODError, inout float Priority, out float4 DebugValue )
 {
 	float2 ProjectedEdgeScales = GetProjectedEdgeScales(NaniteView, LODBounds);// GetProjectedEdgeScales(NaniteView, InstanceData, DynamicData, LODBounds);
 	float UniformScale = 1.0;// min3(InstanceData.NonUniformScale.x, InstanceData.NonUniformScale.y, InstanceData.NonUniformScale.z);
 	float Threshold = NaniteView.LODScale * UniformScale * MaxParentLODError;
+
+	DebugValue.x = ProjectedEdgeScales.x;
+	DebugValue.y = Threshold;
+
 	if( ProjectedEdgeScales.x <= Threshold )
 	{
 		Priority = Threshold / ProjectedEdgeScales.x;	// TODO: Experiment with better priority
@@ -238,7 +245,7 @@ struct FNaniteTraversalClusterCullCallback
 		return CandidateNode.NodeIndex;
 	}
 
-	bool ShouldVisitChild(FHierarchyNodeSlice HierarchyNodeSlice, bool bInVisible)
+	bool ShouldVisitChild(FHierarchyNodeSlice HierarchyNodeSlice, bool bInVisible, out float4 DebugValue)
 	{
 		bVisible = bInVisible;
 		bool bWasOccluded = false;
@@ -253,18 +260,18 @@ struct FNaniteTraversalClusterCullCallback
 //#endif
 
 		// Depth clipping should only be disabled with orthographic projections
-		const bool bIsOrtho = IsOrthoProjection(NaniteView.ViewToClip);
-		const bool bNearClip = (NaniteView.Flags & NANITE_VIEW_FLAG_NEAR_CLIP) != 0u;
-		const bool bViewHZB = (NaniteView.Flags & NANITE_VIEW_FLAG_HZBTEST) != 0u;
-		const bool bUseViewRangeDistanceCull = (NaniteView.Flags & NANITE_VIEW_FLAG_DISTANCE_CULL) != 0u;
+		//const bool bIsOrtho = IsOrthoProjection(NaniteView.ViewToClip);
+		//const bool bNearClip = (NaniteView.Flags & NANITE_VIEW_FLAG_NEAR_CLIP) != 0u;
+		//const bool bViewHZB = (NaniteView.Flags & NANITE_VIEW_FLAG_HZBTEST) != 0u;
+		//const bool bUseViewRangeDistanceCull = (NaniteView.Flags & NANITE_VIEW_FLAG_DISTANCE_CULL) != 0u;
 
-#if DEBUG_FLAGS
-		const bool bSkipBoxCullFrustum = (DebugFlags & NANITE_DEBUG_FLAG_DISABLE_CULL_FRUSTUM_BOX) != 0u;
-		const bool bSkipBoxCullHZB = (DebugFlags & NANITE_DEBUG_FLAG_DISABLE_CULL_HZB_BOX) != 0u;
-#else
-		const bool bSkipBoxCullFrustum = false;
-		const bool bSkipBoxCullHZB = false;
-#endif
+// #if DEBUG_FLAGS
+// 		const bool bSkipBoxCullFrustum = (DebugFlags & NANITE_DEBUG_FLAG_DISABLE_CULL_FRUSTUM_BOX) != 0u;
+// 		const bool bSkipBoxCullHZB = (DebugFlags & NANITE_DEBUG_FLAG_DISABLE_CULL_HZB_BOX) != 0u;
+// #else
+// 		const bool bSkipBoxCullFrustum = false;
+// 		const bool bSkipBoxCullHZB = false;
+// #endif
 
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
 		if ((CandidateNode.EnabledBitmask & (1u << ChildIndex)) == 0u)	// Need to check bEnabled because instance cull always writes full mask
@@ -297,7 +304,7 @@ struct FNaniteTraversalClusterCullCallback
 			if (bVisible && CandidateNode.Flags & NANITE_CULLING_FLAG_TEST_LOD)
 		#endif
 			{
-				bVisible = ShouldVisitChildInternal(NaniteView, LODBounds, HierarchyNodeSlice.MinLODError, HierarchyNodeSlice.MaxParentLODError, StreamingPriority);//ShouldVisitChildInternal(NaniteView, InstanceData, DynamicData, LODBounds, HierarchyNodeSlice.MinLODError, HierarchyNodeSlice.MaxParentLODError, StreamingPriority);
+				bVisible = ShouldVisitChildInternal(NaniteView, LODBounds, HierarchyNodeSlice.MinLODError, HierarchyNodeSlice.MaxParentLODError, StreamingPriority, DebugValue);//ShouldVisitChildInternal(NaniteView, InstanceData, DynamicData, LODBounds, HierarchyNodeSlice.MinLODError, HierarchyNodeSlice.MaxParentLODError, StreamingPriority);
 			}
 
 			// tix: ignore culling in this case
@@ -563,13 +570,13 @@ struct FNaniteTraversalClusterCullCallback
 				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[0], 1, ClusterOffsetSW);
 			}
 		}
-
-#if DEBUG_INFO
-		if (LoopIndex < MaxDebugInfo)
-		{
-			DebugInfo[LoopIndex].ClusterOffsetHW[GroupIndex] = ClusterOffsetHW;
-		}
-#endif
+//
+//#if DEBUG_INFO
+//		if (LoopIndex < MaxDebugInfo)
+//		{
+//			DebugInfo[LoopIndex].ClusterOffsetHW[GroupIndex] = ClusterOffsetHW;
+//		}
+//#endif
 
 		if (bVisible)
 		{
@@ -659,6 +666,7 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 
 	const FHierarchyNodeSlice HierarchyNodeSlice = GetHierarchyNodeSlice(TraversalCallback.GetHierarchyNodeIndex(), ChildIndex);
 
+
 	bool bVisible = HierarchyNodeSlice.bEnabled;
 	bool bLoaded = HierarchyNodeSlice.bLoaded;
 
@@ -667,7 +675,19 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 		bVisible = false;
 	}
 
-	bVisible = TraversalCallback.ShouldVisitChild(HierarchyNodeSlice, bVisible);
+	float4 ddd = -1.0;
+	bVisible = TraversalCallback.ShouldVisitChild(HierarchyNodeSlice, bVisible, ddd);
+#if DEBUG_INFO
+		if (LoopIndex < MaxDebugInfo && GroupIndex < 4)
+		{
+			DebugInfo[LoopIndex].Nd[GroupIndex].LODBounds = HierarchyNodeSlice.LODBounds;
+			DebugInfo[LoopIndex].Nd[GroupIndex].MinE = HierarchyNodeSlice.MinLODError;
+			DebugInfo[LoopIndex].Nd[GroupIndex].MaxE = HierarchyNodeSlice.MaxParentLODError;
+			DebugInfo[LoopIndex].Nd[GroupIndex].ProjectedEdgeScale = ddd.x;
+			DebugInfo[LoopIndex].Nd[GroupIndex].NodeCullThres = ddd.y;
+		}
+#endif
+
 	uint CandidateNodesOffset = 0;
 
 	[branch]

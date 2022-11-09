@@ -26,7 +26,7 @@ struct FPackedView
 	//FFloat4 ClipSpaceScaleOffset;
 	//FFloat4 PreViewTranslation;
 	//FFloat4 PrevPreViewTranslation;
-	//FFloat4 WorldCameraOrigin;
+	FFloat4 WorldCameraOrigin;
 	FFloat4 ViewForwardAndNearPlane;
 
 	//FFloat3 ViewTilePosition;

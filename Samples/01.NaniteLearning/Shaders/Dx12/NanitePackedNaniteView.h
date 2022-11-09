@@ -23,7 +23,7 @@ struct FPackedNaniteView
 	//float4		ClipSpaceScaleOffset;
 	//float4		PreViewTranslation;
 	//float4		PrevPreViewTranslation;
-	//float4		WorldCameraOrigin;
+	float4		WorldCameraOrigin;
 	float4		ViewForwardAndNearPlane;
 
 	//float3		ViewTilePosition;

@@ -185,10 +185,15 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	FShaderPtr RTShader = Shader->ShaderResource;
 
 	HWRasterizerMat->EnableTwoSides(true);
-	HWRasterizerMat->EnableDepthWrite(false);
-	HWRasterizerMat->EnableDepthTest(false);
 	HWRasterizerMat->SetShaderVsFormat(0);
 	HWRasterizerMat->SetRTColor(EPF_RGBA16F, ERTC_COLOR0);
+	bool EnableDepth = true;
+	HWRasterizerMat->EnableDepthWrite(EnableDepth);
+	HWRasterizerMat->EnableDepthTest(EnableDepth);
+	if (EnableDepth)
+	{
+		HWRasterizerMat->SetRTDepth(EPF_DEPTH24_STENCIL8);
+	}
 
 	// Pipeline
 	HWRasterizerPL = FRHI::Get()->CreatePipeline(RTShader);
@@ -223,6 +228,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	DecodeInfo.MaxNodes = GetMaxNodes();
 	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
+	DecodeInfo.RenderFlags |= NANITE_RENDER_FLAG_FORCE_HW_RASTER;
 
 	RHICmdList->BeginEvent("Nanite.VisBuffer");
 	// Init args
@@ -284,7 +290,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	RHICmdList->SetGraphicsResourceTable(RT_Table, RT_HWRasterize);
 	RHICmdList->DrawPrimitiveInstanced(
 		384,
-		4000,
+		4194,
 		0);
 
 	FRHI::Get()->BeginRenderToFrameBuffer();

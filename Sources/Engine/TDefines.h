@@ -104,6 +104,8 @@ void * operator new (std::size_t count);
 // We use right hand coordinate
 #define TI_USE_RH 1
 
+#define TI_USE_REVERSED_DEPTH	1
+
 // Define DEBUG System
 #ifdef TIX_DEBUG
 #	define TIX_DEBUG_RENDER_TASK_NAME 0

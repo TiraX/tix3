@@ -65,7 +65,11 @@ namespace tix
 		if ((Desc.Flag & (uint32)EGPUResourceFlag::DsBuffer) != 0)
 		{
 			TextureDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+#if TI_USE_REVERSED_DEPTH
+			ClearValue.DepthStencil.Depth = 0.f;
+#else
 			ClearValue.DepthStencil.Depth = 1.f;
+#endif
 			ClearValue.DepthStencil.Stencil = 0;
 			ResourceState = EGPUResourceState::DepthWrite;
 		}

@@ -33,7 +33,11 @@ void TNaniteLearningTicker::SetupScene()
 
 	// Setup camera
 	TNodeCamera* Cam = TEngine::Get()->GetScene()->GetActiveCamera();
-	Cam->SetPosition(FFloat3(7.42432976f, 2.80526447f, 4.27628517f));
-	Cam->SetTarget(FFloat3(-1.16132188f, -0.711122870f, 6.25598240f));
+	const float CamScale = 100.f;
+	Cam->SetPosition(FFloat3(7.42432976f, 2.80526447f, 4.27628517f) * CamScale);
+	Cam->SetTarget(FFloat3(-1.16132188f, -0.711122870f, 6.25598240f) * CamScale);
 
+	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
+	TI_ASSERT(NavCam);
+	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale);
 }

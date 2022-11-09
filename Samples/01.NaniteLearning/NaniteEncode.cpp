@@ -2158,7 +2158,7 @@ void WritePages(
 	const TVector<FEncodingInfo>& EncodingInfos,
 	uint32 NumTexCoords
 )
-{
+{ 
 	Mesh.NumRootPageClusters = Pages[0].NumClusters;
 
 	TI_ASSERT(Mesh.PageStreamingStates.size() == 0);

@@ -216,8 +216,11 @@ namespace tix
 
 	void TNodeCamera::RecalculateProjectionMatrix()
 	{
-		//ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+#if TI_USE_REVERSED_DEPTH
 		ViewArea.Matrices[ETS_PROJECTION] = BuildReversedProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+#else
+		ViewArea.Matrices[ETS_PROJECTION] = BuildProjectionMatrixPerspectiveFov(Fovy, Aspect, ZNear, ZFar);
+#endif
 		//const FMat4& mat	= ViewArea.Matrices[ETS_PROJECTION];
 
 		ViewArea.SetTransformState(ETS_PROJECTION);

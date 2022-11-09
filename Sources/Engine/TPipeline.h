@@ -159,7 +159,11 @@ namespace tix
 		TDepthStencilOpDesc BackFace;
 
 		TDepthStencilDesc()
+#if TI_USE_REVERSED_DEPTH
+			: DepthFunc(ECF_GREATER)
+#else
 			: DepthFunc(ECF_LESS)
+#endif
 			, StencilReadMask(0xff)
 			, StencilWriteMask(0xff)
 			, Reserved(0)

@@ -930,7 +930,11 @@ namespace tix
 			}
 			if (Dsv != nullptr)
 			{
+#if TI_USE_REVERSED_DEPTH
+				CommandList->ClearDepthStencilView(*Dsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+#else
 				CommandList->ClearDepthStencilView(*Dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+#endif
 			}
 		};
 
