@@ -354,6 +354,70 @@ void WriteToVisBuffer(SVisBufferWriteParameters Params)
 }
 
 
+void GetRawAttributeDataN(inout float3 N[3],
+	FCluster Cluster,
+	uint3 TriIndices,
+	uint CompileTimeN
+)
+{
+
+	//CompileTimeMaxTexCoords = max(1, min( 4 , CompileTimeMaxTexCoords));
+
+	const uint DecodeInfoOffset = Cluster.PageBaseAddress + Cluster.DecodeInfoOffset;
+	const uint AttributeDataOffset = Cluster.PageBaseAddress + Cluster.AttributeOffset;
+
+	// uint i;
+	// [unroll]
+	// for (i = 0; i < CompileTimeN; i++)
+	// {
+	// 	RawAttributeData[i] = (FNaniteRawAttributeData)0;
+	// }
+//#line 421 "/Engine/Private/Nanite/NaniteAttributeDecode.ush"
+	const uint MaxAttributeBits = CalculateMaxAttributeBits(1);
+
+
+
+	//uint4 ColorMin = uint4(UnpackByte0(Cluster.ColorMin), UnpackByte1(Cluster.ColorMin), UnpackByte2(Cluster.ColorMin), UnpackByte3(Cluster.ColorMin));
+	//const uint4 NumComponentBits = UnpackToUint4(Cluster.ColorBits, 4);
+
+	FBitStreamReaderState AttributeStream[3];
+	[unroll]
+	for (uint i = 0; i < CompileTimeN; i++)
+	{
+		AttributeStream[i] = BitStreamReader_Create_Aligned(AttributeDataOffset, TriIndices[i] * Cluster.BitsPerAttribute, MaxAttributeBits);
+		const uint NormalBits = BitStreamReader_Read_RO( ClusterPageData , AttributeStream[i], 2 *  9 , 2 *  9 );
+		N[i] = UnpackNormal(NormalBits,  9 );
+
+		//const uint4 ColorDelta = BitStreamReader_Read4_RO( Nanite.ClusterPageData , AttributeStream[i], NumComponentBits,  8 );
+		//RawAttributeData[i].Color = float4(ColorMin + ColorDelta) * (1.0f / 255.0f);
+	}
+
+	// [unroll]
+	// for (uint TexCoordIndex = 0; TexCoordIndex < CompileTimeMaxTexCoords; ++TexCoordIndex)
+	// {
+	// 	const uint2 UVPrec = uint2(BitFieldExtractU32(Cluster.UV_Prec, 4, TexCoordIndex * 8), BitFieldExtractU32(Cluster.UV_Prec, 4, TexCoordIndex * 8 + 4));
+
+	// 	uint2 UVBits[3];
+	// 	[unroll]
+	// 	for (uint i = 0; i < CompileTimeN; i++)
+	// 	{
+	// 		UVBits[i] = BitStreamReader_Read2_RO( Nanite.ClusterPageData , AttributeStream[i], UVPrec,  15 );
+	// 	}
+
+	// 	[branch]
+	// 	if (TexCoordIndex < Cluster.NumUVs)
+	// 	{
+	// 		FUVRange UVRange = GetUVRange( Nanite.ClusterPageData , DecodeInfoOffset, TexCoordIndex);
+	// 		[unroll]
+	// 		for (uint i = 0; i < CompileTimeN; i++)
+	// 		{
+	// 			RawAttributeData[i].TexCoords[TexCoordIndex] = UnpackTexCoord(UVBits[i], UVRange);
+	// 		}
+	// 	}
+	// }
+
+}
+
 [RootSignature(HWRasterizeRS)]
 float4 HWRasterizePS(VSOut In
 // #if NANITE_MESH_SHADER	
@@ -505,5 +569,34 @@ float4 HWRasterizePS(VSOut In
 	uint PackedColor = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.z;
 	uint3 DebugColor = uint3(PackedColor & 0xff, (PackedColor & 0xff00) >> 8, (PackedColor & 0xff0000) >> 16);
 	float3 C = (float3)DebugColor / 255.0;
+	//return float4(C.xyz, 1.0);
+
+
+	uint PackedPixel = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.x;
+
+	// UnpackVisPixel
+	uint VisibleClusterIndex = PackedPixel >> 7;
+	uint TriIndex = PackedPixel & 0x7f;
+
+	if (VisibleClusterIndex != 0xFFFFFFFF)
+	{
+		FVisibleCluster VisibleCluster = GetVisibleCluster( VisibleClusterIndex );
+
+		FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+
+		uint3 TriIndices = uint3(0, 0, 0);
+		const bool bCalcTriIndices = true;
+		if (bCalcTriIndices)
+		{
+			TriIndices = ReadTriangleIndices(Cluster, TriIndex);
+		}
+
+		float3 N[3];
+		GetRawAttributeDataN(N, Cluster, TriIndices, 3);
+		//GetRawAttributeData3(RawAttributeData, Cluster, TriIndices,  0 );
+
+		float3 Normal = normalize(N[0] + N[1] + N[2]);
+		C = Normal * 0.5 + 0.5;
+	}
 	return float4(C.xyz, 1.0);
 }
