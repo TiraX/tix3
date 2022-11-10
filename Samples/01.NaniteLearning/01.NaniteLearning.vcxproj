@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClearCandidateBufferCS.cpp" />
+    <ClCompile Include="ClearVisBufferCS.cpp" />
     <ClCompile Include="Cluster.cpp" />
     <ClCompile Include="FakeInstanceCullCS.cpp" />
     <ClCompile Include="InitArgsCS.cpp" />
@@ -195,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClearCandidateBufferCS.h" />
+    <ClInclude Include="ClearVisBufferCS.h" />
     <ClInclude Include="Cluster.h" />
     <ClInclude Include="FakeInstanceCullCS.h" />
     <ClInclude Include="InitArgsCS.h" />
@@ -229,6 +231,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClearCandidateBuffer</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClearCandidateBuffer</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_ClearVisBufferCS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClearVisBufferCS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClearVisBufferCS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

@@ -38,6 +38,10 @@ namespace tix
 
 		virtual void CopyTextureRegion(FGPUBufferPtr DstBuffer, FGPUTexturePtr SrcTexture, uint32 RowPitch) override;
 		virtual void CopyGPUBuffer(FGPUBufferPtr DstBuffer, FGPUBufferPtr SrcBuffer) override;
+		virtual void ClearUAVBuffer(FRenderResourceTablePtr ResourceTable, FGPUBufferPtr Buffer, uint32 Slot, const FUInt4& ClearValue) override;
+		virtual void ClearUAVBuffer(FRenderResourceTablePtr ResourceTable, FGPUBufferPtr Buffer, uint32 Slot, const FFloat4& ClearValue) override;
+		virtual void ClearUAVTexture(FRenderResourceTablePtr ResourceTable, FGPUTexturePtr Texture, uint32 Slot, const FUInt4& ClearValue) override;
+		virtual void ClearUAVTexture(FRenderResourceTablePtr ResourceTable, FGPUTexturePtr Texture, uint32 Slot, const FFloat4& ClearValue) override;
 
 		// Graphics
 		virtual void SetPrimitiveTopology(EPrimitiveType PrimitiveType) override;
@@ -72,7 +76,8 @@ namespace tix
 		virtual void SetComputeConstant(int32 BindIndex, const FUInt4& InValue) override;
 		virtual void SetComputeConstant(int32 BindIndex, const FFloat4& InValue) override;
 		virtual void SetComputeConstantBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
-		virtual void SetComputeUnorderedAccessResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
+		virtual void SetComputeUAVBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
+		virtual void SetComputeUAVTexture(int32 BindIndex, FTexturePtr InTexture) override;
 		virtual void SetComputeShaderResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset = 0) override;
 		virtual void SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable) override;
 		virtual void SetComputeArgumentBuffer(int32 BindIndex, FArgumentBufferPtr InArgumentBuffer) override;

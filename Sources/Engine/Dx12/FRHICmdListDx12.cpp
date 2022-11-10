@@ -448,6 +448,66 @@ namespace tix
 		HoldResourceReference(SrcDx12->Resource);
 	}
 
+	void FRHICmdListDx12::ClearUAVBuffer(FRenderResourceTablePtr ResourceTable, FGPUBufferPtr Buffer, uint32 Slot, const FUInt4& ClearValue)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE GpuHandle = RHIDx12->GetGpuDescriptorHandle(ResourceTable, Slot);
+		D3D12_CPU_DESCRIPTOR_HANDLE CpuHandle = RHIDx12->GetCpuDescriptorHandle(ResourceTable, Slot);
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(Buffer.get());
+
+		CommandList->ClearUnorderedAccessViewUint(
+			GpuHandle,
+			CpuHandle,
+			BufferDx12->Resource.Get(),
+			ClearValue.Data(),
+			0,
+			nullptr);
+	}
+
+	void FRHICmdListDx12::ClearUAVBuffer(FRenderResourceTablePtr ResourceTable, FGPUBufferPtr Buffer, uint32 Slot, const FFloat4& ClearValue)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE GpuHandle = RHIDx12->GetGpuDescriptorHandle(ResourceTable, Slot);
+		D3D12_CPU_DESCRIPTOR_HANDLE CpuHandle = RHIDx12->GetCpuDescriptorHandle(ResourceTable, Slot);
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(Buffer.get());
+
+		CommandList->ClearUnorderedAccessViewFloat(
+			GpuHandle,
+			CpuHandle,
+			BufferDx12->Resource.Get(),
+			ClearValue.Data(),
+			0,
+			nullptr);
+	}
+
+	void FRHICmdListDx12::ClearUAVTexture(FRenderResourceTablePtr ResourceTable, FGPUTexturePtr Texture, uint32 Slot, const FUInt4& ClearValue)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE GpuHandle = RHIDx12->GetGpuDescriptorHandle(ResourceTable, Slot);
+		D3D12_CPU_DESCRIPTOR_HANDLE CpuHandle = RHIDx12->GetCpuDescriptorHandle(ResourceTable, Slot);
+		FGPUTextureDx12* TextureDx12 = static_cast<FGPUTextureDx12*>(Texture.get());
+
+		CommandList->ClearUnorderedAccessViewUint(
+			GpuHandle,
+			CpuHandle,
+			TextureDx12->Resource.Get(),
+			ClearValue.Data(),
+			0,
+			nullptr);
+	}
+
+	void FRHICmdListDx12::ClearUAVTexture(FRenderResourceTablePtr ResourceTable, FGPUTexturePtr Texture, uint32 Slot, const FFloat4& ClearValue)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE GpuHandle = RHIDx12->GetGpuDescriptorHandle(ResourceTable, Slot);
+		D3D12_CPU_DESCRIPTOR_HANDLE CpuHandle = RHIDx12->GetCpuDescriptorHandle(ResourceTable, Slot);
+		FGPUTextureDx12* TextureDx12 = static_cast<FGPUTextureDx12*>(Texture.get());
+
+		CommandList->ClearUnorderedAccessViewFloat(
+			GpuHandle,
+			CpuHandle,
+			TextureDx12->Resource.Get(),
+			ClearValue.Data(),
+			0,
+			nullptr);
+	}
+
 	void FRHICmdListDx12::UAVBarrier(FBottomLevelAccelerationStructurePtr BLAS)
 	{
 		FBottomLevelAccelerationStructureDx12* ASDx12 = static_cast<FBottomLevelAccelerationStructureDx12*>(BLAS.get());
@@ -687,7 +747,7 @@ namespace tix
 		HoldResourceReference(InUniformBuffer);
 	}
 
-	void FRHICmdListDx12::SetComputeUnorderedAccessResource(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
+	void FRHICmdListDx12::SetComputeUAVBuffer(int32 BindIndex, FUniformBufferPtr InUniformBuffer, uint32 BufferOffset)
 	{
 		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(InUniformBuffer->GetGPUResource().get());
 
@@ -695,6 +755,16 @@ namespace tix
 		CommandList->SetComputeRootUnorderedAccessView(BindIndex, BufferDx12->GetResource()->GetGPUVirtualAddress() + BufferOffset);
 
 		HoldResourceReference(InUniformBuffer);
+	}
+
+	void FRHICmdListDx12::SetComputeUAVTexture(int32 BindIndex, FTexturePtr InTexture)
+	{
+		FGPUTextureDx12* TextureDx12 = static_cast<FGPUTextureDx12*>(InTexture->GetGPUTexture().get());
+
+		// Bind the current frame's constant buffer to the pipeline.
+		CommandList->SetComputeRootUnorderedAccessView(BindIndex, TextureDx12->GetResource()->GetGPUVirtualAddress());
+
+		HoldResourceReference(InTexture);
 	}
 
 	void FRHICmdListDx12::SetComputeResourceTable(int32 BindIndex, FRenderResourceTablePtr RenderResourceTable)

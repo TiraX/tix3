@@ -70,6 +70,9 @@
     <ClCompile Include="ClearCandidateBufferCS.cpp">
       <Filter>Source Files\Computes</Filter>
     </ClCompile>
+    <ClCompile Include="ClearVisBufferCS.cpp">
+      <Filter>Source Files\Computes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -150,6 +153,9 @@
     <ClInclude Include="ClearCandidateBufferCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
+    <ClInclude Include="ClearVisBufferCS.h">
+      <Filter>Source Files\Computes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
@@ -186,6 +192,9 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_RasterizerVS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_ClearVisBufferCS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -32,7 +32,7 @@ void FClearCandidateBufferCS::Run(FRHICmdList* RHICmdList)
 	RHICmdList->BeginEvent("ClearCandidateBuffer");
 	RHICmdList->SetComputePipeline(ComputePipeline);
 
-	RHICmdList->SetComputeUnorderedAccessResource(UAV_CandididateClusters, CandididateClusters);
+	RHICmdList->SetComputeUAVBuffer(UAV_CandididateClusters, CandididateClusters);
 
 	RHICmdList->DispatchCompute(DispatchSize, GroupCount);
 	RHICmdList->EndEvent();

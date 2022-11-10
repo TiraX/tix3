@@ -11,6 +11,7 @@
 #include "PersistentCullCS.h"
 #include "InitArgsCS.h"
 #include "ClearCandidateBufferCS.h"
+#include "ClearVisBufferCS.h"
 
 class FNaniteLearningRenderer : public FDefaultRenderer
 {
@@ -49,6 +50,7 @@ private:
 	FClearCandidateBufferCSPtr ClearCandidateBufferCS;
 	FFakeInstanceCullCSPtr FakeInstanceCullCS;
 	FPersistentCullCSPtr PersistentCullCS;
+	FClearVisBufferCSPtr ClearVisBufferCS;
 
 
 	enum

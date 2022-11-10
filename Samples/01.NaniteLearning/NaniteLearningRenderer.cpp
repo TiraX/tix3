@@ -153,6 +153,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	FakeInstanceCullCS->Finalize();
 	PersistentCullCS = ti_new FPersistentCullCS();
 	PersistentCullCS->Finalize();
+	ClearVisBufferCS = ti_new FClearVisBufferCS();
+	ClearVisBufferCS->Finalize();
 
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
@@ -240,6 +242,13 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	DecodeInfo.RenderFlags |= NANITE_RENDER_FLAG_FORCE_HW_RASTER;
 
 	RHICmdList->BeginEvent("Nanite.VisBuffer");
+	// Init Context, clear vis buffer uav
+	{
+		const int32 RTWidth = TEngine::GetAppInfo().Width;
+		const int32 RTHeight = TEngine::GetAppInfo().Height;
+		ClearVisBufferCS->ApplyParameters(RHICmdList, FInt2(RTWidth, RTHeight), VisBuffer);
+		ClearVisBufferCS->Run(RHICmdList);
+	}
 	// Init args
 	{
 		InitArgsCS->ApplyParameters(RHICmdList, DecodeInfo, QueueState, VisibleClustersArgsSWHW);

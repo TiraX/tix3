@@ -71,7 +71,7 @@ void FScatterUploadCS::Run(FRHICmdList* RHICmdList)
 	RHICmdList->SetComputeConstant(RC_ScatterInfo, &ScatterInfo, sizeof(FScatterInfo) / sizeof(uint32));
 	RHICmdList->SetComputeShaderResource(SRV_ScatterAddresses, UB_Addr);
 	RHICmdList->SetComputeShaderResource(SRV_ScatterValues, UB_Value);
-	RHICmdList->SetComputeUnorderedAccessResource(UAV_DstPageBuffer, DstBuffer);
+	RHICmdList->SetComputeUAVBuffer(UAV_DstPageBuffer, DstBuffer);
 
 	RHICmdList->DispatchCompute(DispatchSize, GroupCount);
 	RHICmdList->EndEvent();
