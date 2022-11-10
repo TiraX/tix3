@@ -1291,7 +1291,12 @@ namespace tix
 						THMap<int32, E_ARGUMENT_TYPE> BindingMap;	// Key is Binding Index, Value is ArgumentIndex in Arguments
 
 						ID3D12ShaderReflection* ShaderReflection;
-						VALIDATE_HRESULT(D3DReflect(ShaderCode->GetBuffer(), ShaderCode->GetLength(), IID_PPV_ARGS(&ShaderReflection)));
+						HRESULT ReflectResult = D3DReflect(ShaderCode->GetBuffer(), ShaderCode->GetLength(), IID_PPV_ARGS(&ShaderReflection));
+						if (FAILED(ReflectResult))
+						{
+							_LOG(ELog::Warning, "Shader [%s] created without reflect.\n", ShaderResource->GetShaderName(E_SHADER_STAGE(s)).c_str());
+							return true;
+						}
 
 						D3D12_SHADER_DESC ShaderDesc;
 						VALIDATE_HRESULT(ShaderReflection->GetDesc(&ShaderDesc));
