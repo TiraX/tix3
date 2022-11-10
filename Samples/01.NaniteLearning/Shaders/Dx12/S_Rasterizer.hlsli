@@ -271,6 +271,118 @@ VSOut HWRasterizeVS(
 	return Out;
 }
 
+#define NANITE_MESH_SHADER_TG_SIZE 128
+struct PrimitiveAttributes
+{
+	// Use uint4 to prevent compiler from erroneously packing per-vertex and per-prim attributes together
+	// .x = Cluster Index
+	// .y = Triangle Index
+	// .z = View Width
+	// .w = View Height
+	nointerpolation uint4 PackedData : TEXCOORD7;
+};
+
+#if NANITE_MESH_SHADER
+//MESH_SHADER_TRIANGLE_ATTRIBUTES(NANITE_MESH_SHADER_TG_SIZE)
+[numthreads(NANITE_MESH_SHADER_TG_SIZE, 1, 1)]
+[outputtopology("triangle")]
+void HWRasterizeMS(
+	uint GroupThreadID : SV_GroupThreadID,
+	uint GroupID : SV_GroupID,
+	//MESH_SHADER_VERTEX_EXPORT(VSOut, 256),
+	out vertices VSOut OutVertices[256],
+	//MESH_SHADER_TRIANGLE_EXPORT(128),
+	out indices uint3 OutTriangles[128],
+	//MESH_SHADER_PRIMITIVE_EXPORT(PrimitiveAttributes, 128)
+	out primitives PrimitiveAttributes OutPrimitives[128]
+)
+{
+	uint VisibleIndex = GroupID;
+
+	uint3 RasterBin;
+
+	// const bool bHasRasterBin = (RenderFlags & NANITE_RENDER_FLAG_HAS_RASTER_BIN) != 0u;
+	// BRANCH
+	// if (bHasRasterBin)
+	// {
+	// 	RasterBin = FetchHWRasterizerBin(VisibleIndex);
+	// 	VisibleIndex = RasterBin.x;
+	// }
+
+	// const bool bHasPrevDrawData = (RenderFlags & NANITE_RENDER_FLAG_HAS_PREV_DRAW_DATA) != 0u;
+	// BRANCH
+	// if (bHasPrevDrawData)
+	// {
+	// 	VisibleIndex += InTotalPrevDrawClusters[0].y;
+	// }
+
+	// const bool bAddClusterOffset = (RenderFlags & NANITE_RENDER_FLAG_ADD_CLUSTER_OFFSET) != 0u;
+	// BRANCH
+	// if (bAddClusterOffset)
+	// {
+	// 	VisibleIndex += InClusterOffsetSWHW[GetHWClusterCounterIndex(RenderFlags)];
+	// }
+
+	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex;
+
+	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
+	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
+
+	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
+
+//#if NANITE_VERTEX_PROGRAMMABLE
+//	ResolvedView = ResolveView(NaniteView);
+//#endif
+
+	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+	FTriRange TriRange = GetTriangleRange(Cluster, false, RasterBin);
+
+	SetMeshOutputCounts(Cluster.NumVerts, TriRange.Num);
+
+	[branch]
+	if (GroupThreadID < TriRange.Num)
+	{
+		uint TriangleIndex = TriRange.Start + GroupThreadID;
+
+		uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
+		//if (ReverseWindingOrder(InstanceData))
+		//{
+		//	TriangleIndices = TriangleIndices.xzy;
+		//}
+
+		//MESH_SHADER_WRITE_TRIANGLE(GroupThreadID, TriangleIndices);
+		OutTriangles[GroupThreadID] = TriangleIndices;
+
+		PrimitiveAttributes Attributes;
+		Attributes.PackedData.x = VisibleIndex;
+		Attributes.PackedData.y = TriangleIndex;
+		Attributes.PackedData.z = asuint(NaniteView.ViewSizeAndInvSize.x);
+		Attributes.PackedData.w = asuint(NaniteView.ViewSizeAndInvSize.y);
+		//MESH_SHADER_WRITE_PRIMITIVE(GroupThreadID, Attributes);
+		OutPrimitives[GroupThreadID] = Attributes;
+	}
+
+	const uint Vertex0 = GroupThreadID + 0;
+	if (Vertex0 < Cluster.NumVerts)
+	{
+		const uint PixelValue = 0;
+		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex0, PixelValue);
+		//MESH_SHADER_WRITE_VERTEX(Vertex0, VertexOutput);
+		OutVertices[Vertex0] = VertexOutput;
+	}
+
+#if NANITE_MESH_SHADER_TG_SIZE == 128
+	const uint Vertex1 = GroupThreadID + 128;
+	if (Vertex1 < Cluster.NumVerts)
+	{
+		const uint PixelValue = 0;
+		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex1, PixelValue);
+		//MESH_SHADER_WRITE_VERTEX(Vertex1, VertexOutput);
+		OutVertices[Vertex1] = VertexOutput;
+	}
+#endif
+}
+#endif	// NANITE_MESH_SHADER
 
 struct SVisBufferWriteParameters
 {
@@ -418,11 +530,12 @@ void GetRawAttributeDataN(inout float3 N[3],
 
 }
 
+
 [RootSignature(HWRasterizeRS)]
 float4 HWRasterizePS(VSOut In
-// #if NANITE_MESH_SHADER	
-// 	, PrimitiveAttributes Primitive
-// #endif
+#if NANITE_MESH_SHADER	
+ 	, PrimitiveAttributes Primitive
+#endif
 ) : SV_Target0
 {
 	float4 SvPosition = float4(In.PointClipPixel.xyz / In.PointClipPixel.w, In.PointClipPixel.w);
@@ -454,12 +567,12 @@ float4 HWRasterizePS(VSOut In
 // #endif
 // #endif
 
-// #if NANITE_MESH_SHADER
-// 	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.
-// 	const uint ClusterIndex  = Primitive.PackedData.x;
-// 	const uint TriangleIndex = Primitive.PackedData.y;
-// 	PixelValue = ((ClusterIndex + 1) << 7) | TriangleIndex;
-// #endif
+#if NANITE_MESH_SHADER
+ 	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.
+ 	const uint ClusterIndex  = Primitive.PackedData.x;
+ 	const uint TriangleIndex = Primitive.PackedData.y;
+ 	PixelValue = ((ClusterIndex + 1) << 7) | TriangleIndex;
+#endif
 
 // #if VIRTUAL_TEXTURE_TARGET
 // 	if (all(PixelPos < In.ViewRect.zw))
