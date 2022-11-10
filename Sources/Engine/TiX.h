@@ -105,7 +105,6 @@ using namespace std;
 #include "FUniformBuffer.h"
 #include "FArgumentBuffer.h"
 #include "FGPUCommandSignature.h"
-#include "FGPUCommandBuffer.h"
 #include "FRenderTarget.h"
 #include "FRtxPipeline.h"
 #include "FAccelerationStructure.h"

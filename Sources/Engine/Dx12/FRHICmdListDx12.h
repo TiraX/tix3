@@ -84,9 +84,8 @@ namespace tix
 		virtual void SetRtxPipeline(FRtxPipelinePtr RtxPipeline) override;
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) override;
 
-		// GPU Command buffer
-		virtual void ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer) override;
-		virtual void ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer) override;
+		// Execute Indirect
+		virtual void ExecuteIndirect(FGPUCommandSignaturePtr GPUCommandSignature, FUniformBufferPtr CommandBuffer, uint32 CommandCount, uint32 CommandBufferOffset) override;
 
 		virtual void SetViewport(const FRecti& InViewport) override;
 		virtual void SetScissorRect(const FRecti& InRect) override;

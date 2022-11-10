@@ -196,9 +196,9 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	}
 
 	// Pipeline
-	HWRasterizerPL = FRHI::Get()->CreatePipeline(RTShader);
-	HWRasterizerPL->SetResourceName("HWRasterizerPL");
-	FRHI::Get()->UpdateHardwareResourceGraphicsPipeline(HWRasterizerPL, HWRasterizerMat->GetDesc());
+	PL_HWRasterizer = FRHI::Get()->CreatePipeline(RTShader);
+	PL_HWRasterizer->SetResourceName("PL_HWRasterizer");
+	FRHI::Get()->UpdateHardwareResourceGraphicsPipeline(PL_HWRasterizer, HWRasterizerMat->GetDesc());
 	HWRasterizerMat = nullptr;
 
 	// Visbuffer
@@ -208,6 +208,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	VisBufferDesc.Height = RTHeight;
 	VisBufferDesc.AddressMode = ETC_CLAMP_TO_EDGE;
 	VisBuffer = FTexture::CreateTexture(VisBufferDesc, (uint32)EGPUResourceFlag::Uav);
+	VisBuffer->SetResourceName("VisBuffer");
 	VisBuffer->CreateGPUTexture(RHICmdList, TVector<TImagePtr>(), EGPUResourceState::UnorderedAccess);
 
 	// Resource table
@@ -218,6 +219,14 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, View, SRV_Views);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
+
+	// Indirect command signature
+	TVector<E_GPU_COMMAND_TYPE> CommandStructure;
+	CommandStructure.resize(1);
+	CommandStructure[0] = GPU_COMMAND_DRAW;
+	CmdSig_HWRasterize = RHI->CreateGPUCommandSignature(PL_HWRasterizer, CommandStructure);
+	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
+	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
 }
 
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
@@ -248,6 +257,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	// node and cluster cull
 	{
 		RHICmdList->SetGPUBufferState(VisibleClustersSWHW->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
+		RHICmdList->SetGPUBufferState(VisibleClustersArgsSWHW->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 		FPackedView PackedView = CreatePackedViewFromViewInfo(
 			Scene->GetViewProjection(),
 			FInt2(TEngine::GetAppInfo().Width, TEngine::GetAppInfo().Height),
@@ -284,14 +294,12 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 
 	// Do Hardware rasterize
 	RHICmdList->SetGPUBufferState(VisibleClustersSWHW->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
-	RHICmdList->SetGraphicsPipeline(HWRasterizerPL);
+	RHICmdList->SetGPUBufferState(VisibleClustersArgsSWHW->GetGPUBuffer(), EGPUResourceState::IndirectArgument);
+	RHICmdList->SetGraphicsPipeline(PL_HWRasterizer);
 	RHICmdList->SetPrimitiveTopology(EPrimitiveType::TriangleList);
 	RHICmdList->SetGraphicsConstant(RC_DecodeInfo, &DecodeInfo, sizeof(FDecodeInfo) / sizeof(uint32));
 	RHICmdList->SetGraphicsResourceTable(RT_Table, RT_HWRasterize);
-	RHICmdList->DrawPrimitiveInstanced(
-		384,
-		4194,
-		0);
+	RHICmdList->ExecuteIndirect(CmdSig_HWRasterize, VisibleClustersArgsSWHW, 1, 16);
 
 	FRHI::Get()->BeginRenderToFrameBuffer();
 	FSRender.DrawFullScreenTexture(RHICmdList, AB_Result);

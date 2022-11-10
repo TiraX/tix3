@@ -14,7 +14,6 @@
 #include "FShaderDx12.h"
 #include "FArgumentBufferDx12.h"
 #include "FGPUCommandSignatureDx12.h"
-#include "FGPUCommandBufferDx12.h"
 #include "FRtxPipelineDx12.h"
 #include "FAccelerationStructureDx12.h"
 #include "FRHIDx12Conversion.h"
@@ -771,78 +770,40 @@ namespace tix
 		//DXR->DXRCommandList->DispatchRays(&RaytraceDesc);
 	}
 
-	void FRHICmdListDx12::ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer)
+	void FRHICmdListDx12::ExecuteIndirect(FGPUCommandSignaturePtr GPUCommandSignature, FUniformBufferPtr CommandBuffer, uint32 CommandCount, uint32 CommandBufferOffset)
 	{
-		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
+		if (CommandCount == 0)
+			return;
+
+		TI_ASSERT(CommandBuffer->GetGPUBuffer()->GetResourceState() == EGPUResourceState::IndirectArgument);
+		FlushBarriers();
+
+		FGPUCommandSignatureDx12* SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandSignature.get());
+		FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(CommandBuffer->GetGPUResource().get());
+
+		if ((CommandBuffer->GetFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0)
 		{
-			FlushBarriers();
-			FGPUCommandSignatureDx12* SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandBuffer->GetGPUCommandSignature().get());
-
-			// Set Primitive Topology
-			CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-			// Execute indirect draw.
-			FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUCommandBuffer->GetGPUResource().get());
-			if ((GPUCommandBuffer->GetCBFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0)
-			{
-				uint32 CounterOffset = FRHIDx12::GetUavCounterOffset(GPUCommandBuffer->GetTotalBufferSize());
-				CommandList->ExecuteIndirect(
-					SignatueDx12->CommandSignature.Get(),
-					GPUCommandBuffer->GetEncodedCommandsCount(),
-					BufferDx12->GetResource(),
-					0,
-					BufferDx12->GetResource(),
-					CounterOffset);
-			}
-			else
-			{
-				CommandList->ExecuteIndirect(
-					SignatueDx12->CommandSignature.Get(),
-					GPUCommandBuffer->GetEncodedCommandsCount(),
-					BufferDx12->GetResource(),
-					0,
-					nullptr,
-					0);
-			}
-
-			HoldResourceReference(GPUCommandBuffer);
+			uint32 CounterOffset = FRHIDx12::GetUavCounterOffset(CommandBuffer->GetTotalBufferSize());
+			CommandList->ExecuteIndirect(
+				SignatueDx12->CommandSignature.Get(),
+				CommandCount,
+				BufferDx12->GetResource(),
+				CommandBufferOffset,
+				BufferDx12->GetResource(),
+				CounterOffset);
 		}
-	}
-
-	void FRHICmdListDx12::ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer)
-	{
-		if (GPUCommandBuffer->GetEncodedCommandsCount() > 0)
+		else
 		{
-			FlushBarriers();
-			FGPUCommandBufferDx12* GPUCommandBufferDx12 = static_cast<FGPUCommandBufferDx12*>(GPUCommandBuffer.get());
-			FGPUCommandSignatureDx12* SignatueDx12 = static_cast<FGPUCommandSignatureDx12*>(GPUCommandBuffer->GetGPUCommandSignature().get());
-
-			// Execute indirect draw.
-			FGPUBufferDx12* BufferDx12 = static_cast<FGPUBufferDx12*>(GPUCommandBuffer->GetGPUResource().get());
-			if ((GPUCommandBuffer->GetCBFlag() & (uint32)EGPUResourceFlag::UavCounter) != 0)
-			{
-				uint32 CounterOffset = FRHIDx12::GetUavCounterOffset(GPUCommandBuffer->GetTotalBufferSize());
-				CommandList->ExecuteIndirect(
-					SignatueDx12->CommandSignature.Get(),
-					GPUCommandBuffer->GetEncodedCommandsCount(),
-					BufferDx12->GetResource(),
-					0,
-					BufferDx12->GetResource(),
-					CounterOffset);
-			}
-			else
-			{
-				CommandList->ExecuteIndirect(
-					SignatueDx12->CommandSignature.Get(),
-					GPUCommandBuffer->GetEncodedCommandsCount(),
-					BufferDx12->GetResource(),
-					0,
-					nullptr,
-					0);
-			}
-
-			HoldResourceReference(GPUCommandBuffer);
+			CommandList->ExecuteIndirect(
+				SignatueDx12->CommandSignature.Get(),
+				CommandCount,
+				BufferDx12->GetResource(),
+				CommandBufferOffset,
+				nullptr,
+				0);
 		}
+
+		HoldResourceReference(CommandBuffer);
 	}
 
 	void FRHICmdListDx12::SetViewport(const FRecti& VP)

@@ -18,7 +18,6 @@
 #include "FShaderDx12.h"
 #include "FArgumentBufferDx12.h"
 #include "FGPUCommandSignatureDx12.h"
-#include "FGPUCommandBufferDx12.h"
 #include "FRtxPipelineDx12.h"
 #include "FAccelerationStructureDx12.h"
 #include <DirectXColors.h>
@@ -552,11 +551,6 @@ namespace tix
 	FGPUCommandSignaturePtr FRHIDx12::CreateGPUCommandSignature(FPipelinePtr Pipeline, const TVector<E_GPU_COMMAND_TYPE>& CommandStructure)
 	{
 		return ti_new FGPUCommandSignatureDx12(Pipeline, CommandStructure);
-	}
-
-	FGPUCommandBufferPtr FRHIDx12::CreateGPUCommandBuffer(FGPUCommandSignaturePtr GPUCommandSignature, uint32 CommandsCount, uint32 Flag)
-	{
-		return ti_new FGPUCommandBufferDx12(GPUCommandSignature, CommandsCount, Flag);
 	}
 
 	FRtxPipelinePtr FRHIDx12::CreateRtxPipeline(FShaderPtr InShader)
@@ -1392,60 +1386,53 @@ namespace tix
 		for (uint32 i = 0 ; i < (uint32)CommandStructure.size() ; ++ i)
 		{
 			E_GPU_COMMAND_TYPE Command = CommandStructure[i];
-			if (Command == GPU_COMMAND_SET_VERTEX_BUFFER)
+			switch (Command)
 			{
-				// Vertex Buffer
+			case GPU_COMMAND_SET_VERTEX_BUFFER:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_VERTEX_BUFFER_VIEW;
 				ArgumentDescs[i].VertexBuffer.Slot = 0;	// Vertex Buffer always has Slot 0
-			}
-			else if (Command == GPU_COMMAND_SET_INSTANCE_BUFFER)
-			{
-				// Instance Buffer
+				break;
+			case GPU_COMMAND_SET_INSTANCE_BUFFER:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_VERTEX_BUFFER_VIEW;
 				ArgumentDescs[i].VertexBuffer.Slot = 1;	// Instance Buffer always has Slot 1
-			}
-			else if (Command == GPU_COMMAND_SET_INDEX_BUFFER)
-			{
-				// Index Buffer
+				break;
+			case GPU_COMMAND_SET_INDEX_BUFFER:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_INDEX_BUFFER_VIEW;
-			}
-			else if (Command == GPU_COMMAND_DRAW_INDEXED)
-			{
+				break;
+			case GPU_COMMAND_DRAW:
+				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+				break;
+			case GPU_COMMAND_DRAW_INDEXED:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-			}
-			else if (Command == GPU_COMMAND_DISPATCH)
-			{
+				break;
+			case GPU_COMMAND_DISPATCH:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
-			}
-			else if (Command == GPU_COMMAND_CONSTANT)
-			{
+				break;
+			case GPU_COMMAND_CONSTANT:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
 				ArgumentDescs[i].Constant.RootParameterIndex = i;
 				ArgumentDescs[i].Constant.DestOffsetIn32BitValues = 0;
 				ArgumentDescs[i].Constant.Num32BitValuesToSet = 4;	// Always use 4 components
 				bNeedRootSignature = true;
-			}
-			else if (Command == GPU_COMMAND_CONSTANT_BUFFER)
-			{
+				break;
+			case GPU_COMMAND_CONSTANT_BUFFER:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
 				ArgumentDescs[i].ConstantBufferView.RootParameterIndex = i;
 				bNeedRootSignature = true;
-			}
-			else if (Command == GPU_COMMAND_SHADER_RESOURCE)
-			{
+				break;
+			case GPU_COMMAND_SHADER_RESOURCE:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_SHADER_RESOURCE_VIEW;
 				ArgumentDescs[i].ShaderResourceView.RootParameterIndex = i;
 				bNeedRootSignature = true;
-			}
-			else if (Command == GPU_COMMAND_UNORDERED_ACCESS)
-			{
+				break;
+			case GPU_COMMAND_UNORDERED_ACCESS:
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_UNORDERED_ACCESS_VIEW;
 				ArgumentDescs[i].UnorderedAccessView.RootParameterIndex = i;
 				bNeedRootSignature = true;
-			}
-			else
-			{
+				break;
+			default:
 				RuntimeFail();
+				break;
 			}
 			GPUCommandSignatureDx12->ArgumentStrideOffset[i] = ArgBytesStride;
 			ArgBytesStride += FGPUCommandSignatureDx12::GPU_COMMAND_STRIDE[Command];

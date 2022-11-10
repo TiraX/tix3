@@ -67,7 +67,8 @@ private:
 
 		NumHWRasterizeParams
 	};
-	FPipelinePtr HWRasterizerPL;
+	FPipelinePtr PL_HWRasterizer;
 	FTexturePtr VisBuffer;
 	FRenderResourceTablePtr RT_HWRasterize;
+	FGPUCommandSignaturePtr CmdSig_HWRasterize;
 };

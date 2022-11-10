@@ -100,9 +100,8 @@ namespace tix
 		virtual void SetRtxPipeline(FRtxPipelinePtr RtxPipeline) = 0;
 		virtual void TraceRays(FRtxPipelinePtr RtxPipeline, const FInt3& Size) = 0;
 
-		// GPU Command buffer
-		virtual void ExecuteGPUDrawCommands(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
-		virtual void ExecuteGPUComputeCommands(FGPUCommandBufferPtr GPUCommandBuffer) = 0;
+		// Execute Indirect 
+		virtual void ExecuteIndirect(FGPUCommandSignaturePtr GPUCommandSignature, FUniformBufferPtr CommandBuffer, uint32 CommandCount, uint32 CommandBufferOffset) = 0;
 
 		virtual void SetViewport(const FRecti& InViewport);
 		virtual void SetScissorRect(const FRecti& InRect);

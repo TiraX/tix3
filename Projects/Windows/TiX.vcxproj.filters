@@ -235,12 +235,6 @@
     <ClCompile Include="..\..\Sources\Engine\FStats.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\FGPUCommandBuffer.cpp">
-      <Filter>Sources\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.cpp">
-      <Filter>Sources\Rendering\dx12</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\Engine\FGPUCommandSignature.cpp">
       <Filter>Sources\Rendering</Filter>
     </ClCompile>
@@ -629,12 +623,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FStats.h">
       <Filter>Sources\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\FGPUCommandBuffer.h">
-      <Filter>Sources\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\Engine\Dx12\FGPUCommandBufferDx12.h">
-      <Filter>Sources\Rendering\dx12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\Engine\FGPUCommandSignature.h">
       <Filter>Sources\Rendering</Filter>
