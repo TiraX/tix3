@@ -201,13 +201,31 @@ namespace tix
 
 	void FRHIDx12::FeatureCheck()
 	{
-		// Check for DXR
+		// Mesh Shader
+		D3D12_FEATURE_DATA_D3D12_OPTIONS7 features = {};
+		if (FAILED(D3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &features, sizeof(features)))
+			|| (features.MeshShaderTier == D3D12_MESH_SHADER_TIER_NOT_SUPPORTED))
+		{
+			_LOG(ELog::Warning, "Device do NOT support Mesh Shader.\n");
+		}
+		else
+		{
+			SupportFeature(RHI_FEATURE_MESHSHADER);
+			RHIConfig.EnableFeature(RHI_FEATURE_MESHSHADER, true);
+		}
+		
+
+		// DXR
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 FeatureSupportData = {};
 		if (SUCCEEDED(D3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &FeatureSupportData, sizeof(FeatureSupportData)))
 			&& FeatureSupportData.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
 		{
 			SupportFeature(RHI_FEATURE_RAYTRACING);
 			RHIConfig.EnableFeature(RHI_FEATURE_RAYTRACING, true);
+		}
+		else
+		{
+			_LOG(ELog::Warning, "Device do NOT support DXR.\n");
 		}
 	}
 
@@ -528,19 +546,19 @@ namespace tix
 		return ti_new FRenderTargetDx12(W, H);
 	}
 
-	FShaderPtr FRHIDx12::CreateShader(const TShaderNames& InNames, E_SHADER_TYPE Type)
+	FShaderPtr FRHIDx12::CreateShader(const TShaderNames& InNames, EShaderType Type)
 	{
 		return ti_new FShaderDx12(InNames, Type);
 	}
 
 	FShaderPtr FRHIDx12::CreateComputeShader(const TString& ComputeShaderName)
 	{
-		return ti_new FShaderDx12(ComputeShaderName, EST_COMPUTE);
+		return ti_new FShaderDx12(ComputeShaderName, EShaderType::Compute);
 	}
 
 	FShaderPtr FRHIDx12::CreateRtxShaderLib(const TString& ShaderLibName)
 	{
-		return ti_new FShaderDx12(ShaderLibName, EST_SHADERLIB);
+		return ti_new FShaderDx12(ShaderLibName, EShaderType::ShaderLib);
 	}
 
 	FArgumentBufferPtr FRHIDx12::CreateArgumentBuffer(int32 ReservedSlots)
@@ -589,12 +607,17 @@ namespace tix
 		FRHI::GPUFrameDone();
 	}
 
-	bool FRHIDx12::UpdateHardwareResourceGraphicsPipeline(FPipelinePtr Pipeline, const TPipelineDesc& Desc)
+	void FRHIDx12::CreateGraphicsPipelineStateObject(ComPtr<ID3D12Device2> D3dDevice, FPipelinePtr Pipeline, const TPipelineDesc& Desc)
 	{
-		FPipelineDx12 * PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
+		FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
 		FShaderPtr Shader = Pipeline->GetShader();
 
-		TI_ASSERT(Shader->GetShaderType() == EST_RENDER);
+		TI_ASSERT(Shader->GetShaderType() == EShaderType::Standard);
+
+		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
+		FShaderBindingPtr Binding = ShaderDx12->GetShaderBinding();
+		TI_ASSERT(Binding != nullptr);
+		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
 
 		TVector<E_MESH_STREAM_INDEX> VertexStreams = TVertexBuffer::GetSteamsFromFormat(Desc.VsFormat);
 		TVector<E_INSTANCE_STREAM_INDEX> InstanceStreams = TInstanceBuffer::GetSteamsFromFormat(Desc.InsFormat);
@@ -631,11 +654,6 @@ namespace tix
 			InputElement.InstanceDataStepRate = 1;
 		}
 
-		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
-		FShaderBindingPtr Binding = ShaderDx12->ShaderBinding;
-		TI_ASSERT(Binding != nullptr);
-		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
-
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
 		if (InputLayout.size() > 0)
 			state.InputLayout = { &(InputLayout[0]), uint32(InputLayout.size()) };
@@ -652,17 +670,17 @@ namespace tix
 		if (ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER] != nullptr)
 		{
 			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength() > 0);
-			state.PS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength()) };
+			state.DS = { ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_DOMAIN_SHADER]->GetLength()) };
 		}
 		if (ShaderDx12->ShaderCodes[ESS_HULL_SHADER] != nullptr)
 		{
 			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength() > 0);
-			state.PS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength()) };
+			state.HS = { ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_HULL_SHADER]->GetLength()) };
 		}
 		if (ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER] != nullptr)
 		{
 			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength() > 0);
-			state.PS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength()) };
+			state.GS = { ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_GEOMETRY_SHADER]->GetLength()) };
 		}
 
 		MakeDx12RasterizerDesc(Desc, state.RasterizerState);
@@ -689,10 +707,98 @@ namespace tix
 		state.SampleDesc.Count = 1;
 
 		VALIDATE_HRESULT(D3dDevice->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
+
 		DX_SETNAME(PipelineDx12->PipelineState.Get(), Pipeline->GetResourceName());
 
 		// Shader data can be deleted once the pipeline state is created.
 		ShaderDx12->ReleaseShaderCode();
+	}
+
+	void FRHIDx12::CreateMeshShaderPipelineStateObject(ComPtr<ID3D12Device2> D3dDevice, FPipelinePtr Pipeline, const TPipelineDesc& Desc)
+	{
+		TI_ASSERT(RHIConfig.IsFeatureSupported(RHI_FEATURE_MESHSHADER));
+		FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
+		FShaderPtr Shader = Pipeline->GetShader();
+
+		TI_ASSERT(Shader->GetShaderType() == EShaderType::AmpMesh);
+
+		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
+		FShaderBindingPtr Binding = ShaderDx12->GetShaderBinding();
+		TI_ASSERT(Binding != nullptr);
+		FRootSignatureDx12* PipelineRS = static_cast<FRootSignatureDx12*>(Binding.get());
+
+		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC state = {};
+		state.pRootSignature = PipelineRS->Get();
+
+		TI_ASSERT(ShaderDx12->ShaderCodes[ESS_MESH_SHADER] != nullptr && ShaderDx12->ShaderCodes[ESS_MESH_SHADER]->GetLength() > 0);
+		state.MS = { ShaderDx12->ShaderCodes[ESS_MESH_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_MESH_SHADER]->GetLength()) };
+
+		if (ShaderDx12->ShaderCodes[ESS_AMPLIFICATION_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_AMPLIFICATION_SHADER]->GetLength() > 0);
+			state.AS = { ShaderDx12->ShaderCodes[ESS_AMPLIFICATION_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_AMPLIFICATION_SHADER]->GetLength()) };
+		}
+		if (ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER] != nullptr)
+		{
+			TI_ASSERT(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength() > 0);
+			state.PS = { ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetBuffer(), uint32(ShaderDx12->ShaderCodes[ESS_PIXEL_SHADER]->GetLength()) };
+		}
+
+		MakeDx12RasterizerDesc(Desc, state.RasterizerState);
+		MakeDx12BlendState(Desc, state.BlendState);
+		MakeDx12DepthStencilState(Desc, state.DepthStencilState);
+		state.SampleMask = UINT_MAX;
+		state.PrimitiveTopologyType = GetDx12TopologyType(Desc.PrimitiveType);
+		TI_ASSERT(D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED != state.PrimitiveTopologyType);
+		state.NumRenderTargets = Desc.RTCount;
+		TI_ASSERT(Desc.RTCount >= 0);
+		for (int32 r = 0; r < Desc.RTCount; ++r)
+		{
+			state.RTVFormats[r] = GetDxPixelFormat(Desc.RTFormats[r]);
+		}
+		if (Desc.DepthFormat != EPF_UNKNOWN)
+		{
+			state.DSVFormat = GetDxPixelFormat(Desc.DepthFormat);
+		}
+		else
+		{
+			state.DSVFormat = DXGI_FORMAT_UNKNOWN;
+		}
+		TI_ASSERT(DXGI_FORMAT_UNKNOWN != state.RTVFormats[0] || DXGI_FORMAT_UNKNOWN != state.DSVFormat);
+		state.SampleDesc.Count = 1;
+
+		auto PSOStream = CD3DX12_PIPELINE_MESH_STATE_STREAM(state);
+
+		D3D12_PIPELINE_STATE_STREAM_DESC StreamDesc;
+		StreamDesc.pPipelineStateSubobjectStream = &PSOStream;
+		StreamDesc.SizeInBytes = sizeof(PSOStream);
+
+		VALIDATE_HRESULT(D3dDevice->CreatePipelineState(&StreamDesc, IID_PPV_ARGS(&(PipelineDx12->PipelineState))));
+
+		DX_SETNAME(PipelineDx12->PipelineState.Get(), Pipeline->GetResourceName());
+
+		// Shader data can be deleted once the pipeline state is created.
+		ShaderDx12->ReleaseShaderCode();
+	}
+
+	bool FRHIDx12::UpdateHardwareResourceGraphicsPipeline(FPipelinePtr Pipeline, const TPipelineDesc& Desc)
+	{
+		FPipelineDx12 * PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
+		FShaderPtr Shader = Pipeline->GetShader();
+
+		if (Shader->GetShaderType() == EShaderType::Standard)
+		{
+			CreateGraphicsPipelineStateObject(D3dDevice, Pipeline, Desc);
+		}
+		else if (Shader->GetShaderType() == EShaderType::AmpMesh)
+		{
+			CreateMeshShaderPipelineStateObject(D3dDevice, Pipeline, Desc);
+		}
+		else
+		{
+			RuntimeFail();
+		}
+
 
 		return true;
 	}
@@ -703,7 +809,7 @@ namespace tix
 		FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(Pipeline.get());
 		FShaderPtr Shader = Pipeline->GetShader();
 
-		TI_ASSERT(Shader->GetShaderType() == EST_COMPUTE);
+		TI_ASSERT(Shader->GetShaderType() == EShaderType::Compute);
 
 		// Compute pipeline 
 		FShaderDx12* ShaderDx12 = static_cast<FShaderDx12*>(Shader.get());
@@ -1226,8 +1332,8 @@ namespace tix
 		FShaderDx12 * ShaderDx12 = static_cast<FShaderDx12*>(ShaderResource.get());
 
 		ID3D12RootSignatureDeserializer * RSDeserializer = nullptr;
-		if (ShaderResource->GetShaderType() == EST_COMPUTE ||
-			ShaderResource->GetShaderType() == EST_SHADERLIB)
+		if (ShaderResource->GetShaderType() == EShaderType::Compute ||
+			ShaderResource->GetShaderType() == EShaderType::ShaderLib)
 		{
 			TStreamPtr ShaderCode = ShaderCodes[ESS_COMPUTE_SHADER];
 			TI_ASSERT(ShaderCode != nullptr && ShaderCode->GetLength() > 0);
@@ -1279,7 +1385,8 @@ namespace tix
 			ShaderDx12->ShaderBinding = CreateShaderBinding(*RSDesc);
 			ShaderBindingCache[RSDescKey] = ShaderDx12->ShaderBinding;
 
-			if (ShaderResource->GetShaderType() == EST_RENDER)
+			if (ShaderResource->GetShaderType() == EShaderType::Standard ||
+				ShaderResource->GetShaderType() == EShaderType::AmpMesh)
 			{
 				// Analysis binding argument types
 				for (int32 s = 0; s < ESS_COUNT; ++s)
@@ -1434,6 +1541,12 @@ namespace tix
 				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_UNORDERED_ACCESS_VIEW;
 				ArgumentDescs[i].UnorderedAccessView.RootParameterIndex = i;
 				bNeedRootSignature = true;
+				break;
+			case GPU_COMMAND_DISPATCH_RAYS:
+				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_RAYS;
+				break;
+			case GPU_COMMAND_DISPATCH_MESH:
+				ArgumentDescs[i].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
 				break;
 			default:
 				RuntimeFail();

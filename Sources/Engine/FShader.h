@@ -10,11 +10,11 @@ namespace tix
 	class TI_API FShader : public FRenderResource
 	{
 	public:
-		FShader(const TString& ShaderName, E_SHADER_TYPE InType);
-		FShader(const TShaderNames& RenderShaderNames, E_SHADER_TYPE InType);
+		FShader(const TString& ShaderName, EShaderType InType);
+		FShader(const TShaderNames& RenderShaderNames, EShaderType InType);
 		virtual ~FShader();
 
-		E_SHADER_TYPE GetShaderType() const
+		EShaderType GetShaderType() const
 		{
 			return Type;
 		}
@@ -58,7 +58,7 @@ namespace tix
 
 	protected:
 		TShaderNames ShaderNames;
-		E_SHADER_TYPE Type;
+		EShaderType Type;
 		FShaderBindingPtr ShaderBinding;
 		TVector<FShaderBindingPtr> LocalShaderBindings;
 	};

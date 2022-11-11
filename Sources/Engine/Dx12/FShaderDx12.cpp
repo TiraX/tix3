@@ -11,12 +11,12 @@
 
 namespace tix
 {
-	FShaderDx12::FShaderDx12(const TString& InShaderName, E_SHADER_TYPE InType)
+	FShaderDx12::FShaderDx12(const TString& InShaderName, EShaderType InType)
 		: FShader(InShaderName, InType)
 	{
 	}
 
-	FShaderDx12::FShaderDx12(const TShaderNames& RenderShaderNames, E_SHADER_TYPE InType)
+	FShaderDx12::FShaderDx12(const TShaderNames& RenderShaderNames, EShaderType InType)
 		: FShader(RenderShaderNames, InType)
 	{
 	}

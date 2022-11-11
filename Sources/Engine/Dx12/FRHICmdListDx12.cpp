@@ -525,7 +525,8 @@ namespace tix
 		{
 			FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(InPipeline.get());
 			FShaderPtr Shader = InPipeline->GetShader();
-			TI_ASSERT(Shader->GetShaderType() == EST_RENDER);
+			TI_ASSERT(Shader->GetShaderType() == EShaderType::Standard ||
+				Shader->GetShaderType() == EShaderType::AmpMesh);
 			FShaderBindingPtr ShaderBinding = Shader->GetShaderBinding();
 			TI_ASSERT(ShaderBinding != nullptr);
 
@@ -700,7 +701,7 @@ namespace tix
 	{
 		FPipelineDx12* PipelineDx12 = static_cast<FPipelineDx12*>(InPipeline.get());
 		FShaderPtr Shader = InPipeline->GetShader();
-		TI_ASSERT(Shader->GetShaderType() == EST_COMPUTE);
+		TI_ASSERT(Shader->GetShaderType() == EShaderType::Compute);
 		FShaderBindingPtr ShaderBinding = Shader->GetShaderBinding();
 		TI_ASSERT(ShaderBinding != nullptr);
 

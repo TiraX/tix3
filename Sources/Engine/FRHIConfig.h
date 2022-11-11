@@ -17,6 +17,7 @@ namespace tix
 	enum E_RHI_FEATURE
 	{
 		RHI_FEATURE_RAYTRACING = 1 << 0,
+		RHI_FEATURE_MESHSHADER = 1 << 1,
 	};
 	class FRHIConfig
 	{

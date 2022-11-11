@@ -7,23 +7,26 @@
 
 namespace tix
 {
-	enum E_SHADER_TYPE
+	enum class EShaderType : uint8
 	{
-		EST_RENDER,
-		EST_COMPUTE,
-		EST_SHADERLIB,
-
-		EST_COUNT,
+		Standard,	// VS, HS, DS, GS, PS
+		AmpMesh,	// Amp, Mesh, PS
+		Compute,	// CS
+		ShaderLib,	// For Raytracing
 	};
 	enum E_SHADER_STAGE
 	{
 		ESS_COMPUTE_SHADER = 0,
 		ESS_SHADER_LIB = 0,
 		ESS_VERTEX_SHADER = 0,
-		ESS_PIXEL_SHADER,
-		ESS_DOMAIN_SHADER,
-		ESS_HULL_SHADER,
-		ESS_GEOMETRY_SHADER,
+		ESS_AMPLIFICATION_SHADER = 0,
+
+		ESS_HULL_SHADER = 1,
+		ESS_MESH_SHADER = 1,
+
+		ESS_DOMAIN_SHADER = 2,
+		ESS_GEOMETRY_SHADER = 3,
+		ESS_PIXEL_SHADER = 4,
 
 		ESS_COUNT,
 	};
@@ -35,10 +38,10 @@ namespace tix
 		TString GetSearchKey() const
 		{
 			return ShaderNames[ESS_VERTEX_SHADER] +
-				ShaderNames[ESS_PIXEL_SHADER] +
-				ShaderNames[ESS_DOMAIN_SHADER] +
 				ShaderNames[ESS_HULL_SHADER] +
-				ShaderNames[ESS_GEOMETRY_SHADER];
+				ShaderNames[ESS_DOMAIN_SHADER] +
+				ShaderNames[ESS_GEOMETRY_SHADER] +
+				ShaderNames[ESS_PIXEL_SHADER];
 		}
 	};
 
@@ -46,13 +49,13 @@ namespace tix
 	{
 	public:
 		// Used for Single Compute Shader or RTX Shaderlib
-		TShader(const TString& InShaderName, E_SHADER_TYPE InType);
+		TShader(const TString& InShaderName, EShaderType InType);
 
 		// Used for Graphics pipeline with vs, gs, ps etc
-		TShader(const TShaderNames& InNames, E_SHADER_TYPE InType = EST_RENDER);
+		TShader(const TShaderNames& InNames, EShaderType InType = EShaderType::Standard);
 		virtual ~TShader();
 		
-		E_SHADER_TYPE GetType() const
+		EShaderType GetType() const
 		{
 			return Type;
 		}
@@ -74,7 +77,7 @@ namespace tix
 		void ReleaseShaderCode();
 
 	protected:
-		E_SHADER_TYPE Type;
+		EShaderType Type;
 		TShaderNames Names;
 		TVector<TStreamPtr> ShaderCodes;
 	};

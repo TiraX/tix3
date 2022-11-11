@@ -12,8 +12,8 @@ namespace tix
 	class FShaderDx12 : public FShader
 	{
 	public:
-		FShaderDx12(const TString& InShaderName, E_SHADER_TYPE InType);
-		FShaderDx12(const TShaderNames& RenderShaderNames, E_SHADER_TYPE InType);
+		FShaderDx12(const TString& InShaderName, EShaderType InType);
+		FShaderDx12(const TShaderNames& RenderShaderNames, EShaderType InType);
 		virtual ~FShaderDx12();
 
 		void ReleaseShaderCode();

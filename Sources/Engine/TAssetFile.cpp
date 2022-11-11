@@ -979,7 +979,7 @@ namespace tix
 
 		// Load Shader code
 		TString ShaderLibName = GetString(HeaderRtxPipeline->ShaderLibName);
-		TShaderPtr Shader = ti_new TShader(ShaderLibName, EST_SHADERLIB);
+		TShaderPtr Shader = ti_new TShader(ShaderLibName, EShaderType::ShaderLib);
 		Shader->LoadShaderCode();
 		RtxPipeline->SetShaderLib(Shader);
 

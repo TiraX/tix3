@@ -62,7 +62,7 @@ namespace tix
 		// Create Graphics and Compute related resources
 		virtual FPipelinePtr CreatePipeline(FShaderPtr InShader) override;
 		virtual FRenderTargetPtr CreateRenderTarget(int32 W, int32 H) override;
-		virtual FShaderPtr CreateShader(const TShaderNames& InNames, E_SHADER_TYPE Type) override;
+		virtual FShaderPtr CreateShader(const TShaderNames& InNames, EShaderType Type) override;
 		virtual FShaderPtr CreateComputeShader(const TString& InComputeShaderName) override;
 		virtual FArgumentBufferPtr CreateArgumentBuffer(int32 ReservedSlots) override;
 		virtual FGPUCommandSignaturePtr CreateGPUCommandSignature(FPipelinePtr Pipeline, const TVector<E_GPU_COMMAND_TYPE>& CommandStructure) override;
@@ -173,8 +173,13 @@ namespace tix
 		FShaderBindingPtr CreateShaderBinding(const D3D12_ROOT_SIGNATURE_DESC& RSDesc);
 
 		virtual bool InitRaytracing();
+
+		void CreateGraphicsPipelineStateObject(ComPtr<ID3D12Device2> D3dDevice, FPipelinePtr Pipeline, const TPipelineDesc& Desc);
+		void CreateMeshShaderPipelineStateObject(ComPtr<ID3D12Device2> D3dDevice, FPipelinePtr Pipeline, const TPipelineDesc& Desc);
+
+
 	protected:
-		ComPtr<ID3D12Device> D3dDevice;
+		ComPtr<ID3D12Device2> D3dDevice;
 		ComPtr<IDXGIFactory4> DxgiFactory;
 		ComPtr<IDXGISwapChain3> SwapChain;
 		

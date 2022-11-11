@@ -8,7 +8,7 @@
 
 namespace tix
 {
-	TShader::TShader(const TString& InShaderName, E_SHADER_TYPE InType)
+	TShader::TShader(const TString& InShaderName, EShaderType InType)
 		: TResource(ERES_SHADER)
 		, Type(InType)
 	{
@@ -16,7 +16,7 @@ namespace tix
 		ShaderCodes.resize(ESS_COUNT);
 	}
 
-	TShader::TShader(const TShaderNames& InNames, E_SHADER_TYPE InType)
+	TShader::TShader(const TShaderNames& InNames, EShaderType InType)
 		: TResource(ERES_SHADER)
 		, Type(InType)
 	{
