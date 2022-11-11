@@ -93,7 +93,7 @@ void FPersistentCullCS::Run(FRHICmdList* RHICmdList)
 	RHICmdList->SetComputeResourceTable(FPersistentCullCS::RT_Table, ResourceTable);
 	RHICmdList->DispatchCompute(
 		FInt3(NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE, 1, 1),
-		FInt3(1, 1, 1)
+		FInt3(1440, 1, 1)
 	);
 	RHICmdList->EndEvent();
 	++frame;
