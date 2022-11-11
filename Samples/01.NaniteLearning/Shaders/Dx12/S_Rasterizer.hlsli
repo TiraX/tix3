@@ -261,6 +261,9 @@ VSOut HWRasterizeVS(
 // 			VertexID == 1 ? 1 : 0
 // 		);
 // #endif
+		// tix: overwrite it for test
+		Out.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.x = VisibleIndex;
+		Out.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y = TriIndex;
 
 		// Calc a color value by GroupIndex for debug
 		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
@@ -357,8 +360,10 @@ void HWRasterizeMS(
 		PrimitiveAttributes Attributes;
 		Attributes.PackedData.x = VisibleIndex;
 		Attributes.PackedData.y = TriangleIndex;
-		Attributes.PackedData.z = asuint(NaniteView.ViewSizeAndInvSize.x);
-		Attributes.PackedData.w = asuint(NaniteView.ViewSizeAndInvSize.y);
+		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+		Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
+		Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
 		//MESH_SHADER_WRITE_PRIMITIVE(GroupThreadID, Attributes);
 		OutPrimitives[GroupThreadID] = Attributes;
 	}
@@ -542,155 +547,39 @@ float4 HWRasterizePS(VSOut In
 	float4 SvPosition = float4(In.PointClipPixel.xyz / In.PointClipPixel.w, In.PointClipPixel.w);
 	uint2 PixelPos = (uint2)SvPosition.xy;
 
-	uint PixelValue = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.x;
+	const uint ViewId = BitFieldExtractU32(In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y, 16, 0);
+	
+	const FNaniteView NaniteView = GetNaniteView(ViewId);
+	
+	float DeviceZ = SvPosition.z;
+	float MaterialMask = 1.0f; // TODO: PROG_RASTER
 
-// #if VERTEX_TO_TRIANGLE_MASKS
-// #if NANITE_VERT_REUSE_BATCH
-// 	uint2 Mask_TriRangeStart = GetAttributeAtVertex0( In.ToTriangleMask_TriRangeStart );
-// 	uint Mask0 = Mask_TriRangeStart.x;
-// 	uint Mask1 = GetAttributeAtVertex1( In.ToTriangleMask_TriRangeStart ).x;
-// 	uint Mask2 = GetAttributeAtVertex2( In.ToTriangleMask_TriRangeStart ).x;
-// 	uint Mask = Mask0 & Mask1 & Mask2;
-// 	uint TriangleIndex = Mask_TriRangeStart.y + firstbitlow(Mask);
-// 	PixelValue += TriangleIndex;
-// #else
-// 	uint4 Masks0 = GetAttributeAtVertex0( In.ToTriangleMasks );
-// 	uint4 Masks1 = GetAttributeAtVertex1( In.ToTriangleMasks );
-// 	uint4 Masks2 = GetAttributeAtVertex2( In.ToTriangleMasks );
-
-// 	uint4 Masks = Masks0 & Masks1 & Masks2;
-// 	uint TriangleIndex =	Masks.x ? firstbitlow( Masks.x ) :
-// 							Masks.y ? firstbitlow( Masks.y ) + 32 :
-// 							Masks.z ? firstbitlow( Masks.z ) + 64 :
-// 							firstbitlow( Masks.w ) + 96;
-
-// 	PixelValue += TriangleIndex;
-// #endif
-// #endif
 
 #if NANITE_MESH_SHADER
  	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.
- 	const uint ClusterIndex  = Primitive.PackedData.x;
- 	const uint TriangleIndex = Primitive.PackedData.y;
- 	PixelValue = ((ClusterIndex + 1) << 7) | TriangleIndex;
+ 	uint VisibleClusterIndex = Primitive.PackedData.x;
+ 	uint TriIndex = Primitive.PackedData.y;
+#else
+	uint VisibleClusterIndex = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.x;
+	uint TriIndex = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y;
 #endif
 
-// #if VIRTUAL_TEXTURE_TARGET
-// 	if (all(PixelPos < In.ViewRect.zw))
-// #elif NANITE_MULTI_VIEW
-// 	// In multi-view mode every view has its own scissor, so we have to scissor manually.
-// 	if (all(PixelPos >= In.ViewRect.xy && PixelPos < In.ViewRect.zw))
-// #endif
+	uint PixelValue = ((VisibleClusterIndex + 1) << 7) | TriIndex;
+	SVisBufferWriteParameters WriteParams = InitializeVisBufferWriteParameters(PixelPos/*PageTranslation*/, PixelValue, DeviceZ);
+	//[branch]
+	//if (MaterialMask >= 0)
 	{
-		const uint ViewId		= BitFieldExtractU32(In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y, 16, 0);
-	// #if VIRTUAL_TEXTURE_TARGET
-	// 	const uint MipLevel		= BitFieldExtractU32(In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y, 8, 16);
-	// 	const uint ArrayIndex	= BitFieldExtractU32(In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y, 8, 24);
-	// 	const uint LevelOffset	= In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.z;
-
-	// 	const FNaniteView NaniteView = GetNaniteView(ViewId);
-	// 	WritePixelPageTranslation PageTranslation = InitializeWritePixelPageTranslation(LevelOffset, MipLevel, ArrayIndex);
-	// #else
-		const FNaniteView NaniteView = GetNaniteView(ViewId);
-		//WritePixelPageTranslation PageTranslation = InitializeWritePixelPageTranslation();
-	//#endif
-
-		float DeviceZ = SvPosition.z;
-
-		float MaterialMask = 1.0f; // TODO: PROG_RASTER
-
-		SVisBufferWriteParameters WriteParams = InitializeVisBufferWriteParameters(PixelPos/*PageTranslation*/, PixelValue, DeviceZ);
-	// #if ENABLE_EARLY_Z_TEST
-	// 	BRANCH
-	// 	if (!EarlyTestVisBuffer(WriteParams))
-	// 	{
-	// 		return;
-	// 	}
-	// #endif
-
-	// #if NANITE_PIXEL_PROGRAMMABLE
-	// 	ResolvedView = ResolveView(NaniteView);
-
-	// 	const uint DepthInt = asuint(DeviceZ);
-	// 	const UlongType PackedPixel = PackUlongType(uint2(PixelValue, DepthInt));
-
-	// 	FVertexFactoryInterpolantsVSToPS Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
-
-	// 	// Material parameter inputs
-	// 	FBarycentrics Barycentrics = (FBarycentrics)0;
-		
-	// 	bool bCalcTriangleIndices = true;
-	// 	uint3 TriangleIndices = 0;
-	// #if BARYCENTRIC_MODE_INTRINSICS
-	// 	const uint VertexID0 = GetAttributeAtVertex0(In.VertexID);
-	// 	const uint VertexID1 = GetAttributeAtVertex1(In.VertexID);
-	// 	const uint VertexID2 = GetAttributeAtVertex2(In.VertexID);
-	// 	TriangleIndices = uint3(VertexID0, VertexID1, VertexID2);
-
-	// 	// Recover barycentrics from hardware ViVj:
-	// 	// v = v0 + I (v1 - v0) + J (v2 - v0) = (1 - I - J) v0 + I v1 + J v2
-	// 	const float2 ViVj = GetViVjPerspectiveCenter();
-	// 	const float3 UVW = float3(1.0f - ViVj.x - ViVj.y, ViVj);
-
-	// 	// The vertex order can be rotated during the rasterization process,
-	// 	// so the original order needs to be recovered to make sense of the barycentrics.
-		
-	// 	// Fortunately, for compression purposes, triangle indices already have the form (base, base+a, base+b), where a,b>0.
-	// 	// This turns out to be convenient as it allows us to recover the original vertex order by simply rotating
-	// 	// the lowest vertex index into the first position. This saves an export compared to the usual provoking vertex trick
-	// 	// that compares with an additional nointerpolation export.
-	// 	const uint MinVertexID = min3(VertexID0, VertexID1, VertexID2);	
-
-	// 	Barycentrics.UVW =	(MinVertexID == VertexID1) ? UVW.yzx :
-	// 						(MinVertexID == VertexID2) ? UVW.zxy :
-	// 						UVW;
-
-	// 	// As we already have the indices on hand, so we might as well use them instead of decoding them again from memory
-	// 	TriangleIndices =	(MinVertexID == VertexID1) ? TriangleIndices.yzx :
-	// 						(MinVertexID == VertexID2) ? TriangleIndices.zxy :
-	// 						TriangleIndices;
-		
-	// 	bCalcTriangleIndices = false;
-	// #elif BARYCENTRIC_MODE_SV_BARYCENTRICS && PIXELSHADER
-	// 	Barycentrics.UVW = In.Barycentrics;
-	// #elif BARYCENTRIC_MODE_EXPORT
-	// 	Barycentrics.UVW = float3(In.BarycentricsUV, 1.0f - In.BarycentricsUV.x - In.BarycentricsUV.y);
-	// #endif
-	// #if USE_ANALYTIC_DERIVATIVES
-	// 	Barycentrics.UVW_dx = ddx(Barycentrics.UVW);
-	// 	Barycentrics.UVW_dy = ddy(Barycentrics.UVW);
-	// #endif
-		
-	// 	FMaterialPixelParameters MaterialParameters = FetchNaniteMaterialPixelParameters(NaniteView, PackedPixel, VIRTUAL_TEXTURE_TARGET, Barycentrics, false, TriangleIndices, bCalcTriangleIndices, Interpolants, SvPosition);
-	// 	FPixelMaterialInputs PixelMaterialInputs;
-	// 	CalcMaterialParameters(MaterialParameters, PixelMaterialInputs, SvPosition, true /*bIsFrontFace*/);
-
-	// 	#if WANT_PIXEL_DEPTH_OFFSET
-	// 	ApplyPixelDepthOffsetToMaterialParameters(MaterialParameters, PixelMaterialInputs, WriteParams.DeviceZ);
-	// 	#endif
-
-	// 	#if MATERIALBLENDING_MASKED
-	// 	MaterialMask = GetMaterialMask(PixelMaterialInputs);
-	// 	#endif
-	// #endif
-
-		//[branch]
-		//if (MaterialMask >= 0)
-		{
-			WriteToVisBuffer(WriteParams);
-		}
+		WriteToVisBuffer(WriteParams);
 	}
+#if NANITE_MESH_SHADER
+ 	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.
+	uint PackedColor = Primitive.PackedData.z;
+#else
 	uint PackedColor = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.z;
+#endif
 	uint3 DebugColor = uint3(PackedColor & 0xff, (PackedColor & 0xff00) >> 8, (PackedColor & 0xff0000) >> 16);
 	float3 C = (float3)DebugColor / 255.0;
 	//return float4(C.xyz, 1.0);
-
-
-	uint PackedPixel = In.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.x;
-
-	// UnpackVisPixel
-	uint VisibleClusterIndex = PackedPixel >> 7;
-	uint TriIndex = PackedPixel & 0x7f;
 
 	if (VisibleClusterIndex != 0xFFFFFFFF)
 	{

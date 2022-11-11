@@ -253,6 +253,9 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	DecodeInfo.MaxVisibleClusters = GetMaxVisibleClusters();
 	DecodeInfo.MaxCandidateClusters = GetMaxCandidateClusters();
 	DecodeInfo.RenderFlags |= NANITE_RENDER_FLAG_FORCE_HW_RASTER;
+#if NANITE_MESH_SHADER
+	DecodeInfo.RenderFlags |= NANITE_RENDER_FLAG_MESH_SHADER;
+#endif
 
 	RHICmdList->BeginEvent("Nanite.VisBuffer");
 	// Init Context, clear vis buffer uav

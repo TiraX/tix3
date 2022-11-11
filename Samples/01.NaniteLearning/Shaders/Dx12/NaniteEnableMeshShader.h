@@ -1,4 +1,4 @@
 
 #pragma once
 
-#define NANITE_MESH_SHADER 0
+#define NANITE_MESH_SHADER 1
