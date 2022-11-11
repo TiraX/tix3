@@ -29,14 +29,23 @@ typedef half float16;
 typedef float float32;
 typedef double float64;
 
-#define TVector std::vector
-#define TList std::list
-#define TPair std::pair
-#define TMap std::map
-#define THMap std::unordered_map
-#define TSet std::set
-#define THSet std::unordered_set
-#define TNumLimit std::numeric_limits
+template<typename T>
+using TVector = std::vector<T>;
+template<typename T>
+using TList = std::list<T>;
+template<typename T1, typename T2>
+using TPair = std::pair<T1, T2>;
+template<typename T1, typename T2>
+using TMap = std::map<T1, T2>;
+template<typename T1, typename T2>
+using THMap = std::unordered_map<T1, T2>;
+template<typename T>
+using TSet = std::set<T>;
+template<typename T>
+using THSet = std::unordered_set<T>;
+template<typename T>
+using TNumLimit = std::numeric_limits<T>;
+
 #define TFunction std::function
 #define TForward std::forward
 #define TMakePair std::make_pair
