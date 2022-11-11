@@ -23,7 +23,7 @@ namespace tix
 		sizeof(uint64),							//GPU_COMMAND_SHADER_RESOURCE
 		sizeof(uint64),							//GPU_COMMAND_UNORDERED_ACCESS
 		sizeof(D3D12_DISPATCH_ARGUMENTS),		//GPU_COMMAND_DISPATCH_RAYS
-		sizeof(D3D12_DISPATCH_ARGUMENTS)		//GPU_COMMAND_DISPATCH_MESH
+		sizeof(D3D12_DISPATCH_MESH_ARGUMENTS)		//GPU_COMMAND_DISPATCH_MESH
 	};
 
 	FGPUCommandSignatureDx12::FGPUCommandSignatureDx12(FPipelinePtr InPipeline, const TVector<E_GPU_COMMAND_TYPE>& CommandStructure)

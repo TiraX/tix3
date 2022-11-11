@@ -201,28 +201,6 @@ VSOut HWRasterizeVS(
 {
 	uint3 RasterBin;
 
-	// const bool bHasRasterBin = (DecodeInfo.RenderFlags & NANITE_RENDER_FLAG_HAS_RASTER_BIN) != 0u;
-	// [branch]
-	// if (bHasRasterBin)
-	// {
-	// 	RasterBin = FetchHWRasterizerBin(VisibleIndex);
-	// 	VisibleIndex = RasterBin.x;
-	// }
-
-	// const bool bHasPrevDrawData = (RenderFlags & NANITE_RENDER_FLAG_HAS_PREV_DRAW_DATA) != 0u;
-	// [branch]
-	// if (bHasPrevDrawData)
-	// {
-	// 	VisibleIndex += InTotalPrevDrawClusters[0].y;
-	// }
-
-	// const bool bAddClusterOffset = (RenderFlags & NANITE_RENDER_FLAG_ADD_CLUSTER_OFFSET) != 0u;
-	// [branch]
-	// if (bAddClusterOffset)
-	// {
-	// 	VisibleIndex += InClusterOffsetSWHW[GetHWClusterCounterIndex(RenderFlags)];
-	// }
-
 	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex; // HW clusters are written from the top (in the visible cluster list)
 
 	uint LocalTriIndex = VertexID / 3;
@@ -304,28 +282,6 @@ void HWRasterizeMS(
 	uint VisibleIndex = GroupID;
 
 	uint3 RasterBin;
-
-	// const bool bHasRasterBin = (RenderFlags & NANITE_RENDER_FLAG_HAS_RASTER_BIN) != 0u;
-	// BRANCH
-	// if (bHasRasterBin)
-	// {
-	// 	RasterBin = FetchHWRasterizerBin(VisibleIndex);
-	// 	VisibleIndex = RasterBin.x;
-	// }
-
-	// const bool bHasPrevDrawData = (RenderFlags & NANITE_RENDER_FLAG_HAS_PREV_DRAW_DATA) != 0u;
-	// BRANCH
-	// if (bHasPrevDrawData)
-	// {
-	// 	VisibleIndex += InTotalPrevDrawClusters[0].y;
-	// }
-
-	// const bool bAddClusterOffset = (RenderFlags & NANITE_RENDER_FLAG_ADD_CLUSTER_OFFSET) != 0u;
-	// BRANCH
-	// if (bAddClusterOffset)
-	// {
-	// 	VisibleIndex += InClusterOffsetSWHW[GetHWClusterCounterIndex(RenderFlags)];
-	// }
 
 	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex;
 
