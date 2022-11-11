@@ -64,6 +64,7 @@ namespace tix
 		virtual void DrawPrimitiveInstanced(uint32 VertexCount, uint32 InstanceCount, uint32 InstanceOffset) override;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 InstanceOffset) override;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) override;
+		virtual void DispatchMesh(const FInt3& GroupCount) override;
 
 		// Tile, For Metal, dx12 has empty implementation
 		virtual void SetTilePipeline(FPipelinePtr InPipeline) override;
@@ -151,7 +152,7 @@ namespace tix
 
 		TVector<ComPtr<ID3D12CommandAllocator>> CommandAllocators;
 		ComPtr<ID3D12CommandQueue> CommandQueue;
-		ComPtr<ID3D12GraphicsCommandList> CommandList;
+		ComPtr<ID3D12GraphicsCommandList6> CommandList;
 		ComPtr<ID3D12Fence> CommandFence;
 
 		uint64 ExecIndex;

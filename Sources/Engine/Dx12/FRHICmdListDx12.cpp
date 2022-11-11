@@ -682,6 +682,12 @@ namespace tix
 		FStats::Stats.TrianglesRendered += IndexCount / 3 * InstanceCount;
 	}
 
+	void FRHICmdListDx12::DispatchMesh(const FInt3& GroupCount)
+	{
+		FlushBarriers();
+		CommandList->DispatchMesh(GroupCount.X, GroupCount.Y, GroupCount.Z);
+	}
+
 	void FRHICmdListDx12::SetTilePipeline(FPipelinePtr InPipeline)
 	{
 		TI_ASSERT(0);

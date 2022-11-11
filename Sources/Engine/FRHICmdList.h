@@ -80,6 +80,7 @@ namespace tix
 		virtual void DrawPrimitiveInstanced(uint32 VertexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 InstanceOffset) = 0;
 		virtual void DrawPrimitiveIndexedInstanced(uint32 IndexCount, uint32 InstanceCount, uint32 IndexOffset, uint32 InstanceOffset) = 0;
+		virtual void DispatchMesh(const FInt3& GroupCount) = 0;
 
 		// Tile
 		virtual void SetTilePipeline(FPipelinePtr InPipeline) = 0;
