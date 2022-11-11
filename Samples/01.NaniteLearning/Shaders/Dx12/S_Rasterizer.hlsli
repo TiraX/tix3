@@ -283,6 +283,7 @@ struct PrimitiveAttributes
 };
 
 #if NANITE_MESH_SHADER
+[RootSignature(HWRasterizeRS)]
 //MESH_SHADER_TRIANGLE_ATTRIBUTES(NANITE_MESH_SHADER_TG_SIZE)
 [numthreads(NANITE_MESH_SHADER_TG_SIZE, 1, 1)]
 [outputtopology("triangle")]

@@ -156,6 +156,9 @@
     <ClInclude Include="ClearVisBufferCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteEnableMeshShader.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">

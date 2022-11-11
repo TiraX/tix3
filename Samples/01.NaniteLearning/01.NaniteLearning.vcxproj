@@ -216,6 +216,7 @@
     <ClInclude Include="Shaders\Dx12\NaniteDataDecode.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDebugInfo.h" />
     <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h" />
+    <ClInclude Include="Shaders\Dx12\NaniteEnableMeshShader.h" />
     <ClInclude Include="Shaders\Dx12\NanitePackedNaniteView.h" />
     <ClInclude Include="Shaders\Dx12\WaveOpUtil.h" />
     <ClInclude Include="stdafx.h" />
@@ -299,6 +300,10 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">HWRasterizeMS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">HWRasterizeMS</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\Dx12\S_RasterizerPS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">HWRasterizePS</EntryPointName>

@@ -9,6 +9,8 @@
 #include "NaniteView.h"
 #include "NaniteDebug.h"
 
+#include "Shaders/Dx12/NaniteEnableMeshShader.h"
+
 
 FNaniteLearningRenderer::FNaniteLearningRenderer(FSceneInterface* Scene)
 	: FDefaultRenderer(Scene)
@@ -175,13 +177,20 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	HWRasterizerMat->SetResourceName("HWRasterizer");
 
 	TShaderNames ShaderNames;
+	EShaderType ShaderType;
+#if NANITE_MESH_SHADER
+	ShaderType = EShaderType::AmpMesh;
+	ShaderNames.ShaderNames[ESS_MESH_SHADER] = "S_RasterizerMS";
+#else
+	ShaderType = EShaderType::Standard;
 	ShaderNames.ShaderNames[ESS_VERTEX_SHADER] = "S_RasterizerVS";
+#endif
 	ShaderNames.ShaderNames[ESS_PIXEL_SHADER] = "S_RasterizerPS";
 
 	// Move this TShader load to Game Thread. Or Make a gloal shader system.
 	TShaderPtr Shader = ti_new TShader(ShaderNames);
 	Shader->LoadShaderCode();
-	Shader->ShaderResource = FRHI::Get()->CreateShader(ShaderNames, EST_RENDER);
+	Shader->ShaderResource = FRHI::Get()->CreateShader(ShaderNames, ShaderType);
 	FRHI::Get()->UpdateHardwareResourceShader(Shader->ShaderResource, Shader->GetShaderCodes());
 	HWRasterizerMat->SetShader(Shader);
 	FShaderPtr RTShader = Shader->ShaderResource;
@@ -225,7 +234,11 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	// Indirect command signature
 	TVector<E_GPU_COMMAND_TYPE> CommandStructure;
 	CommandStructure.resize(1);
+#if NANITE_MESH_SHADER
+	CommandStructure[0] = GPU_COMMAND_DISPATCH_MESH;
+#else
 	CommandStructure[0] = GPU_COMMAND_DRAW;
+#endif
 	CmdSig_HWRasterize = RHI->CreateGPUCommandSignature(PL_HWRasterizer, CommandStructure);
 	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
@@ -304,6 +317,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	// Do Hardware rasterize
 	RHICmdList->SetGPUBufferState(VisibleClustersSWHW->GetGPUBuffer(), EGPUResourceState::NonPixelShaderResource);
 	RHICmdList->SetGPUBufferState(VisibleClustersArgsSWHW->GetGPUBuffer(), EGPUResourceState::IndirectArgument);
+
 	RHICmdList->SetGraphicsPipeline(PL_HWRasterizer);
 	RHICmdList->SetPrimitiveTopology(EPrimitiveType::TriangleList);
 	RHICmdList->SetGraphicsConstant(RC_DecodeInfo, &DecodeInfo, sizeof(FDecodeInfo) / sizeof(uint32));

@@ -3,4 +3,6 @@
 	By ZhaoShuai tirax.cn@gmail.com
 */
 
+#include "NaniteEnableMeshShader.h"
+
 #include "S_Rasterizer.hlsli"

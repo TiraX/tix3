@@ -7,6 +7,7 @@
 //#include "../SceneData.ush"
 #include "NaniteDefinitions.h"
 #include "NanitePackedNaniteView.h"
+#include "NaniteEnableMeshShader.h"
 
 #ifndef DEBUG_FLAGS
     #define DEBUG_FLAGS 0
@@ -16,7 +17,11 @@ uint GetHWClusterCounterIndex(uint InRenderFlags)
 {
 	// tix: do not use mesh shader for now.
 	// mesh shader should be 4, others 5.
+#if NANITE_MESH_SHADER
+	return 4;
+#else
 	return 5;
+#endif
 // Ensure rasterizer uses compile time constants.
 //#ifdef NANITE_HW_COUNTER_INDEX
 //	return NANITE_HW_COUNTER_INDEX;
