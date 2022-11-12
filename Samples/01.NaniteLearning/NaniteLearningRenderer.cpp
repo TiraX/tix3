@@ -180,6 +180,9 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	EShaderType ShaderType;
 #if NANITE_MESH_SHADER
 	ShaderType = EShaderType::AmpMesh;
+#	if USE_AS_SHADER
+	ShaderNames.ShaderNames[ESS_AMPLIFICATION_SHADER] = "S_RasterizerAS";
+#	endif
 	ShaderNames.ShaderNames[ESS_MESH_SHADER] = "S_RasterizerMS";
 #else
 	ShaderType = EShaderType::Standard;

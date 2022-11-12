@@ -264,6 +264,23 @@ struct PrimitiveAttributes
 };
 
 #if NANITE_MESH_SHADER
+
+#define AS_GROUP_SIZE 1
+struct Payload
+{
+    uint VisibleClusterIndex[AS_GROUP_SIZE];
+};
+groupshared Payload s_Payload;
+[RootSignature(HWRasterizeRS)]
+[NumThreads(AS_GROUP_SIZE, 1, 1)]
+void HWRasterizeAS(uint dispatchId : SV_DispatchThreadID, uint GroudId : SV_GroupID, uint GroupIndex : SV_GroupIndex)
+{
+	s_Payload.VisibleClusterIndex[GroupIndex] = dispatchId;	
+    DispatchMesh(AS_GROUP_SIZE, 1, 1, s_Payload);
+}
+
+
+
 [RootSignature(HWRasterizeRS)]
 //MESH_SHADER_TRIANGLE_ATTRIBUTES(NANITE_MESH_SHADER_TG_SIZE)
 [numthreads(NANITE_MESH_SHADER_TG_SIZE, 1, 1)]
@@ -271,6 +288,9 @@ struct PrimitiveAttributes
 void HWRasterizeMS(
 	uint GroupThreadID : SV_GroupThreadID,
 	uint GroupID : SV_GroupID,
+#if USE_AS_SHADER
+    in payload Payload payload,
+#endif
 	//MESH_SHADER_VERTEX_EXPORT(VSOut, 256),
 	out vertices VSOut OutVertices[256],
 	//MESH_SHADER_TRIANGLE_EXPORT(128),
@@ -279,10 +299,14 @@ void HWRasterizeMS(
 	out primitives PrimitiveAttributes OutPrimitives[128]
 )
 {
-	uint VisibleIndex = GroupID;
 
 	uint3 RasterBin;
 
+#if USE_AS_SHADER
+	uint VisibleIndex = payload.VisibleClusterIndex[GroupID];
+#else
+	uint VisibleIndex = GroupID;
+#endif
 	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex;
 
 	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
