@@ -19,6 +19,16 @@ void TNaniteLearningTicker::Tick(float Dt)
 {
 }
 
+bool TNaniteLearningTicker::OnEvent(const TEvent& E)
+{
+	if (E.type == EET_KEY_DOWN)
+	{
+		if (E.param == KEY_SPACE)
+			FNaniteLearningRenderer::FreezeCulling();
+	}
+	return true;
+}
+
 void TNaniteLearningTicker::SetupScene()
 {
 	// Preload Env cube

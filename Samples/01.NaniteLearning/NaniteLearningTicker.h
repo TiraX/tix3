@@ -5,13 +5,15 @@
 
 #pragma once
 
-class TNaniteLearningTicker : public TTicker
+class TNaniteLearningTicker : public TTicker, public TEventHandler
 {
 public:
 	TNaniteLearningTicker();
 	virtual ~TNaniteLearningTicker();
 
 	virtual void Tick(float Dt) override;
+
+	virtual bool OnEvent(const TEvent& E) override;
 
 	void SetupScene();
 

@@ -22,6 +22,8 @@ public:
 	virtual void InitInRenderThread() override;
 	virtual void Render(FRHICmdList* RHICmdList) override;
 
+	static void FreezeCulling();
+
 private:
 
 private:

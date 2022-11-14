@@ -254,6 +254,12 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
 }
 
+static bool bFreezeCulling = false;
+void FNaniteLearningRenderer::FreezeCulling()
+{
+	bFreezeCulling = !bFreezeCulling;
+}
+
 void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 {
 	FDecodeInfo DecodeInfo;
@@ -269,6 +275,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 
 	RHICmdList->BeginEvent("Nanite.VisBuffer");
 	// Init Context, clear vis buffer uav
+	if (!bFreezeCulling)
 	{
 		const int32 RTWidth = TEngine::GetAppInfo().Width;
 		const int32 RTHeight = TEngine::GetAppInfo().Height;
@@ -276,6 +283,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 		ClearVisBufferCS->Run(RHICmdList);
 	}
 	// Init args
+	if (!bFreezeCulling)
 	{
 		InitArgsCS->ApplyParameters(RHICmdList, DecodeInfo, QueueState, VisibleClustersArgsSWHW);
 		InitArgsCS->Run(RHICmdList);
@@ -284,27 +292,30 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 	}
 
 	// Fake instance cull
+	if (!bFreezeCulling)
 	{
 		FakeInstanceCullCS->ApplyParameters(RHICmdList, DecodeInfo, QueueState, MainAndPostNodesAndClusterBatchesBuffer);
 		FakeInstanceCullCS->Run(RHICmdList);
 	}
 
+	FPackedView PackedView = CreatePackedViewFromViewInfo(
+		Scene->GetViewProjection(),
+		FInt2(TEngine::GetAppInfo().Width, TEngine::GetAppInfo().Height),
+		NANITE_VIEW_FLAG_HZBTEST | NANITE_VIEW_FLAG_NEAR_CLIP,
+		/* StreamingPriorityCategory = */ 3,
+		/* MinBoundsRadius = */ 0.0f,
+		1.0
+	);
+	// Update View uniform buffer
+	uint8* ViewDataPtr = View->GetGPUBuffer()->Lock();
+	memcpy(ViewDataPtr, &PackedView, sizeof(FPackedView));
+	View->GetGPUBuffer()->Unlock();
+
 	// node and cluster cull
+	if (!bFreezeCulling)
 	{
 		RHICmdList->SetGPUBufferState(VisibleClustersSWHW->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
 		RHICmdList->SetGPUBufferState(VisibleClustersArgsSWHW->GetGPUBuffer(), EGPUResourceState::UnorderedAccess);
-		FPackedView PackedView = CreatePackedViewFromViewInfo(
-			Scene->GetViewProjection(),
-			FInt2(TEngine::GetAppInfo().Width, TEngine::GetAppInfo().Height),
-			NANITE_VIEW_FLAG_HZBTEST | NANITE_VIEW_FLAG_NEAR_CLIP,
-			/* StreamingPriorityCategory = */ 3,
-			/* MinBoundsRadius = */ 0.0f,
-			1.0
-		);
-		// Update View uniform buffer
-		uint8* ViewDataPtr = View->GetGPUBuffer()->Lock();
-		memcpy(ViewDataPtr, &PackedView, sizeof(FPackedView));
-		View->GetGPUBuffer()->Unlock();
 
 		PersistentCullCS->ApplyParameters(
 			RHICmdList,
