@@ -858,8 +858,15 @@ static void PackCluster(FPackedCluster& OutCluster, const FCluster& InCluster, c
 	OutCluster.LODBounds = FFloat4(InCluster.LODBounds.Center.X, InCluster.LODBounds.Center.Y, InCluster.LODBounds.Center.Z, InCluster.LODBounds.W);
 
 	// 3
-	OutCluster.BoxBoundsCenter = (InCluster.Bounds.Min + InCluster.Bounds.Max) * 0.5f;
+	//OutCluster.BoxBoundsCenter = (InCluster.Bounds.Min + InCluster.Bounds.Max) * 0.5f;
 	OutCluster.LODErrorAndEdgeLength = float16(InCluster.LODError).data() | (float16(InCluster.EdgeLength).data() << 16);
+	TI_ASSERT(InCluster.MipLevel >= 0);
+	FFloat3 BoxBoundsCenter = (InCluster.Bounds.Min + InCluster.Bounds.Max) * 0.5f;
+	FUInt2 U2Data;
+	U2Data.X = (float16(BoxBoundsCenter.X).data() << 16) | float16(BoxBoundsCenter.Y).data();
+	U2Data.Y = (float16(BoxBoundsCenter.Z).data() << 16) | (InCluster.MipLevel & 0xffff);
+	OutCluster.BoxBoundsCenter16_MipLevel = U2Data;
+	OutCluster.Reserved = 0;
 
 	// 4
 	OutCluster.BoxBoundsExtent = (InCluster.Bounds.Max - InCluster.Bounds.Min) * 0.5f;

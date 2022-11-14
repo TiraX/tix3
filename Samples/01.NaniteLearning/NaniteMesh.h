@@ -81,7 +81,8 @@ struct FPackedCluster
 	// Members needed for culling
 	FFloat4 LODBounds;									// LWC_TODO: Was FSphere, but that's now twice as big and won't work on GPU.
 
-	FFloat3 BoxBoundsCenter;
+	FUInt2 BoxBoundsCenter16_MipLevel;
+	uint32 Reserved;
 	uint32 LODErrorAndEdgeLength;
 
 	FFloat3 BoxBoundsExtent;

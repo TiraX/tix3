@@ -102,9 +102,6 @@
     <ClInclude Include="TranscodeCS.h">
       <Filter>Source Files\Computes</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h">
-      <Filter>Source Files\Computes</Filter>
-    </ClInclude>
     <ClInclude Include="StreamingPageUploader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -159,6 +156,9 @@
     <ClInclude Include="Shaders\Dx12\NaniteEnableMeshShader.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Shaders\Dx12\NaniteDefinitions.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Dx12\S_DebugOpaquePS.hlsl">
@@ -206,6 +206,15 @@
     <FxCompile Include="Shaders\Dx12\S_RasterizerAS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_RasterizerTessAS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_RasterizerTessMS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Dx12\S_RasterizerTessPS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Dx12\Common.hlsli">
@@ -224,6 +233,9 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Dx12\S_Rasterizer.hlsli">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dx12\S_RasterizerTess.hlsli">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

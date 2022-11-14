@@ -180,15 +180,22 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	EShaderType ShaderType;
 #if NANITE_MESH_SHADER
 	ShaderType = EShaderType::AmpMesh;
-#	if USE_AS_SHADER
+#	if DO_TESS
+	ShaderNames.ShaderNames[ESS_AMPLIFICATION_SHADER] = "S_RasterizerTessAS";
+	ShaderNames.ShaderNames[ESS_MESH_SHADER] = "S_RasterizerTessMS";
+	ShaderNames.ShaderNames[ESS_PIXEL_SHADER] = "S_RasterizerTessPS";
+#	else
+#		if USE_AS_SHADER
 	ShaderNames.ShaderNames[ESS_AMPLIFICATION_SHADER] = "S_RasterizerAS";
-#	endif
+#		endif
 	ShaderNames.ShaderNames[ESS_MESH_SHADER] = "S_RasterizerMS";
+	ShaderNames.ShaderNames[ESS_PIXEL_SHADER] = "S_RasterizerPS";
+#	endif
 #else
 	ShaderType = EShaderType::Standard;
 	ShaderNames.ShaderNames[ESS_VERTEX_SHADER] = "S_RasterizerVS";
-#endif
 	ShaderNames.ShaderNames[ESS_PIXEL_SHADER] = "S_RasterizerPS";
+#endif
 
 	// Move this TShader load to Game Thread. Or Make a gloal shader system.
 	TShaderPtr Shader = ti_new TShader(ShaderNames);

@@ -65,6 +65,7 @@ struct FCluster
 	float4	LODBounds;
 
 	float3	BoxBoundsCenter;
+	uint	MipLevel;
 	float	LODError;
 	float	EdgeLength;
 
@@ -394,7 +395,13 @@ FCluster UnpackCluster(uint4 ClusterData[NANITE_NUM_PACKED_CLUSTER_FLOAT4S])
 
 	Cluster.LODBounds			= asfloat(ClusterData[2]);
 
-	Cluster.BoxBoundsCenter		= asfloat(ClusterData[3].xyz);
+	//Cluster.BoxBoundsCenter		= asfloat(ClusterData[3].xyz);
+	// tix : BoxBoundsCenter is BoxBoundsCenter16_MipLevel; decode it
+	Cluster.BoxBoundsCenter.x 	= f16tof32(ClusterData[3].x >> 16);
+	Cluster.BoxBoundsCenter.y 	= f16tof32(ClusterData[3].x & 0xffffu);
+	Cluster.BoxBoundsCenter.z 	= f16tof32(ClusterData[3].y >> 16);
+	Cluster.MipLevel			= ClusterData[3].y & 0xffffu;
+	
 	Cluster.LODError			= f16tof32(ClusterData[3].w);
 	Cluster.EdgeLength			= f16tof32(ClusterData[3].w >> 16);
 
