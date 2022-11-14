@@ -51,5 +51,5 @@ void TNaniteLearningTicker::SetupScene()
 
 	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
 	TI_ASSERT(NavCam);
-	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale);
+	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
 }
