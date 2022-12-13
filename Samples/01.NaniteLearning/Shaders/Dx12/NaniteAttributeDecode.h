@@ -438,8 +438,9 @@ void GetRawAttributeDataN(inout FNaniteRawAttributeData RawAttributeData[3],
 		RawAttributeData[i].Color = float4(ColorMin + ColorDelta) * (1.0f / 255.0f);
 	}
 
-	[unroll]
-	for (uint TexCoordIndex = 0; TexCoordIndex < CompileTimeMaxTexCoords; ++TexCoordIndex)
+	//[unroll]
+	//for (uint TexCoordIndex = 0; TexCoordIndex < CompileTimeMaxTexCoords; ++TexCoordIndex)
+	uint TexCoordIndex = 0;
 	{
 		const uint2 UVPrec = uint2(BitFieldExtractU32(Cluster.UV_Prec, 4, TexCoordIndex * 8), BitFieldExtractU32(Cluster.UV_Prec, 4, TexCoordIndex * 8 + 4));
 		

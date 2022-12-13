@@ -160,6 +160,8 @@ void LoadDataFromJson(
 		JsonDoc["num_groups"] << NumGroups;
 		bool HasInstance;
 		JsonDoc["has_instances"] << HasInstance;
+		bool HasUV = false;
+		JsonDoc["has_uv"] << HasUV;
 		TVector<int32> NumPerInstance;
 		JsonDoc["num_per_ins"] << NumPerInstance;
 
@@ -246,7 +248,9 @@ void LoadDataFromJson(
 			}
 		}
 
-		const int32 NumVtx = (int32)VtxBuffer.size() / 6;
+		const int32 StrideInFloat = HasUV ? 8 : 6;
+
+		const int32 NumVtx = (int32)VtxBuffer.size() / StrideInFloat;
 		const int32 NumIdx = (int32)IdxBuffer.size();
 		TI_ASSERT(NumIdx / 3 == NumTriangles);
 
@@ -267,12 +271,17 @@ void LoadDataFromJson(
 		for (int32 v = 0; v < NumVtx; v++)
 		{
 			RawVertex& V = RawData.Vtx[v];
-			V.Pos.X = VtxBuffer[v * 6 + 0];
-			V.Pos.Y = VtxBuffer[v * 6 + 1];
-			V.Pos.Z = VtxBuffer[v * 6 + 2];
-			V.Nor.X = VtxBuffer[v * 6 + 3];
-			V.Nor.Y = VtxBuffer[v * 6 + 4];
-			V.Nor.Z = VtxBuffer[v * 6 + 5];
+			V.Pos.X = VtxBuffer[v * StrideInFloat + 0];
+			V.Pos.Y = VtxBuffer[v * StrideInFloat + 1];
+			V.Pos.Z = VtxBuffer[v * StrideInFloat + 2];
+			V.Nor.X = VtxBuffer[v * StrideInFloat + 3];
+			V.Nor.Y = VtxBuffer[v * StrideInFloat + 4];
+			V.Nor.Z = VtxBuffer[v * StrideInFloat + 5];
+			if (HasUV)
+			{
+				V.UV.X = VtxBuffer[v * StrideInFloat + 6];
+				V.UV.Y = VtxBuffer[v * StrideInFloat + 7];
+			}
 		}
 		RawData.Idx.swap(IdxBuffer);
 

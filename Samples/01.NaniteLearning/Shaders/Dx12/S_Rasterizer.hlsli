@@ -55,6 +55,7 @@ struct VSOut
 // 	float2 BarycentricsUV						: TEXCOORD4;
 // #endif
 
+	float2 UV : TEXCOORD2;
 //#if !PIXELSHADER
 	float4 Position								: SV_Position;	 // Reading SV_Position in the pixel shader limits launch rate on some hardware. Interpolate manually instead.
 //#endif
@@ -353,6 +354,10 @@ void HWRasterizeMS(
 	{
 		const uint PixelValue = 0;
 		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex0, PixelValue);
+		
+		FNaniteRawAttributeData AttrData;
+		AttrData = GetRawAttributeData(Cluster, Vertex0, 1);
+		VertexOutput.UV = AttrData.TexCoords[0];
 		//MESH_SHADER_WRITE_VERTEX(Vertex0, VertexOutput);
 		OutVertices[Vertex0] = VertexOutput;
 	}
@@ -363,6 +368,9 @@ void HWRasterizeMS(
 	{
 		const uint PixelValue = 0;
 		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex1, PixelValue);
+		FNaniteRawAttributeData AttrData;
+		AttrData = GetRawAttributeData(Cluster, Vertex1, 1);
+		VertexOutput.UV = AttrData.TexCoords[0];
 		//MESH_SHADER_WRITE_VERTEX(Vertex1, VertexOutput);
 		OutVertices[Vertex1] = VertexOutput;
 	}
@@ -516,7 +524,6 @@ void GetRawAttributeDataN(inout float3 N[3],
 
 }
 
-
 [RootSignature(HWRasterizeRS)]
 float4 HWRasterizePS(VSOut In
 #if NANITE_MESH_SHADER	
@@ -581,5 +588,7 @@ float4 HWRasterizePS(VSOut In
 		float3 Normal = normalize(N[0] + N[1] + N[2]);
 		//C = Normal * 0.5 + 0.5;
 	}
+	// Debug uv
+	C = float3(In.UV, 0.0);
 	return float4(C.xyz, 1.0);
 }

@@ -36,49 +36,9 @@ struct VSOut
 {
 	float4 PointClipPixel						: TEXCOORD0;
 	float3 Normal								: TEXCOORD1;
+	float2 UV									: TEXCOORD2;
 	float4 Position								: SV_Position;	 // Reading SV_Position in the pixel shader limits launch rate on some hardware. Interpolate manually instead.
 };
-
-void GetRawAttributeDataN(inout float3 N[3],
-	FCluster Cluster,
-	uint3 TriIndices,
-	uint CompileTimeN
-)
-{
-	const uint DecodeInfoOffset = Cluster.PageBaseAddress + Cluster.DecodeInfoOffset;
-	const uint AttributeDataOffset = Cluster.PageBaseAddress + Cluster.AttributeOffset;
-
-	const uint MaxAttributeBits = CalculateMaxAttributeBits(1);
-
-
-	FBitStreamReaderState AttributeStream[3];
-	[unroll]
-	for (uint i = 0; i < CompileTimeN; i++)
-	{
-		AttributeStream[i] = BitStreamReader_Create_Aligned(AttributeDataOffset, TriIndices[i] * Cluster.BitsPerAttribute, MaxAttributeBits);
-		const uint NormalBits = BitStreamReader_Read_RO(ClusterPageData, AttributeStream[i], 2 * 9, 2 * 9);
-		N[i] = UnpackNormal(NormalBits, 9);
-	}
-}
-
-float3 GetNormal(
-	FCluster Cluster,
-	uint3 TriIndices,
-	uint IndexInTriangle
-)
-{
-	const uint DecodeInfoOffset = Cluster.PageBaseAddress + Cluster.DecodeInfoOffset;
-	const uint AttributeDataOffset = Cluster.PageBaseAddress + Cluster.AttributeOffset;
-
-	const uint MaxAttributeBits = CalculateMaxAttributeBits(1);
-
-
-	FBitStreamReaderState AttributeStream;
-	AttributeStream = BitStreamReader_Create_Aligned(AttributeDataOffset, TriIndices[IndexInTriangle] * Cluster.BitsPerAttribute, MaxAttributeBits);
-	const uint NormalBits = BitStreamReader_Read_RO(ClusterPageData, AttributeStream, 2 * 9, 2 * 9);
-	return UnpackNormal(NormalBits, 9);
-}
-
 
 RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
 
@@ -354,8 +314,13 @@ void HWRasterizeAS(
 		float3 p1 = DecodePosition( TriangleIndices.y, Cluster );
 		float3 p2 = DecodePosition( TriangleIndices.z, Cluster );
 
+		FNaniteRawAttributeData AttrData[3];
+		GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+
 		float3 N[3];
-		GetRawAttributeDataN(N, Cluster, TriangleIndices, 3);
+		N[0] = AttrData[0].TangentZ;
+		N[1] = AttrData[1].TangentZ;
+		N[2] = AttrData[2].TangentZ;
 
 		// Force this func inline, due to:
 		// error GB91F0BD6: TGSM pointers must originate from an unambiguous TGSM global variable.
@@ -471,8 +436,13 @@ void HWRasterizeMS(
 			float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
 			float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
 
+			FNaniteRawAttributeData AttrData[3];
+			GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+
 			float3 N[3];
-			GetRawAttributeDataN(N, Cluster, TriangleIndices, 3);
+			N[0] = AttrData[0].TangentZ;
+			N[1] = AttrData[1].TangentZ;
+			N[2] = AttrData[2].TangentZ;
 
 			float3 n0 = N[0];
 			float3 n1 = N[1];
@@ -550,6 +520,9 @@ void HWRasterizeMS(
 			OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
 			OutVertices[GroupThreadID].Normal = Normal;
 
+			// update uv
+			OutVertices[GroupThreadID].UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+
 			PrimitiveAttributes Attributes;
 			Attributes.PackedData.x = VisibleIndex;
 			Attributes.PackedData.y = TriangleIndex;
@@ -568,8 +541,10 @@ void HWRasterizeMS(
 		if (GroupThreadID < 3)
 		{
 			OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, TriangleIndices[GroupThreadID], 0);
-			float3 Normal = GetNormal(Cluster, TriangleIndices, GroupThreadID);
-			OutVertices[GroupThreadID].Normal = Normal;
+
+			FNaniteRawAttributeData AttrData = GetRawAttributeData(Cluster, TriangleIndices[GroupThreadID], 1);
+			OutVertices[GroupThreadID].Normal = AttrData.TangentZ;
+			OutVertices[GroupThreadID].UV = AttrData.TexCoords[0];
 
 			PrimitiveAttributes Attributes;
 			Attributes.PackedData.x = VisibleIndex;
@@ -721,5 +696,7 @@ float4 HWRasterizePS(VSOut In
 		float3 Normal = normalize(In.Normal);
 		//C = Normal * 0.5 + 0.5;
 	}
+	// debug show uv
+	C = float3(In.UV, 0.0);
 	return float4(C.xyz, 1.0);
 }
