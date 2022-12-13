@@ -11,7 +11,7 @@ int main()
 	//_CrtSetBreakAlloc(-1);
 	{
 		TEngineDesc Desc;
-		Desc.Name = "RecipeTrees";
+		Desc.Name = "NaniteTrees";
 		Desc.Width = 1920;
 		Desc.Height = 1080;
 

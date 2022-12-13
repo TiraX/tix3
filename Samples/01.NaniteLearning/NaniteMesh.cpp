@@ -12,7 +12,10 @@ TNaniteMesh::TNaniteMesh()
 {
 }
 
-static const TString MeshFilename = "SM_NaniteMesh";
+//static const TString MeshFilename = "SM_NaniteMesh";
+//const int32 NumLODs = 5;
+static const TString MeshFilename = "SM_NaniteTess";
+const int32 NumLODs = 3;
 
 struct FNaniteAssetHeader
 {
@@ -119,7 +122,6 @@ void LoadDataFromJson(
 	TVector<int32>& ClusterInsGroups, 
 	TVector<int32>& ClusterInsParents)
 {
-	const int32 NumLODs = 5;
 	RawDatas.resize(NumLODs);
 
 	ClusterInstances.reserve(1024);

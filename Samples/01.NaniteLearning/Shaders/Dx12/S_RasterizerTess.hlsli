@@ -719,7 +719,7 @@ float4 HWRasterizePS(VSOut In
 		}
 
 		float3 Normal = normalize(In.Normal);
-		C = Normal * 0.5 + 0.5;
+		//C = Normal * 0.5 + 0.5;
 	}
 	return float4(C.xyz, 1.0);
 }

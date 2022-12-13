@@ -579,7 +579,7 @@ float4 HWRasterizePS(VSOut In
 		//GetRawAttributeData3(RawAttributeData, Cluster, TriIndices,  0 );
 
 		float3 Normal = normalize(N[0] + N[1] + N[2]);
-		C = Normal * 0.5 + 0.5;
+		//C = Normal * 0.5 + 0.5;
 	}
 	return float4(C.xyz, 1.0);
 }
