@@ -9,11 +9,17 @@
 
 #if !(NANITE_MESH_SHADER)
 // Give something to compile, or else will get an compile error.
+struct Payload
+{
+	uint Data;
+};
 [numthreads(32, 1, 1)]
 void HWRasterizeAS(
 	uint GroupThreadID : SV_GroupThreadID,
 	uint GroupID : SV_GroupID
 )
 {
+	Payload P;
+	DispatchMesh(0, 1, 1, P);
 }
 #endif

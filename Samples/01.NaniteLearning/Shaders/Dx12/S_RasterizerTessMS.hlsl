@@ -5,9 +5,9 @@
 
 #include "NaniteEnableMeshShader.h"
 
+#if (NANITE_MESH_SHADER)
 #include "S_RasterizerTess.hlsli"
-
-#if !(NANITE_MESH_SHADER)
+#else
 // Give something to compile, or else will get an compile error.
 [numthreads(128, 1, 1)]
 [outputtopology("triangle")]
