@@ -6,16 +6,33 @@
 #include "stdafx.h"
 #include "NaniteDebug.h"
 
-FUniformBufferPtr CreateDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity)
+FUniformBufferPtr CreateCullingDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity)
 {
-	TStreamPtr ZeroData = ti_new TStream(sizeof(FNaniteDebug) * Capcity);
-	ZeroData->FillWithZero(sizeof(FNaniteDebug) * Capcity);
+	TStreamPtr ZeroData = ti_new TStream(sizeof(FNaniteCullingDebug) * Capcity);
+	ZeroData->FillWithZero(sizeof(FNaniteCullingDebug) * Capcity);
 
 	FUniformBufferPtr UB = 
 		FUniformBuffer::CreateBuffer(
 			RHICmdList,
-			"Nanite.DebugInfo",
-			sizeof(FNaniteDebug),
+			"Nanite.CullingDebugInfo",
+			sizeof(FNaniteCullingDebug),
+			Capcity,
+			(uint32)EGPUResourceFlag::Uav,
+			ZeroData,
+			EGPUResourceState::UnorderedAccess);
+	return UB;
+}
+
+FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity)
+{
+	TStreamPtr ZeroData = ti_new TStream(sizeof(FNaniteTessDebug) * Capcity);
+	ZeroData->FillWithZero(sizeof(FNaniteTessDebug) * Capcity);
+
+	FUniformBufferPtr UB =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.TessDebugInfo",
+			sizeof(FNaniteTessDebug),
 			Capcity,
 			(uint32)EGPUResourceFlag::Uav,
 			ZeroData,

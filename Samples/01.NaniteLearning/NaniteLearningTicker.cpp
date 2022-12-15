@@ -49,8 +49,14 @@ void TNaniteLearningTicker::SetupScene()
 	Cam->SetNearValue(10.f);
 	Cam->SetFarValue(10000.f);
 
+	// Camera for SM_NaniteTess
 	Cam->SetPosition(FFloat3(90.5831604f, -99.6057205f, 208.611404f));
 	Cam->SetTarget(FFloat3(-61.1573257f, 31.3225346f, 94.3450317f));
+
+	// Camera for SM_NaniteTessGrid
+	Cam->SetPosition(FFloat3(17.9838886f, -47.2413940f, 111.341827f));
+	Cam->SetTarget(FFloat3(-14.9610243f, -13.4057360f, -15.2703915f));
+
 
 	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
 	TI_ASSERT(NavCam);

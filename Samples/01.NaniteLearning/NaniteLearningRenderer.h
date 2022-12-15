@@ -41,7 +41,8 @@ private:
 	FUniformBufferPtr VisibleClustersSWHW;
 	FUniformBufferPtr VisibleClustersArgsSWHW;
 
-	FUniformBufferPtr DebugInfo;
+	FUniformBufferPtr CullingDebugInfo;
+	FUniformBufferPtr TessDebugInfo;
 
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;
@@ -68,6 +69,7 @@ private:
 		SRV_Views,
 
 		UAV_VisBuffer,
+		UAV_TessDebugInfo,
 
 		NumHWRasterizeParams
 	};

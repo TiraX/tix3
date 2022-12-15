@@ -66,7 +66,7 @@ RWStructuredBuffer<FStreamingRequest>	OutStreamingRequests : register(u3);			// 
 RWByteAddressBuffer						OutVisibleClustersSWHW : register(u4);
 RWBuffer<uint>							VisibleClustersArgsSWHW : register(u5);
 #if DEBUG_INFO
-RWStructuredBuffer<FNaniteDebugInfo>	DebugInfo : register(u6);
+RWStructuredBuffer<FNaniteCullingDebugInfo>	DebugInfo : register(u6);
 #endif
 
 #if DEBUG_FLAGS
@@ -558,25 +558,27 @@ struct FNaniteTraversalClusterCullCallback
 		uint ClusterOffsetHW = 0;
 		uint ClusterOffsetSW = 0;
 
+#if DO_TESS
+// tessellation need 2 amp shader groups to deal with 1 cluster, due to group memory size limit.
+#define GROUP_NUM_PER_CLUSTER 2
+#else
+#define GROUP_NUM_PER_CLUSTER 1
+#endif
+
 		[branch]
 		if (bVisible && !bWasOccluded)
 		{
 			if (bUseHWRaster)
 			{
-				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[HWClusterCounterIndex], 1, ClusterOffsetHW);
+				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[HWClusterCounterIndex], GROUP_NUM_PER_CLUSTER, ClusterOffsetHW);
+				ClusterOffsetHW /= GROUP_NUM_PER_CLUSTER;
 			}
 			else
 			{
-				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[0], 1, ClusterOffsetSW);
+				WaveInterlockedAddScalar_(VisibleClustersArgsSWHW[0], GROUP_NUM_PER_CLUSTER, ClusterOffsetSW);
+				ClusterOffsetSW /= GROUP_NUM_PER_CLUSTER;
 			}
 		}
-//
-//#if DEBUG_INFO
-//		if (LoopIndex < MaxDebugInfo)
-//		{
-//			DebugInfo[LoopIndex].ClusterOffsetHW[GroupIndex] = ClusterOffsetHW;
-//		}
-//#endif
 
 		if (bVisible)
 		{

@@ -14,8 +14,10 @@ TNaniteMesh::TNaniteMesh()
 
 //static const TString MeshFilename = "SM_NaniteMesh";
 //const int32 NumLODs = 5;
-static const TString MeshFilename = "SM_NaniteTess";
-const int32 NumLODs = 3;
+//static const TString MeshFilename = "SM_NaniteTess";
+//const int32 NumLODs = 3;
+static const TString MeshFilename = "SM_NaniteTessGrid";
+const int32 NumLODs = 2;
 
 struct FNaniteAssetHeader
 {

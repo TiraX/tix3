@@ -8,6 +8,9 @@
 #include "NaniteDefinitions.h"
 #include "NaniteAttributeDecode.h"
 
+#include "NaniteDebugInfo.h"
+
+#define DEBUG_INFO (1)
 
 struct FTriRange
 {
@@ -41,6 +44,9 @@ struct VSOut
 };
 
 RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
+#if DEBUG_INFO
+RWStructuredBuffer<FNaniteTessDebugInfo>	DebugInfo : register(u1);
+#endif
 
 VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 P, uint PixelValue)
 {
@@ -178,7 +184,7 @@ uint3 Rand3DPCG16(int3 p)
 #define HWRasterizeRS \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
 	"RootConstants(num32BitConstants=10, b0)," \
-	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0)) "
+	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0, numDescriptors=2)) "
 
 
 struct PrimitiveAttributes
@@ -191,78 +197,30 @@ struct PrimitiveAttributes
 	nointerpolation uint4 PackedData : TEXCOORD7;
 };
 
-#define AS_GROUP_SIZE 128
+// an AS group deal with 64 triangles max, use 2 as groups to deal with 1 cluster
+#define AS_GROUP_SIZE 64
 // PNTriangles control points
 struct CT_PNTriangle
 {
 	float P[30];
 };
+struct TessFactor
+{
+	uint Factor[4];	// xyz=edge_factor; w=inside_factor;
+};
 struct Payload
 {
     CT_PNTriangle CT[AS_GROUP_SIZE];
-	uint VisibleIndex;
+	TessFactor TF[AS_GROUP_SIZE];
+
+	uint MSTable[1024];
+
+	uint VisibleClusterIndex;
+	uint TriangleOffset;
 };
 
 // There is an compile errrrror i dont know how to fix
- void CalcPNTriangleControlPoints(
- 	in float3 p0, in float3 p1, in float3 p2,
- 	in float3 n0, in float3 n1, in float3 n2,
- 	out CT_PNTriangle CP
- )
- {
- 	float3 b003 = p0;
- 	float3 b030 = p1;
- 	float3 b300 = p2;
- 	float3 n002 = n0;
- 	float3 n020 = n1;
- 	float3 n200 = n2;
- 	float3 b210 = ((b003 * 2.f) + b030 - (dot((b030 - b003), n002) * n002)) / 3.f;
- 	float3 b120 = ((b030 * 2.f) + b003 - (dot((b003 - b030), n020) * n020)) / 3.f;
- 	float3 b021 = ((b030 * 2.f) + b300 - (dot((b300 - b030), n020) * n020)) / 3.f;
- 	float3 b012 = ((b300 * 2.f) + b030 - (dot((b030 - b300), n200) * n200)) / 3.f;
- 	float3 b102 = ((b300 * 2.f) + b003 - (dot((b003 - b300), n200) * n200)) / 3.f;
- 	float3 b201 = ((b003 * 2.f) + b300 - (dot((b300 - b003), n002) * n002)) / 3.f;
-
-	//CP.P[0 * 3 + 0] = b210.x;
-	//CP.P[0 * 3 + 1] = b210.y;
-	//CP.P[0 * 3 + 2] = b210.z;
-	//CP.P[1 * 3 + 0] = b120.x;
-	//CP.P[1 * 3 + 1] = b120.y;
-	//CP.P[1 * 3 + 2] = b120.z;
-	//CP.P[2 * 3 + 0] = b021.x;
-	//CP.P[2 * 3 + 1] = b021.y;
-	//CP.P[2 * 3 + 2] = b021.z;
-	//CP.P[3 * 3 + 0] = b012.x;
-	//CP.P[3 * 3 + 1] = b012.y;
-	//CP.P[3 * 3 + 2] = b012.z;
-	//CP.P[4 * 3 + 0] = b102.x;
-	//CP.P[4 * 3 + 1] = b102.y;
-	//CP.P[4 * 3 + 2] = b102.z;
-	//CP.P[5 * 3 + 0] = b201.x;
-	//CP.P[5 * 3 + 1] = b201.y;
-	//CP.P[5 * 3 + 2] = b201.z;
- 	//ControlPoints.b210 = b210;
- 	//ControlPoints.b120 = b120;
- 	//ControlPoints.b021 = b021;
- 	//ControlPoints.b012 = b012;
- 	//ControlPoints.b102 = b102;
- 	//ControlPoints.b201 = b201;
-
- 	float3 E = (b210 + b120 + b021 + b012 + b102 + b201) / 6.f;
- 	float3 V = (b003 + b030 + b300) / 3.f;
- 	//ControlPoints.b111 = E + ((E - V) / 2.f);
- 	float3 b111 = E + ((E - V) / 2.f);
- 	//ControlPoints.CP[0] = b111.x;
- 	//ControlPoints.CP[1] = b111.y;
- 	//ControlPoints.CP[2] = b111.z;
-
- 	float v12 = 2.f * dot(b030 - b003, n002 + n020) / dot(b030 - b003, b030 - b003);
- 	//ControlPoints.n110 = normalize(n002 + n020 - (b030 - b003) * v12);
- 	float v23 = 2.f * dot(b300 - b030, n020 + n200) / dot(b300 - b030, b300 - b030);
- 	//ControlPoints.n011 = normalize(n020 + n200 - (b300 - b030) * v23);
- 	float v31 = 2.f * dot(b003 - b300, n200 + n002) / dot(b003 - b300, b003 - b300);
- 	//ControlPoints.n101 = normalize(n200 + n002 - (b003 - b300) * v31);
- }
+ void CalcPNTriangleControlPoints() {}
 
  // TODO: Find better ways to calc tessellation.
  static const uint3 k_triangles[24] =
@@ -283,9 +241,150 @@ struct Payload
 	 float3(0.25, 0.000000, 0.75), float3(1, 0, 0), float3(0, 0, 1),
  };
 
-
-
 groupshared Payload s_Payload;
+groupshared uint s_TotalTessellated;
+
+// This is a heuristic that maps a bounding sphere on relevant edges/primitive to post projection space and uses that to scale the tessellation on the edges/primitive.
+//
+// Returns float4 where:
+// X - 0->1 Edge tessellation factor
+// Y - 1->2 Edge tessellation factor
+// Z - 2->0 Edge tessellation factor
+// W - inside tessellation factor
+float4 CalculateCompositeTessellationFactors(float3 Control0, float3 Control1, float3 Control2)
+{
+#if USE_ADAPTIVE_TESSELLATION_FACTOR
+#if 1
+	half MaxDisplacement = GetMaterialMaxDisplacement();
+
+	// Frustum cull
+	int3 ClipFlag = 0;
+	ClipFlag  = GetClipFlag( Control0, MaxDisplacement );
+	ClipFlag |= GetClipFlag( Control1, MaxDisplacement );
+	ClipFlag |= GetClipFlag( Control2, MaxDisplacement );
+	if( any( ClipFlag != 3 ) )
+	{
+		return 0;
+	}
+#endif
+
+	float3 Edge0 = ( Control0 - Control1 );
+	float3 Edge1 = ( Control1 - Control2 );
+	float3 Edge2 = ( Control2 - Control0 );
+
+	float3 ToMidpoint0 = 0.5 * ( Control0 + Control1 ) - ResolvedView.TranslatedWorldCameraOrigin;
+	float3 ToMidpoint1 = 0.5 * ( Control1 + Control2 ) - ResolvedView.TranslatedWorldCameraOrigin;
+	float3 ToMidpoint2 = 0.5 * ( Control2 + Control0 ) - ResolvedView.TranslatedWorldCameraOrigin;
+
+	// Use spherical projection instead of planer
+	float4 CompositeFactors = float4(
+		sqrt( dot( Edge1, Edge1 ) / dot( ToMidpoint1, ToMidpoint1 ) ),
+		sqrt( dot( Edge2, Edge2 ) / dot( ToMidpoint2, ToMidpoint2 ) ),
+		sqrt( dot( Edge0, Edge0 ) / dot( ToMidpoint0, ToMidpoint0 ) ),
+		1 );
+	CompositeFactors.w = 0.333 * ( CompositeFactors.x + CompositeFactors.y + CompositeFactors.z );
+
+	// The adaptive tessellation factor is 0.5 * ResolvedView.ViewToClip[1][1] * ViewSizeY / PixelsPerEdge and CompositeFactors is 2 * PercentageOfScreen.  
+	return View.AdaptiveTessellationFactor * CompositeFactors;
+#else
+	return float4( 1.0,1.0,1.0,1.0 );
+#endif
+}
+
+uint CalcTessInsideCount(uint n)
+{
+	if ((n & 1) == 0)
+	{
+		// even
+		return n * n * 3 / 2;
+	}
+	else
+	{
+		// odd
+		return (n / 2) * 3 * (n + 1) + 1;
+	}
+}
+
+// TODO: Improve tess factor algorithm use CalculateCompositeTessellationFactors() from UE4
+uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 p0, float3 p1, float3 p2, out uint4 tess_factor)
+{
+	VSOut V[3];
+	V[0] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p0, 0);
+	V[1] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p1, 0);
+	V[2] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p2, 0);
+
+	float2 ScreenPos0 = V[0].PointClipPixel.xy;
+	float2 ScreenPos1 = V[1].PointClipPixel.xy;
+	float2 ScreenPos2 = V[2].PointClipPixel.xy;
+
+	float tess01f = round(length(ScreenPos0 - ScreenPos1) / 100);
+	float tess02f = round(length(ScreenPos0 - ScreenPos2) / 100);
+	float tess12f = round(length(ScreenPos1 - ScreenPos2) / 100);
+
+	float tess_centerf = round(0.333 * (tess01f + tess02f + tess12f));
+
+	tess_factor.x = (uint)(max(1.0, tess01f));
+	tess_factor.y = (uint)(max(1.0, tess02f));
+	tess_factor.z = (uint)(max(1.0, tess12f));
+	tess_factor.w = (uint)(max(1.0, tess_centerf));
+
+	if (tess_factor.w == 1)
+	{
+		return max(max(tess_factor.x, tess_factor.y), tess_factor.z);
+	}
+	else
+	{
+		uint tess_segs = tess_factor.w - 2;
+		return CalcTessInsideCount( tess_segs ) + tess_segs * 3 + tess_factor.x + tess_factor.y + tess_factor.z;
+	}
+}
+
+uint PackTessInfo(uint TriangleIndex, uint TessOffset, uint TessCount)
+{
+	uint v = 0;
+	v |= TriangleIndex;
+	v |= (TessOffset << 6);
+	v |= (TessCount << 11);
+	return v;
+}
+
+uint3 UnpackTessInfo(uint Value)
+{
+	uint3 result;
+	result.x = Value & 0x3f;	// Triangle Index
+	result.y = (Value >> 6) & 0x1f;	// Tess Offset
+	result.z = (Value >> 11) & 0x1f;	// Tess Count
+	return result;
+}
+
+void WriteToTable(uint Value, uint Index)
+{
+	uint offset = Index / 2;
+	if ((Index & 1) == 0)
+	{
+		s_Payload.MSTable[offset] &= 0x0000ffff;
+		s_Payload.MSTable[offset] |= (Value << 16);
+	}
+	else
+	{
+		s_Payload.MSTable[offset] &= 0xffff0000;
+		s_Payload.MSTable[offset] |= (Value & 0xffff);
+	}
+}
+
+uint ReadFromTable(uint Index)
+{
+	uint offset = Index / 2;
+	if ((Index & 1) == 0)
+	{
+		return s_Payload.MSTable[offset] >> 16;
+	}
+	else
+	{
+		return s_Payload.MSTable[offset] & 0xffff;
+	}
+}
+
 [RootSignature(HWRasterizeRS)]
 [NumThreads(AS_GROUP_SIZE, 1, 1)]
 void HWRasterizeAS(	
@@ -293,21 +392,36 @@ void HWRasterizeAS(
 	uint GroupId : SV_GroupID, 
 	uint GroupIndex : SV_GroupIndex)
 {
-	uint VisibleIndex = GroupId;
+	if (GroupIndex == 0)
+		s_TotalTessellated = 0;
+	
+	GroupMemoryBarrierWithGroupSync();	
+
+	// an AS group deal with 64 triangles max, use 2 as_groups to deal with 1 cluster
+	uint VisibleIndex = GroupId / 2;
+	uint TriangleOffset = ((GroupId & 1) == 0) ? 0 : 64;
+	//uint VisibleIndex = GroupId;
+	//uint TriangleOffset = 0;
 	
 	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex;
 
-	s_Payload.VisibleIndex = VisibleIndex;
+	s_Payload.VisibleClusterIndex = VisibleIndex;
+	s_Payload.TriangleOffset = TriangleOffset;
 
 	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);	
 	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
 	FTriRange TriRange = GetTriangleRange(Cluster, false, uint3(0,0,0));
-	
+
+	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
+
+	uint TrianglesToTess = TriangleOffset == 0 ? min(TriRange.Num, 64u) : (TriRange.Num <= 64 ? 0 : TriRange.Num - 64);
+	//uint TrianglesToTess = TriangleOffset == 0 ? 64 : TriRange.Num - 64;
+	//uint TrianglesToTess = 64;// TriRange.Num;
 	uint VisibleTriangles = 0;
 	[branch]
-	if (GroupIndex < TriRange.Num)
+	if (GroupIndex + TriangleOffset < TriRange.Num)
 	{
-		uint TriangleIndex = TriRange.Start + GroupThreadID;
+		uint TriangleIndex = TriRange.Start + GroupThreadID + TriangleOffset;
 
 		uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 		float3 p0 = DecodePosition( TriangleIndices.x, Cluster );
@@ -383,8 +497,28 @@ void HWRasterizeAS(
 		s_Payload.CT[GroupIndex].P[9 * 3 + 0] = n101.x;
 		s_Payload.CT[GroupIndex].P[9 * 3 + 1] = n101.y;
 		s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
+
+		uint4 tess_factor;
+		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor);
+		s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
+		s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
+		s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;
+		s_Payload.TF[GroupIndex].Factor[3] = tess_factor.w;
+#if DEBUG_INFO
+		DebugInfo[GroupIndex + TriangleOffset].TessFactor = tess_factor;
+		DebugInfo[GroupIndex + TriangleOffset].TessedCount = NumTessellated; 
+#endif
+		uint groups = (uint)ceil(float(NumTessellated)/32.0);
+		uint start;
+		InterlockedAdd(s_TotalTessellated, groups, start);
+		for(int i = 0; i < groups; i ++)
+		{
+			uint count_in_group = min(32, NumTessellated - (i * 32));
+			uint info = PackTessInfo(GroupIndex, i, count_in_group - 1);
+			//WriteToTable(info, start + i);
+		}
 	}
-	DispatchMesh(TriRange.Num, 1, 1, s_Payload);
+	DispatchMesh(TrianglesToTess, 1, 1, s_Payload);
 }
 
 #define TRIANGLE_TESSELLATED 24
@@ -403,7 +537,7 @@ void HWRasterizeMS(
 
 	uint3 RasterBin;
 
-	uint VisibleIndex = payload.VisibleIndex;
+	uint VisibleIndex = payload.VisibleClusterIndex;
 
 	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
 	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
@@ -415,7 +549,7 @@ void HWRasterizeMS(
 //#endif
 
 	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
-	uint TriangleIndex = GroupID;
+	uint TriangleIndex = GroupID + payload.TriangleOffset;
 	uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 
 	bool NeedTess = Cluster.MipLevel == 0;
@@ -462,27 +596,27 @@ void HWRasterizeMS(
 			float WW3 = WW * 3.f;
 
 			float3 b210, b120, b021, b012, b102, b201, b111;
-			b210.x = payload.CT[TriangleIndex].P[0 * 3 + 0];
-			b210.y = payload.CT[TriangleIndex].P[0 * 3 + 1];
-			b210.z = payload.CT[TriangleIndex].P[0 * 3 + 2];
-			b120.x = payload.CT[TriangleIndex].P[1 * 3 + 0];
-			b120.y = payload.CT[TriangleIndex].P[1 * 3 + 1];
-			b120.z = payload.CT[TriangleIndex].P[1 * 3 + 2];
-			b021.x = payload.CT[TriangleIndex].P[2 * 3 + 0];
-			b021.y = payload.CT[TriangleIndex].P[2 * 3 + 1];
-			b021.z = payload.CT[TriangleIndex].P[2 * 3 + 2];
-			b012.x = payload.CT[TriangleIndex].P[3 * 3 + 0];
-			b012.y = payload.CT[TriangleIndex].P[3 * 3 + 1];
-			b012.z = payload.CT[TriangleIndex].P[3 * 3 + 2];
-			b102.x = payload.CT[TriangleIndex].P[4 * 3 + 0];
-			b102.y = payload.CT[TriangleIndex].P[4 * 3 + 1];
-			b102.z = payload.CT[TriangleIndex].P[4 * 3 + 2];
-			b201.x = payload.CT[TriangleIndex].P[5 * 3 + 0];
-			b201.y = payload.CT[TriangleIndex].P[5 * 3 + 1];
-			b201.z = payload.CT[TriangleIndex].P[5 * 3 + 2];
-			b111.x = payload.CT[TriangleIndex].P[6 * 3 + 0];
-			b111.y = payload.CT[TriangleIndex].P[6 * 3 + 1];
-			b111.z = payload.CT[TriangleIndex].P[6 * 3 + 2];
+			b210.x = payload.CT[GroupID].P[0 * 3 + 0];
+			b210.y = payload.CT[GroupID].P[0 * 3 + 1];
+			b210.z = payload.CT[GroupID].P[0 * 3 + 2];
+			b120.x = payload.CT[GroupID].P[1 * 3 + 0];
+			b120.y = payload.CT[GroupID].P[1 * 3 + 1];
+			b120.z = payload.CT[GroupID].P[1 * 3 + 2];
+			b021.x = payload.CT[GroupID].P[2 * 3 + 0];
+			b021.y = payload.CT[GroupID].P[2 * 3 + 1];
+			b021.z = payload.CT[GroupID].P[2 * 3 + 2];
+			b012.x = payload.CT[GroupID].P[3 * 3 + 0];
+			b012.y = payload.CT[GroupID].P[3 * 3 + 1];
+			b012.z = payload.CT[GroupID].P[3 * 3 + 2];
+			b102.x = payload.CT[GroupID].P[4 * 3 + 0];
+			b102.y = payload.CT[GroupID].P[4 * 3 + 1];
+			b102.z = payload.CT[GroupID].P[4 * 3 + 2];
+			b201.x = payload.CT[GroupID].P[5 * 3 + 0];
+			b201.y = payload.CT[GroupID].P[5 * 3 + 1];
+			b201.z = payload.CT[GroupID].P[5 * 3 + 2];
+			b111.x = payload.CT[GroupID].P[6 * 3 + 0];
+			b111.y = payload.CT[GroupID].P[6 * 3 + 1];
+			b111.z = payload.CT[GroupID].P[6 * 3 + 2];
 
 			// update Position
 			float3 P =
@@ -498,15 +632,15 @@ void HWRasterizeMS(
 				b111 * 6.f * W * U * V;
 
 			float3 n110, n011, n101;
-			n110.x = payload.CT[TriangleIndex].P[7 * 3 + 0];
-			n110.y = payload.CT[TriangleIndex].P[7 * 3 + 1];
-			n110.z = payload.CT[TriangleIndex].P[7 * 3 + 2];
-			n011.x = payload.CT[TriangleIndex].P[8 * 3 + 0];
-			n011.y = payload.CT[TriangleIndex].P[8 * 3 + 1];
-			n011.z = payload.CT[TriangleIndex].P[8 * 3 + 2];
-			n101.x = payload.CT[TriangleIndex].P[9 * 3 + 0];
-			n101.y = payload.CT[TriangleIndex].P[9 * 3 + 1];
-			n101.z = payload.CT[TriangleIndex].P[9 * 3 + 2];
+			n110.x = payload.CT[GroupID].P[7 * 3 + 0];
+			n110.y = payload.CT[GroupID].P[7 * 3 + 1];
+			n110.z = payload.CT[GroupID].P[7 * 3 + 2];
+			n011.x = payload.CT[GroupID].P[8 * 3 + 0];
+			n011.y = payload.CT[GroupID].P[8 * 3 + 1];
+			n011.z = payload.CT[GroupID].P[8 * 3 + 2];
+			n101.x = payload.CT[GroupID].P[9 * 3 + 0];
+			n101.y = payload.CT[GroupID].P[9 * 3 + 1];
+			n101.z = payload.CT[GroupID].P[9 * 3 + 2];
 
 			// update Normal
 			float3 Normal =

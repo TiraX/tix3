@@ -136,7 +136,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 			nullptr,
 			EGPUResourceState::UnorderedAccess);
 
-	DebugInfo = CreateDebugInfoUniform(RHICmdList, FNaniteDebug::MaxDebugInfo);
+	CullingDebugInfo = CreateCullingDebugInfoUniform(RHICmdList, FNaniteCullingDebug::MaxDebugInfo);
+	TessDebugInfo = CreateTessDebugInfoUniform(RHICmdList, FNaniteTessDebug::MaxDebugInfo);
 
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
@@ -240,6 +241,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, View, SRV_Views);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
+	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugInfo, UAV_TessDebugInfo);
 
 	// Indirect command signature
 	TVector<E_GPU_COMMAND_TYPE> CommandStructure;
@@ -329,7 +331,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			nullptr,
 			VisibleClustersSWHW,
 			VisibleClustersArgsSWHW,
-			DebugInfo
+			CullingDebugInfo
 			);
 		PersistentCullCS->Run(RHICmdList);
 	}

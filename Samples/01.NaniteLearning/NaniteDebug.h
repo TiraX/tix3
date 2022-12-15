@@ -30,7 +30,7 @@ struct FPair_
 	uint32 bLeaf;
 };
 
-struct FNaniteDebug
+struct FNaniteCullingDebug
 {
 	static const int32 MaxDebugInfo = 128;
 	uint32 GroupNodeBatchStartIndex;
@@ -49,7 +49,7 @@ struct FNaniteDebug
 	//uint32 bOutput[64];
 	FHierarchyNodeSliceSimple Nd[4];
 
-	FNaniteDebug()
+	FNaniteCullingDebug()
 		: GroupNodeBatchStartIndex(0)
 		, GroupNumCandidateNodes(0)
 		, NodeCount(0)
@@ -64,4 +64,19 @@ struct FNaniteDebug
 };
 
 
-FUniformBufferPtr CreateDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 1);
+FUniformBufferPtr CreateCullingDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 1);
+
+
+struct FNaniteTessDebug
+{
+	static const int32 MaxDebugInfo = 128;
+	FUInt4 TessFactor;
+	uint32 TessedCount;
+
+	FNaniteTessDebug()
+		: TessedCount(0)
+	{
+		//memset(bShouldVisitChild, 0, sizeof(bShouldVisitChild));
+	}
+};
+FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);

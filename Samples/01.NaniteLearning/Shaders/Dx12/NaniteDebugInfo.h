@@ -20,7 +20,7 @@ struct FPair_
 	uint bLeaf;
 };
 
-struct FNaniteDebugInfo
+struct FNaniteCullingDebugInfo
 {
 	uint GroupNodeBatchStartIndex;
 	uint GroupNumCandidateNodes;
@@ -37,4 +37,12 @@ struct FNaniteDebugInfo
 	uint Padding1;
 	//uint bOutput[64];
 	FHierarchyNodeSliceSimple Nd[4];
+};
+
+//////////////////////////////////////////////////////////////
+
+struct FNaniteTessDebugInfo
+{
+	uint4 TessFactor;
+	uint TessedCount;
 };
