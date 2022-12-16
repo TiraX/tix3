@@ -138,6 +138,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 	CullingDebugInfo = CreateCullingDebugInfoUniform(RHICmdList, FNaniteCullingDebug::MaxDebugInfo);
 	TessDebugInfo = CreateTessDebugInfoUniform(RHICmdList, FNaniteTessDebug::MaxDebugInfo);
+	TessDebugTable = CreateTessDebugTableUniform(RHICmdList, FNaniteTessDebugTable::MaxDebugInfo);
 
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
@@ -242,6 +243,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugInfo, UAV_TessDebugInfo);
+	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugTable, UAV_TessDebugTable);
 
 	// Indirect command signature
 	TVector<E_GPU_COMMAND_TYPE> CommandStructure;
@@ -254,6 +256,101 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	CmdSig_HWRasterize = RHI->CreateGPUCommandSignature(PL_HWRasterizer, CommandStructure);
 	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
+
+	CreateTessellationTemplates();
+}
+
+inline uint32 CalcTessInsideCount(uint32 n)
+{
+	if ((n & 1) == 0)
+	{
+		// even
+		return n * n * 3 / 2;
+	}
+	else
+	{
+		// odd
+		return (n / 2) * 3 * (n + 1) + 1;
+	}
+}
+
+void FNaniteLearningRenderer::CreateTessellationTemplates()
+{
+	return;
+	const uint32 MaxTessFactor = 18;
+
+	// Calc Offsets
+	TVector<uint32> Offsets;
+	Offsets.resize(MaxTessFactor);
+	uint32 Total = 0;
+	for (uint32 i = 1; i < MaxTessFactor; i++)
+	{
+		Offsets[i] = Total;
+		uint32 Segs = i + 1 - 2;
+		uint32 Count = CalcTessInsideCount(Segs);
+		Total += Count;
+	}
+
+	// Calc Templates
+	const FFloat3 B0(0, 1, 0);
+	const FFloat3 B1(1, 0, 0);
+	const FFloat3 B2(0, 0, 1);
+	const FFloat3 BC = (B0 + B1 + B2) / 3.0f;
+	const FFloat3 D0 = (B0 - BC).Normalize();
+	const FFloat3 D1 = (B1 - BC).Normalize();
+	const FFloat3 D2 = (B2 - BC).Normalize();
+	const float EdgeLen = (B0 - B1).GetLength();
+	const float Cos30 = cos(TMath::DegToRad(30.f));
+
+	TVector<FFloat3> BaryCoords;
+	TVector<FUInt3> Triangles;
+	Triangles.reserve(Total);
+	for (uint32 TessFactor = 2; TessFactor < MaxTessFactor; TessFactor++)
+	{
+		const float SegLen = EdgeLen / TessFactor;
+		uint32 InsideSegs = TessFactor + 1 - 2;
+		if ((InsideSegs & 1) == 0)
+		{
+		}
+		else
+		{
+			uint32 Loops = TessFactor / 2;
+			for (int32 l = Loops - 1; l >= 0; l--)
+			{
+				uint32 SegInLoop = l * 2 - 1;
+				float Radius = SegLen * (SegInLoop / 2) + 0.5f;
+				const FFloat3 C0 = BC + D0 * Radius;	// Corner0
+				const FFloat3 C1 = BC + D1 * Radius;	// Corner1
+				const FFloat3 C2 = BC + D2 * Radius;	// Corner2
+				// Points on C0-C1
+				FFloat3 D = (C1 - C0) / float(SegInLoop);
+				FFloat3 Start = C0;
+				for (uint32 s = 0; s < SegInLoop; s++)
+				{
+					FFloat3 P = Start + D * float(s);
+					BaryCoords.push_back(P);
+				}
+				// Points on C1-C2
+				D = (C2 - C1) / float(SegInLoop);
+				Start = C1;
+				for (uint32 s = 0; s < SegInLoop; s++)
+				{
+					FFloat3 P = Start + D * float(s);
+					BaryCoords.push_back(P);
+				}
+				// Points on C2-C0
+				D = (C0 - C2) / float(SegInLoop);
+				Start = C2;
+				for (uint32 s = 0; s < SegInLoop; s++)
+				{
+					FFloat3 P = Start + D * float(s);
+					BaryCoords.push_back(P);
+				}
+			}
+		}
+	}
+
+	TI_ASSERT(TessTemplateData == nullptr);
 }
 
 static bool bFreezeCulling = false;

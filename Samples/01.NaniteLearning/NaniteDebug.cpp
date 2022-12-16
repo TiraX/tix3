@@ -39,3 +39,20 @@ FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capc
 			EGPUResourceState::UnorderedAccess);
 	return UB;
 }
+
+FUniformBufferPtr CreateTessDebugTableUniform(FRHICmdList* RHICmdList, int32 Capcity)
+{
+	TStreamPtr ZeroData = ti_new TStream(sizeof(FNaniteTessDebugTable) * Capcity);
+	ZeroData->FillWithZero(sizeof(FNaniteTessDebugTable) * Capcity);
+
+	FUniformBufferPtr UB =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.TessDebugTable",
+			sizeof(FNaniteTessDebugTable),
+			Capcity,
+			(uint32)EGPUResourceFlag::Uav,
+			ZeroData,
+			EGPUResourceState::UnorderedAccess);
+	return UB;
+}

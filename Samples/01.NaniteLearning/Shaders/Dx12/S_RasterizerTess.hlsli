@@ -46,6 +46,7 @@ struct VSOut
 RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
 #if DEBUG_INFO
 RWStructuredBuffer<FNaniteTessDebugInfo>	DebugInfo : register(u1);
+RWStructuredBuffer<FNaniteTessDebugTable>	DebugTable : register(u2);
 #endif
 
 VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 P, uint PixelValue)
@@ -184,7 +185,7 @@ uint3 Rand3DPCG16(int3 p)
 #define HWRasterizeRS \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
 	"RootConstants(num32BitConstants=10, b0)," \
-	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0, numDescriptors=2)) "
+	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0, numDescriptors=3)) "
 
 
 struct PrimitiveAttributes
@@ -210,8 +211,8 @@ struct TessFactor
 };
 struct Payload
 {
-    CT_PNTriangle CT[AS_GROUP_SIZE];
-	TessFactor TF[AS_GROUP_SIZE];
+    //CT_PNTriangle CT[AS_GROUP_SIZE];
+	//TessFactor TF[AS_GROUP_SIZE];
 
 	uint MSTable[1024];
 
@@ -222,24 +223,24 @@ struct Payload
 // There is an compile errrrror i dont know how to fix
  void CalcPNTriangleControlPoints() {}
 
- // TODO: Find better ways to calc tessellation.
- static const uint3 k_triangles[24] =
- {
-	 uint3(3, 1, 0), uint3(3, 0, 2), uint3(3, 2, 4), uint3(3, 5, 1),
-	 uint3(6, 3, 4), uint3(7, 5, 3), uint3(8, 7, 3), uint3(8, 3, 6),
-	 uint3(7, 11, 5), uint3(10, 5, 11), uint3(6, 4, 13), uint3(9, 13, 4),
-	 uint3(8, 11, 7), uint3(8, 6, 13), uint3(11, 8, 12), uint3(12, 8, 13),
-	 uint3(17, 13, 9), uint3(18, 10, 11), uint3(14, 11, 12), uint3(14, 16, 11),
-	 uint3(14, 12, 13), uint3(15, 14, 13), uint3(16, 18, 11), uint3(17, 15, 13),
- };
- static const float3 k_barycentric[19] =
- {
-	 float3(0, 1, 0), float3(0, 0.75, 0.25), float3(0.25, 0.75, 0), float3(0.166721, 0.666567, 0.166721),
-	 float3(0.5, 0.5, 0), float3(0, 0.5, 0.5), float3(0.416692, 0.416620, 0.166694), float3(0.166694, 0.416620, 0.416692),
-	 float3(0.333359, 0.333287, 0.333359), float3(0.75, 0.25, 0), float3(0, 0.25, 0.75), float3(0.166712, 0.166659, 0.666631),
-	 float3(0.416673, 0.166657, 0.416673), float3(0.666628, 0.166656, 0.166718), float3(0.500000, 0.000000, 0.500000), float3(0.75, 0, 0.25),
-	 float3(0.25, 0.000000, 0.75), float3(1, 0, 0), float3(0, 0, 1),
- };
+//  // TODO: Find better ways to calc tessellation.
+//  static const uint3 k_triangles[24] =
+//  {
+// 	 uint3(3, 1, 0), uint3(3, 0, 2), uint3(3, 2, 4), uint3(3, 5, 1),
+// 	 uint3(6, 3, 4), uint3(7, 5, 3), uint3(8, 7, 3), uint3(8, 3, 6),
+// 	 uint3(7, 11, 5), uint3(10, 5, 11), uint3(6, 4, 13), uint3(9, 13, 4),
+// 	 uint3(8, 11, 7), uint3(8, 6, 13), uint3(11, 8, 12), uint3(12, 8, 13),
+// 	 uint3(17, 13, 9), uint3(18, 10, 11), uint3(14, 11, 12), uint3(14, 16, 11),
+// 	 uint3(14, 12, 13), uint3(15, 14, 13), uint3(16, 18, 11), uint3(17, 15, 13),
+//  };
+//  static const float3 k_barycentric[19] =
+//  {
+// 	 float3(0, 1, 0), float3(0, 0.75, 0.25), float3(0.25, 0.75, 0), float3(0.166721, 0.666567, 0.166721),
+// 	 float3(0.5, 0.5, 0), float3(0, 0.5, 0.5), float3(0.416692, 0.416620, 0.166694), float3(0.166694, 0.416620, 0.416692),
+// 	 float3(0.333359, 0.333287, 0.333359), float3(0.75, 0.25, 0), float3(0, 0.25, 0.75), float3(0.166712, 0.166659, 0.666631),
+// 	 float3(0.416673, 0.166657, 0.416673), float3(0.666628, 0.166656, 0.166718), float3(0.500000, 0.000000, 0.500000), float3(0.75, 0, 0.25),
+// 	 float3(0.25, 0.000000, 0.75), float3(1, 0, 0), float3(0, 0, 1),
+//  };
 
 groupshared Payload s_Payload;
 groupshared uint s_TotalTessellated;
@@ -317,10 +318,6 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float2 ScreenPos1 = V[1].PointClipPixel.xy;
 	float2 ScreenPos2 = V[2].PointClipPixel.xy;
 
-	DebugInfo[debug_index].PixelClip0 = V[0].PointClipPixel;
-	DebugInfo[debug_index].PixelClip1 = V[1].PointClipPixel;
-	DebugInfo[debug_index].PixelClip2 = V[2].PointClipPixel;
-
 	float tess01f = round(length(ScreenPos0 - ScreenPos1));
 	float tess02f = round(length(ScreenPos0 - ScreenPos2));
 	float tess12f = round(length(ScreenPos1 - ScreenPos2));
@@ -376,16 +373,16 @@ void WriteToTable(uint Value, uint Index)
 	}
 }
 
-uint ReadFromTable(uint Index)
+uint ReadFromTable(in Payload pl, uint Index)
 {
 	uint offset = Index / 2;
 	if ((Index & 1) == 0)
 	{
-		return s_Payload.MSTable[offset] >> 16;
+		return pl.MSTable[offset] >> 16;
 	}
 	else
 	{
-		return s_Payload.MSTable[offset] & 0xffff;
+		return pl.MSTable[offset] & 0xffff;
 	}
 }
 
@@ -418,7 +415,7 @@ void HWRasterizeAS(
 
 	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
 
-	uint TrianglesToTess = TriangleOffset == 0 ? min(TriRange.Num, 64u) : (TriRange.Num <= 64 ? 0 : TriRange.Num - 64);
+	//uint TrianglesToTess = TriangleOffset == 0 ? min(TriRange.Num, 64u) : (TriRange.Num <= 64 ? 0 : TriRange.Num - 64);
 	//uint TrianglesToTess = TriangleOffset == 0 ? 64 : TriRange.Num - 64;
 	//uint TrianglesToTess = 64;// TriRange.Num;
 	uint VisibleTriangles = 0;
@@ -440,74 +437,74 @@ void HWRasterizeAS(
 		N[1] = AttrData[1].TangentZ;
 		N[2] = AttrData[2].TangentZ;
 
-		// Force this func inline, due to:
-		// error GB91F0BD6: TGSM pointers must originate from an unambiguous TGSM global variable.
-		//CalcPNTriangleControlPoints(p0, p1, p2, N[0], N[1], N[2], s_Payload.CT[GroupIndex]);
-		float3 n0 = N[0];
-		float3 n1 = N[1];
-		float3 n2 = N[2];
+		// // Force this func inline, due to:
+		// // error GB91F0BD6: TGSM pointers must originate from an unambiguous TGSM global variable.
+		// //CalcPNTriangleControlPoints(p0, p1, p2, N[0], N[1], N[2], s_Payload.CT[GroupIndex]);
+		// float3 n0 = N[0];
+		// float3 n1 = N[1];
+		// float3 n2 = N[2];
 
-		float3 b003 = p0;
-		float3 b030 = p1;
-		float3 b300 = p2;
-		float3 n002 = n0;
-		float3 n020 = n1;
-		float3 n200 = n2;
-		float3 b210 = ((b003 * 2.f) + b030 - (dot((b030 - b003), n002) * n002)) / 3.f;
-		float3 b120 = ((b030 * 2.f) + b003 - (dot((b003 - b030), n020) * n020)) / 3.f;
-		float3 b021 = ((b030 * 2.f) + b300 - (dot((b300 - b030), n020) * n020)) / 3.f;
-		float3 b012 = ((b300 * 2.f) + b030 - (dot((b030 - b300), n200) * n200)) / 3.f;
-		float3 b102 = ((b300 * 2.f) + b003 - (dot((b003 - b300), n200) * n200)) / 3.f;
-		float3 b201 = ((b003 * 2.f) + b300 - (dot((b300 - b003), n002) * n002)) / 3.f;
+		// float3 b003 = p0;
+		// float3 b030 = p1;
+		// float3 b300 = p2;
+		// float3 n002 = n0;
+		// float3 n020 = n1;
+		// float3 n200 = n2;
+		// float3 b210 = ((b003 * 2.f) + b030 - (dot((b030 - b003), n002) * n002)) / 3.f;
+		// float3 b120 = ((b030 * 2.f) + b003 - (dot((b003 - b030), n020) * n020)) / 3.f;
+		// float3 b021 = ((b030 * 2.f) + b300 - (dot((b300 - b030), n020) * n020)) / 3.f;
+		// float3 b012 = ((b300 * 2.f) + b030 - (dot((b030 - b300), n200) * n200)) / 3.f;
+		// float3 b102 = ((b300 * 2.f) + b003 - (dot((b003 - b300), n200) * n200)) / 3.f;
+		// float3 b201 = ((b003 * 2.f) + b300 - (dot((b300 - b003), n002) * n002)) / 3.f;
 
-		s_Payload.CT[GroupIndex].P[0 * 3 + 0] = b210.x;
-		s_Payload.CT[GroupIndex].P[0 * 3 + 1] = b210.y;
-		s_Payload.CT[GroupIndex].P[0 * 3 + 2] = b210.z;
-		s_Payload.CT[GroupIndex].P[1 * 3 + 0] = b120.x;
-		s_Payload.CT[GroupIndex].P[1 * 3 + 1] = b120.y;
-		s_Payload.CT[GroupIndex].P[1 * 3 + 2] = b120.z;
-		s_Payload.CT[GroupIndex].P[2 * 3 + 0] = b021.x;
-		s_Payload.CT[GroupIndex].P[2 * 3 + 1] = b021.y;
-		s_Payload.CT[GroupIndex].P[2 * 3 + 2] = b021.z;
-		s_Payload.CT[GroupIndex].P[3 * 3 + 0] = b012.x;
-		s_Payload.CT[GroupIndex].P[3 * 3 + 1] = b012.y;
-		s_Payload.CT[GroupIndex].P[3 * 3 + 2] = b012.z;
-		s_Payload.CT[GroupIndex].P[4 * 3 + 0] = b102.x;
-		s_Payload.CT[GroupIndex].P[4 * 3 + 1] = b102.y;
-		s_Payload.CT[GroupIndex].P[4 * 3 + 2] = b102.z;
-		s_Payload.CT[GroupIndex].P[5 * 3 + 0] = b201.x;
-		s_Payload.CT[GroupIndex].P[5 * 3 + 1] = b201.y;
-		s_Payload.CT[GroupIndex].P[5 * 3 + 2] = b201.z;
+		// s_Payload.CT[GroupIndex].P[0 * 3 + 0] = b210.x;
+		// s_Payload.CT[GroupIndex].P[0 * 3 + 1] = b210.y;
+		// s_Payload.CT[GroupIndex].P[0 * 3 + 2] = b210.z;
+		// s_Payload.CT[GroupIndex].P[1 * 3 + 0] = b120.x;
+		// s_Payload.CT[GroupIndex].P[1 * 3 + 1] = b120.y;
+		// s_Payload.CT[GroupIndex].P[1 * 3 + 2] = b120.z;
+		// s_Payload.CT[GroupIndex].P[2 * 3 + 0] = b021.x;
+		// s_Payload.CT[GroupIndex].P[2 * 3 + 1] = b021.y;
+		// s_Payload.CT[GroupIndex].P[2 * 3 + 2] = b021.z;
+		// s_Payload.CT[GroupIndex].P[3 * 3 + 0] = b012.x;
+		// s_Payload.CT[GroupIndex].P[3 * 3 + 1] = b012.y;
+		// s_Payload.CT[GroupIndex].P[3 * 3 + 2] = b012.z;
+		// s_Payload.CT[GroupIndex].P[4 * 3 + 0] = b102.x;
+		// s_Payload.CT[GroupIndex].P[4 * 3 + 1] = b102.y;
+		// s_Payload.CT[GroupIndex].P[4 * 3 + 2] = b102.z;
+		// s_Payload.CT[GroupIndex].P[5 * 3 + 0] = b201.x;
+		// s_Payload.CT[GroupIndex].P[5 * 3 + 1] = b201.y;
+		// s_Payload.CT[GroupIndex].P[5 * 3 + 2] = b201.z;
 
-		float3 E = (b210 + b120 + b021 + b012 + b102 + b201) / 6.f;
-		float3 V = (b003 + b030 + b300) / 3.f;
-		float3 b111 = E + ((E - V) / 2.f);
-		s_Payload.CT[GroupIndex].P[6 * 3 + 0] = b111.x;
-		s_Payload.CT[GroupIndex].P[6 * 3 + 1] = b111.y;
-		s_Payload.CT[GroupIndex].P[6 * 3 + 2] = b111.z;
+		// float3 E = (b210 + b120 + b021 + b012 + b102 + b201) / 6.f;
+		// float3 V = (b003 + b030 + b300) / 3.f;
+		// float3 b111 = E + ((E - V) / 2.f);
+		// s_Payload.CT[GroupIndex].P[6 * 3 + 0] = b111.x;
+		// s_Payload.CT[GroupIndex].P[6 * 3 + 1] = b111.y;
+		// s_Payload.CT[GroupIndex].P[6 * 3 + 2] = b111.z;
 
-		float v12 = 2.f * dot(b030 - b003, n002 + n020) / dot(b030 - b003, b030 - b003);
-		float3 n110 = normalize(n002 + n020 - (b030 - b003) * v12);
-		float v23 = 2.f * dot(b300 - b030, n020 + n200) / dot(b300 - b030, b300 - b030);
-		float3 n011 = normalize(n020 + n200 - (b300 - b030) * v23);
-		float v31 = 2.f * dot(b003 - b300, n200 + n002) / dot(b003 - b300, b003 - b300);
-		float3 n101 = normalize(n200 + n002 - (b003 - b300) * v31);
-		s_Payload.CT[GroupIndex].P[7 * 3 + 0] = n110.x;
-		s_Payload.CT[GroupIndex].P[7 * 3 + 1] = n110.y;
-		s_Payload.CT[GroupIndex].P[7 * 3 + 2] = n110.z;
-		s_Payload.CT[GroupIndex].P[8 * 3 + 0] = n011.x;
-		s_Payload.CT[GroupIndex].P[8 * 3 + 1] = n011.y;
-		s_Payload.CT[GroupIndex].P[8 * 3 + 2] = n011.z;
-		s_Payload.CT[GroupIndex].P[9 * 3 + 0] = n101.x;
-		s_Payload.CT[GroupIndex].P[9 * 3 + 1] = n101.y;
-		s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
+		// float v12 = 2.f * dot(b030 - b003, n002 + n020) / dot(b030 - b003, b030 - b003);
+		// float3 n110 = normalize(n002 + n020 - (b030 - b003) * v12);
+		// float v23 = 2.f * dot(b300 - b030, n020 + n200) / dot(b300 - b030, b300 - b030);
+		// float3 n011 = normalize(n020 + n200 - (b300 - b030) * v23);
+		// float v31 = 2.f * dot(b003 - b300, n200 + n002) / dot(b003 - b300, b003 - b300);
+		// float3 n101 = normalize(n200 + n002 - (b003 - b300) * v31);
+		// s_Payload.CT[GroupIndex].P[7 * 3 + 0] = n110.x;
+		// s_Payload.CT[GroupIndex].P[7 * 3 + 1] = n110.y;
+		// s_Payload.CT[GroupIndex].P[7 * 3 + 2] = n110.z;
+		// s_Payload.CT[GroupIndex].P[8 * 3 + 0] = n011.x;
+		// s_Payload.CT[GroupIndex].P[8 * 3 + 1] = n011.y;
+		// s_Payload.CT[GroupIndex].P[8 * 3 + 2] = n011.z;
+		// s_Payload.CT[GroupIndex].P[9 * 3 + 0] = n101.x;
+		// s_Payload.CT[GroupIndex].P[9 * 3 + 1] = n101.y;
+		// s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
 
 		uint4 tess_factor;
 		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor, GroupIndex + TriangleOffset);
-		s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
-		s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
-		s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;
-		s_Payload.TF[GroupIndex].Factor[3] = tess_factor.w;
+		// s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
+		// s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
+		// s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;
+		// s_Payload.TF[GroupIndex].Factor[3] = tess_factor.w;
 #if DEBUG_INFO
 		DebugInfo[GroupIndex + TriangleOffset].TessFactor = tess_factor;
 		DebugInfo[GroupIndex + TriangleOffset].TessedCount = NumTessellated; 
@@ -519,29 +516,49 @@ void HWRasterizeAS(
 		{
 			uint count_in_group = min(32, NumTessellated - (i * 32));
 			uint info = PackTessInfo(GroupIndex, i, count_in_group - 1);
-			//WriteToTable(info, start + i);
+			WriteToTable(info, start + i);
+#if DEBUG_INFO
+			uint iii = (start + i) / 2;
+			DebugTable[start + i].AS_UInt = s_Payload.MSTable[iii];
+			DebugTable[start + i].AS_TriIndex = GroupIndex;
+			DebugTable[start + i].AS_TessOffset = i;
+			DebugTable[start + i].AS_TessCount = count_in_group - 1;
+			DebugTable[start + i].AS_Encoded = info;
+#endif
 		}
 	}
-	DispatchMesh(TrianglesToTess, 1, 1, s_Payload);
+#if DEBUG_INFO
+	GroupMemoryBarrierWithGroupSync();	
+	DebugInfo[GroupIndex + TriangleOffset].TotalGroups = s_TotalTessellated;
+#endif
+	DispatchMesh(s_TotalTessellated, 1, 1, s_Payload);
 }
 
-#define TRIANGLE_TESSELLATED 24
 [RootSignature(HWRasterizeRS)]
-[numthreads(TRIANGLE_TESSELLATED, 1, 1)]
+[numthreads(32, 1, 1)]
 [outputtopology("triangle")]
 void HWRasterizeMS(
 	uint GroupThreadID : SV_GroupThreadID,
 	uint GroupID : SV_GroupID,
     in payload Payload payload,
-	out vertices VSOut OutVertices[TRIANGLE_TESSELLATED],
-	out indices uint3 OutTriangles[TRIANGLE_TESSELLATED],
-	out primitives PrimitiveAttributes OutPrimitives[TRIANGLE_TESSELLATED]
+	out vertices VSOut OutVertices[96],
+	out indices uint3 OutTriangles[32],
+	out primitives PrimitiveAttributes OutPrimitives[32]
 )
 {
 
 	uint3 RasterBin;
 
 	uint VisibleIndex = payload.VisibleClusterIndex;
+	uint TriangleOffset = payload.TriangleOffset;
+
+	uint Value = ReadFromTable(payload, GroupID);
+	uint3 Info = UnpackTessInfo(Value);
+	uint TriangleIndexInAS = Info.x;
+	uint TessOffset = Info.y * 32;
+	uint TessCount = Info.z + 1;
+
+	//TessFactor Factor = payload.TF[TriangleIndexInAS];
 
 	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
 	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
@@ -553,147 +570,180 @@ void HWRasterizeMS(
 //#endif
 
 	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
-	uint TriangleIndex = GroupID + payload.TriangleOffset;
+	uint TriangleIndex = TriangleIndexInAS + TriangleOffset;
 	uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 
-	bool NeedTess = Cluster.MipLevel == 0;
-	uint NumVerts = NeedTess ? 19 : 3;
-	uint NumTri = NeedTess ? 24 : 1;
+#if DEBUG_INFO
+	uint iii = (GroupID) / 2;
+	DebugTable[GroupID].MS_UInt = payload.MSTable[iii];
+	DebugTable[GroupID].MS_Encoded = Value;
+	DebugTable[GroupID].MS_TriIndex = TriangleIndexInAS;
+	DebugTable[GroupID].MS_TessOffset = TessOffset / 32;
+	DebugTable[GroupID].MS_TessCount = TessCount;
+#endif
+	TessCount = 1;
+	uint NumVerts = TessCount * 3;
+	uint NumTri = TessCount;
 
 	SetMeshOutputCounts(NumVerts, NumTri);
 
 	[branch]
-	if (NeedTess)
+	if (GroupThreadID < NumTri)
 	{
-		OutTriangles[GroupThreadID] = k_triangles[GroupThreadID];
+	 	uint TessIndex = TessOffset + GroupThreadID;
+	 	OutTriangles[GroupThreadID] = uint3(0, 1, 2);
 
-		if (GroupThreadID < 19)
-		{
-			// calc PN Triangle points
-			float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
-			float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
-			float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
+		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
+		float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
+		float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
 
-			FNaniteRawAttributeData AttrData[3];
-			GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+		FNaniteRawAttributeData AttrData[3];
+		GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
 
-			float3 N[3];
-			N[0] = AttrData[0].TangentZ;
-			N[1] = AttrData[1].TangentZ;
-			N[2] = AttrData[2].TangentZ;
+		OutVertices[0] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p0, 0);
+		OutVertices[0].Normal = AttrData[0].TangentZ;
+		OutVertices[0].UV = AttrData[0].TexCoords[0];
 
-			float3 n0 = N[0];
-			float3 n1 = N[1];
-			float3 n2 = N[2];
+		OutVertices[1] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p1, 0);
+		OutVertices[1].Normal = AttrData[1].TangentZ;
+		OutVertices[1].UV = AttrData[1].TexCoords[0];
 
-			// Get barycoords
-			float3 uvw = k_barycentric[GroupThreadID];
-			float U = uvw.x;
-			float V = uvw.y;
-			float W = uvw.z;
+		OutVertices[2] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p2, 0);
+		OutVertices[2].Normal = AttrData[2].TangentZ;
+		OutVertices[2].UV = AttrData[2].TexCoords[0];
 
-			float UU = U * U;
-			float VV = V * V;
-			float WW = W * W;
-			float UU3 = UU * 3.f;
-			float VV3 = VV * 3.f;
-			float WW3 = WW * 3.f;
-
-			float3 b210, b120, b021, b012, b102, b201, b111;
-			b210.x = payload.CT[GroupID].P[0 * 3 + 0];
-			b210.y = payload.CT[GroupID].P[0 * 3 + 1];
-			b210.z = payload.CT[GroupID].P[0 * 3 + 2];
-			b120.x = payload.CT[GroupID].P[1 * 3 + 0];
-			b120.y = payload.CT[GroupID].P[1 * 3 + 1];
-			b120.z = payload.CT[GroupID].P[1 * 3 + 2];
-			b021.x = payload.CT[GroupID].P[2 * 3 + 0];
-			b021.y = payload.CT[GroupID].P[2 * 3 + 1];
-			b021.z = payload.CT[GroupID].P[2 * 3 + 2];
-			b012.x = payload.CT[GroupID].P[3 * 3 + 0];
-			b012.y = payload.CT[GroupID].P[3 * 3 + 1];
-			b012.z = payload.CT[GroupID].P[3 * 3 + 2];
-			b102.x = payload.CT[GroupID].P[4 * 3 + 0];
-			b102.y = payload.CT[GroupID].P[4 * 3 + 1];
-			b102.z = payload.CT[GroupID].P[4 * 3 + 2];
-			b201.x = payload.CT[GroupID].P[5 * 3 + 0];
-			b201.y = payload.CT[GroupID].P[5 * 3 + 1];
-			b201.z = payload.CT[GroupID].P[5 * 3 + 2];
-			b111.x = payload.CT[GroupID].P[6 * 3 + 0];
-			b111.y = payload.CT[GroupID].P[6 * 3 + 1];
-			b111.z = payload.CT[GroupID].P[6 * 3 + 2];
-
-			// update Position
-			float3 P =
-				p0 * WW * W +
-				p1 * UU * U +
-				p2 * VV * V +
-				b210 * WW3 * U +
-				b120 * W * UU3 +
-				b201 * WW3 * V +
-				b021 * UU3 * V +
-				b102 * W * VV3 +
-				b012 * U * VV3 +
-				b111 * 6.f * W * U * V;
-
-			float3 n110, n011, n101;
-			n110.x = payload.CT[GroupID].P[7 * 3 + 0];
-			n110.y = payload.CT[GroupID].P[7 * 3 + 1];
-			n110.z = payload.CT[GroupID].P[7 * 3 + 2];
-			n011.x = payload.CT[GroupID].P[8 * 3 + 0];
-			n011.y = payload.CT[GroupID].P[8 * 3 + 1];
-			n011.z = payload.CT[GroupID].P[8 * 3 + 2];
-			n101.x = payload.CT[GroupID].P[9 * 3 + 0];
-			n101.y = payload.CT[GroupID].P[9 * 3 + 1];
-			n101.z = payload.CT[GroupID].P[9 * 3 + 2];
-
-			// update Normal
-			float3 Normal =
-				n0 * WW +
-				n1 * UU +
-				n2 * VV +
-				n110 * W * U +
-				n011 * U * V +
-				n101 * W * V;
-			Normal = normalize(Normal);
-			OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
-			OutVertices[GroupThreadID].Normal = Normal;
-
-			// update uv
-			OutVertices[GroupThreadID].UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
-
-			PrimitiveAttributes Attributes;
-			Attributes.PackedData.x = VisibleIndex;
-			Attributes.PackedData.y = TriangleIndex;
-			uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
-			uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
-			Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
-			Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
-			OutPrimitives[GroupThreadID] = Attributes;
-		}
+		PrimitiveAttributes Attributes;
+		Attributes.PackedData.x = VisibleIndex;
+		Attributes.PackedData.y = TriangleIndex;
+		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+		Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
+		Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
+		OutPrimitives[GroupThreadID] = Attributes;
 	}
-	else
-	{
-		if (GroupThreadID == 0)
-			OutTriangles[0] = uint3(0, 1, 2);
 
-		if (GroupThreadID < 3)
-		{
-			OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, TriangleIndices[GroupThreadID], 0);
+	//	OutTriangles[GroupThreadID] = k_triangles[GroupThreadID];
 
-			FNaniteRawAttributeData AttrData = GetRawAttributeData(Cluster, TriangleIndices[GroupThreadID], 1);
-			OutVertices[GroupThreadID].Normal = AttrData.TangentZ;
-			OutVertices[GroupThreadID].UV = AttrData.TexCoords[0];
+	//	if (GroupThreadID < 19)
+	//	{
 
-			PrimitiveAttributes Attributes;
-			Attributes.PackedData.x = VisibleIndex;
-			Attributes.PackedData.y = TriangleIndex;
-			uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
-			uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
-			Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
-			Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
-			OutPrimitives[GroupThreadID] = Attributes;
-		}
-	}
+	//		float3 N[3];
+	//		N[0] = AttrData[0].TangentZ;
+	//		N[1] = AttrData[1].TangentZ;
+	//		N[2] = AttrData[2].TangentZ;
+
+	//		float3 n0 = N[0];
+	//		float3 n1 = N[1];
+	//		float3 n2 = N[2];
+
+	//		// Get barycoords
+	//		float3 uvw = k_barycentric[GroupThreadID];
+	//		float U = uvw.x;
+	//		float V = uvw.y;
+	//		float W = uvw.z;
+
+	//		float UU = U * U;
+	//		float VV = V * V;
+	//		float WW = W * W;
+	//		float UU3 = UU * 3.f;
+	//		float VV3 = VV * 3.f;
+	//		float WW3 = WW * 3.f;
+
+	//		float3 b210, b120, b021, b012, b102, b201, b111;
+	//		b210.x = payload.CT[GroupID].P[0 * 3 + 0];
+	//		b210.y = payload.CT[GroupID].P[0 * 3 + 1];
+	//		b210.z = payload.CT[GroupID].P[0 * 3 + 2];
+	//		b120.x = payload.CT[GroupID].P[1 * 3 + 0];
+	//		b120.y = payload.CT[GroupID].P[1 * 3 + 1];
+	//		b120.z = payload.CT[GroupID].P[1 * 3 + 2];
+	//		b021.x = payload.CT[GroupID].P[2 * 3 + 0];
+	//		b021.y = payload.CT[GroupID].P[2 * 3 + 1];
+	//		b021.z = payload.CT[GroupID].P[2 * 3 + 2];
+	//		b012.x = payload.CT[GroupID].P[3 * 3 + 0];
+	//		b012.y = payload.CT[GroupID].P[3 * 3 + 1];
+	//		b012.z = payload.CT[GroupID].P[3 * 3 + 2];
+	//		b102.x = payload.CT[GroupID].P[4 * 3 + 0];
+	//		b102.y = payload.CT[GroupID].P[4 * 3 + 1];
+	//		b102.z = payload.CT[GroupID].P[4 * 3 + 2];
+	//		b201.x = payload.CT[GroupID].P[5 * 3 + 0];
+	//		b201.y = payload.CT[GroupID].P[5 * 3 + 1];
+	//		b201.z = payload.CT[GroupID].P[5 * 3 + 2];
+	//		b111.x = payload.CT[GroupID].P[6 * 3 + 0];
+	//		b111.y = payload.CT[GroupID].P[6 * 3 + 1];
+	//		b111.z = payload.CT[GroupID].P[6 * 3 + 2];
+
+	//		// update Position
+	//		float3 P =
+	//			p0 * WW * W +
+	//			p1 * UU * U +
+	//			p2 * VV * V +
+	//			b210 * WW3 * U +
+	//			b120 * W * UU3 +
+	//			b201 * WW3 * V +
+	//			b021 * UU3 * V +
+	//			b102 * W * VV3 +
+	//			b012 * U * VV3 +
+	//			b111 * 6.f * W * U * V;
+
+	//		float3 n110, n011, n101;
+	//		n110.x = payload.CT[GroupID].P[7 * 3 + 0];
+	//		n110.y = payload.CT[GroupID].P[7 * 3 + 1];
+	//		n110.z = payload.CT[GroupID].P[7 * 3 + 2];
+	//		n011.x = payload.CT[GroupID].P[8 * 3 + 0];
+	//		n011.y = payload.CT[GroupID].P[8 * 3 + 1];
+	//		n011.z = payload.CT[GroupID].P[8 * 3 + 2];
+	//		n101.x = payload.CT[GroupID].P[9 * 3 + 0];
+	//		n101.y = payload.CT[GroupID].P[9 * 3 + 1];
+	//		n101.z = payload.CT[GroupID].P[9 * 3 + 2];
+
+	//		// update Normal
+	//		float3 Normal =
+	//			n0 * WW +
+	//			n1 * UU +
+	//			n2 * VV +
+	//			n110 * W * U +
+	//			n011 * U * V +
+	//			n101 * W * V;
+	//		Normal = normalize(Normal);
+	//		OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
+	//		OutVertices[GroupThreadID].Normal = Normal;
+
+	//		// update uv
+	//		OutVertices[GroupThreadID].UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+
+	//		PrimitiveAttributes Attributes;
+	//		Attributes.PackedData.x = VisibleIndex;
+	//		Attributes.PackedData.y = TriangleIndex;
+	//		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+	//		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+	//		Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
+	//		Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
+	//		OutPrimitives[GroupThreadID] = Attributes;
+	//	}
+	//}
+	// else
+	// {
+	// 	if (GroupThreadID == 0)
+	// 		OutTriangles[0] = uint3(0, 1, 2);
+
+	// 	if (GroupThreadID < 3)
+	// 	{
+	// 		OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, TriangleIndices[GroupThreadID], 0);
+
+	// 		FNaniteRawAttributeData AttrData = GetRawAttributeData(Cluster, TriangleIndices[GroupThreadID], 1);
+	// 		OutVertices[GroupThreadID].Normal = AttrData.TangentZ;
+	// 		OutVertices[GroupThreadID].UV = AttrData.TexCoords[0];
+
+	// 		PrimitiveAttributes Attributes;
+	// 		Attributes.PackedData.x = VisibleIndex;
+	// 		Attributes.PackedData.y = TriangleIndex;
+	// 		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+	// 		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+	// 		Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
+	// 		Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
+	// 		OutPrimitives[GroupThreadID] = Attributes;
+	// 	}
+	// }
 }
 
 struct SVisBufferWriteParameters

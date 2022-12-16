@@ -25,6 +25,7 @@ public:
 	static void FreezeCulling();
 
 private:
+	void CreateTessellationTemplates();
 
 private:
 	FArgumentBufferPtr AB_Result;
@@ -41,8 +42,11 @@ private:
 	FUniformBufferPtr VisibleClustersSWHW;
 	FUniformBufferPtr VisibleClustersArgsSWHW;
 
+	FUniformBufferPtr TessTemplateData;
+
 	FUniformBufferPtr CullingDebugInfo;
 	FUniformBufferPtr TessDebugInfo;
+	FUniformBufferPtr TessDebugTable;
 
 	TNaniteMesh* NaniteMesh;
 	FStreamingPageUploader StreamingManager;
@@ -70,6 +74,7 @@ private:
 
 		UAV_VisBuffer,
 		UAV_TessDebugInfo,
+		UAV_TessDebugTable,
 
 		NumHWRasterizeParams
 	};
