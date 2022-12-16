@@ -45,4 +45,7 @@ struct FNaniteTessDebugInfo
 {
 	uint4 TessFactor;
 	uint TessedCount;
+	float4 PixelClip0;
+	float4 PixelClip1;
+	float4 PixelClip2;
 };

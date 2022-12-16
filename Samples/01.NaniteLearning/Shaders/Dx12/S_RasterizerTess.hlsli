@@ -92,7 +92,7 @@ VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster,
 	// #endif
 
 		// Calculate PointClipPixel coordinates that bring us directly to absolute pixel positions after w divide
-	float4 PointClipPixel = float4(PointClip.xy * float2(0.5f, -0.5f) + 0.5f * PointClip.w, PointClip.zw);
+	float4 PointClipPixel = float4((PointClip.xy / PointClip.w * float2(0.5f, -0.5f) + 0.5f), PointClip.zw);
 	// #if VIRTUAL_TEXTURE_TARGET
 	// 	PointClipPixel.xy *= (VSM_RASTER_WINDOW_PAGES * VSM_PAGE_SIZE);
 	// 	PointClipPixel.xy += VisibleCluster.vPage * (VSM_PAGE_SIZE * PointClipPixel.w);
@@ -306,7 +306,7 @@ uint CalcTessInsideCount(uint n)
 }
 
 // TODO: Improve tess factor algorithm use CalculateCompositeTessellationFactors() from UE4
-uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 p0, float3 p1, float3 p2, out uint4 tess_factor)
+uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 p0, float3 p1, float3 p2, out uint4 tess_factor, uint debug_index)
 {
 	VSOut V[3];
 	V[0] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p0, 0);
@@ -317,16 +317,20 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float2 ScreenPos1 = V[1].PointClipPixel.xy;
 	float2 ScreenPos2 = V[2].PointClipPixel.xy;
 
-	float tess01f = round(length(ScreenPos0 - ScreenPos1) / 100);
-	float tess02f = round(length(ScreenPos0 - ScreenPos2) / 100);
-	float tess12f = round(length(ScreenPos1 - ScreenPos2) / 100);
+	DebugInfo[debug_index].PixelClip0 = V[0].PointClipPixel;
+	DebugInfo[debug_index].PixelClip1 = V[1].PointClipPixel;
+	DebugInfo[debug_index].PixelClip2 = V[2].PointClipPixel;
+
+	float tess01f = round(length(ScreenPos0 - ScreenPos1));
+	float tess02f = round(length(ScreenPos0 - ScreenPos2));
+	float tess12f = round(length(ScreenPos1 - ScreenPos2));
 
 	float tess_centerf = round(0.333 * (tess01f + tess02f + tess12f));
 
-	tess_factor.x = (uint)(max(1.0, tess01f));
-	tess_factor.y = (uint)(max(1.0, tess02f));
-	tess_factor.z = (uint)(max(1.0, tess12f));
-	tess_factor.w = (uint)(max(1.0, tess_centerf));
+	tess_factor.x = (uint)(clamp(tess01f, 1.0, 18.0));
+	tess_factor.y = (uint)(clamp(tess02f, 1.0, 18.0));
+	tess_factor.z = (uint)(clamp(tess12f, 1.0, 18.0));
+	tess_factor.w = (uint)(clamp(tess_centerf, 1.0, 18.0));
 
 	if (tess_factor.w == 1)
 	{
@@ -499,7 +503,7 @@ void HWRasterizeAS(
 		s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
 
 		uint4 tess_factor;
-		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor);
+		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor, GroupIndex + TriangleOffset);
 		s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
 		s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
 		s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;

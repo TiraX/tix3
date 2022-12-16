@@ -72,6 +72,9 @@ struct FNaniteTessDebug
 	static const int32 MaxDebugInfo = 128;
 	FUInt4 TessFactor;
 	uint32 TessedCount;
+	FFloat4 PixelClip0;
+	FFloat4 PixelClip1;
+	FFloat4 PixelClip2;
 
 	FNaniteTessDebug()
 		: TessedCount(0)
