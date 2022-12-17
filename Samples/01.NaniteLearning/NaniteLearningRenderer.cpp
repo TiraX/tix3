@@ -260,7 +260,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	CreateTessellationTemplates();
 }
 
-inline uint32 CalcTessInsideCount(uint32 n)
+inline uint32 CalcTessInsideTriCount(uint32 n)
 {
 	if ((n & 1) == 0)
 	{
@@ -273,23 +273,37 @@ inline uint32 CalcTessInsideCount(uint32 n)
 		return (n / 2) * 3 * (n + 1) + 1;
 	}
 }
+inline uint32 CalcTessInsidePointCount(uint32 n)
+{
+	if ((n & 1) == 0)
+	{
+		// even
+		uint32 nn = n / 2;
+		return (nn * nn + nn) * 3 + 1;
+	}
+	else
+	{
+		// odd
+		uint32 nn = n / 2 + 1;
+		return (nn * nn) * 3;
+	}
+}
 
 void FNaniteLearningRenderer::CreateTessellationTemplates()
 {
-	return;
 	const uint32 MaxTessFactor = 18;
 
-	// Calc Offsets
-	TVector<uint32> Offsets;
-	Offsets.resize(MaxTessFactor);
-	uint32 Total = 0;
-	for (uint32 i = 1; i < MaxTessFactor; i++)
+	uint32 TotalTris = 0;
+	uint32 TotalPoints = 0;
+	for (uint32 i = 2; i < MaxTessFactor; i++)
 	{
-		Offsets[i] = Total;
-		uint32 Segs = i + 1 - 2;
-		uint32 Count = CalcTessInsideCount(Segs);
-		Total += Count;
+		uint32 Segs = i - 2;
+		uint32 TriCount = CalcTessInsideTriCount(Segs);
+		TotalTris += TriCount;
+		uint32 PtCount = CalcTessInsidePointCount(Segs);
+		TotalPoints += PtCount;
 	}
+
 
 	// Calc Templates
 	const FFloat3 B0(0, 1, 0);
@@ -300,55 +314,77 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 	const FFloat3 D1 = (B1 - BC).Normalize();
 	const FFloat3 D2 = (B2 - BC).Normalize();
 	const float EdgeLen = (B0 - B1).GetLength();
-	const float Cos30 = cos(TMath::DegToRad(30.f));
+	const float Cos30Inv = 1.f / cos(TMath::DegToRad(30.f));
 
 	TVector<FFloat3> BaryCoords;
+	BaryCoords.reserve(TotalPoints);
 	TVector<FUInt3> Triangles;
-	Triangles.reserve(Total);
+	Triangles.reserve(TotalTris);
+
+	auto AddLoop = [&BaryCoords](const FFloat3& p0, const FFloat3& p1, const FFloat3& p2, int32 segs)
+	{
+		const float SegsInv = 1.f / float(segs);
+		// Points on p0 - p1
+		FFloat3 D = (p1 - p0) * SegsInv;
+		FFloat3 Start = p0;
+		for (int s = 0; s < segs; s++)
+		{
+			FFloat3 P = Start + D * float(s);
+			BaryCoords.push_back(P);
+		}
+		// Points on B1-B2
+		D = (p2 - p1) * SegsInv;
+		Start = p1;
+		for (int s = 0; s < segs; s++)
+		{
+			FFloat3 P = Start + D * float(s);
+			BaryCoords.push_back(P);
+		}
+		// Points on B2-B0
+		D = (p0 - p2) * SegsInv;
+		Start = p2;
+		for (int s = 0; s < segs; s++)
+		{
+			FFloat3 P = Start + D * float(s);
+			BaryCoords.push_back(P);
+		}
+	};
+
 	for (uint32 TessFactor = 2; TessFactor < MaxTessFactor; TessFactor++)
 	{
-		const float SegLen = EdgeLen / TessFactor;
-		uint32 InsideSegs = TessFactor + 1 - 2;
+		float SegLen = EdgeLen / TessFactor;
+		int InsideSegs = TessFactor - 2;
 		if ((InsideSegs & 1) == 0)
 		{
+			int Loops = InsideSegs / 2;
+			for (int l = Loops - 1; l >= 0; l--)
+			{
+				int SegInLoop = l * 2 + 2;
+				float Radius = SegLen * (SegInLoop / 2) * Cos30Inv;
+				FFloat3 C0 = BC + D0 * Radius;    // Corner0
+				FFloat3 C1 = BC + D1 * Radius;    // Corner1
+				FFloat3 C2 = BC + D2 * Radius;    // Corner2
+				AddLoop(C0, C1, C2, SegInLoop);
+			}
+			BaryCoords.push_back(BC);	// add center point for even tess
 		}
 		else
 		{
-			uint32 Loops = TessFactor / 2;
-			for (int32 l = Loops - 1; l >= 0; l--)
+			int Loops = InsideSegs / 2 + 1;
+			for (int l = Loops - 1; l >= 0; l--)
 			{
-				uint32 SegInLoop = l * 2 - 1;
-				float Radius = SegLen * (SegInLoop / 2) + 0.5f;
-				const FFloat3 C0 = BC + D0 * Radius;	// Corner0
-				const FFloat3 C1 = BC + D1 * Radius;	// Corner1
-				const FFloat3 C2 = BC + D2 * Radius;	// Corner2
-				// Points on C0-C1
-				FFloat3 D = (C1 - C0) / float(SegInLoop);
-				FFloat3 Start = C0;
-				for (uint32 s = 0; s < SegInLoop; s++)
-				{
-					FFloat3 P = Start + D * float(s);
-					BaryCoords.push_back(P);
-				}
-				// Points on C1-C2
-				D = (C2 - C1) / float(SegInLoop);
-				Start = C1;
-				for (uint32 s = 0; s < SegInLoop; s++)
-				{
-					FFloat3 P = Start + D * float(s);
-					BaryCoords.push_back(P);
-				}
-				// Points on C2-C0
-				D = (C0 - C2) / float(SegInLoop);
-				Start = C2;
-				for (uint32 s = 0; s < SegInLoop; s++)
-				{
-					FFloat3 P = Start + D * float(s);
-					BaryCoords.push_back(P);
-				}
+				int SegInLoop = l * 2 + 1;
+				float Radius = SegLen * ((SegInLoop / 2) + 0.5f) * Cos30Inv;
+				FFloat3 C0 = BC + D0 * Radius;    // Corner0
+				FFloat3 C1 = BC + D1 * Radius;    // Corner1
+				FFloat3 C2 = BC + D2 * Radius;    // Corner2
+				AddLoop(C0, C1, C2, SegInLoop);
 			}
 		}
 	}
+
+	TI_ASSERT(0);
+	TODO: Calc triangle indices
 
 	TI_ASSERT(TessTemplateData == nullptr);
 }
