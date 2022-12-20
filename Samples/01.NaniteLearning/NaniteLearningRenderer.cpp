@@ -27,7 +27,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 {
 	FDefaultRenderer::InitInRenderThread();
 
-	FRHI * RHI = FRHI::Get();
+	FRHI* RHI = FRHI::Get();
 	FRHICmdList* RHICmdList = RHI->GetDefaultCmdList();
 	FSRender.InitCommonResources(RHICmdList);
 
@@ -96,18 +96,18 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	ZeroData->FillWithZero(1024);
 	QueueState = FUniformBuffer::CreateUavBuffer(RHICmdList, "Nanite.QueueState", QueueStateSize, 1, ZeroData, EGPUResourceState::UnorderedAccess);
 	const uint32 MaxNodes = GetMaxNodes();
- 	const uint32 MaxCullingBatches = GetMaxClusterBatches();
-	MainAndPostNodesAndClusterBatchesBuffer = 
+	const uint32 MaxCullingBatches = GetMaxClusterBatches();
+	MainAndPostNodesAndClusterBatchesBuffer =
 		FUniformBuffer::CreateBuffer(
-			RHICmdList, 
-			"Nanite.MainAndPostNodesAndClusterBatchesBuffer", 
-			4, 
-			MaxCullingBatches * 2 + MaxNodes * (2 + 3), 
+			RHICmdList,
+			"Nanite.MainAndPostNodesAndClusterBatchesBuffer",
+			4,
+			MaxCullingBatches * 2 + MaxNodes * (2 + 3),
 			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
 			nullptr,
 			EGPUResourceState::UnorderedAccess);
 
-	MainAndPostCandididateClustersBuffer = 
+	MainAndPostCandididateClustersBuffer =
 		FUniformBuffer::CreateBuffer(
 			RHICmdList,
 			"Nanite.MainAndPostCandididateClustersBuffer",
@@ -257,7 +257,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
 
-	CreateTessellationTemplates();
+	CreateTessellationTemplates(RHICmdList);
 }
 
 inline uint32 CalcTessInsideTriCount(uint32 n)
@@ -289,23 +289,9 @@ inline uint32 CalcTessInsidePointCount(uint32 n)
 	}
 }
 
-void FNaniteLearningRenderer::CreateTessellationTemplates()
+static const uint32 MaxTessFactor = 18;
+void AddPoints(TVector<FFloat3>& OutBaryCoords)
 {
-	const uint32 MaxTessFactor = 18;
-
-	uint32 TotalTris = 0;
-	uint32 TotalPoints = 0;
-	for (uint32 i = 2; i < MaxTessFactor; i++)
-	{
-		uint32 Segs = i - 2;
-		uint32 TriCount = CalcTessInsideTriCount(Segs);
-		TotalTris += TriCount;
-		uint32 PtCount = CalcTessInsidePointCount(Segs);
-		TotalPoints += PtCount;
-	}
-
-
-	// Calc Templates
 	const FFloat3 B0(0, 1, 0);
 	const FFloat3 B1(1, 0, 0);
 	const FFloat3 B2(0, 0, 1);
@@ -316,12 +302,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 	const float EdgeLen = (B0 - B1).GetLength();
 	const float Cos30Inv = 1.f / cos(TMath::DegToRad(30.f));
 
-	TVector<FFloat3> BaryCoords;
-	BaryCoords.reserve(TotalPoints);
-	TVector<FUInt3> Triangles;
-	Triangles.reserve(TotalTris);
-
-	auto AddLoop = [&BaryCoords](const FFloat3& p0, const FFloat3& p1, const FFloat3& p2, int32 segs)
+	auto AddLoop = [&OutBaryCoords](const FFloat3& p0, const FFloat3& p1, const FFloat3& p2, int32 segs)
 	{
 		const float SegsInv = 1.f / float(segs);
 		// Points on p0 - p1
@@ -330,7 +311,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 		for (int s = 0; s < segs; s++)
 		{
 			FFloat3 P = Start + D * float(s);
-			BaryCoords.push_back(P);
+			OutBaryCoords.push_back(P);
 		}
 		// Points on B1-B2
 		D = (p2 - p1) * SegsInv;
@@ -338,7 +319,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 		for (int s = 0; s < segs; s++)
 		{
 			FFloat3 P = Start + D * float(s);
-			BaryCoords.push_back(P);
+			OutBaryCoords.push_back(P);
 		}
 		// Points on B2-B0
 		D = (p0 - p2) * SegsInv;
@@ -346,7 +327,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 		for (int s = 0; s < segs; s++)
 		{
 			FFloat3 P = Start + D * float(s);
-			BaryCoords.push_back(P);
+			OutBaryCoords.push_back(P);
 		}
 	};
 
@@ -366,7 +347,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 				FFloat3 C2 = BC + D2 * Radius;    // Corner2
 				AddLoop(C0, C1, C2, SegInLoop);
 			}
-			BaryCoords.push_back(BC);	// add center point for even tess
+			OutBaryCoords.push_back(BC);	// add center point for even tess
 		}
 		else
 		{
@@ -382,11 +363,288 @@ void FNaniteLearningRenderer::CreateTessellationTemplates()
 			}
 		}
 	}
+}
 
-	TI_ASSERT(0);
-	TODO: Calc triangle indices
+void AddTriangles(TVector<FUInt3>& OutTriangles)
+{
+	for (uint32 TessFactor = 2; TessFactor < MaxTessFactor; TessFactor++)
+	{
+		uint32 InsideSegs = TessFactor - 2;
+
+		if ((InsideSegs & 1) == 0)
+		{
+			int Loops = InsideSegs / 2;
+			for (int side = 0; side < 3; side++)
+			{
+				int line_offset = 0;
+				for (int l = Loops - 1; l >= 0; l--)
+				{
+					int SegInCurrLoop = l * 2 + 2;
+					int SegInNextLoop = (l - 1) * 2 + 2;
+					int curr_loop_ptnum = SegInCurrLoop * 3;
+					int next_loop_ptnum = SegInNextLoop * 3;
+					int curr_loop_start = line_offset + SegInCurrLoop * side;
+					int next_loop_start = line_offset + curr_loop_ptnum + SegInNextLoop * side;
+
+					for (int seg = 0; seg < SegInCurrLoop; seg++)
+					{
+						int curr0 = curr_loop_start + seg;
+						int curr1 = curr_loop_start + seg + 1;
+						if (curr1 >= line_offset + curr_loop_ptnum) curr1 -= curr_loop_ptnum;
+						int next0 = next_loop_start + seg;
+						int next_1 = next_loop_start + seg - 1;
+						if (next0 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next0 -= next_loop_ptnum;
+						if (next_1 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next_1 -= next_loop_ptnum;
+
+						if ((seg & 1) == 0)
+						{
+							OutTriangles.push_back(FUInt3(curr0, curr1, next0));
+						}
+						else
+						{
+							OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
+						}
+						if (seg > 0 && seg < SegInCurrLoop - 1)
+						{
+							if ((seg & 1) == 0)
+							{
+								OutTriangles.push_back(FUInt3(curr0, next0, next_1));
+							}
+							else
+							{
+								OutTriangles.push_back(FUInt3(next_1, curr1, next0));
+							}
+						}
+					}
+					line_offset += curr_loop_ptnum;
+				}
+			}
+		}
+		else
+		{
+			int Loops = InsideSegs / 2;
+			for (int side = 0; side < 3; side++)
+			{
+				int line_offset = 0;
+				for (int l = Loops - 1; l >= 0; l--)
+				{
+					int SegInCurrLoop = l * 2 + 3;
+					int SegInNextLoop = (l - 1) * 2 + 3;
+					int curr_loop_ptnum = SegInCurrLoop * 3;
+					int next_loop_ptnum = SegInNextLoop * 3;
+					int curr_loop_start = line_offset + SegInCurrLoop * side;
+					int next_loop_start = line_offset + curr_loop_ptnum + SegInNextLoop * side;
+
+					for (int seg = 0; seg < SegInCurrLoop; seg++)
+					{
+						int curr0 = curr_loop_start + seg;
+						int curr1 = curr_loop_start + seg + 1;
+						if (curr1 >= line_offset + curr_loop_ptnum) curr1 -= curr_loop_ptnum;
+						int next0 = next_loop_start + seg;
+						int next_1 = next_loop_start + seg - 1;
+						if (next0 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next0 -= next_loop_ptnum;
+						if (next_1 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next_1 -= next_loop_ptnum;
+
+						if ((seg & 1) == 0)
+						{
+							if (seg != SegInCurrLoop - 1)
+								OutTriangles.push_back(FUInt3(curr0, curr1, next0));
+							else
+								OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
+						}
+						else
+						{
+							OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
+						}
+						if (seg > 0 && seg < SegInCurrLoop - 1)
+						{
+							if ((seg & 1) == 0)
+							{
+								OutTriangles.push_back(FUInt3(curr0, next0, next_1));
+							}
+							else
+							{
+								OutTriangles.push_back(FUInt3(next_1, curr1, next0));
+							}
+						}
+					}
+					line_offset += curr_loop_ptnum;
+				}
+			}
+			int total_pts = CalcTessInsidePointCount(InsideSegs);
+			OutTriangles.push_back(FUInt3(total_pts - 3, total_pts - 2, total_pts - 1));
+		}
+	}
+}
+
+TStreamPtr GroupTrianglesAndVerts(
+	const TVector<FFloat3>& BaryCoords,
+	const TVector<FUInt3>& Triangles
+)
+{
+	uint32 TotalTrisOffset = 0;
+	uint32 TotalPointsOffset = 0;
+
+	THMap<uint32, uint32> VertMap;
+	VertMap.reserve(256);
+	TVector<FFloat3> NewBaryCoords;
+	TVector<uint8> NewTriangles;
+	NewBaryCoords.reserve(96);
+	NewTriangles.reserve(96);
+
+	struct FTemplateDesc
+	{
+		uint32 Offset;
+		uint16 Verts;
+		uint16 Tris;
+	};
+
+	auto InsertVert = [&VertMap, &NewBaryCoords, &NewTriangles](uint32 VertIndex, const FFloat3& BCoord)
+	{
+		uint32 NewIndex = uint32(-1);
+		THMap<uint32, uint32>::const_iterator It = VertMap.find(VertIndex);
+		if (It == VertMap.end())
+		{
+			NewIndex = (uint32)VertMap.size();
+			VertMap[VertIndex] = NewIndex;
+			NewBaryCoords.push_back(BCoord);
+		}
+		else
+		{
+			NewIndex = It->second;
+		}
+		NewTriangles.push_back(NewIndex);
+	};
+
+	uint32 MaxDataSize = TMath::Align4((uint32)Triangles.size() * 3) + (uint32)BaryCoords.size() * sizeof(FFloat3) * 2;
+	TStreamPtr Data = ti_new TStream(MaxDataSize);
+
+	TVector<FTemplateDesc> Descs;
+	Descs.reserve(1024);
+
+	TVector<uint16> TessGroupInfos;
+	TessGroupInfos.reserve(18);
+	for (uint32 i = 2; i < MaxTessFactor; i++)
+	{
+		uint32 TessGroupOffset = (uint32)Descs.size();
+
+		uint32 Segs = i - 2;
+		int32 TriCount = CalcTessInsideTriCount(Segs);
+		int32 PtCount = CalcTessInsidePointCount(Segs);
+
+		FTemplateDesc Desc;
+
+		VertMap.clear();
+		NewBaryCoords.clear();
+		NewTriangles.clear();
+
+		auto AddGroup = [&]()
+		{
+			Desc.Offset = Data->GetLength();
+			Desc.Tris = (uint16)NewTriangles.size() / 3;
+			Desc.Verts = (uint16)NewBaryCoords.size();
+			Descs.push_back(Desc);
+
+			Data->Put(NewBaryCoords.data(), (uint32)NewBaryCoords.size() * sizeof(FFloat3));
+			Data->Put(NewTriangles.data(), (uint32)NewTriangles.size());
+			Data->FillZeroToAlign(4);
+
+			VertMap.clear();
+			NewBaryCoords.clear();
+			NewTriangles.clear();
+		};
+
+		int32 TriOffset = 0;
+		while (TriCount > 0)
+		{
+			uint32 IX, IY, IZ;
+			IX = Triangles[TotalTrisOffset + TriOffset].X;
+			IY = Triangles[TotalTrisOffset + TriOffset].Y;
+			IZ = Triangles[TotalTrisOffset + TriOffset].Z;
+			InsertVert(IX, BaryCoords[TotalPointsOffset + IX]);
+			InsertVert(IY, BaryCoords[TotalPointsOffset + IY]);
+			InsertVert(IZ, BaryCoords[TotalPointsOffset + IZ]);
+
+			TriOffset++;
+			TriCount--;
+
+			if (NewBaryCoords.size() >= 32 || NewTriangles.size() >= 32 * 3)
+			{
+				AddGroup();
+			}
+		}
+		TI_ASSERT((NewBaryCoords.size() > 0 && NewTriangles.size() > 0) ||
+			(NewBaryCoords.size() == 0 && NewTriangles.size() == 0));
+		if (NewBaryCoords.size() > 0)
+		{
+			TI_ASSERT(NewBaryCoords.size() <= 32 && NewTriangles.size() <= 32 * 3);
+			AddGroup();
+		}
+
+		uint32 TessGroupCount = (uint32)Descs.size() - TessGroupOffset;
+		TI_ASSERT(TessGroupCount < 1 << 6);
+		uint16 TessGroupInfo = (TessGroupOffset << 10) | (TessGroupCount);
+		TessGroupInfos.push_back(TessGroupInfo);
+
+		TotalTrisOffset += TriCount;
+		TotalPointsOffset += PtCount;
+	}
+
+	TStreamPtr UniformData = ti_new TStream(sizeof(uint16) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size() + Data->GetLength());
+
+	// Add Group Infos
+	UniformData->Put(TessGroupInfos.data(), sizeof(uint16) * (uint32)TessGroupInfos.size());
+	uint32 DataOffset = sizeof(uint16) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size();
+	for (auto& D : Descs)
+	{
+		D.Offset += DataOffset;
+	}
+	UniformData->Put(Descs.data(), sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size());
+	// Add Data
+	UniformData->Put(Data->GetBuffer(), Data->GetLength());
+
+	return UniformData;
+}
+
+void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdList)
+{
+
+	uint32 TotalTris = 0;
+	uint32 TotalPoints = 0;
+	for (uint32 i = 2; i < MaxTessFactor; i++)
+	{
+		uint32 Segs = i - 2;
+		uint32 TriCount = CalcTessInsideTriCount(Segs);
+		TotalTris += TriCount;
+		uint32 PtCount = CalcTessInsidePointCount(Segs);
+		TotalPoints += PtCount;
+	}
+
+
+	// Calc Templates
+	TVector<FFloat3> BaryCoords;
+	BaryCoords.reserve(TotalPoints);
+	AddPoints(BaryCoords);
+
+	TVector<FUInt3> Triangles;
+	Triangles.reserve(TotalTris);
+	AddTriangles(Triangles);
+
+	// Group them into 32 triangles per group
+	TVector<uint32> BCOffsets;
+	TVector<uint32> TriOffsets;
+	TStreamPtr UniformData = GroupTrianglesAndVerts(BaryCoords, Triangles);
 
 	TI_ASSERT(TessTemplateData == nullptr);
+	TessTemplateData =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.TessTemplateData",
+			4,
+			TMath::DivideAndRoundUp(UniformData->GetLength(), 4u),
+			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
+			UniformData,
+			EGPUResourceState::UnorderedAccess);
 }
 
 static bool bFreezeCulling = false;
@@ -395,7 +653,7 @@ void FNaniteLearningRenderer::FreezeCulling()
 	bFreezeCulling = !bFreezeCulling;
 }
 
-void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
+void FNaniteLearningRenderer::Render(FRHICmdList * RHICmdList)
 {
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
@@ -465,7 +723,7 @@ void FNaniteLearningRenderer::Render(FRHICmdList* RHICmdList)
 			VisibleClustersSWHW,
 			VisibleClustersArgsSWHW,
 			CullingDebugInfo
-			);
+		);
 		PersistentCullCS->Run(RHICmdList);
 	}
 	RHICmdList->EndEvent();

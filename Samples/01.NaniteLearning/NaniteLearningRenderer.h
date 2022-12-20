@@ -25,7 +25,7 @@ public:
 	static void FreezeCulling();
 
 private:
-	void CreateTessellationTemplates();
+	void CreateTessellationTemplates(FRHICmdList* RHICmdList);
 
 private:
 	FArgumentBufferPtr AB_Result;
