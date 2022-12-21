@@ -71,6 +71,7 @@ private:
 		SRV_HierarchyBuffer,
 		SRV_VisibleClusterSWHW,
 		SRV_Views,
+		SRV_TessTemplates,
 
 		UAV_VisBuffer,
 		UAV_TessDebugInfo,

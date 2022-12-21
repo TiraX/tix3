@@ -60,5 +60,11 @@ void TNaniteLearningTicker::SetupScene()
 
 	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
 	TI_ASSERT(NavCam);
-	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
+	//NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
+
+	// For mesh shader tess topology debug
+	//Cam->SetPosition(FFloat3(4.32689857f, -4.29783916f, 4.67585325f));
+	//Cam->SetTarget(FFloat3(2.74339199f, -2.67151904f, -15.4096231f));
+	//Cam->SetNearValue(1.f);
+	//NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.02f);
 }

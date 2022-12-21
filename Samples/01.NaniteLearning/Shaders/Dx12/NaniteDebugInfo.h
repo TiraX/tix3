@@ -49,14 +49,12 @@ struct FNaniteTessDebugInfo
 }; 
 struct FNaniteTessDebugTable
 {
-	uint AS_TriIndex;
-	uint AS_TessOffset;
-	uint AS_TessCount;
-	uint AS_Encoded;
-	uint AS_UInt;
-	uint MS_UInt;
-	uint MS_Encoded;
-	uint MS_TriIndex;
-	uint MS_TessOffset;
-	uint MS_TessCount;
+	uint TF;
+	uint TriangleIndexInAS;
+	uint GroupCount;
+	uint TessTemplateGroupIndex;
+	uint NumVerts;
+	uint NumTris;
+	uint3 Tri;
+	float3 Pt;
 };

@@ -84,16 +84,14 @@ struct FNaniteTessDebug
 struct FNaniteTessDebugTable
 {
 	static const int32 MaxDebugInfo = 2048;
-	uint32 AS_TriIndex;
-	uint32 AS_TessOffset;
-	uint32 AS_TessCount;
-	uint32 AS_Encoded;
-	uint32 AS_UInt;
-	uint32 MS_UInt;
-	uint32 MS_Encoded;
-	uint32 MS_TriIndex;
-	uint32 MS_TessOffset;
-	uint32 MS_TessCount;
+	uint32 TF;
+	uint32 TriangleIndexInAS;
+	uint32 GroupCount;
+	uint32 TessTemplateGroupIndex;
+	uint32 NumVerts;
+	uint32 NumTris;
+	FUInt3 Tri;
+	FFloat3 Pt;
 };
 FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);
 FUniformBufferPtr CreateTessDebugTableUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);

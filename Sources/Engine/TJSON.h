@@ -327,6 +327,10 @@ namespace tix
 		{
 			JsonValue->AddMember(StringRef(Name), V, *Allocator);
 		}
+		void AddMember(const char* Name, uint32 V)
+		{
+			JsonValue->AddMember(StringRef(Name), V, *Allocator);
+		}
 		void AddMember(const char* Name, float V)
 		{
 			JsonValue->AddMember(StringRef(Name), V, *Allocator);

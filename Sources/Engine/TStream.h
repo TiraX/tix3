@@ -68,6 +68,14 @@ namespace tix
 			return *this;
 		}
 
+		// Read data from stream
+		uint32 GetU32(uint32 Address) const
+		{
+			if (Address + 4 >= Pos) return 0;
+			TI_ASSERT(Address % 4 == 0);
+			return *(uint32*)(Buffer + Address);
+		}
+
 		// Put data in this stream, increase 'Pos'
 		void Put(const void* buf, uint32 size)
 		{

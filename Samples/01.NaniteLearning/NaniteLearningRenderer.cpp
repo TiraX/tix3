@@ -234,6 +234,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	VisBuffer->SetResourceName("VisBuffer");
 	VisBuffer->CreateGPUTexture(RHICmdList, TVector<TImagePtr>(), EGPUResourceState::UnorderedAccess);
 
+	CreateTessellationTemplates(RHICmdList);
+
 	// Resource table
 	RT_HWRasterize = RHICmdList->GetHeap(0)->CreateRenderResourceTable(NumHWRasterizeParams);
 
@@ -241,6 +243,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, ClusterPageData, SRV_ClusterPageData);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, View, SRV_Views);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
+	RHI->PutUniformBufferInTable(RT_HWRasterize, TessTemplateData, SRV_TessTemplates);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugInfo, UAV_TessDebugInfo);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugTable, UAV_TessDebugTable);
@@ -257,7 +260,6 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
 
-	CreateTessellationTemplates(RHICmdList);
 }
 
 inline uint32 CalcTessInsideTriCount(uint32 n)
@@ -331,7 +333,7 @@ void AddPoints(TVector<FFloat3>& OutBaryCoords)
 		}
 	};
 
-	for (uint32 TessFactor = 2; TessFactor < MaxTessFactor; TessFactor++)
+	for (uint32 TessFactor = 2; TessFactor <= MaxTessFactor; TessFactor++)
 	{
 		float SegLen = EdgeLen / TessFactor;
 		int InsideSegs = TessFactor - 2;
@@ -367,7 +369,7 @@ void AddPoints(TVector<FFloat3>& OutBaryCoords)
 
 void AddTriangles(TVector<FUInt3>& OutTriangles)
 {
-	for (uint32 TessFactor = 2; TessFactor < MaxTessFactor; TessFactor++)
+	for (uint32 TessFactor = 2; TessFactor <= MaxTessFactor; TessFactor++)
 	{
 		uint32 InsideSegs = TessFactor - 2;
 
@@ -498,6 +500,11 @@ TStreamPtr GroupTrianglesAndVerts(
 		uint16 Verts;
 		uint16 Tris;
 	};
+	struct FGroupOffAndCount
+	{
+		uint32 Offset;
+		uint32 Count;
+	};
 
 	auto InsertVert = [&VertMap, &NewBaryCoords, &NewTriangles](uint32 VertIndex, const FFloat3& BCoord)
 	{
@@ -508,6 +515,7 @@ TStreamPtr GroupTrianglesAndVerts(
 			NewIndex = (uint32)VertMap.size();
 			VertMap[VertIndex] = NewIndex;
 			NewBaryCoords.push_back(BCoord);
+			TI_ASSERT(VertMap.size() == NewBaryCoords.size());
 		}
 		else
 		{
@@ -522,9 +530,11 @@ TStreamPtr GroupTrianglesAndVerts(
 	TVector<FTemplateDesc> Descs;
 	Descs.reserve(1024);
 
-	TVector<uint16> TessGroupInfos;
-	TessGroupInfos.reserve(18);
-	for (uint32 i = 2; i < MaxTessFactor; i++)
+	TVector<FGroupOffAndCount> GroupOffAndCounts;
+	GroupOffAndCounts.reserve(18);
+	GroupOffAndCounts.push_back({ 0, 0 });	// tess_factor 1 = 0
+
+	for (uint32 i = 2; i <= MaxTessFactor; i++)
 	{
 		uint32 TessGroupOffset = (uint32)Descs.size();
 
@@ -555,7 +565,7 @@ TStreamPtr GroupTrianglesAndVerts(
 		};
 
 		int32 TriOffset = 0;
-		while (TriCount > 0)
+		while (TriCount - TriOffset > 0)
 		{
 			uint32 IX, IY, IZ;
 			IX = Triangles[TotalTrisOffset + TriOffset].X;
@@ -566,7 +576,6 @@ TStreamPtr GroupTrianglesAndVerts(
 			InsertVert(IZ, BaryCoords[TotalPointsOffset + IZ]);
 
 			TriOffset++;
-			TriCount--;
 
 			if (NewBaryCoords.size() >= 32 || NewTriangles.size() >= 32 * 3)
 			{
@@ -581,27 +590,136 @@ TStreamPtr GroupTrianglesAndVerts(
 			AddGroup();
 		}
 
-		uint32 TessGroupCount = (uint32)Descs.size() - TessGroupOffset;
-		TI_ASSERT(TessGroupCount < 1 << 6);
-		uint16 TessGroupInfo = (TessGroupOffset << 10) | (TessGroupCount);
-		TessGroupInfos.push_back(TessGroupInfo);
+		FGroupOffAndCount OC;
+		OC.Offset = TessGroupOffset;
+		OC.Count = (uint32)Descs.size() - TessGroupOffset;
+		GroupOffAndCounts.push_back(OC);
 
 		TotalTrisOffset += TriCount;
 		TotalPointsOffset += PtCount;
 	}
 
-	TStreamPtr UniformData = ti_new TStream(sizeof(uint16) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size() + Data->GetLength());
+	TStreamPtr UniformData = ti_new TStream(sizeof(uint16) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
 
 	// Add Group Infos
+	TVector<uint16> TessGroupInfos;
+	TessGroupInfos.reserve(18);
+	for (const auto& OC : GroupOffAndCounts)
+	{
+		TI_ASSERT(OC.Count < (1 << 6));
+		uint16 TessGroupInfo = (OC.Offset << 6) | (OC.Count);
+		TessGroupInfos.push_back(TessGroupInfo);
+	}
 	UniformData->Put(TessGroupInfos.data(), sizeof(uint16) * (uint32)TessGroupInfos.size());
-	uint32 DataOffset = sizeof(uint16) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size();
+	uint32 DataOffset = sizeof(uint16) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)Descs.size();
 	for (auto& D : Descs)
 	{
 		D.Offset += DataOffset;
 	}
-	UniformData->Put(Descs.data(), sizeof(FTemplateDesc) * (uint32)TessGroupInfos.size());
+	UniformData->Put(Descs.data(), sizeof(FTemplateDesc) * (uint32)Descs.size());
 	// Add Data
 	UniformData->Put(Data->GetBuffer(), Data->GetLength());
+
+	const bool ExportToJson = false;
+	if (ExportToJson)
+	{
+		TJSONWriter JRoot;
+		JRoot.AddMember("num_tess", MaxTessFactor);
+		TVector<int32> _GroupOffs, _GroupCounts;
+		_GroupOffs.reserve(GroupOffAndCounts.size());
+		_GroupCounts.reserve(GroupOffAndCounts.size());
+		for (const auto& OC : GroupOffAndCounts)
+		{
+			TI_ASSERT(OC.Count < (1 << 6));
+			_GroupOffs.push_back(OC.Offset);
+			_GroupCounts.push_back(OC.Count);
+		}
+		JRoot.AddMember("group_offsets", _GroupOffs);
+		JRoot.AddMember("group_counts", _GroupCounts);
+		JRoot.AddMember("num_groups", (uint32)Descs.size());
+		TVector<int32> _DataOffs, _GroupVerts, _GroupTris;
+		_DataOffs.reserve(Descs.size());
+		_GroupVerts.reserve(Descs.size());
+		_GroupTris.reserve(Descs.size());
+		for (const auto& D : Descs)
+		{
+			_DataOffs.push_back(D.Offset);
+			_GroupVerts.push_back(D.Verts);
+			_GroupTris.push_back(D.Tris);
+		}
+		JRoot.AddMember("data_offsets", _DataOffs);
+		JRoot.AddMember("group_verts", _GroupVerts);
+		JRoot.AddMember("group_tris", _GroupTris);
+
+		TJSONNode JTessDatas = JRoot.AddArray("tess_datas");
+		for (int32 i = 0; i < MaxTessFactor; i++)
+		{
+			int32 GroupOff = GroupOffAndCounts[i].Offset;
+			int32 GroupCount = GroupOffAndCounts[i].Count;
+
+			TJSONNode JTessLevel = JTessDatas.InsertEmptyObjectToArray();
+			JTessLevel.AddMember("tess", i);
+
+			TJSONNode JGroupDatas = JTessLevel.AddArray("group_datas");
+			for (int32 g = 0; g < GroupCount; g++)
+			{
+				int32 DOffset = Descs[GroupOff + g].Offset;
+				int32 NumVerts = Descs[GroupOff + g].Verts;
+				int32 NumTris = Descs[GroupOff + g].Tris;
+				TVector<float> Verts;
+				Verts.reserve(NumVerts * 3);
+				TVector<int32> Tris;
+				Tris.reserve(NumTris * 3);
+
+				TJSONNode JGroupData = JGroupDatas.InsertEmptyObjectToArray();
+				JGroupData.AddMember("num_verts", NumVerts);
+				JGroupData.AddMember("num_tris", NumTris);
+				auto LoadByte = [](TStreamPtr _Data, uint32 _Addr)
+				{
+					uint32 addr4 = _Addr / 4 * 4;
+					uint32 v = _Data->GetU32(addr4);
+					uint32 offset = _Addr - addr4;
+					offset *= 8;
+					return (v >> offset) & ((1u << 8) - 1u);
+				};
+
+				for (int32 t = 0; t < NumTris; t++)
+				{
+					int32 Offset = DOffset + NumVerts * 12 + t * 3;
+					FUInt3 Tri;
+					Tri.X = LoadByte(UniformData, Offset);
+					Tri.Y = LoadByte(UniformData, Offset + 1);
+					Tri.Z = LoadByte(UniformData, Offset + 2);
+					Tris.push_back(Tri.X);
+					Tris.push_back(Tri.Y);
+					Tris.push_back(Tri.Z);
+				}
+				JGroupData.AddMember("tris", Tris);
+				for (int32 v = 0; v < NumVerts; v++)
+				{
+					int32 Offset = DOffset + v * 12;
+					FUInt3 VertI;
+					VertI.X = UniformData->GetU32(Offset);
+					VertI.Y = UniformData->GetU32(Offset + 4);
+					VertI.Z = UniformData->GetU32(Offset + 8);
+					FFloat3 Vert = *(FFloat3*)(&VertI);
+					Verts.push_back(Vert.X);
+					Verts.push_back(Vert.Y);
+					Verts.push_back(Vert.Z);
+				}
+				JGroupData.AddMember("verts", Verts);
+			}
+		}
+		TString JsonString;
+		JRoot.Dump(JsonString);
+
+		TFile F;
+		if (F.Open("tess_template.json", EFA_CREATEWRITE))
+		{
+			F.Write(JsonString.c_str(), (int32)JsonString.length());
+			F.Close();
+		}
+	}
 
 	return UniformData;
 }
@@ -611,7 +729,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 
 	uint32 TotalTris = 0;
 	uint32 TotalPoints = 0;
-	for (uint32 i = 2; i < MaxTessFactor; i++)
+	for (uint32 i = 2; i <= MaxTessFactor; i++)
 	{
 		uint32 Segs = i - 2;
 		uint32 TriCount = CalcTessInsideTriCount(Segs);
@@ -633,7 +751,10 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 	// Group them into 32 triangles per group
 	TVector<uint32> BCOffsets;
 	TVector<uint32> TriOffsets;
+	// Structure:
+	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
 	TStreamPtr UniformData = GroupTrianglesAndVerts(BaryCoords, Triangles);
+
 
 	TI_ASSERT(TessTemplateData == nullptr);
 	TessTemplateData =
