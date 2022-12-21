@@ -291,7 +291,7 @@ inline uint32 CalcTessInsidePointCount(uint32 n)
 	}
 }
 
-static const uint32 MaxTessFactor = 18;
+static const uint32 MaxTessFactor = 26;
 void AddPoints(TVector<FFloat3>& OutBaryCoords)
 {
 	const FFloat3 B0(0, 1, 0);
@@ -502,8 +502,22 @@ TStreamPtr GroupTrianglesAndVerts(
 	};
 	struct FGroupOffAndCount
 	{
-		uint32 Offset;
-		uint32 Count;
+		int32 Offset;
+		int32 Count;
+		int32 TrisAfterGroup;
+		int32 TrisBeforeGroup;
+	};
+
+	auto NewVertsAdded = [&VertMap](uint32 IX, uint32 IY, uint32 IZ)
+	{
+		uint32 Added = 0;
+		if (VertMap.find(IX) == VertMap.end())
+			Added++;
+		if (VertMap.find(IY) == VertMap.end())
+			Added++;
+		if (VertMap.find(IZ) == VertMap.end())
+			Added++;
+		return Added;
 	};
 
 	auto InsertVert = [&VertMap, &NewBaryCoords, &NewTriangles](uint32 VertIndex, const FFloat3& BCoord)
@@ -571,19 +585,22 @@ TStreamPtr GroupTrianglesAndVerts(
 			IX = Triangles[TotalTrisOffset + TriOffset].X;
 			IY = Triangles[TotalTrisOffset + TriOffset].Y;
 			IZ = Triangles[TotalTrisOffset + TriOffset].Z;
+
+			uint32 _Added = NewVertsAdded(IX, IY, IZ);
+			if (NewBaryCoords.size() + _Added > 32 || NewTriangles.size() >= 32 * 3)
+			{
+				AddGroup();
+			}
+
 			InsertVert(IX, BaryCoords[TotalPointsOffset + IX]);
 			InsertVert(IY, BaryCoords[TotalPointsOffset + IY]);
 			InsertVert(IZ, BaryCoords[TotalPointsOffset + IZ]);
 
 			TriOffset++;
-
-			if (NewBaryCoords.size() >= 32 || NewTriangles.size() >= 32 * 3)
-			{
-				AddGroup();
-			}
 		}
 		TI_ASSERT((NewBaryCoords.size() > 0 && NewTriangles.size() > 0) ||
 			(NewBaryCoords.size() == 0 && NewTriangles.size() == 0));
+		uint32 MaxThreadNeedToFinishInside = (uint32)TMath::Max(NewBaryCoords.size(), NewTriangles.size() / 3);
 		if (NewBaryCoords.size() > 0)
 		{
 			TI_ASSERT(NewBaryCoords.size() <= 32 && NewTriangles.size() <= 32 * 3);
@@ -593,25 +610,30 @@ TStreamPtr GroupTrianglesAndVerts(
 		FGroupOffAndCount OC;
 		OC.Offset = TessGroupOffset;
 		OC.Count = (uint32)Descs.size() - TessGroupOffset;
+		OC.TrisAfterGroup = TMath::Max(OC.Count - 1, 0) * 32 + MaxThreadNeedToFinishInside;
+		OC.TrisBeforeGroup = TriCount;
 		GroupOffAndCounts.push_back(OC);
 
 		TotalTrisOffset += TriCount;
 		TotalPointsOffset += PtCount;
 	}
 
-	TStreamPtr UniformData = ti_new TStream(sizeof(uint16) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
+	TStreamPtr UniformData = ti_new TStream(sizeof(uint32) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
 
 	// Add Group Infos
-	TVector<uint16> TessGroupInfos;
-	TessGroupInfos.reserve(18);
+	TVector<uint32> TessGroupInfos;
+	TessGroupInfos.reserve(MaxTessFactor);
 	for (const auto& OC : GroupOffAndCounts)
 	{
 		TI_ASSERT(OC.Count < (1 << 6));
-		uint16 TessGroupInfo = (OC.Offset << 6) | (OC.Count);
+		TI_ASSERT(OC.Offset < (1 << 10));
+		TI_ASSERT(OC.TrisAfterGroup < (1 << 16));
+		uint32 TessGroupInfo = (OC.Offset << 6) | (OC.Count);
+		TessGroupInfo |= (OC.TrisAfterGroup << 16);
 		TessGroupInfos.push_back(TessGroupInfo);
 	}
-	UniformData->Put(TessGroupInfos.data(), sizeof(uint16) * (uint32)TessGroupInfos.size());
-	uint32 DataOffset = sizeof(uint16) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)Descs.size();
+	UniformData->Put(TessGroupInfos.data(), sizeof(uint32) * (uint32)TessGroupInfos.size());
+	uint32 DataOffset = sizeof(uint32) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)Descs.size();
 	for (auto& D : Descs)
 	{
 		D.Offset += DataOffset;
@@ -631,6 +653,8 @@ TStreamPtr GroupTrianglesAndVerts(
 		for (const auto& OC : GroupOffAndCounts)
 		{
 			TI_ASSERT(OC.Count < (1 << 6));
+			TI_ASSERT(OC.Offset < (1 << 10));
+			TI_ASSERT(OC.TrisAfterGroup < (1 << 16));
 			_GroupOffs.push_back(OC.Offset);
 			_GroupCounts.push_back(OC.Count);
 		}
@@ -737,6 +761,28 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 		uint32 PtCount = CalcTessInsidePointCount(Segs);
 		TotalPoints += PtCount;
 	}
+
+	// USELESS
+	TVector<int32> TriCounts, TriTotal, TriGroups;
+	TVector<int32> PtCounts, PtTotal, PtGroups;
+	TriCounts.reserve(64);
+	TriTotal.reserve(64);
+	TriGroups.reserve(64);
+	PtCounts.reserve(64);
+	PtTotal.reserve(64);
+	PtGroups.reserve(64);
+	for (int32 i = 2; i <= 64; i++)
+	{
+		int32 TriPerTess = CalcTessInsideTriCount(i);
+		TriCounts.push_back(TriPerTess);
+		TriTotal.push_back(TriPerTess * 64);
+		TriGroups.push_back(TMath::DivideAndRoundUp(TriPerTess * 64, 32));
+		int32 PtPerTess = CalcTessInsidePointCount(i);
+		PtCounts.push_back(PtPerTess);
+		PtTotal.push_back(PtPerTess * 64);
+		PtGroups.push_back(TMath::DivideAndRoundUp(PtPerTess * 64, 32));
+	}
+	// USELESS
 
 
 	// Calc Templates

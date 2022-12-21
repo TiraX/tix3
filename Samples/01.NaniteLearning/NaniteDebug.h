@@ -83,7 +83,7 @@ struct FNaniteTessDebug
 };
 struct FNaniteTessDebugTable
 {
-	static const int32 MaxDebugInfo = 2048;
+	static const int32 MaxDebugInfo = 2400;
 	uint32 TF;
 	uint32 TriangleIndexInAS;
 	uint32 GroupCount;

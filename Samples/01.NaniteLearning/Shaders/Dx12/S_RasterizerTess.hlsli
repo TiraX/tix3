@@ -12,7 +12,7 @@
 
 #define DEBUG_INFO (1)
 
-static const int MaxTesselator = 18;
+static const int MaxTesselator = 26;
 struct FTriRange
 {
 	uint Start;
@@ -47,17 +47,17 @@ struct VSOut
 
 ByteAddressBuffer TessTemplatesData : register(t4);
 
-uint2 ReadTemplateGroupOffAndCount(
+uint3 ReadTemplateGroupOffAndCount(
 	uint TessFactorInside
 )
 {
 	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
 	TessFactorInside = TessFactorInside - 1;
-	uint2 GroupOffAndCount;
-	uint v = TessTemplatesData.Load(TessFactorInside / 2 * 4);
-	v = ((TessFactorInside & 1) == 0) ? (v & 0xffff) : (v >> 16);
-	GroupOffAndCount.x = v >> 6;
+	uint3 GroupOffAndCount;
+	uint v = TessTemplatesData.Load(TessFactorInside * 4);
+	GroupOffAndCount.x = (v >> 6) & 0x3ff;
 	GroupOffAndCount.y = v & 0x3f;
+	GroupOffAndCount.z = v >> 16;
 	return GroupOffAndCount;
 }
 
@@ -67,7 +67,7 @@ uint3 ReadTemplateGroupInfo(
 {
 	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
 	uint3 GroupInfo;
-	uint2 v2 = TessTemplatesData.Load2(MaxTesselator / 2 * 4 + GroupOffset * 8 + TessTemplateGroupIndex * 8);
+	uint2 v2 = TessTemplatesData.Load2(MaxTesselator * 4 + GroupOffset * 8 + TessTemplateGroupIndex * 8);
 	GroupInfo.x = v2.x;	// data_offset
 	GroupInfo.y = v2.y & 0xffff;	// verts
 	GroupInfo.z = v2.y >> 16;	// tris
@@ -278,7 +278,7 @@ struct Payload
     CT_PNTriangle CT[AS_GROUP_SIZE];
 	TessFactor TF[AS_GROUP_SIZE];
 
-	uint MSTable[1024];
+	uint MSTable[1200];
 
 	uint VisibleClusterIndex;
 	uint TriangleOffset;
@@ -363,10 +363,9 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float2 ScreenPos1 = V[1].PointClipPixel.xy;
 	float2 ScreenPos2 = V[2].PointClipPixel.xy;
 
-	float tess01f = round(length(ScreenPos0 - ScreenPos1));
-	float tess02f = round(length(ScreenPos0 - ScreenPos2));
-	float tess12f = round(length(ScreenPos1 - ScreenPos2));
-
+	float tess01f = round(length(ScreenPos0 - ScreenPos1) * 0.5);
+	float tess02f = round(length(ScreenPos0 - ScreenPos2) * 0.5);
+	float tess12f = round(length(ScreenPos1 - ScreenPos2) * 0.5);
 	float tess_centerf = round(0.333 * (tess01f + tess02f + tess12f));
 
 	tess_factor.x = (uint)(clamp(tess01f, 1.0, MaxTesselator));
@@ -374,14 +373,20 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	tess_factor.z = (uint)(clamp(tess12f, 1.0, MaxTesselator));
 	tess_factor.w = (uint)(clamp(tess_centerf, 1.0, MaxTesselator));
 
+	// uint debug_tess = 15;
+	// tess_factor = debug_tess.xxxx;
+
 	if (tess_factor.w == 1)
 	{
 		return max(max(tess_factor.x, tess_factor.y), tess_factor.z);
 	}
 	else
 	{
+		// InsideTemplates.z is the tris num after group splitting
+		uint3 InsideTemplates = ReadTemplateGroupOffAndCount(tess_factor.w);
 		uint tess_segs = tess_factor.w - 2;
-		return CalcTessInsideCount( tess_segs ) + tess_segs * 3 + tess_factor.x + tess_factor.y + tess_factor.z;
+		//return CalcTessInsideCount( tess_segs ) + tess_segs * 3 + tess_factor.x + tess_factor.y + tess_factor.z;
+		return InsideTemplates.z + tess_segs * 3 + tess_factor.x + tess_factor.y + tess_factor.z;
 	}
 }
 
@@ -615,7 +620,7 @@ void HWRasterizeMS(
 
  	uint TessTemplateGroupIndex = Info.y;
  	uint IndexInGroup = GroupThreadID;
-	uint2 GroupOffAndCount = ReadTemplateGroupOffAndCount(TFInside);
+	uint3 GroupOffAndCount = ReadTemplateGroupOffAndCount(TFInside);
 	uint GroupOff = GroupOffAndCount.x;
 	uint GroupCount = GroupOffAndCount.y;
 
@@ -632,6 +637,13 @@ void HWRasterizeMS(
 	DebugTable[GroupID].GroupCount = GroupCount;
 #endif
 
+	// for debug
+	// if (TriangleIndex != 0)
+	// {
+	// 	NumVerts = 0;
+	// 	NumTris = 0;
+	// }
+
 	SetMeshOutputCounts(NumVerts, NumTris);
 
 	// only output inside factor first
@@ -641,7 +653,7 @@ void HWRasterizeMS(
 		uint3 tri = ReadTemplateTri(TemplateOffset, NumVerts, GroupThreadID);
 		OutTriangles[GroupThreadID] = tri;
 #if DEBUG_INFO
-		if (GroupThreadID == 15)
+		if (GroupThreadID == 0)
 			DebugTable[GroupID].Tri = tri;
 #endif
 	}
@@ -650,7 +662,7 @@ void HWRasterizeMS(
 	{
 		float3 uvw = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
 #if DEBUG_INFO
-		if (GroupThreadID == 15)
+		if (GroupThreadID == 0)
 			DebugTable[GroupID].Pt = uvw;
 #endif
 		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
