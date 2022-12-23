@@ -352,7 +352,7 @@ uint CalcTessInsideCount(uint n)
 }
 
 // TODO: Improve tess factor algorithm use CalculateCompositeTessellationFactors() from UE4
-uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 p0, float3 p1, float3 p2, out uint4 tess_factor, uint debug_index)
+uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 p0, float3 p1, float3 p2, out uint4 tess_factor)
 {
 	VSOut V[3];
 	V[0] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p0, 0);
@@ -550,7 +550,7 @@ void HWRasterizeAS(
 		s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
 
 		uint4 tess_factor;
-		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor, GroupIndex + TriangleOffset);
+		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor);
 		s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
 		s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
 		s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;
@@ -599,6 +599,7 @@ void HWRasterizeMS(
 	uint TriangleIndexInAS = Info.x;
 	uint TessOffset = Info.y * 32;
 	uint TessCount = Info.z + 1;
+	uint TessIndex = TessOffset + GroupThreadID;
 
 	uint TFOut0 = payload.TF[TriangleIndexInAS].Factor[0];
 	uint TFOut1 = payload.TF[TriangleIndexInAS].Factor[1];
@@ -623,48 +624,53 @@ void HWRasterizeMS(
 	uint3 GroupOffAndCount = ReadTemplateGroupOffAndCount(TFInside);
 	uint GroupOff = GroupOffAndCount.x;
 	uint GroupCount = GroupOffAndCount.y;
+	uint InsideTrisAfterGroup = GroupOffAndCount.z;
 
  	uint3 TemplateGroupInfo = ReadTemplateGroupInfo(GroupOff, TessTemplateGroupIndex);
  	uint TemplateOffset = TemplateGroupInfo.x;
- 	uint NumVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
- 	uint NumTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
+ 	uint NumInsideVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
+ 	uint NumInsideTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
 #if DEBUG_INFO
 	DebugTable[GroupID].TF = TFInside;
 	DebugTable[GroupID].TessTemplateGroupIndex = TessTemplateGroupIndex;
-	DebugTable[GroupID].NumVerts = NumVerts;
-	DebugTable[GroupID].NumTris = NumTris;
+	DebugTable[GroupID].NumInsideVerts = NumInsideVerts;
+	DebugTable[GroupID].NumInsideTris = NumInsideTris;
 	DebugTable[GroupID].TriangleIndexInAS = TriangleIndexInAS;
 	DebugTable[GroupID].GroupCount = GroupCount;
+	DebugTable[GroupID].TrisAfterGroup = InsideTrisAfterGroup;
 #endif
 
-	// for debug
-	// if (TriangleIndex != 0)
-	// {
-	// 	NumVerts = 0;
-	// 	NumTris = 0;
-	// }
+	SetMeshOutputCounts(NumInsideVerts, NumInsideTris);
 
-	SetMeshOutputCounts(NumVerts, NumTris);
-
-	// only output inside factor first
+	// Triangles
 	[branch]
-	if (GroupThreadID < NumTris)
+	if (GroupThreadID < NumInsideTris)
 	{
-		uint3 tri = ReadTemplateTri(TemplateOffset, NumVerts, GroupThreadID);
+		// inside tess triangles
+		uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
 		OutTriangles[GroupThreadID] = tri;
-#if DEBUG_INFO
-		if (GroupThreadID == 0)
-			DebugTable[GroupID].Tri = tri;
-#endif
 	}
+	else if (TessIndex >= InsideTrisAfterGroup && GroupThreadID < TessCount)
+	{
+		// outside tess triangles
+		uint OutsideTriIndex = TessIndex - InsideTrisAfterGroup;
+		uint InsideSegs = TFInside - 2;
+		uint OutTris0 = TFOut0 + InsideSegs;
+		uint OutTris1 = TFOut1 + InsideSegs;
+		uint OutTris2 = TFOut2 + InsideSegs;
+
+		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
+		OutTriangles[GroupThreadID] = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
+
+		// outside 3 verts for this triangle
+	}
+
+	// Verts
 	[branch]
-	if (GroupThreadID < NumVerts)
+	if (GroupThreadID < NumInsideVerts)
 	{
 		float3 uvw = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
-#if DEBUG_INFO
-		if (GroupThreadID == 0)
-			DebugTable[GroupID].Pt = uvw;
-#endif
+
 		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
 		float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
 		float3 p2 = DecodePosition(TriangleIndices.z, Cluster);

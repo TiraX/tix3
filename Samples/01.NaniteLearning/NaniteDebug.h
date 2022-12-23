@@ -88,8 +88,9 @@ struct FNaniteTessDebugTable
 	uint32 TriangleIndexInAS;
 	uint32 GroupCount;
 	uint32 TessTemplateGroupIndex;
-	uint32 NumVerts;
-	uint32 NumTris;
+	uint32 NumInsideVerts;
+	uint32 NumInsideTris;
+	uint32 TrisAfterGroup;
 	FUInt3 Tri;
 	FFloat3 Pt;
 };
