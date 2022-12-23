@@ -49,13 +49,15 @@ struct FNaniteTessDebugInfo
 }; 
 struct FNaniteTessDebugTable
 {
-	uint TF;
-	uint TriangleIndexInAS;
+	uint4 TF;
 	uint GroupCount;
 	uint TessTemplateGroupIndex;
+	uint TriangleIndex;
 	uint NumInsideVerts;
 	uint NumInsideTris;
 	uint TrisAfterGroup;
-	uint3 Tri;
-	float3 Pt;
+	uint TessCount;
+	int OutputIndex[3];
+	int GroupID;
+	float3 BC[3];
 };
