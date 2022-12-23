@@ -465,9 +465,6 @@ void HWRasterizeAS(
 
 	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
 
-	//uint TrianglesToTess = TriangleOffset == 0 ? min(TriRange.Num, 64u) : (TriRange.Num <= 64 ? 0 : TriRange.Num - 64);
-	//uint TrianglesToTess = TriangleOffset == 0 ? 64 : TriRange.Num - 64;
-	//uint TrianglesToTess = 64;// TriRange.Num;
 	uint VisibleTriangles = 0;
 	[branch]
 	if (GroupIndex + TriangleOffset < TriRange.Num)
@@ -576,6 +573,127 @@ void HWRasterizeAS(
 	DispatchMesh(s_TotalTessellated, 1, 1, s_Payload);
 }
 
+
+static const float3 B0 = {0, 1, 0};
+static const float3 B1 = {1, 0, 0};
+static const float3 B2 = {0, 0, 1};
+static const float3 BC = (B0 + B1 + B2) / 3.0;
+static const float3 D0 = normalize(B0 - BC);
+static const float3 D1 = normalize(B1 - BC);
+static const float3 D2 = normalize(B2 - BC);
+static const float EdgeLen = length(B0 - B1);
+static const float Cos30 = cos(0.5236);
+static const float Cos30Inv = 1.0 / Cos30;
+static const float3 Pts[3] = {B0, B1, B2};
+static const float3 Dirs[3] = {D0, D1, D2};
+static const uint2 SideOrder[3] = {{0, 1}, {2, 0}, {1, 2}};
+
+VSOut CalcTessedAttributes(in Payload payload,
+	in FNaniteView NaniteView, 
+	in FVisibleCluster VisibleCluster,
+	in FCluster Cluster,
+	in float3 p0, 
+	in float3 p1, 
+	in float3 p2, 
+	in FNaniteRawAttributeData AttrData[3],
+	in int TriangleIndexInAS,
+	in float3 uvw)
+{
+	VSOut Result;
+	
+	float3 n0 = AttrData[0].TangentZ;
+	float3 n1 = AttrData[1].TangentZ;
+	float3 n2 = AttrData[2].TangentZ;
+
+	// Get barycoords
+	float U = uvw.x;
+	float V = uvw.y;
+	float W = uvw.z;
+
+	float UU = U * U;
+	float VV = V * V;
+	float WW = W * W;
+	float UU3 = UU * 3.f;
+	float VV3 = VV * 3.f;
+	float WW3 = WW * 3.f;
+
+	float3 b210, b120, b021, b012, b102, b201, b111;
+	b210.x = payload.CT[TriangleIndexInAS].P[0 * 3 + 0];
+	b210.y = payload.CT[TriangleIndexInAS].P[0 * 3 + 1];
+	b210.z = payload.CT[TriangleIndexInAS].P[0 * 3 + 2];
+	b120.x = payload.CT[TriangleIndexInAS].P[1 * 3 + 0];
+	b120.y = payload.CT[TriangleIndexInAS].P[1 * 3 + 1];
+	b120.z = payload.CT[TriangleIndexInAS].P[1 * 3 + 2];
+	b021.x = payload.CT[TriangleIndexInAS].P[2 * 3 + 0];
+	b021.y = payload.CT[TriangleIndexInAS].P[2 * 3 + 1];
+	b021.z = payload.CT[TriangleIndexInAS].P[2 * 3 + 2];
+	b012.x = payload.CT[TriangleIndexInAS].P[3 * 3 + 0];
+	b012.y = payload.CT[TriangleIndexInAS].P[3 * 3 + 1];
+	b012.z = payload.CT[TriangleIndexInAS].P[3 * 3 + 2];
+	b102.x = payload.CT[TriangleIndexInAS].P[4 * 3 + 0];
+	b102.y = payload.CT[TriangleIndexInAS].P[4 * 3 + 1];
+	b102.z = payload.CT[TriangleIndexInAS].P[4 * 3 + 2];
+	b201.x = payload.CT[TriangleIndexInAS].P[5 * 3 + 0];
+	b201.y = payload.CT[TriangleIndexInAS].P[5 * 3 + 1];
+	b201.z = payload.CT[TriangleIndexInAS].P[5 * 3 + 2];
+	b111.x = payload.CT[TriangleIndexInAS].P[6 * 3 + 0];
+	b111.y = payload.CT[TriangleIndexInAS].P[6 * 3 + 1];
+	b111.z = payload.CT[TriangleIndexInAS].P[6 * 3 + 2];
+
+	// update Position
+	float3 P =
+		p0 * WW * W +
+		p1 * UU * U +
+		p2 * VV * V +
+		b210 * WW3 * U +
+		b120 * W * UU3 +
+		b201 * WW3 * V +
+		b021 * UU3 * V +
+		b102 * W * VV3 +
+		b012 * U * VV3 +
+		b111 * 6.f * W * U * V;
+
+	float3 n110, n011, n101;
+	n110.x = payload.CT[TriangleIndexInAS].P[7 * 3 + 0];
+	n110.y = payload.CT[TriangleIndexInAS].P[7 * 3 + 1];
+	n110.z = payload.CT[TriangleIndexInAS].P[7 * 3 + 2];
+	n011.x = payload.CT[TriangleIndexInAS].P[8 * 3 + 0];
+	n011.y = payload.CT[TriangleIndexInAS].P[8 * 3 + 1];
+	n011.z = payload.CT[TriangleIndexInAS].P[8 * 3 + 2];
+	n101.x = payload.CT[TriangleIndexInAS].P[9 * 3 + 0];
+	n101.y = payload.CT[TriangleIndexInAS].P[9 * 3 + 1];
+	n101.z = payload.CT[TriangleIndexInAS].P[9 * 3 + 2];
+
+	// update Normal
+	float3 Normal =
+		n0 * WW +
+		n1 * UU +
+		n2 * VV +
+		n110 * W * U +
+		n011 * U * V +
+		n101 * W * V;
+	Normal = normalize(Normal);
+	Result = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
+	Result.Normal = Normal;
+
+	// update uv
+	Result.UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+
+	return Result;
+}
+
+PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FCluster Cluster)
+{
+	PrimitiveAttributes Attributes;
+	Attributes.PackedData.x = VisibleIndex;
+	Attributes.PackedData.y = TriangleIndex;
+	uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+	uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+	Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
+	Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
+	return Attributes;
+}
+
 [RootSignature(HWRasterizeRS)]
 [numthreads(32, 1, 1)]
 [outputtopology("triangle")]
@@ -605,6 +723,8 @@ void HWRasterizeMS(
 	uint TFOut1 = payload.TF[TriangleIndexInAS].Factor[1];
 	uint TFOut2 = payload.TF[TriangleIndexInAS].Factor[2];
 	uint TFInside = payload.TF[TriangleIndexInAS].Factor[3];
+
+	uint4 Factors = uint4(TFOut0, TFOut1, TFOut2, TFInside);
 
 	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
 	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
@@ -640,7 +760,13 @@ void HWRasterizeMS(
 	DebugTable[GroupID].TrisAfterGroup = InsideTrisAfterGroup;
 #endif
 
-	SetMeshOutputCounts(NumInsideVerts, NumInsideTris);
+	uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount : NumInsideTris;
+	uint TotalVerts = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount * 3 : NumInsideVerts;
+
+	SetMeshOutputCounts(TotalVerts, TotalTris);
+
+	float3 uvw[3];
+	int OutputIndex[3] = { -1, -1, -1 };
 
 	// Triangles
 	[branch]
@@ -649,126 +775,106 @@ void HWRasterizeMS(
 		// inside tess triangles
 		uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
 		OutTriangles[GroupThreadID] = tri;
+		OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
 	}
 	else if (TessIndex >= InsideTrisAfterGroup && GroupThreadID < TessCount)
 	{
 		// outside tess triangles
 		uint OutsideTriIndex = TessIndex - InsideTrisAfterGroup;
 		uint InsideSegs = TFInside - 2;
-		uint OutTris0 = TFOut0 + InsideSegs;
-		uint OutTris1 = TFOut1 + InsideSegs;
-		uint OutTris2 = TFOut2 + InsideSegs;
+		uint EndTris0 = TFOut0 + InsideSegs;
+		uint EndTris1 = EndTris0 + TFOut1 + InsideSegs;
+		uint EndTris2 = EndTris1 + TFOut2 + InsideSegs;
+		uint SideOffsets[3] = {0, EndTris0, EndTris1};
+		float SegLen = EdgeLen / TFInside;
 
 		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
 		OutTriangles[GroupThreadID] = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
+		
+		OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
 
 		// outside 3 verts for this triangle
+		int side = -1;
+		if (OutsideTriIndex < EndTris0)
+		{
+			side = 0;
+		}
+		else if (OutsideTriIndex < EndTris1)
+		{
+			side = 1;
+		}
+		else
+		{
+			side = 2;
+		}
+		// create 3 verts for each tri
+		int i0 = SideOrder[side].x;
+		int i1 = SideOrder[side].y;
+		float3 l00 = Pts[i0];
+		float3 l01 = Pts[i1];
+		int SideFactor = Factors[side];
+		float3 dir0 = (l01 - l00) / SideFactor;
+		float3 l10 = l00 - Dirs[i0] * SegLen * Cos30Inv;
+		float3 l11 = l01 - Dirs[i1] * SegLen * Cos30Inv;
+		float3 dir1 = (l11 - l10) / InsideSegs;
+		int SideIndex = OutsideTriIndex - SideOffsets[side];
+
+		[branch]
+		if (SideIndex < Factors[side])
+		{
+			int LocalIndex = SideIndex;
+			float3 v0 = l00 + dir0 * LocalIndex;
+			float3 v1 = v0 + dir0;
+			float v2_factor = float(InsideSegs) / (SideFactor - 1);
+			int v2_index = (int)round(v2_factor * LocalIndex);
+			float3 v2 = l10 + dir1 * v2_index;
+			uvw[0] = v0;
+			uvw[1] = v1;
+			uvw[2] = v2;
+		}
+		else
+		{
+			int LocalIndex = SideIndex - Factors[side];
+			float3 v0 = l10 + dir1 * LocalIndex;
+			float3 v1 = v0 + dir1;
+			float v2_factor_inv = float(SideFactor - 1) / InsideSegs;
+			int start = floor((0.49f + LocalIndex) * v2_factor_inv) + 1;
+			float3 v2 = l00 + dir0 * start;
+			uvw[0] = v0;
+			uvw[1] = v1;
+			uvw[2] = v2;
+		}
+		OutputIndex[0] = OutsideVertIndex;
+		OutputIndex[1] = OutsideVertIndex + 1;
+		OutputIndex[2] = OutsideVertIndex + 2;
 	}
 
-	// Verts
+	// Inside Verts
 	[branch]
 	if (GroupThreadID < NumInsideVerts)
 	{
-		float3 uvw = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
+		uvw[0] = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
+		OutputIndex[0] = GroupThreadID;
+	}
 
-		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
-		float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
-		float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
+	// Calc tessed attributes by uvw
+	float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
+	float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
+	float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
 
-		FNaniteRawAttributeData AttrData[3];
-		GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
-
-		float3 N[3];
-		N[0] = AttrData[0].TangentZ;
-		N[1] = AttrData[1].TangentZ;
-		N[2] = AttrData[2].TangentZ;
-
-		float3 n0 = N[0];
-		float3 n1 = N[1];
-		float3 n2 = N[2];
-
-		// Get barycoords
-		float U = uvw.x;
-		float V = uvw.y;
-		float W = uvw.z;
-
-		float UU = U * U;
-		float VV = V * V;
-		float WW = W * W;
-		float UU3 = UU * 3.f;
-		float VV3 = VV * 3.f;
-		float WW3 = WW * 3.f;
-
-		float3 b210, b120, b021, b012, b102, b201, b111;
-		b210.x = payload.CT[TriangleIndexInAS].P[0 * 3 + 0];
-		b210.y = payload.CT[TriangleIndexInAS].P[0 * 3 + 1];
-		b210.z = payload.CT[TriangleIndexInAS].P[0 * 3 + 2];
-		b120.x = payload.CT[TriangleIndexInAS].P[1 * 3 + 0];
-		b120.y = payload.CT[TriangleIndexInAS].P[1 * 3 + 1];
-		b120.z = payload.CT[TriangleIndexInAS].P[1 * 3 + 2];
-		b021.x = payload.CT[TriangleIndexInAS].P[2 * 3 + 0];
-		b021.y = payload.CT[TriangleIndexInAS].P[2 * 3 + 1];
-		b021.z = payload.CT[TriangleIndexInAS].P[2 * 3 + 2];
-		b012.x = payload.CT[TriangleIndexInAS].P[3 * 3 + 0];
-		b012.y = payload.CT[TriangleIndexInAS].P[3 * 3 + 1];
-		b012.z = payload.CT[TriangleIndexInAS].P[3 * 3 + 2];
-		b102.x = payload.CT[TriangleIndexInAS].P[4 * 3 + 0];
-		b102.y = payload.CT[TriangleIndexInAS].P[4 * 3 + 1];
-		b102.z = payload.CT[TriangleIndexInAS].P[4 * 3 + 2];
-		b201.x = payload.CT[TriangleIndexInAS].P[5 * 3 + 0];
-		b201.y = payload.CT[TriangleIndexInAS].P[5 * 3 + 1];
-		b201.z = payload.CT[TriangleIndexInAS].P[5 * 3 + 2];
-		b111.x = payload.CT[TriangleIndexInAS].P[6 * 3 + 0];
-		b111.y = payload.CT[TriangleIndexInAS].P[6 * 3 + 1];
-		b111.z = payload.CT[TriangleIndexInAS].P[6 * 3 + 2];
-
-		// update Position
-		float3 P =
-			p0 * WW * W +
-			p1 * UU * U +
-			p2 * VV * V +
-			b210 * WW3 * U +
-			b120 * W * UU3 +
-			b201 * WW3 * V +
-			b021 * UU3 * V +
-			b102 * W * VV3 +
-			b012 * U * VV3 +
-			b111 * 6.f * W * U * V;
-
-		float3 n110, n011, n101;
-		n110.x = payload.CT[TriangleIndexInAS].P[7 * 3 + 0];
-		n110.y = payload.CT[TriangleIndexInAS].P[7 * 3 + 1];
-		n110.z = payload.CT[TriangleIndexInAS].P[7 * 3 + 2];
-		n011.x = payload.CT[TriangleIndexInAS].P[8 * 3 + 0];
-		n011.y = payload.CT[TriangleIndexInAS].P[8 * 3 + 1];
-		n011.z = payload.CT[TriangleIndexInAS].P[8 * 3 + 2];
-		n101.x = payload.CT[TriangleIndexInAS].P[9 * 3 + 0];
-		n101.y = payload.CT[TriangleIndexInAS].P[9 * 3 + 1];
-		n101.z = payload.CT[TriangleIndexInAS].P[9 * 3 + 2];
-
-		// update Normal
-		float3 Normal =
-			n0 * WW +
-			n1 * UU +
-			n2 * VV +
-			n110 * W * U +
-			n011 * U * V +
-			n101 * W * V;
-		Normal = normalize(Normal);
-		OutVertices[GroupThreadID] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
-		OutVertices[GroupThreadID].Normal = Normal;
-
-		// update uv
-		OutVertices[GroupThreadID].UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
-
-		PrimitiveAttributes Attributes;
-		Attributes.PackedData.x = VisibleIndex;
-		Attributes.PackedData.y = TriangleIndex;
-		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
-		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
-		Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
-		Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
-		OutPrimitives[GroupThreadID] = Attributes;
+	FNaniteRawAttributeData AttrData[3];
+	GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+	
+	[unroll]
+	for (int i = 0; i < 3; i ++)
+	{
+		[branch]
+		if (OutputIndex[i] >= 0)
+		{
+			VSOut V = CalcTessedAttributes(payload, NaniteView, VisibleCluster, Cluster,
+				p0, p1, p2, AttrData, TriangleIndexInAS, uvw[i]);
+			OutVertices[OutputIndex[i]] = V;
+		}
 	}
 }
 
