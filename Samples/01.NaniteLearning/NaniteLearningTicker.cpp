@@ -67,4 +67,7 @@ void TNaniteLearningTicker::SetupScene()
 	//Cam->SetTarget(FFloat3(2.74339199f, -2.67151904f, -15.4096231f));
 	//Cam->SetNearValue(1.f);
 	//NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.02f);
+
+	//Cam->SetPosition(FFloat3(48.2126007f, -46.6343880f, 7.32477570f));
+	//Cam->SetTarget(FFloat3(46.9464569f, -45.3535156f, -22.3504772f));
 }

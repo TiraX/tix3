@@ -381,8 +381,8 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float tess_centerf = round(0.333 * (tess_factor.x + tess_factor.y + tess_factor.z));
 	tess_factor.w = (uint)(clamp(tess_centerf, 1.0, MaxTesselator));
 
-	// uint debug_tess = 15;
-	// tess_factor = debug_tess.xxxx;
+	uint debug_tess = 19;
+	tess_factor = debug_tess.xxxx;
 
 	if (tess_factor.w == 1)
 	{
@@ -750,7 +750,16 @@ void HWRasterizeMS(
  	uint TemplateOffset = TemplateGroupInfo.x;
  	uint NumInsideVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
  	uint NumInsideTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
-	uint TessCount = min(CalcTessellationCountByFactor(TF) - TessOffset, 32);
+
+
+	// for debug
+	// InsideTemplates.z is the tris num after group splitting
+	uint3 InsideTemplates = ReadTemplateGroupOffAndCount(TF.w);
+	uint tess_segs = TF.w - 2;
+	uint temp_count = InsideTemplates.z + tess_segs + TF.x;
+	// for debug
+
+	uint TessCount = max(0, min((int)temp_count - (int)TessOffset, 32));
 #if DEBUG_INFO
 	DebugTable[GroupID].TF = TF;
 	DebugTable[GroupID].TessTemplateGroupIndex = TessTemplateGroupIndex;
@@ -770,10 +779,12 @@ void HWRasterizeMS(
 
 	SetMeshOutputCounts(TotalVerts, TotalTris);
 
-	float3 uvw[3] = {{-1,-1,-1}, {-1,-1,-1}, {-1,-1,-1}};
+	float a = 0.0;
+	float3 uvw[3] = {{a,a,a}, {a,a,a}, {a,a,a}};
 	//float3 uvw[3];
 	int OutputIndex[3] = { -1, -1, -1 };
 
+	float3 debug_v2_factor = float3(-1, -1, -1);
 	// Triangles
 	[branch]
 	if (GroupThreadID < NumInsideTris)
@@ -832,8 +843,11 @@ void HWRasterizeMS(
 			float3 v0 = l00 + dir0 * LocalIndex;
 			float3 v1 = v0 + dir0;
 			float v2_factor = float(InsideSegs) / (SideFactor - 1);
-			int v2_index = (int)round(v2_factor * LocalIndex);
+			int v2_index = (int)round(v2_factor * LocalIndex + 0.01);
 			float3 v2 = l10 + dir1 * v2_index;
+			debug_v2_factor.x = v2_factor;
+			debug_v2_factor.y = LocalIndex;
+			debug_v2_factor.z = v2_index;
 			uvw[0] = v0;
 			uvw[1] = v1;
 			uvw[2] = v2;
@@ -844,8 +858,11 @@ void HWRasterizeMS(
 			float3 v0 = l10 + dir1 * LocalIndex;
 			float3 v1 = v0 + dir1;
 			float v2_factor_inv = float(SideFactor - 1) / InsideSegs;
-			int start = floor((0.49f + LocalIndex) * v2_factor_inv) + 1;
+			int start = floor((0.49 + LocalIndex) * v2_factor_inv) + 1;
 			float3 v2 = l00 + dir0 * start;
+			debug_v2_factor.x = v2_factor_inv;
+			debug_v2_factor.y = LocalIndex;
+			debug_v2_factor.z = start;
 			uvw[0] = v0;
 			uvw[1] = v1;
 			uvw[2] = v2;
@@ -863,15 +880,16 @@ void HWRasterizeMS(
 		OutputIndex[0] = GroupThreadID;
 	}
 #if DEBUG_INFO
-	if (GroupID % 34 >= 29)
+	//if (GroupID % 34 >= 29)
 	{
 		uint ii = GroupID % 34 - 29;
-		uint iii = (GroupID / 34 * 5 + ii) * 32 + GroupThreadID;
+		//uint iii = (GroupID / 34 * 5 + ii) * 32 + GroupThreadID;
+		uint iii = GroupID * 32 + GroupThreadID;
 		DebugTable[iii].OutputIndex[0] = OutputIndex[0];
 		DebugTable[iii].OutputIndex[1] = OutputIndex[1];
 		DebugTable[iii].OutputIndex[2] = OutputIndex[2];
 		DebugTable[iii].GroupID = GroupID;
-		DebugTable[iii].BC[0] = uvw[0];
+		DebugTable[iii].BC[0] = debug_v2_factor;
 		DebugTable[iii].BC[1] = uvw[1];
 		DebugTable[iii].BC[2] = uvw[2];
 	}
