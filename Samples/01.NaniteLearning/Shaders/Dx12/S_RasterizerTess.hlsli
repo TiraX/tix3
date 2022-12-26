@@ -157,7 +157,8 @@ VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster,
 	// #endif
 
 		// Calculate PointClipPixel coordinates that bring us directly to absolute pixel positions after w divide
-	float4 PointClipPixel = float4((PointClip.xy / PointClip.w * float2(0.5f, -0.5f) + 0.5f), PointClip.zw);
+	//float4 PointClipPixel = float4((PointClip.xy / PointClip.w * float2(0.5f, -0.5f) + 0.5f), PointClip.zw);
+	float4 PointClipPixel = float4(PointClip.xy * float2(0.5f, -0.5f) + 0.5f * PointClip.w, PointClip.zw);
 	// #if VIRTUAL_TEXTURE_TARGET
 	// 	PointClipPixel.xy *= (VSM_RASTER_WINDOW_PAGES * VSM_PAGE_SIZE);
 	// 	PointClipPixel.xy += VisibleCluster.vPage * (VSM_PAGE_SIZE * PointClipPixel.w);
@@ -356,7 +357,9 @@ uint CalcTessellationCountByFactor(uint4 F)
 	// InsideTemplates.z is the tris num after group splitting
 	uint3 InsideTemplates = ReadTemplateGroupOffAndCount(F.w);
 	uint tess_segs = F.w - 2;
-	return InsideTemplates.z + tess_segs * 3 + F.x + F.y + F.z;
+	//return InsideTemplates.z + tess_segs * 3 + F.x + F.y + F.z;
+	return tess_segs * 3 + F.x + F.y + F.z;
+	//return tess_segs + F.x;
 }
 
 // TODO: Improve tess factor algorithm use CalculateCompositeTessellationFactors() from UE4
@@ -367,9 +370,12 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	V[1] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p1, 0);
 	V[2] = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, p2, 0);
 
-	float2 ScreenPos0 = V[0].PointClipPixel.xy;
-	float2 ScreenPos1 = V[1].PointClipPixel.xy;
-	float2 ScreenPos2 = V[2].PointClipPixel.xy;
+	//float4 SvPosition = float4(In.PointClipPixel.xyz / In.PointClipPixel.w, In.PointClipPixel.w);
+	//uint2 PixelPos = (uint2)SvPosition.xy;
+
+	float2 ScreenPos0 = V[0].PointClipPixel.xy / V[0].PointClipPixel.w;
+	float2 ScreenPos1 = V[1].PointClipPixel.xy / V[1].PointClipPixel.w;
+	float2 ScreenPos2 = V[2].PointClipPixel.xy / V[2].PointClipPixel.w;
 
 	float tess01f = round(length(ScreenPos0 - ScreenPos1) * 0.5);
 	float tess02f = round(length(ScreenPos0 - ScreenPos2) * 0.5);
@@ -469,8 +475,8 @@ void HWRasterizeAS(
 
 	uint VisibleTriangles = 0;
 	[branch]
-	//if (GroupIndex + TriangleOffset < TriRange.Num)
-	if (GroupId == 0 && GroupIndex >= 20 & GroupIndex <= 24)
+	if (GroupIndex + TriangleOffset < TriRange.Num)
+	//if (GroupId == 0 && GroupIndex >= 20 & GroupIndex <= 44)
 	{
 		uint TriangleIndex = TriRange.Start + GroupThreadID + TriangleOffset;
 
@@ -590,7 +596,8 @@ static const float3 Pts[3] = {B0, B1, B2};
 static const float3 Dirs[3] = {D0, D1, D2};
 static const uint2 SideOrder[3] = {{0, 1}, {2, 0}, {1, 2}};
 
-VSOut CalcTessedAttributes(in Payload payload,
+VSOut CalcTessedAttributes(
+	in Payload payload,
 	in FNaniteView NaniteView, 
 	in FVisibleCluster VisibleCluster,
 	in FCluster Cluster,
@@ -696,6 +703,16 @@ PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FClu
 	return Attributes;
 }
 
+PrimitiveAttributes GetPrimAttribDebug(uint3 TriangleIndices, uint GroupID, uint ThreadIndex)
+{
+	PrimitiveAttributes Attributes;
+	Attributes.PackedData.x = TriangleIndices.x | (TriangleIndices.y << 5) | (TriangleIndices.z << 10);
+	Attributes.PackedData.y = 0;
+	Attributes.PackedData.z = 0;
+	Attributes.PackedData.w = 0;
+	return Attributes;
+}
+
 [RootSignature(HWRasterizeRS)]
 [numthreads(32, 1, 1)]
 [outputtopology("triangle")]
@@ -744,40 +761,42 @@ void HWRasterizeMS(
 	uint3 GroupOffAndCount = ReadTemplateGroupOffAndCount(TF.w);
 	uint GroupOff = GroupOffAndCount.x;
 	uint GroupCount = GroupOffAndCount.y;
-	uint InsideTrisAfterGroup = GroupOffAndCount.z;
+	//uint InsideTrisAfterGroup = GroupOffAndCount.z;
 
- 	uint3 TemplateGroupInfo = ReadTemplateGroupInfo(GroupOff, TessTemplateGroupIndex);
- 	uint TemplateOffset = TemplateGroupInfo.x;
- 	uint NumInsideVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
- 	uint NumInsideTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
+ 	//uint3 TemplateGroupInfo = ReadTemplateGroupInfo(GroupOff, TessTemplateGroupIndex);
+ 	//uint TemplateOffset = TemplateGroupInfo.x;
+ 	//uint NumInsideVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
+ 	//uint NumInsideTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
 
 
 	// for debug
 	// InsideTemplates.z is the tris num after group splitting
-	uint3 InsideTemplates = ReadTemplateGroupOffAndCount(TF.w);
-	uint tess_segs = TF.w - 2;
-	uint temp_count = InsideTemplates.z + tess_segs + TF.x;
+	//uint3 InsideTemplates = ReadTemplateGroupOffAndCount(TF.w);
+	//uint tess_segs = TF.w - 2;
+	//uint temp_count = InsideTemplates.z + tess_segs + TF.x;
+	//uint temp_count = tess_segs * 3 + TF.x + TF.y + TF.z;
+	uint temp_count = CalcTessellationCountByFactor(TF);
 	// for debug
 
-	uint TessCount = max(0, min((int)temp_count - (int)TessOffset, 32));
+	uint TessCount = (uint)max((int)0, min((int)temp_count - (int)TessOffset, 32));
 #if DEBUG_INFO
-	DebugTable[GroupID].TF = TF;
-	DebugTable[GroupID].TessTemplateGroupIndex = TessTemplateGroupIndex;
-	DebugTable[GroupID].TriangleIndex = TriangleIndex;
-	DebugTable[GroupID].NumInsideVerts = NumInsideVerts;
-	DebugTable[GroupID].NumInsideTris = NumInsideTris;
-	DebugTable[GroupID].GroupCount = GroupCount;
-	DebugTable[GroupID].TrisAfterGroup = InsideTrisAfterGroup;
-	DebugTable[GroupID].TessCount = TessCount;
+	DebugTable[GroupID * 4].TF = TF;
+	DebugTable[GroupID * 4].TessTemplateGroupIndex = TessTemplateGroupIndex;
+	DebugTable[GroupID * 4].TriangleIndex = TriangleIndex;
+	DebugTable[GroupID * 4].TriangleIndexInAS = TriangleIndexInAS;// NumInsideVerts;
+	DebugTable[GroupID * 4].TriangleOffset = TriangleOffset;// NumInsideTris;
+	DebugTable[GroupID * 4].GroupCount = 0;//GroupCount;
+	DebugTable[GroupID * 4].TrisAfterGroup = 0;// InsideTrisAfterGroup;
+	DebugTable[GroupID * 4].TessCount = TessCount;
 #endif
 	
-	NumInsideTris = 0;
-	NumInsideVerts = 0;
+	//NumInsideTris = 0;
+	//NumInsideVerts = 0;
 
-	uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount : NumInsideTris;
-	uint TotalVerts = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount * 3 : NumInsideVerts;
+	//uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount : NumInsideTris;
+	//uint TotalVerts = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount * 3 : NumInsideVerts;
 
-	SetMeshOutputCounts(TotalVerts, TotalTris);
+	SetMeshOutputCounts(TessCount * 3, TessCount);
 
 	float a = 0.0;
 	float3 uvw[3] = {{a,a,a}, {a,a,a}, {a,a,a}};
@@ -787,17 +806,19 @@ void HWRasterizeMS(
 	float3 debug_v2_factor = float3(-1, -1, -1);
 	// Triangles
 	[branch]
-	if (GroupThreadID < NumInsideTris)
-	{
-		// inside tess triangles
-		uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
-		OutTriangles[GroupThreadID] = tri;
-		OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
-	}
-	else if (TessIndex >= InsideTrisAfterGroup && GroupThreadID < TessCount)
+	// if (GroupThreadID < NumInsideTris)
+	// {
+	// 	// inside tess triangles
+	// 	uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
+	// 	OutTriangles[GroupThreadID] = tri;
+	// 	//OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+	// 	OutPrimitives[GroupThreadID] = GetPrimAttribDebug(uint3(0, 0, 0), uint(-1), 0);
+	// }
+	// else if (TessIndex >= InsideTrisAfterGroup && GroupThreadID < TessCount)
+	if (GroupThreadID < TessCount)
 	{
 		// outside tess triangles
-		uint OutsideTriIndex = TessIndex - InsideTrisAfterGroup;
+		uint OutsideTriIndex = TessIndex;// - InsideTrisAfterGroup;
 		uint InsideSegs = TF.w - 2;
 		uint EndTris0 = TF.x + InsideSegs;
 		uint EndTris1 = EndTris0 + TF.y + InsideSegs;
@@ -805,10 +826,13 @@ void HWRasterizeMS(
 		uint SideOffsets[3] = {0, EndTris0, EndTris1};
 		float SegLen = EdgeLen / TF.w;
 
-		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
-		OutTriangles[GroupThreadID] = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
+		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3;
+		//TessIndex * 3;//min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
+		uint3 TriIndices = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
+		OutTriangles[GroupThreadID] = TriIndices;
 		
-		OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+		//OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+		OutPrimitives[GroupThreadID] = GetPrimAttribDebug(TriIndices, GroupID, GroupThreadID);
 
 		// outside 3 verts for this triangle
 		int side = -1;
@@ -870,30 +894,41 @@ void HWRasterizeMS(
 		OutputIndex[0] = OutsideVertIndex;
 		OutputIndex[1] = OutsideVertIndex + 1;
 		OutputIndex[2] = OutsideVertIndex + 2;
+
+#if DEBUG_INFO
+		if (GroupThreadID < 4)
+		{
+			int ii = GroupID * 4 + GroupThreadID;
+			DebugTable[ii].OutputIndex = int3(OutputIndex[0], OutputIndex[1], OutputIndex[2]);
+			DebugTable[ii].uvw0 = uvw[0];
+			DebugTable[ii].uvw1 = uvw[1];
+			DebugTable[ii].uvw2 = uvw[2];
+		}
+#endif
 	}
 
 	// Inside Verts
-	[branch]
-	if (GroupThreadID < NumInsideVerts)
-	{
-		uvw[0] = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
-		OutputIndex[0] = GroupThreadID;
-	}
-#if DEBUG_INFO
-	//if (GroupID % 34 >= 29)
-	{
-		uint ii = GroupID % 34 - 29;
-		//uint iii = (GroupID / 34 * 5 + ii) * 32 + GroupThreadID;
-		uint iii = GroupID * 32 + GroupThreadID;
-		DebugTable[iii].OutputIndex[0] = OutputIndex[0];
-		DebugTable[iii].OutputIndex[1] = OutputIndex[1];
-		DebugTable[iii].OutputIndex[2] = OutputIndex[2];
-		DebugTable[iii].GroupID = GroupID;
-		DebugTable[iii].BC[0] = debug_v2_factor;
-		DebugTable[iii].BC[1] = uvw[1];
-		DebugTable[iii].BC[2] = uvw[2];
-	}
-#endif
+	//[branch]
+	//if (GroupThreadID < NumInsideVerts)
+	//{
+	//	uvw[0] = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
+	//	OutputIndex[0] = GroupThreadID;
+	//}
+// #if DEBUG_INFO
+// 	//if (GroupID % 34 >= 29)
+// 	{
+// 		uint ii = GroupID % 34 - 29;
+// 		//uint iii = (GroupID / 34 * 5 + ii) * 32 + GroupThreadID;
+// 		uint iii = GroupID * 32 + GroupThreadID;
+// 		DebugTable[iii].OutputIndex[0] = OutputIndex[0];
+// 		DebugTable[iii].OutputIndex[1] = OutputIndex[1];
+// 		DebugTable[iii].OutputIndex[2] = OutputIndex[2];
+// 		DebugTable[iii].GroupID = GroupID;
+// 		DebugTable[iii].BC[0] = debug_v2_factor;
+// 		DebugTable[iii].BC[1] = uvw[1];
+// 		DebugTable[iii].BC[2] = uvw[2];
+// 	}
+// #endif
 
 	// Calc tessed attributes by uvw
 	float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
@@ -1031,6 +1066,8 @@ float4 HWRasterizePS(VSOut In
 	{
 		//WriteToVisBuffer(WriteParams);
 	}
+	
+	OutVisBuffer64[PixelPos] = uint2(Primitive.PackedData.x, Primitive.PackedData.y);
 
  	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.
 	uint PackedColor = Primitive.PackedData.z;
