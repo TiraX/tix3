@@ -647,9 +647,10 @@ TStreamPtr GroupTrianglesAndVerts(
 	{
 		TJSONWriter JRoot;
 		JRoot.AddMember("num_tess", MaxTessFactor);
-		TVector<int32> _GroupOffs, _GroupCounts;
+		TVector<int32> _GroupOffs, _GroupCounts, _TrisAfterGroup;
 		_GroupOffs.reserve(GroupOffAndCounts.size());
 		_GroupCounts.reserve(GroupOffAndCounts.size());
+		_TrisAfterGroup.reserve(GroupOffAndCounts.size());
 		for (const auto& OC : GroupOffAndCounts)
 		{
 			TI_ASSERT(OC.Count < (1 << 6));
@@ -657,9 +658,11 @@ TStreamPtr GroupTrianglesAndVerts(
 			TI_ASSERT(OC.TrisAfterGroup < (1 << 16));
 			_GroupOffs.push_back(OC.Offset);
 			_GroupCounts.push_back(OC.Count);
+			_TrisAfterGroup.push_back(OC.TrisAfterGroup);
 		}
 		JRoot.AddMember("group_offsets", _GroupOffs);
 		JRoot.AddMember("group_counts", _GroupCounts);
+		JRoot.AddMember("tris_after_group", _TrisAfterGroup);
 		JRoot.AddMember("num_groups", (uint32)Descs.size());
 		TVector<int32> _DataOffs, _GroupVerts, _GroupTris;
 		_DataOffs.reserve(Descs.size());
