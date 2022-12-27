@@ -292,7 +292,7 @@ inline uint32 CalcTessInsidePointCount(uint32 n)
 }
 
 static const uint32 MaxTessFactor = 26;
-void AddPoints(TVector<FFloat3>& OutBaryCoords)
+void AddPoints(TVector<FFloat3>& OutBaryCoords, TVector<uint32>& TemplateCoordData)
 {
 	const FFloat3 B0(0, 1, 0);
 	const FFloat3 B1(1, 0, 0);
@@ -301,8 +301,103 @@ void AddPoints(TVector<FFloat3>& OutBaryCoords)
 	const FFloat3 D0 = (B0 - BC).Normalize();
 	const FFloat3 D1 = (B1 - BC).Normalize();
 	const FFloat3 D2 = (B2 - BC).Normalize();
+	const FFloat3 Pts[3] = { B0, B1, B2 };
+	const FFloat3 Dirs[3] = { D0, D1, D2 };
 	const float EdgeLen = (B0 - B1).GetLength();
 	const float Cos30Inv = 1.f / cos(TMath::DegToRad(30.f));
+
+	// Do inside 3 points test
+	struct FInsideTriangle
+	{
+		int32 TF;
+		FFloat3 uvw0;
+		FFloat3 uvw1;
+		FFloat3 uvw2;
+		FUInt3 uvwi0;
+		FUInt3 uvwi1;
+		FUInt3 uvwi2;
+	};
+	TVector<FInsideTriangle> TemplateInsideTris;
+	TemplateInsideTris.reserve(MaxTessFactor);
+	auto F3ToU3 = [](const FFloat3& F3)
+	{
+		FUInt3 U;
+		U.X = *(uint32*)(&F3.X);
+		U.Y = *(uint32*)(&F3.Y);
+		U.Z = *(uint32*)(&F3.Z);
+		return U;
+	};
+	// Insert test pt first
+	FInsideTriangle IF;
+	IF.TF = 0;
+	IF.uvw0 = B0;
+	IF.uvw1 = BC;
+	IF.uvw2 = D0;
+	IF.uvwi0 = F3ToU3(B0);
+	IF.uvwi1 = F3ToU3(BC);
+	IF.uvwi2 = F3ToU3(D0);
+	TemplateInsideTris.push_back(IF);
+	IF.TF = 1;
+	IF.uvw0 = D0;
+	IF.uvw1 = D1;
+	IF.uvw2 = D2;
+	IF.uvwi0 = F3ToU3(D0);
+	IF.uvwi1 = F3ToU3(D1);
+	IF.uvwi2 = F3ToU3(D2);
+	TemplateInsideTris.push_back(IF);
+
+	// 0
+	TemplateCoordData.push_back(0);
+	TemplateCoordData.push_back(0);
+	// Record D0 data in index 0
+	TemplateCoordData[0] = IF.uvwi0.X;
+	TemplateCoordData[1] = IF.uvwi0.Y;
+	// 1
+	FUInt3 TF2Center = F3ToU3(BC);
+	TemplateCoordData.push_back(TF2Center.X);
+	TemplateCoordData.push_back(TF2Center.Y);
+
+	for (int32 TF = 3; TF <= MaxTessFactor; TF++)
+	{
+		float SegLen = EdgeLen / TF;
+		int InsideSegs = TF - 2;
+		FFloat3 C0, C1, C2;
+		if ((InsideSegs & 1) == 0)
+		{
+			int Loops = InsideSegs / 2;
+			int l = Loops - 1;
+			int SegInLoop = l * 2 + 2;
+			float Radius = SegLen * (SegInLoop / 2) * Cos30Inv;
+			C0 = BC + D0 * Radius;    // Corner0
+			C1 = BC + D1 * Radius;    // Corner1
+			C2 = BC + D2 * Radius;    // Corner2
+		}
+		else
+		{
+			int Loops = InsideSegs / 2 + 1;
+			int l = Loops - 1;
+			int SegInLoop = l * 2 + 1;
+			float Radius = SegLen * ((SegInLoop / 2) + 0.5f) * Cos30Inv;
+			C0 = BC + D0 * Radius;    // Corner0
+			C1 = BC + D1 * Radius;    // Corner1
+			C2 = BC + D2 * Radius;    // Corner2
+		}
+		FInsideTriangle IF;
+		IF.TF = TF;
+		FFloat3 v0 = Pts[0] - Dirs[0] * SegLen * Cos30Inv;
+		FFloat3 v1 = Pts[1] - Dirs[1] * SegLen * Cos30Inv;
+		FFloat3 v2 = Pts[2] - Dirs[2] * SegLen * Cos30Inv;
+		IF.uvw0 = C0;
+		IF.uvw1 = C1;
+		IF.uvw2 = C2;
+		IF.uvwi0 = F3ToU3(C0);
+		IF.uvwi1 = F3ToU3(C1);
+		IF.uvwi2 = F3ToU3(C2);
+		TemplateInsideTris.push_back(IF);
+
+		TemplateCoordData.push_back(IF.uvwi0.X);
+		TemplateCoordData.push_back(IF.uvwi0.Y);
+	}
 
 	auto AddLoop = [&OutBaryCoords](const FFloat3& p0, const FFloat3& p1, const FFloat3& p2, int32 segs)
 	{
@@ -316,7 +411,7 @@ void AddPoints(TVector<FFloat3>& OutBaryCoords)
 			OutBaryCoords.push_back(P);
 		}
 		// Points on B1-B2
-		D = (p2 - p1) * SegsInv;
+		D = (p2 - p1) * SegsInv; 
 		Start = p1;
 		for (int s = 0; s < segs; s++)
 		{
@@ -481,7 +576,8 @@ void AddTriangles(TVector<FUInt3>& OutTriangles)
 
 TStreamPtr GroupTrianglesAndVerts(
 	const TVector<FFloat3>& BaryCoords,
-	const TVector<FUInt3>& Triangles
+	const TVector<FUInt3>& Triangles,
+	const TVector<uint32>& TemplateCoordData
 )
 {
 	uint32 TotalTrisOffset = 0;
@@ -633,7 +729,12 @@ TStreamPtr GroupTrianglesAndVerts(
 		TessGroupInfos.push_back(TessGroupInfo);
 	}
 	UniformData->Put(TessGroupInfos.data(), sizeof(uint32) * (uint32)TessGroupInfos.size());
-	uint32 DataOffset = sizeof(uint32) * (uint32)TessGroupInfos.size() + sizeof(FTemplateDesc) * (uint32)Descs.size();
+	UniformData->Put(TemplateCoordData.data(), sizeof(uint32)* (uint32)TemplateCoordData.size());
+	TI_ASSERT(TemplateCoordData.size() == MaxTessFactor * 2);
+	uint32 DataOffset = 
+		sizeof(uint32) * (uint32)TessGroupInfos.size() +
+		sizeof(uint32) * (uint32)TemplateCoordData.size() +
+		sizeof(FTemplateDesc) * (uint32)Descs.size();
 	for (auto& D : Descs)
 	{
 		D.Offset += DataOffset;
@@ -791,7 +892,9 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 	// Calc Templates
 	TVector<FFloat3> BaryCoords;
 	BaryCoords.reserve(TotalPoints);
-	AddPoints(BaryCoords);
+	TVector<uint32> TemplateCoordData;
+	TemplateCoordData.reserve(MaxTessFactor * 2);
+	AddPoints(BaryCoords, TemplateCoordData);
 
 	TVector<FUInt3> Triangles;
 	Triangles.reserve(TotalTris);
@@ -802,7 +905,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 	TVector<uint32> TriOffsets;
 	// Structure:
 	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
-	TStreamPtr UniformData = GroupTrianglesAndVerts(BaryCoords, Triangles);
+	TStreamPtr UniformData = GroupTrianglesAndVerts(BaryCoords, Triangles, TemplateCoordData);
 
 
 	TI_ASSERT(TessTemplateData == nullptr);
@@ -815,6 +918,7 @@ void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdLis
 			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
 			UniformData,
 			EGPUResourceState::UnorderedAccess);
+
 }
 
 static bool bFreezeCulling = false;

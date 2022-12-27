@@ -92,10 +92,13 @@ struct FNaniteTessDebugTable
 	uint32 NumInsideTris;
 	uint32 TrisAfterGroup;
 	uint32 TessCount;
-	FInt3 OutputIndex;
+	uint32 TessIndex;
 	FFloat3 uvw0;
 	FFloat3 uvw1;
 	FFloat3 uvw2;
+	FUInt3 uvwi0;
+	FUInt3 uvwi1;
+	FUInt3 uvwi2;
 };
 FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);
 FUniformBufferPtr CreateTessDebugTableUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);
