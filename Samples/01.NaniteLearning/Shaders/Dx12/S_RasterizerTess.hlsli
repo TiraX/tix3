@@ -699,7 +699,7 @@ PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FClu
 	PrimitiveAttributes Attributes;
 	Attributes.PackedData.x = VisibleIndex;
 	Attributes.PackedData.y = TriangleIndex;
-	uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+	uint3 color = Rand3DPCG16(TriangleIndex.xxx);
 	uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
 	Attributes.PackedData.z = PackedColor;//asuint(NaniteView.ViewSizeAndInvSize.x);
 	Attributes.PackedData.w = 0;//asuint(NaniteView.ViewSizeAndInvSize.y);
@@ -830,7 +830,7 @@ void HWRasterizeMS(
 		{
 			uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
 			OutTriangles[GroupThreadID] = tri;
-			OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+			OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TessIndex, Cluster);
 			//OutPrimitives[GroupThreadID] = GetPrimAttribDebug(uint3(0, 0, 0), uint(-1), 0);
 		}
 		
@@ -857,7 +857,7 @@ void HWRasterizeMS(
 		uint3 TriIndices = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
 		OutTriangles[GroupThreadID + TessTriVertOffset] = TriIndices;
 		
-		OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+		OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttrib(VisibleIndex, TessIndex, Cluster);
 		//OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttribDebug(TriIndices, GroupID, GroupThreadID);
 
 		// outside 3 verts for this triangle
@@ -1078,6 +1078,6 @@ float4 HWRasterizePS(VSOut In
 		//C = Normal * 0.5 + 0.5;
 	}
 	// debug show uv
-	C = float3(In.UV, 0.0);
+	//C = float3(In.UV, 0.0);
 	return float4(C.xyz, 1.0);
 }
