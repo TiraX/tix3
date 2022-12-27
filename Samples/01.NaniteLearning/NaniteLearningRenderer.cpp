@@ -236,6 +236,29 @@ void FNaniteLearningRenderer::InitInRenderThread()
 
 	CreateTessellationTemplates(RHICmdList);
 
+	// Load displacement texture
+	TFile FileImage;
+	FileImage.Open("T_Height.hdr", EFA_READ);
+	TImagePtr ImgHeight = TImage::LoadImageHDR(FileImage);
+	TImagePtr ImgHR16 = ti_new TImage(EPF_R16F, 1024, 1024);
+	TI_ASSERT(ImgHeight != nullptr && ImgHeight->GetFormat() == EPF_RGBA16F);
+	for (int32 y = 0; y < 1024; y++)
+	{
+		for (int32 x = 0; x < 1024; x++)
+		{
+			SColorf C = ImgHeight->GetPixelFloat(x, y);
+			ImgHR16->SetPixel(x, y, C);
+		}
+	}
+	TTextureDesc TexDesc;
+	TexDesc.Width = 1024;
+	TexDesc.Height = 1024;
+	TexDesc.Format = EPF_R16F;
+	FTexturePtr TexHeight = FTexture::CreateTexture(TexDesc);
+	TVector<TImagePtr> SourceImg;
+	SourceImg.push_back(ImgHR16);
+	TexHeight->CreateGPUTexture(RHICmdList, SourceImg, EGPUResourceState::NonPixelShaderResource);
+
 	// Resource table
 	RT_HWRasterize = RHICmdList->GetHeap(0)->CreateRenderResourceTable(NumHWRasterizeParams);
 
@@ -244,6 +267,7 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, View, SRV_Views);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, TessTemplateData, SRV_TessTemplates);
+	RHI->PutTextureInTable(RT_HWRasterize, TexHeight, SRV_TexHeight);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugInfo, UAV_TessDebugInfo);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugTable, UAV_TessDebugTable);

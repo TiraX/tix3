@@ -47,6 +47,9 @@ struct VSOut
 
 ByteAddressBuffer TessTemplatesData : register(t4);
 
+Texture2D<float> TexHeight : register(t5);
+
+
 uint3 ReadTemplateGroupOffAndCount(
 	uint TessFactorInside
 )
@@ -258,8 +261,13 @@ uint3 Rand3DPCG16(int3 p)
 #define HWRasterizeRS \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
 	"RootConstants(num32BitConstants=10, b0)," \
-	"DescriptorTable(SRV(t0, numDescriptors=5), UAV(u0, numDescriptors=3)) "
+	"DescriptorTable(SRV(t0, numDescriptors=6), UAV(u0, numDescriptors=3)), " \
+    "StaticSampler(s0, addressU = TEXTURE_ADDRESS_WRAP, " \
+                      "addressV = TEXTURE_ADDRESS_WRAP, " \
+                      "addressW = TEXTURE_ADDRESS_WRAP, " \
+                        "filter = FILTER_MIN_MAG_MIP_LINEAR) "
 
+SamplerState LinearSampler : register(s0);
 
 struct PrimitiveAttributes
 {
@@ -685,11 +693,18 @@ VSOut CalcTessedAttributes(
 		n011 * U * V +
 		n101 * W * V;
 	Normal = normalize(Normal);
+
+	float2 UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+	// DO DISPLACEMENT
+	float H = TexHeight.SampleLevel(LinearSampler, UV, 0).x;
+	float DisScale = 15.0;
+	P = P + Normal * H * DisScale;
+
 	Result = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
 	Result.Normal = Normal;
 
 	// update uv
-	Result.UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+	Result.UV = UV;
 
 	return Result;
 }

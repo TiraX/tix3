@@ -72,6 +72,7 @@ private:
 		SRV_VisibleClusterSWHW,
 		SRV_Views,
 		SRV_TessTemplates,
+		SRV_TexHeight,
 
 		UAV_VisBuffer,
 		UAV_TessDebugInfo,
