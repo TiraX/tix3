@@ -387,8 +387,8 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float tess_centerf = round(0.333 * (tess_factor.x + tess_factor.y + tess_factor.z));
 	tess_factor.w = (uint)(clamp(tess_centerf, 1.0, MaxTesselator));
 
-	uint debug_tess = 10;
-	tess_factor = debug_tess.xxxx;
+	//uint debug_tess = 9;
+	//tess_factor = debug_tess.xxxx;
 
 	if (tess_factor.w == 1)
 	{
@@ -475,8 +475,7 @@ void HWRasterizeAS(
 
 	uint VisibleTriangles = 0;
 	[branch]
-	//if (GroupIndex + TriangleOffset < TriRange.Num)
-	if (GroupId == 0 && GroupIndex >= 0 && GroupIndex < 64)
+	if (GroupIndex + TriangleOffset < TriRange.Num)
 	{
 		uint TriangleIndex = TriRange.Start + GroupThreadID + TriangleOffset;
 
@@ -793,10 +792,9 @@ void HWRasterizeMS(
 	DebugTable[ii].TessCount = TessCount;
 #endif
 	
-	//NumInsideTris = 0;
-	//NumInsideVerts = 0;
+	int TessTriVertOffset = min(0, int(NumInsideTris) - int(NumInsideVerts));
 
-	uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount : NumInsideTris;
+	uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount + TessTriVertOffset : NumInsideTris;
 	uint TotalVerts = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount * 3 : NumInsideVerts;
 
 	SetMeshOutputCounts(TotalVerts, TotalTris);
@@ -845,10 +843,10 @@ void HWRasterizeMS(
 
 		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
 		uint3 TriIndices = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
-		OutTriangles[GroupThreadID] = TriIndices;
+		OutTriangles[GroupThreadID + TessTriVertOffset] = TriIndices;
 		
-		//OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
-		OutPrimitives[GroupThreadID] = GetPrimAttribDebug(TriIndices, GroupID, GroupThreadID);
+		//OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttrib(VisibleIndex, TriangleIndex, Cluster);
+		OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttribDebug(TriIndices, GroupID, GroupThreadID);
 
 		// outside 3 verts for this triangle
 		int side = -1;
