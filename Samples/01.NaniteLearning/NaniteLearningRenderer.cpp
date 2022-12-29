@@ -738,7 +738,7 @@ TStreamPtr GroupTrianglesAndVerts(
 		TotalPointsOffset += PtCount;
 	}
 
-	TStreamPtr UniformData = ti_new TStream(sizeof(uint32) * MaxTessFactor + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
+	TStreamPtr UniformData = ti_new TStream(sizeof(uint32) * MaxTessFactor + sizeof(uint32) * (uint32)TemplateCoordData.size() + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
 
 	// Add Group Infos
 	TVector<uint32> TessGroupInfos;
