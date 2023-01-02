@@ -44,24 +44,27 @@ struct FNaniteCullingDebugInfo
 struct FNaniteTessDebugInfo
 {
 	uint4 TessFactor;
-	uint TessedCount;
+	uint TessedTrisCount;
 	uint TotalGroups;
+	uint TessedDataOffset;
 }; 
 struct FNaniteTessDebugTable
 {
 	uint4 TF;
-	uint GroupCount;
+	uint TriIndexInAS;
 	uint TessTemplateGroupIndex;
-	uint TriangleIndex;
-	uint NumInsideVerts;
-	uint NumInsideTris;
-	uint TrisAfterGroup;
-	uint TessCount;
+	uint TessedDataOffset;
 	uint TessIndex;
-	float3 uvw0;
-	float3 uvw1;
-	float3 uvw2;
-	uint3 uvwi0;
-	uint3 uvwi1;
-	uint3 uvwi2;
+
+	int Loop;
+	int CurrSegs;
+	int PrevSegs;
+	int PrevPtStart;
+	int CurrPtStart;
+	int TriStartInLoop;
+	int IndexInLoop;
+	int TrisPerSide;
+	int Side;
+	int IndexInSide;
+	uint3 Tri;
 };

@@ -140,6 +140,18 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	TessDebugInfo = CreateTessDebugInfoUniform(RHICmdList, FNaniteTessDebug::MaxDebugInfo);
 	TessDebugTable = CreateTessDebugTableUniform(RHICmdList, FNaniteTessDebugTable::MaxDebugInfo);
 
+	// Make it big enough to hold all tessed data, for this case, make it cover max 128 un-tessed tris.
+	const uint32 TessedPts = 128 * 1024;
+	TessedData =
+		FUniformBuffer::CreateBuffer(
+			RHICmdList,
+			"Nanite.TessedData",
+			sizeof(FTessedDataStruct),
+			TessedPts,
+			(uint32)EGPUResourceFlag::Uav,
+			nullptr,
+			EGPUResourceState::UnorderedAccess);
+
 	StreamingManager.ProcessNewResources(RHICmdList, NaniteMesh, ClusterPageData);
 
 	Hierarchy = FStreamingPageUploader::AllocateHierarchyBuffer(RHICmdList, NaniteMesh->HierarchyNodes);
@@ -234,8 +246,6 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	VisBuffer->SetResourceName("VisBuffer");
 	VisBuffer->CreateGPUTexture(RHICmdList, TVector<TImagePtr>(), EGPUResourceState::UnorderedAccess);
 
-	CreateTessellationTemplates(RHICmdList);
-
 	// Load displacement texture
 	TFile FileImage;
 	FileImage.Open("T_Height.hdr", EFA_READ);
@@ -266,8 +276,8 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	RHI->PutUniformBufferInTable(RT_HWRasterize, ClusterPageData, SRV_ClusterPageData);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, View, SRV_Views);
 	RHI->PutUniformBufferInTable(RT_HWRasterize, VisibleClustersSWHW, SRV_VisibleClusterSWHW);
-	RHI->PutUniformBufferInTable(RT_HWRasterize, TessTemplateData, SRV_TessTemplates);
 	RHI->PutTextureInTable(RT_HWRasterize, TexHeight, SRV_TexHeight);
+	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessedData, UAV_TessedData);
 	RHI->PutRWTextureInTable(RT_HWRasterize, VisBuffer, 0, UAV_VisBuffer);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugInfo, UAV_TessDebugInfo);
 	RHI->PutRWUniformBufferInTable(RT_HWRasterize, TessDebugTable, UAV_TessDebugTable);
@@ -284,665 +294,105 @@ void FNaniteLearningRenderer::InitInRenderThread()
 	CmdSig_HWRasterize->SetResourceName("CmdSig_HWRasterize");
 	RHI->UpdateHardwareResourceGPUCommandSig(CmdSig_HWRasterize);
 
+	// Calc look up table data
+	//CalcLoopIndexData();
 }
 
-inline uint32 CalcTessInsideTriCount(uint32 n)
+static const int32 MaxTessellator = 26;
+void FNaniteLearningRenderer::CalcLoopIndexData()
 {
-	if ((n & 1) == 0)
-	{
-		// even
-		return n * n * 3 / 2;
-	}
-	else
-	{
-		// odd
-		return (n / 2) * 3 * (n + 1) + 1;
-	}
-}
-inline uint32 CalcTessInsidePointCount(uint32 n)
-{
-	if ((n & 1) == 0)
-	{
-		// even
-		uint32 nn = n / 2;
-		return (nn * nn + nn) * 3 + 1;
-	}
-	else
-	{
-		// odd
-		uint32 nn = n / 2 + 1;
-		return (nn * nn) * 3;
-	}
-}
+	const int32 MaxLoop = (MaxTessellator - 1) / 2;
+	TVector<int32> VIndexInLoop0, VIndexInLoop1;
+	VIndexInLoop0.reserve(1024);
+	VIndexInLoop1.reserve(1024);
 
-static const uint32 MaxTessFactor = 26;
-void AddPoints(TVector<FFloat3>& OutBaryCoords, TVector<uint32>& TemplateCoordData)
-{
-	const FFloat3 B0(0, 1, 0);
-	const FFloat3 B1(1, 0, 0);
-	const FFloat3 B2(0, 0, 1);
-	const FFloat3 BC = (B0 + B1 + B2) / 3.0f;
-	const FFloat3 D0 = (B0 - BC).Normalize();
-	const FFloat3 D1 = (B1 - BC).Normalize();
-	const FFloat3 D2 = (B2 - BC).Normalize();
-	const FFloat3 Pts[3] = { B0, B1, B2 };
-	const FFloat3 Dirs[3] = { D0, D1, D2 };
-	const float EdgeLen = (B0 - B1).GetLength();
-	const float Cos30Inv = 1.f / cos(TMath::DegToRad(30.f));
-
-	// Do inside 3 points test
-	struct FInsideTriangle
+	VIndexInLoop0.push_back(0);
+	int32 PtInLoop0 = 6;
+	int32 PtInLoop1 = 3;
+	for (int32 loop = 0; loop < MaxLoop; loop++)
 	{
-		int32 TF;
-		FFloat3 uvw0;
-		FFloat3 uvw1;
-		FFloat3 uvw2;
-		FUInt3 uvwi0;
-		FUInt3 uvwi1;
-		FUInt3 uvwi2;
+		for (int32 pt = 0; pt < PtInLoop0; pt++)
+		{
+			VIndexInLoop0.push_back(loop + 1);
+		}
+		PtInLoop0 += 6;
+		for (int32 pt = 0; pt < PtInLoop1; pt++)
+		{
+			VIndexInLoop1.push_back(loop);
+		}
+		PtInLoop1 += 6;
+	}
+
+	TVector<int32> TIndexInLoop0, TIndexInLoop1;
+	TIndexInLoop0.reserve(1024);
+	TIndexInLoop1.reserve(1024);
+
+	int32 TriInLoop0 = 6;
+	int32 TriInLoop1 = 12;
+	TIndexInLoop1.push_back(0);
+	for (int32 loop = 0; loop < MaxLoop; loop++)
+	{
+		for (int32 Tri = 0; Tri < TriInLoop0; Tri++)
+		{
+			TIndexInLoop0.push_back(loop + 1);
+		}
+		TriInLoop0 += 12;
+		for (int32 Tri = 0; Tri < TriInLoop1; Tri++)
+		{
+			TIndexInLoop1.push_back(loop + 1);
+		}
+		TriInLoop1 += 12;
+	}
+
+	// Packit
+	TVector<uint32> PackedVIndex0, PackedVIndex1, PackedTIndex0, PackedTIndex1;
+	PackedVIndex0.resize(TMath::DivideAndRoundUp((uint32)VIndexInLoop0.size(), 8u));
+	PackedVIndex1.resize(TMath::DivideAndRoundUp((uint32)VIndexInLoop1.size(), 8u));
+	PackedTIndex0.resize(TMath::DivideAndRoundUp((uint32)TIndexInLoop0.size(), 8u));
+	PackedTIndex1.resize(TMath::DivideAndRoundUp((uint32)TIndexInLoop1.size(), 8u));
+
+	auto PackData = [](TVector<uint32>& Data, int32 Index, int32 Value)
+	{
+		TI_ASSERT(Value < (1 << 4));
+		int32 Element = Index / 8;
+		int32 Bit = (Index % 8) * 4;
+		Data[Element] |= Value << Bit;
 	};
-	TVector<FInsideTriangle> TemplateInsideTris;
-	TemplateInsideTris.reserve(MaxTessFactor);
-	auto F3ToU3 = [](const FFloat3& F3)
+	auto PrintFormated = [](const TVector<uint32>& Data, const TString& Name)
 	{
-		FUInt3 U;
-		U.X = *(uint32*)(&F3.X);
-		U.Y = *(uint32*)(&F3.Y);
-		U.Z = *(uint32*)(&F3.Z);
-		return U;
-	};
-	// Insert test pt first
-	FInsideTriangle IF;
-	IF.TF = 0;
-	IF.uvw0 = B0;
-	IF.uvw1 = BC;
-	IF.uvw2 = D0;
-	IF.uvwi0 = F3ToU3(B0);
-	IF.uvwi1 = F3ToU3(BC);
-	IF.uvwi2 = F3ToU3(D0);
-	TemplateInsideTris.push_back(IF);
-	IF.TF = 1;
-	IF.uvw0 = D0;
-	IF.uvw1 = D1;
-	IF.uvw2 = D2;
-	IF.uvwi0 = F3ToU3(D0);
-	IF.uvwi1 = F3ToU3(D1);
-	IF.uvwi2 = F3ToU3(D2);
-	TemplateInsideTris.push_back(IF);
-
-	// 0
-	TemplateCoordData.push_back(0);
-	TemplateCoordData.push_back(0);
-	// Record D0 data in index 0
-	TemplateCoordData[0] = IF.uvwi0.X;
-	TemplateCoordData[1] = IF.uvwi0.Y;
-	// 1
-	FUInt3 TF2Center = F3ToU3(BC);
-	TemplateCoordData.push_back(TF2Center.X);
-	TemplateCoordData.push_back(TF2Center.Y);
-
-	for (int32 TF = 3; TF <= MaxTessFactor; TF++)
-	{
-		float SegLen = EdgeLen / TF;
-		int InsideSegs = TF - 2;
-		FFloat3 C0, C1, C2;
-		if ((InsideSegs & 1) == 0)
+		TStringStream SS;
+		SS << "static const uint " << Name << "[" << Data.size() << "] = {" << endl;
+		SS << "\t";
+		for (int32 i = 0; i < (int32)Data.size(); i++)
 		{
-			int Loops = InsideSegs / 2;
-			int l = Loops - 1;
-			int SegInLoop = l * 2 + 2;
-			float Radius = SegLen * (SegInLoop / 2) * Cos30Inv;
-			C0 = BC + D0 * Radius;    // Corner0
-			C1 = BC + D1 * Radius;    // Corner1
-			C2 = BC + D2 * Radius;    // Corner2
+			SS << Data[i] << ",";
+			if ((i + 1) % 8 == 0)
+				SS << endl << "\t";
 		}
-		else
-		{
-			int Loops = InsideSegs / 2 + 1;
-			int l = Loops - 1;
-			int SegInLoop = l * 2 + 1;
-			float Radius = SegLen * ((SegInLoop / 2) + 0.5f) * Cos30Inv;
-			C0 = BC + D0 * Radius;    // Corner0
-			C1 = BC + D1 * Radius;    // Corner1
-			C2 = BC + D2 * Radius;    // Corner2
-		}
-		FInsideTriangle IF;
-		IF.TF = TF;
-		FFloat3 v0 = Pts[0] - Dirs[0] * SegLen * Cos30Inv;
-		FFloat3 v1 = Pts[1] - Dirs[1] * SegLen * Cos30Inv;
-		FFloat3 v2 = Pts[2] - Dirs[2] * SegLen * Cos30Inv;
-		IF.uvw0 = C0;
-		IF.uvw1 = C1;
-		IF.uvw2 = C2;
-		IF.uvwi0 = F3ToU3(C0);
-		IF.uvwi1 = F3ToU3(C1);
-		IF.uvwi2 = F3ToU3(C2);
-		TemplateInsideTris.push_back(IF);
-
-		TemplateCoordData.push_back(IF.uvwi0.X);
-		TemplateCoordData.push_back(IF.uvwi0.Y);
-	}
-
-	auto AddLoop = [&OutBaryCoords](const FFloat3& p0, const FFloat3& p1, const FFloat3& p2, int32 segs)
-	{
-		const float SegsInv = 1.f / float(segs);
-		// Points on p0 - p1
-		FFloat3 D = (p1 - p0) * SegsInv;
-		FFloat3 Start = p0;
-		for (int s = 0; s < segs; s++)
-		{
-			FFloat3 P = Start + D * float(s);
-			OutBaryCoords.push_back(P);
-		}
-		// Points on B1-B2
-		D = (p2 - p1) * SegsInv; 
-		Start = p1;
-		for (int s = 0; s < segs; s++)
-		{
-			FFloat3 P = Start + D * float(s);
-			OutBaryCoords.push_back(P);
-		}
-		// Points on B2-B0
-		D = (p0 - p2) * SegsInv;
-		Start = p2;
-		for (int s = 0; s < segs; s++)
-		{
-			FFloat3 P = Start + D * float(s);
-			OutBaryCoords.push_back(P);
-		}
+		SS << endl << "};" << endl;
+		_LOG(ELog::Log, SS.str().c_str());
 	};
 
-	for (uint32 TessFactor = 2; TessFactor <= MaxTessFactor; TessFactor++)
+	for (int32 i = 0; i < (int32)VIndexInLoop0.size(); i++)
 	{
-		float SegLen = EdgeLen / TessFactor;
-		int InsideSegs = TessFactor - 2;
-		if ((InsideSegs & 1) == 0)
-		{
-			int Loops = InsideSegs / 2;
-			for (int l = Loops - 1; l >= 0; l--)
-			{
-				int SegInLoop = l * 2 + 2;
-				float Radius = SegLen * (SegInLoop / 2) * Cos30Inv;
-				FFloat3 C0 = BC + D0 * Radius;    // Corner0
-				FFloat3 C1 = BC + D1 * Radius;    // Corner1
-				FFloat3 C2 = BC + D2 * Radius;    // Corner2
-				AddLoop(C0, C1, C2, SegInLoop);
-			}
-			OutBaryCoords.push_back(BC);	// add center point for even tess
-		}
-		else
-		{
-			int Loops = InsideSegs / 2 + 1;
-			for (int l = Loops - 1; l >= 0; l--)
-			{
-				int SegInLoop = l * 2 + 1;
-				float Radius = SegLen * ((SegInLoop / 2) + 0.5f) * Cos30Inv;
-				FFloat3 C0 = BC + D0 * Radius;    // Corner0
-				FFloat3 C1 = BC + D1 * Radius;    // Corner1
-				FFloat3 C2 = BC + D2 * Radius;    // Corner2
-				AddLoop(C0, C1, C2, SegInLoop);
-			}
-		}
+		PackData(PackedVIndex0, i, VIndexInLoop0[i]);
 	}
-}
-
-void AddTriangles(TVector<FUInt3>& OutTriangles)
-{
-	for (uint32 TessFactor = 2; TessFactor <= MaxTessFactor; TessFactor++)
+	for (int32 i = 0; i < (int32)VIndexInLoop1.size(); i++)
 	{
-		uint32 InsideSegs = TessFactor - 2;
-
-		if ((InsideSegs & 1) == 0)
-		{
-			int Loops = InsideSegs / 2;
-			for (int side = 0; side < 3; side++)
-			{
-				int line_offset = 0;
-				for (int l = Loops - 1; l >= 0; l--)
-				{
-					int SegInCurrLoop = l * 2 + 2;
-					int SegInNextLoop = (l - 1) * 2 + 2;
-					int curr_loop_ptnum = SegInCurrLoop * 3;
-					int next_loop_ptnum = SegInNextLoop * 3;
-					int curr_loop_start = line_offset + SegInCurrLoop * side;
-					int next_loop_start = line_offset + curr_loop_ptnum + SegInNextLoop * side;
-
-					for (int seg = 0; seg < SegInCurrLoop; seg++)
-					{
-						int curr0 = curr_loop_start + seg;
-						int curr1 = curr_loop_start + seg + 1;
-						if (curr1 >= line_offset + curr_loop_ptnum) curr1 -= curr_loop_ptnum;
-						int next0 = next_loop_start + seg;
-						int next_1 = next_loop_start + seg - 1;
-						if (next0 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next0 -= next_loop_ptnum;
-						if (next_1 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next_1 -= next_loop_ptnum;
-
-						if ((seg & 1) == 0)
-						{
-							OutTriangles.push_back(FUInt3(curr0, curr1, next0));
-						}
-						else
-						{
-							OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
-						}
-						if (seg > 0 && seg < SegInCurrLoop - 1)
-						{
-							if ((seg & 1) == 0)
-							{
-								OutTriangles.push_back(FUInt3(curr0, next0, next_1));
-							}
-							else
-							{
-								OutTriangles.push_back(FUInt3(next_1, curr1, next0));
-							}
-						}
-					}
-					line_offset += curr_loop_ptnum;
-				}
-			}
-		}
-		else
-		{
-			int Loops = InsideSegs / 2;
-			for (int side = 0; side < 3; side++)
-			{
-				int line_offset = 0;
-				for (int l = Loops - 1; l >= 0; l--)
-				{
-					int SegInCurrLoop = l * 2 + 3;
-					int SegInNextLoop = (l - 1) * 2 + 3;
-					int curr_loop_ptnum = SegInCurrLoop * 3;
-					int next_loop_ptnum = SegInNextLoop * 3;
-					int curr_loop_start = line_offset + SegInCurrLoop * side;
-					int next_loop_start = line_offset + curr_loop_ptnum + SegInNextLoop * side;
-
-					for (int seg = 0; seg < SegInCurrLoop; seg++)
-					{
-						int curr0 = curr_loop_start + seg;
-						int curr1 = curr_loop_start + seg + 1;
-						if (curr1 >= line_offset + curr_loop_ptnum) curr1 -= curr_loop_ptnum;
-						int next0 = next_loop_start + seg;
-						int next_1 = next_loop_start + seg - 1;
-						if (next0 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next0 -= next_loop_ptnum;
-						if (next_1 >= line_offset + curr_loop_ptnum + next_loop_ptnum) next_1 -= next_loop_ptnum;
-
-						if ((seg & 1) == 0)
-						{
-							if (seg != SegInCurrLoop - 1)
-								OutTriangles.push_back(FUInt3(curr0, curr1, next0));
-							else
-								OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
-						}
-						else
-						{
-							OutTriangles.push_back(FUInt3(curr0, curr1, next_1));
-						}
-						if (seg > 0 && seg < SegInCurrLoop - 1)
-						{
-							if ((seg & 1) == 0)
-							{
-								OutTriangles.push_back(FUInt3(curr0, next0, next_1));
-							}
-							else
-							{
-								OutTriangles.push_back(FUInt3(next_1, curr1, next0));
-							}
-						}
-					}
-					line_offset += curr_loop_ptnum;
-				}
-			}
-			int total_pts = CalcTessInsidePointCount(InsideSegs);
-			OutTriangles.push_back(FUInt3(total_pts - 3, total_pts - 2, total_pts - 1));
-		}
+		PackData(PackedVIndex1, i, VIndexInLoop1[i]);
 	}
-}
-
-TStreamPtr GroupTrianglesAndVerts(
-	const TVector<FFloat3>& BaryCoords,
-	const TVector<FUInt3>& Triangles,
-	const TVector<uint32>& TemplateCoordData
-)
-{
-	uint32 TotalTrisOffset = 0;
-	uint32 TotalPointsOffset = 0;
-
-	THMap<uint32, uint32> VertMap;
-	VertMap.reserve(256);
-	TVector<FFloat3> NewBaryCoords;
-	TVector<uint8> NewTriangles;
-	NewBaryCoords.reserve(96);
-	NewTriangles.reserve(96);
-
-	struct FTemplateDesc
+	for (int32 i = 0; i < (int32)TIndexInLoop0.size(); i++)
 	{
-		uint32 Offset;
-		uint16 Verts;
-		uint16 Tris;
-	};
-	struct FGroupOffAndCount
-	{
-		int32 Offset;
-		int32 Count;
-		int32 TrisAfterGroup;
-		int32 TrisBeforeGroup;
-	};
-
-	auto NewVertsAdded = [&VertMap](uint32 IX, uint32 IY, uint32 IZ)
-	{
-		uint32 Added = 0;
-		if (VertMap.find(IX) == VertMap.end())
-			Added++;
-		if (VertMap.find(IY) == VertMap.end())
-			Added++;
-		if (VertMap.find(IZ) == VertMap.end())
-			Added++;
-		return Added;
-	};
-
-	auto InsertVert = [&VertMap, &NewBaryCoords, &NewTriangles](uint32 VertIndex, const FFloat3& BCoord)
-	{
-		uint32 NewIndex = uint32(-1);
-		THMap<uint32, uint32>::const_iterator It = VertMap.find(VertIndex);
-		if (It == VertMap.end())
-		{
-			NewIndex = (uint32)VertMap.size();
-			VertMap[VertIndex] = NewIndex;
-			NewBaryCoords.push_back(BCoord);
-			TI_ASSERT(VertMap.size() == NewBaryCoords.size());
-		}
-		else
-		{
-			NewIndex = It->second;
-		}
-		NewTriangles.push_back(NewIndex);
-	};
-
-	uint32 MaxDataSize = TMath::Align4((uint32)Triangles.size() * 3) + (uint32)BaryCoords.size() * sizeof(FFloat3) * 2;
-	TStreamPtr Data = ti_new TStream(MaxDataSize);
-
-	TVector<FTemplateDesc> Descs;
-	Descs.reserve(1024);
-
-	TVector<FGroupOffAndCount> GroupOffAndCounts;
-	GroupOffAndCounts.reserve(18);
-	GroupOffAndCounts.push_back({ 0, 0 });	// tess_factor 1 = 0
-
-	for (uint32 i = 2; i <= MaxTessFactor; i++)
-	{
-		uint32 TessGroupOffset = (uint32)Descs.size();
-
-		uint32 Segs = i - 2;
-		int32 TriCount = CalcTessInsideTriCount(Segs);
-		int32 PtCount = CalcTessInsidePointCount(Segs);
-
-		FTemplateDesc Desc;
-
-		VertMap.clear();
-		NewBaryCoords.clear();
-		NewTriangles.clear();
-
-		auto AddGroup = [&]()
-		{
-			Desc.Offset = Data->GetLength();
-			Desc.Tris = (uint16)NewTriangles.size() / 3;
-			Desc.Verts = (uint16)NewBaryCoords.size();
-			Descs.push_back(Desc);
-
-			Data->Put(NewBaryCoords.data(), (uint32)NewBaryCoords.size() * sizeof(FFloat3));
-			Data->Put(NewTriangles.data(), (uint32)NewTriangles.size());
-			Data->FillZeroToAlign(4);
-
-			VertMap.clear();
-			NewBaryCoords.clear();
-			NewTriangles.clear();
-		};
-
-		int32 TriOffset = 0;
-		while (TriCount - TriOffset > 0)
-		{
-			uint32 IX, IY, IZ;
-			IX = Triangles[TotalTrisOffset + TriOffset].X;
-			IY = Triangles[TotalTrisOffset + TriOffset].Y;
-			IZ = Triangles[TotalTrisOffset + TriOffset].Z;
-
-			uint32 _Added = NewVertsAdded(IX, IY, IZ);
-			if (NewBaryCoords.size() + _Added > 32 || NewTriangles.size() >= 32 * 3)
-			{
-				AddGroup();
-			}
-
-			InsertVert(IX, BaryCoords[TotalPointsOffset + IX]);
-			InsertVert(IY, BaryCoords[TotalPointsOffset + IY]);
-			InsertVert(IZ, BaryCoords[TotalPointsOffset + IZ]);
-
-			TriOffset++;
-		}
-		TI_ASSERT((NewBaryCoords.size() > 0 && NewTriangles.size() > 0) ||
-			(NewBaryCoords.size() == 0 && NewTriangles.size() == 0));
-		uint32 MaxThreadNeedToFinishInside = (uint32)TMath::Max(NewBaryCoords.size(), NewTriangles.size() / 3);
-		if (NewBaryCoords.size() > 0)
-		{
-			TI_ASSERT(NewBaryCoords.size() <= 32 && NewTriangles.size() <= 32 * 3);
-			AddGroup();
-		}
-
-		FGroupOffAndCount OC;
-		OC.Offset = TessGroupOffset;
-		OC.Count = (uint32)Descs.size() - TessGroupOffset;
-		OC.TrisAfterGroup = TMath::Max(OC.Count - 1, 0) * 32 + MaxThreadNeedToFinishInside;
-		OC.TrisBeforeGroup = TriCount;
-		GroupOffAndCounts.push_back(OC);
-
-		TotalTrisOffset += TriCount;
-		TotalPointsOffset += PtCount;
+		PackData(PackedTIndex0, i, TIndexInLoop0[i]);
 	}
-
-	TStreamPtr UniformData = ti_new TStream(sizeof(uint32) * MaxTessFactor + sizeof(uint32) * (uint32)TemplateCoordData.size() + sizeof(FTemplateDesc) * (uint32)Descs.size() + Data->GetLength());
-
-	// Add Group Infos
-	TVector<uint32> TessGroupInfos;
-	TessGroupInfos.reserve(MaxTessFactor);
-	for (const auto& OC : GroupOffAndCounts)
+	for (int32 i = 0; i < (int32)TIndexInLoop1.size(); i++)
 	{
-		TI_ASSERT(OC.Count < (1 << 6));
-		TI_ASSERT(OC.Offset < (1 << 10));
-		TI_ASSERT(OC.TrisAfterGroup < (1 << 16));
-		uint32 TessGroupInfo = (OC.Offset << 6) | (OC.Count);
-		TessGroupInfo |= (OC.TrisAfterGroup << 16);
-		TessGroupInfos.push_back(TessGroupInfo);
+		PackData(PackedTIndex1, i, TIndexInLoop1[i]);
 	}
-	UniformData->Put(TessGroupInfos.data(), sizeof(uint32) * (uint32)TessGroupInfos.size());
-	UniformData->Put(TemplateCoordData.data(), sizeof(uint32)* (uint32)TemplateCoordData.size());
-	TI_ASSERT(TemplateCoordData.size() == MaxTessFactor * 2);
-	uint32 DataOffset = 
-		sizeof(uint32) * (uint32)TessGroupInfos.size() +
-		sizeof(uint32) * (uint32)TemplateCoordData.size() +
-		sizeof(FTemplateDesc) * (uint32)Descs.size();
-	for (auto& D : Descs)
-	{
-		D.Offset += DataOffset;
-	}
-	UniformData->Put(Descs.data(), sizeof(FTemplateDesc) * (uint32)Descs.size());
-	// Add Data
-	UniformData->Put(Data->GetBuffer(), Data->GetLength());
-
-	const bool ExportToJson = false;
-	if (ExportToJson)
-	{
-		TJSONWriter JRoot;
-		JRoot.AddMember("num_tess", MaxTessFactor);
-		TVector<int32> _GroupOffs, _GroupCounts, _TrisAfterGroup;
-		_GroupOffs.reserve(GroupOffAndCounts.size());
-		_GroupCounts.reserve(GroupOffAndCounts.size());
-		_TrisAfterGroup.reserve(GroupOffAndCounts.size());
-		for (const auto& OC : GroupOffAndCounts)
-		{
-			TI_ASSERT(OC.Count < (1 << 6));
-			TI_ASSERT(OC.Offset < (1 << 10));
-			TI_ASSERT(OC.TrisAfterGroup < (1 << 16));
-			_GroupOffs.push_back(OC.Offset);
-			_GroupCounts.push_back(OC.Count);
-			_TrisAfterGroup.push_back(OC.TrisAfterGroup);
-		}
-		JRoot.AddMember("group_offsets", _GroupOffs);
-		JRoot.AddMember("group_counts", _GroupCounts);
-		JRoot.AddMember("tris_after_group", _TrisAfterGroup);
-		JRoot.AddMember("num_groups", (uint32)Descs.size());
-		TVector<int32> _DataOffs, _GroupVerts, _GroupTris;
-		_DataOffs.reserve(Descs.size());
-		_GroupVerts.reserve(Descs.size());
-		_GroupTris.reserve(Descs.size());
-		for (const auto& D : Descs)
-		{
-			_DataOffs.push_back(D.Offset);
-			_GroupVerts.push_back(D.Verts);
-			_GroupTris.push_back(D.Tris);
-		}
-		JRoot.AddMember("data_offsets", _DataOffs);
-		JRoot.AddMember("group_verts", _GroupVerts);
-		JRoot.AddMember("group_tris", _GroupTris);
-
-		TJSONNode JTessDatas = JRoot.AddArray("tess_datas");
-		for (int32 i = 0; i < MaxTessFactor; i++)
-		{
-			int32 GroupOff = GroupOffAndCounts[i].Offset;
-			int32 GroupCount = GroupOffAndCounts[i].Count;
-
-			TJSONNode JTessLevel = JTessDatas.InsertEmptyObjectToArray();
-			JTessLevel.AddMember("tess", i);
-
-			TJSONNode JGroupDatas = JTessLevel.AddArray("group_datas");
-			for (int32 g = 0; g < GroupCount; g++)
-			{
-				int32 DOffset = Descs[GroupOff + g].Offset;
-				int32 NumVerts = Descs[GroupOff + g].Verts;
-				int32 NumTris = Descs[GroupOff + g].Tris;
-				TVector<float> Verts;
-				Verts.reserve(NumVerts * 3);
-				TVector<int32> Tris;
-				Tris.reserve(NumTris * 3);
-
-				TJSONNode JGroupData = JGroupDatas.InsertEmptyObjectToArray();
-				JGroupData.AddMember("num_verts", NumVerts);
-				JGroupData.AddMember("num_tris", NumTris);
-				auto LoadByte = [](TStreamPtr _Data, uint32 _Addr)
-				{
-					uint32 addr4 = _Addr / 4 * 4;
-					uint32 v = _Data->GetU32(addr4);
-					uint32 offset = _Addr - addr4;
-					offset *= 8;
-					return (v >> offset) & ((1u << 8) - 1u);
-				};
-
-				for (int32 t = 0; t < NumTris; t++)
-				{
-					int32 Offset = DOffset + NumVerts * 12 + t * 3;
-					FUInt3 Tri;
-					Tri.X = LoadByte(UniformData, Offset);
-					Tri.Y = LoadByte(UniformData, Offset + 1);
-					Tri.Z = LoadByte(UniformData, Offset + 2);
-					Tris.push_back(Tri.X);
-					Tris.push_back(Tri.Y);
-					Tris.push_back(Tri.Z);
-				}
-				JGroupData.AddMember("tris", Tris);
-				for (int32 v = 0; v < NumVerts; v++)
-				{
-					int32 Offset = DOffset + v * 12;
-					FUInt3 VertI;
-					VertI.X = UniformData->GetU32(Offset);
-					VertI.Y = UniformData->GetU32(Offset + 4);
-					VertI.Z = UniformData->GetU32(Offset + 8);
-					FFloat3 Vert = *(FFloat3*)(&VertI);
-					Verts.push_back(Vert.X);
-					Verts.push_back(Vert.Y);
-					Verts.push_back(Vert.Z);
-				}
-				JGroupData.AddMember("verts", Verts);
-			}
-		}
-		TString JsonString;
-		JRoot.Dump(JsonString);
-
-		TFile F;
-		if (F.Open("tess_template.json", EFA_CREATEWRITE))
-		{
-			F.Write(JsonString.c_str(), (int32)JsonString.length());
-			F.Close();
-		}
-	}
-
-	return UniformData;
-}
-
-void FNaniteLearningRenderer::CreateTessellationTemplates(FRHICmdList* RHICmdList)
-{
-
-	uint32 TotalTris = 0;
-	uint32 TotalPoints = 0;
-	for (uint32 i = 2; i <= MaxTessFactor; i++)
-	{
-		uint32 Segs = i - 2;
-		uint32 TriCount = CalcTessInsideTriCount(Segs);
-		TotalTris += TriCount;
-		uint32 PtCount = CalcTessInsidePointCount(Segs);
-		TotalPoints += PtCount;
-	}
-
-	// USELESS
-	TVector<int32> TriCounts, TriTotal, TriGroups;
-	TVector<int32> PtCounts, PtTotal, PtGroups;
-	TriCounts.reserve(64);
-	TriTotal.reserve(64);
-	TriGroups.reserve(64);
-	PtCounts.reserve(64);
-	PtTotal.reserve(64);
-	PtGroups.reserve(64);
-	for (int32 i = 2; i <= 64; i++)
-	{
-		int32 TriPerTess = CalcTessInsideTriCount(i);
-		TriCounts.push_back(TriPerTess);
-		TriTotal.push_back(TriPerTess * 64);
-		TriGroups.push_back(TMath::DivideAndRoundUp(TriPerTess * 64, 32));
-		int32 PtPerTess = CalcTessInsidePointCount(i);
-		PtCounts.push_back(PtPerTess);
-		PtTotal.push_back(PtPerTess * 64);
-		PtGroups.push_back(TMath::DivideAndRoundUp(PtPerTess * 64, 32));
-	}
-	// USELESS
-
-
-	// Calc Templates
-	TVector<FFloat3> BaryCoords;
-	BaryCoords.reserve(TotalPoints);
-	TVector<uint32> TemplateCoordData;
-	TemplateCoordData.reserve(MaxTessFactor * 2);
-	AddPoints(BaryCoords, TemplateCoordData);
-
-	TVector<FUInt3> Triangles;
-	Triangles.reserve(TotalTris);
-	AddTriangles(Triangles);
-
-	// Group them into 32 triangles per group
-	TVector<uint32> BCOffsets;
-	TVector<uint32> TriOffsets;
-	// Structure:
-	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
-	TStreamPtr UniformData = GroupTrianglesAndVerts(BaryCoords, Triangles, TemplateCoordData);
-
-
-	TI_ASSERT(TessTemplateData == nullptr);
-	TessTemplateData =
-		FUniformBuffer::CreateBuffer(
-			RHICmdList,
-			"Nanite.TessTemplateData",
-			4,
-			TMath::DivideAndRoundUp(UniformData->GetLength(), 4u),
-			(uint32)EGPUResourceFlag::Uav | (uint32)EGPUResourceFlag::ByteAddressBuffer,
-			UniformData,
-			EGPUResourceState::UnorderedAccess);
-
+	PrintFormated(PackedVIndex0, "PackedVIndex0");
+	PrintFormated(PackedVIndex1, "PackedVIndex1");
+	PrintFormated(PackedTIndex0, "PackedTIndex0");
+	PrintFormated(PackedTIndex1, "PackedTIndex1");
 }
 
 static bool bFreezeCulling = false;

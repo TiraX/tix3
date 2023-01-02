@@ -45,83 +45,18 @@ struct VSOut
 };
 
 
-ByteAddressBuffer TessTemplatesData : register(t4);
+Texture2D<float> TexHeight : register(t4);
 
-Texture2D<float> TexHeight : register(t5);
-
-
-uint3 ReadTemplateGroupOffAndCount(
-	uint TessFactorInside
-)
+struct FTessedDataStruct
 {
-	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
-	TessFactorInside = TessFactorInside - 1;
-	uint3 GroupOffAndCount;
-	uint v = TessTemplatesData.Load(TessFactorInside * 4);
-	GroupOffAndCount.x = (v >> 6) & 0x3ff;
-	GroupOffAndCount.y = v & 0x3f;
-	GroupOffAndCount.z = v >> 16;
-	return GroupOffAndCount;
-}
+	float3 UVW;
+};
 
-uint3 ReadTemplateGroupInfo(
-	uint GroupOffset, 
-	uint TessTemplateGroupIndex)
-{
-	// |tess_group_offset + group_count| - |offset + tris + verts| - |verts_data + tris_data|
-	uint3 GroupInfo;
-	uint2 v2 = TessTemplatesData.Load2(MaxTesselator * 4 + MaxTesselator * 2 * 4 + GroupOffset * 8 + TessTemplateGroupIndex * 8);
-	GroupInfo.x = v2.x;	// data_offset
-	GroupInfo.y = v2.y & 0xffff;	// verts
-	GroupInfo.z = v2.y >> 16;	// tris
-	return GroupInfo;
-}
-
-float3 GetTemplateInsideCorner(uint TessFactor, uint Corner)
-{
-	uint2 u2 = TessTemplatesData.Load2(MaxTesselator * 4 + (TessFactor - 1) * 2 * 4);
-	float2 f2 = asfloat(u2);
-	float3 pts[3] = {f2.xyx, f2.yxx, f2.xxy};
-	return pts[Corner];
-}
-
-uint LoadByte(ByteAddressBuffer Data, uint address)
-{
-	uint addr4 = address / 4 * 4;
-	uint v = Data.Load(addr4);
-	uint offset = address - addr4;
-	return BitFieldExtractU32(v, 8, offset * 8);
-}
-
-uint3 ReadTemplateTri(
-	uint DataOffset,
-	uint NumVerts,
-	uint Index
-)
-{
-	uint Offset0 = DataOffset + NumVerts * 12 + Index * 3;
-	uint3 tri;
-	tri.x = LoadByte(TessTemplatesData, Offset0);
-	tri.y = LoadByte(TessTemplatesData, Offset0 + 1);
-	tri.z = LoadByte(TessTemplatesData, Offset0 + 2);
-	return tri;
-}
-
-float3 ReadTemplateBaryCoord(
-	uint DataOffset,
-	uint Index
-)
-{
-	uint Offset = DataOffset + Index * 12;
-	uint3 v = TessTemplatesData.Load3(Offset);
-	return asfloat(v);
-}
-
-
-RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
+RWStructuredBuffer<FTessedDataStruct> OutTessedData : register(u0);
+RWTexture2D<UlongType>	OutVisBuffer64 : register(u1);
 #if DEBUG_INFO
-RWStructuredBuffer<FNaniteTessDebugInfo>	DebugInfo : register(u1);
-RWStructuredBuffer<FNaniteTessDebugTable>	DebugTable : register(u2);
+RWStructuredBuffer<FNaniteTessDebugInfo>	DebugInfo : register(u2);
+RWStructuredBuffer<FNaniteTessDebugTable>	DebugTable : register(u3);
 #endif
 
 VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, float3 P, uint PixelValue)
@@ -261,7 +196,7 @@ uint3 Rand3DPCG16(int3 p)
 #define HWRasterizeRS \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
 	"RootConstants(num32BitConstants=10, b0)," \
-	"DescriptorTable(SRV(t0, numDescriptors=6), UAV(u0, numDescriptors=3)), " \
+	"DescriptorTable(SRV(t0, numDescriptors=5), UAV(u0, numDescriptors=4)), " \
     "StaticSampler(s0, addressU = TEXTURE_ADDRESS_WRAP, " \
                       "addressV = TEXTURE_ADDRESS_WRAP, " \
                       "addressW = TEXTURE_ADDRESS_WRAP, " \
@@ -290,10 +225,11 @@ struct TessFactor
 {
 	uint Factor[4];	// xyz=edge_factor; w=inside_factor;
 };
-struct Payload
+struct FPayload 
 {
     CT_PNTriangle CT[AS_GROUP_SIZE];
 	TessFactor TF[AS_GROUP_SIZE];
+	uint TessedDataOffsets[AS_GROUP_SIZE];
 
 	uint MSTable[1200];
 
@@ -304,8 +240,9 @@ struct Payload
 // There is an compile errrrror i dont know how to fix
  void CalcPNTriangleControlPoints() {}
 
-groupshared Payload s_Payload;
-groupshared uint s_TotalTessellated;
+groupshared FPayload s_Payload;
+groupshared uint s_TotalTessedTris;
+groupshared uint s_TotalTessedPts;
 
 // This is a heuristic that maps a bounding sphere on relevant edges/primitive to post projection space and uses that to scale the tessellation on the edges/primitive.
 //
@@ -354,26 +291,31 @@ float4 CalculateCompositeTessellationFactors(float3 Control0, float3 Control1, f
 #endif
 }
 
-uint CalcTessInsideCount(uint n)
+
+int CalcTessedPtCountInside(int TessFactorInside)
 {
-	if ((n & 1) == 0)
-	{
-		// even
-		return n * n * 3 / 2;
-	}
-	else
-	{
-		// odd
-		return (n / 2) * 3 * (n + 1) + 1;
-	}
+    int t1 = max(0, TessFactorInside - 1);
+    int n = t1 / 2;
+    return (t1 - n) * n * 3 + (t1 & 1);
 }
 
-uint CalcTessellationCountByFactor(uint4 F)
+int CalcTessedPtCount(uint4 TessFactor)
 {
-	// InsideTemplates.z is the tris num after group splitting
-	uint3 InsideTemplates = ReadTemplateGroupOffAndCount(F.w);
-	uint tess_segs = F.w - 2;
-	return InsideTemplates.z + tess_segs * 3 + F.x + F.y + F.z;
+    return CalcTessedPtCountInside(int(TessFactor.w)) + TessFactor.x + TessFactor.y + TessFactor.z;
+}
+
+int CalcTessedTriCountInside(int TessFactorInside)
+{
+    int t = max(0, TessFactorInside - 2);
+    int t01 = t & 1;
+    int n = t / 2;
+    return (n * n * 2 + n * 2 * t01) * 3 + t01;
+}
+
+int CalcTessedTriCount(uint4 TessFactor)
+{
+	return CalcTessedTriCountInside(int(TessFactor.w)) + 
+		(TessFactor.w - 2) * 3 + TessFactor.x + TessFactor.y + TessFactor.z;
 }
 
 // TODO: Improve tess factor algorithm use CalculateCompositeTessellationFactors() from UE4
@@ -399,7 +341,7 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	float tess_centerf = round(0.333 * (tess_factor.x + tess_factor.y + tess_factor.z));
 	tess_factor.w = (uint)(clamp(tess_centerf, 1.0, MaxTesselator));
 
-	//uint debug_tess = 9;
+	//uint debug_tess = 10;
 	//tess_factor = debug_tess.xxxx;
 
 	if (tess_factor.w == 1)
@@ -408,7 +350,7 @@ uint CalcTessellationCount(FNaniteView NaniteView, FVisibleCluster VisibleCluste
 	}
 	else
 	{
-		return CalcTessellationCountByFactor(tess_factor);
+		return CalcTessedTriCount(tess_factor);
 	}
 }
 
@@ -443,7 +385,7 @@ void WriteToTable(uint Value, uint Index)
 	}
 }
 
-uint ReadFromTable(in Payload pl, uint Index)
+uint ReadFromTable(in FPayload pl, uint Index)
 {
 	uint offset = Index / 2;
 	if ((Index & 1) == 0)
@@ -464,7 +406,10 @@ void HWRasterizeAS(
 	uint GroupIndex : SV_GroupIndex)
 {
 	if (GroupIndex == 0)
-		s_TotalTessellated = 0;
+	{
+		s_TotalTessedTris = 0;		
+		s_TotalTessedPts = 0;
+	}
 	
 	GroupMemoryBarrierWithGroupSync();	
 
@@ -567,18 +512,25 @@ void HWRasterizeAS(
 		s_Payload.CT[GroupIndex].P[9 * 3 + 2] = n101.z;
 
 		uint4 tess_factor;
-		uint NumTessellated = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor);
+		uint NumTessedTris = CalcTessellationCount(NaniteView, VisibleCluster, Cluster, p0, p1, p2, tess_factor);
 		s_Payload.TF[GroupIndex].Factor[0] = tess_factor.x;
 		s_Payload.TF[GroupIndex].Factor[1] = tess_factor.y;
 		s_Payload.TF[GroupIndex].Factor[2] = tess_factor.z;
 		s_Payload.TF[GroupIndex].Factor[3] = tess_factor.w;
+
+		uint NumTessedPts = CalcTessedPtCount(tess_factor);
+		uint TessedDataOffset;
+		InterlockedAdd(s_TotalTessedPts, NumTessedPts, TessedDataOffset);
+		s_Payload.TessedDataOffsets[GroupIndex] = TessedDataOffset;
+
 #if DEBUG_INFO
 		DebugInfo[GroupIndex + TriangleOffset].TessFactor = tess_factor;
-		DebugInfo[GroupIndex + TriangleOffset].TessedCount = NumTessellated; 
+		DebugInfo[GroupIndex + TriangleOffset].TessedTrisCount = NumTessedTris; 
+		DebugInfo[GroupIndex + TriangleOffset].TessedDataOffset = TessedDataOffset; 
 #endif
-		uint groups = (uint)ceil(float(NumTessellated)/32.0);
+		uint groups = (uint)ceil(float(NumTessedTris)/32.0);
 		uint start;
-		InterlockedAdd(s_TotalTessellated, groups, start);
+		InterlockedAdd(s_TotalTessedTris, groups, start);
 		for(int i = 0; i < groups; i ++)
 		{
 			uint info = PackTessInfo(GroupIndex, i);
@@ -587,28 +539,105 @@ void HWRasterizeAS(
 	}
 #if DEBUG_INFO
 	GroupMemoryBarrierWithGroupSync();	
-	DebugInfo[GroupIndex + TriangleOffset].TotalGroups = s_TotalTessellated;
+	DebugInfo[GroupIndex + TriangleOffset].TotalGroups = s_TotalTessedTris;
 #endif
-	DispatchMesh(s_TotalTessellated, 1, 1, s_Payload);
+	DispatchMesh(s_TotalTessedTris, 1, 1, s_Payload);
 }
 
+static const uint PackedVIndex0[59] = {
+        554766608,572662306,858993186,858993459,1145254707,1145324612,1145324612,1431585860,
+        1431655765,1431655765,1431655765,1717986645,1717986918,1717986918,1717986918,1986422374,
+        2004318071,2004318071,2004318071,2004318071,2004318071,2290649223,2290649224,2290649224,
+        2290649224,2290649224,2290649224,2576980376,2576980377,2576980377,2576980377,2576980377,
+        2576980377,2845415833,2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,
+        2863311530,3149642410,3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,
+        3149642683,3435903931,3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,
+        3435973836,3435973836,838860,
+};
+static const uint PackedVIndex1[54] = {
+        286330880,572657937,572662306,858993186,858993459,858993459,1145324612,1145324612,
+        1145324612,1431655492,1431655765,1431655765,1431655765,1717982549,1717986918,1717986918,
+        1717986918,1717986918,2004317798,2004318071,2004318071,2004318071,2004318071,2004318071,
+        2290649224,2290649224,2290649224,2290649224,2290649224,2290649224,2576980104,2576980377,
+        2576980377,2576980377,2576980377,2576980377,2576980377,2863307161,2863311530,2863311530,
+        2863311530,2863311530,2863311530,2863311530,2863311530,3149642410,3149642683,3149642683,
+        3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,
+};
+static const uint PackedTIndex0[108] = {
+        571543825,572662306,572662306,858993459,858993459,858993459,1144206131,1145324612,
+        1145324612,1145324612,1145324612,1145324612,1431655765,1431655765,1431655765,1431655765,
+        1431655765,1431655765,1716868437,1717986918,1717986918,1717986918,1717986918,1717986918,
+        1717986918,1717986918,1717986918,2004318071,2004318071,2004318071,2004318071,2004318071,
+        2004318071,2004318071,2004318071,2004318071,2289530743,2290649224,2290649224,2290649224,
+        2290649224,2290649224,2290649224,2290649224,2290649224,2290649224,2290649224,2290649224,
+        2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,
+        2576980377,2576980377,2576980377,2576980377,2862193049,2863311530,2863311530,2863311530,
+        2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,
+        2863311530,2863311530,2863311530,3149642683,3149642683,3149642683,3149642683,3149642683,
+        3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,
+        3149642683,3149642683,3434855355,3435973836,3435973836,3435973836,3435973836,3435973836,
+        3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,
+        3435973836,3435973836,3435973836,3435973836,
+};
+static const uint PackedTIndex1[118] = {
+        286331152,572592401,572662306,572662306,858923554,858993459,858993459,858993459,
+        858993459,1145324611,1145324612,1145324612,1145324612,1145324612,1145324612,1431655764,
+        1431655765,1431655765,1431655765,1431655765,1431655765,1431655765,1717917013,1717986918,
+        1717986918,1717986918,1717986918,1717986918,1717986918,1717986918,1717986918,2004248166,
+        2004318071,2004318071,2004318071,2004318071,2004318071,2004318071,2004318071,2004318071,
+        2004318071,2004318071,2290649223,2290649224,2290649224,2290649224,2290649224,2290649224,
+        2290649224,2290649224,2290649224,2290649224,2290649224,2290649224,2576980376,2576980377,
+        2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,2576980377,
+        2576980377,2576980377,2576980377,2863241625,2863311530,2863311530,2863311530,2863311530,
+        2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,2863311530,
+        2863311530,2863311530,3149572778,3149642683,3149642683,3149642683,3149642683,3149642683,
+        3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,3149642683,
+        3149642683,3149642683,3149642683,3435973835,3435973836,3435973836,3435973836,3435973836,
+        3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,3435973836,
+        3435973836,3435973836,3435973836,3435973836,3435973836,12,
+};
+
+uint UnpackVIndex0(uint index)
+{
+	uint element = index / 8;
+	uint bit_offset = (index & 7) * 4;
+	return BitFieldExtractU32(PackedVIndex0[element], 4, bit_offset);
+}
+uint UnpackVIndex1(uint index)
+{
+	uint element = index / 8;
+	uint bit_offset = (index & 7) * 4;
+	return BitFieldExtractU32(PackedVIndex1[element], 4, bit_offset);
+}
+uint UnpackTIndex0(uint index)
+{
+	uint element = index / 8;
+	uint bit_offset = (index & 7) * 4;
+	return BitFieldExtractU32(PackedTIndex0[element], 4, bit_offset);
+}
+uint UnpackTIndex1(uint index)
+{
+	uint element = index / 8;
+	uint bit_offset = (index & 7) * 4;
+	return BitFieldExtractU32(PackedTIndex1[element], 4, bit_offset);
+}
 
 static const float3 B0 = {0, 1, 0};
 static const float3 B1 = {1, 0, 0};
 static const float3 B2 = {0, 0, 1};
-//static const float3 BC = (B0 + B1 + B2) / 3.0;
-//static const float3 D0 = normalize(B0 - BC);
-//static const float3 D1 = normalize(B1 - BC);
-//static const float3 D2 = normalize(B2 - BC);
-//static const float EdgeLen = length(B0 - B1);
-//static const float Cos30 = cos(0.5236);
-//static const float Cos30Inv = 1.0 / Cos30;
+static const float3 BC = (B0 + B1 + B2) / 3.0;
+static const float3 D0 = normalize(B0 - BC);
+static const float3 D1 = normalize(B1 - BC);
+static const float3 D2 = normalize(B2 - BC);
+static const float EdgeLen = length(B0 - B1);
+
+static const float Cos30Inv = 1.0 / cos(0.523599);
 static const float3 Pts[3] = {B0, B1, B2};
 //static const float3 Dirs[3] = {D0, D1, D2};
-static const uint2 SideOrder[3] = {{0, 1}, {2, 0}, {1, 2}};
+static const uint2 SideOrder[3] = {{0, 1}, {1, 2}, {2, 0}};
 
 VSOut CalcTessedAttributes(
-	in Payload payload,
+	in FPayload payload,
 	in FNaniteView NaniteView, 
 	in FVisibleCluster VisibleCluster,
 	in FCluster Cluster,
@@ -721,14 +750,180 @@ PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FClu
 	return Attributes;
 }
 
-PrimitiveAttributes GetPrimAttribDebug(uint3 TriangleIndices, uint GroupID, uint ThreadIndex)
+PrimitiveAttributes GetTessedPrimAttrib(uint TessIndex)
 {
 	PrimitiveAttributes Attributes;
-	Attributes.PackedData.x = TriangleIndices.x | (TriangleIndices.y << 5) | (TriangleIndices.z << 10);
+	Attributes.PackedData.x = 0;
 	Attributes.PackedData.y = 0;
-	Attributes.PackedData.z = 0;
+	uint3 color = Rand3DPCG16(TessIndex.xxx);
+	uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
+	Attributes.PackedData.z = PackedColor;
 	Attributes.PackedData.w = 0;
 	return Attributes;
+}
+
+float3 GetTessedBaryCoord(uint4 TessFactor, int index)
+{
+	int NumInsidePts = CalcTessedPtCountInside(TessFactor.w);
+
+	float3 Pos;
+	[branch]
+	if (index < NumInsidePts)
+	{
+		int T01 = TessFactor.w & 1;
+		int Loop = (T01 == 0) ? UnpackVIndex0(index) : UnpackVIndex1(index);
+		int Segs = max(1, Loop * 2 + T01);
+		int PtStartInLoop = CalcTessedPtCountInside(Segs);
+		int PtsInLoop = Segs * 3;
+		int Side = (index - PtStartInLoop) / Segs;
+		int SideIndex = (index - PtStartInLoop) - Segs * Side;
+		float SegLen = EdgeLen / TessFactor.w;
+		float R = (Loop + 0.5 * T01) * SegLen * Cos30Inv;
+		float3 C0 = BC + D0 * R;
+		float3 C1 = BC + D1 * R;
+		float3 C2 = BC + D2 * R;
+		
+		float3 Corners[3] = {C0, C1, C2};
+
+		int S0 = SideOrder[Side].x;
+		int S1 = SideOrder[Side].y;
+		float3 SideDir = (Corners[S1] - Corners[S0]) / Segs;
+		
+		Pos = Corners[S0] + SideDir * SideIndex;
+	}
+	else
+	{
+		float3 Corners[3] = {B0, B1, B2};
+		int PtStartInSide[3] = {NumInsidePts, NumInsidePts + TessFactor.x, NumInsidePts + TessFactor.x + TessFactor.y};
+		int SideSegs[3] = {TessFactor.x, TessFactor.y, TessFactor.z};
+		int Side;
+		if (index < PtStartInSide[1])
+			Side = 0;
+		else if (index < PtStartInSide[2])
+			Side = 1;
+		else
+			Side = 2;
+		int SideIndex = index - PtStartInSide[Side];
+
+		int S0 = SideOrder[Side].x;
+		int S1 = SideOrder[Side].y;
+    	float3 SideDir = (Corners[S1] - Corners[S0]) / SideSegs[Side];
+		
+    	Pos = Corners[S0] + SideDir * SideIndex;
+	}
+	return Pos;
+}
+
+uint3 CreateSideTriangle0(
+    int LocalIndex, 
+	int SideCurrPtStart, int SidePrevPtStart, 
+	int CurrLoopPtStart, int PtsInCurrLoop, 
+	int PrevLoopPtStart, int PtsInPrevLoop, 
+	int PrevSegs, int CurrSegs
+)
+{
+    uint3 Triangle;
+    Triangle.x = SideCurrPtStart + LocalIndex;
+    Triangle.y = Triangle.x + 1;
+    Triangle.y = Triangle.y >= CurrLoopPtStart + PtsInCurrLoop ? CurrLoopPtStart : Triangle.y;
+    float f = float(PrevSegs) / (CurrSegs - 1);
+    Triangle.z = SidePrevPtStart + (int)round(f * LocalIndex + 0.01);
+    Triangle.z = Triangle.z >= PrevLoopPtStart + PtsInPrevLoop ? PrevLoopPtStart : Triangle.z;
+	return Triangle;
+}
+
+uint3 CreateSideTriangle1(
+    int LocalIndex, 
+	int SideCurrPtStart, int SidePrevPtStart, 
+	int PrevLoopPtStart, int PtsInPrevLoop, 
+	int PrevSegs, int CurrSegs
+)
+{
+    uint3 Triangle;
+    Triangle.x = SidePrevPtStart + LocalIndex;
+    Triangle.y = Triangle.x + 1;
+    Triangle.y = Triangle.y >= PrevLoopPtStart + PtsInPrevLoop ? PrevLoopPtStart : Triangle.y;
+    float f = float(CurrSegs - 1) / (PrevSegs);
+    int start = floor((0.49f + LocalIndex) * f) + 1;
+    Triangle.z = SideCurrPtStart + start;
+	return Triangle;
+}
+uint3 GetTessedTriangle(uint4 TessFactor, uint index)
+{
+	int NumInsideTris = CalcTessedTriCountInside(TessFactor.w);
+
+	uint3 Triangle;
+	[branch]
+	if (index < NumInsideTris)
+	{
+		int T01 = TessFactor.w & 1;
+		int Loop = (T01 == 0) ? UnpackTIndex0(index) : UnpackTIndex1(index);
+		int CurrSegs = Loop * 2 + T01;
+		int PrevSegs = max(0, CurrSegs - 2);
+		int PrevPtStart = CalcTessedPtCountInside(PrevSegs);
+		PrevPtStart = index == 0 ? 2 * T01 : PrevPtStart;   // special deal with odd index = 0
+		int CurrPtStart = CalcTessedPtCountInside(CurrSegs);
+		int TriStartInLoop = CalcTessedTriCountInside(CurrSegs);
+		int PtsInCurrLoop = CurrSegs * 3;
+		int PtsInPrevLoop = PrevSegs * 3;
+		int TrisPerSide = CurrSegs + PrevSegs;
+
+		int IndexInLoop = index - TriStartInLoop;
+		int Side = IndexInLoop / TrisPerSide;
+		int IndexInSide = IndexInLoop - TrisPerSide * Side;
+		int SideCurrPtStart = CurrPtStart + CurrSegs * Side;
+		int SidePrevPtStart = PrevPtStart + PrevSegs * Side;
+		[branch]
+		if (IndexInSide < CurrSegs)
+		{
+			Triangle = CreateSideTriangle0(IndexInSide, SideCurrPtStart, SidePrevPtStart, CurrPtStart, PtsInCurrLoop, PrevPtStart, PtsInPrevLoop, PrevSegs, CurrSegs);
+		}
+		else 
+		{
+			Triangle = CreateSideTriangle1(IndexInSide - CurrSegs, SideCurrPtStart, SidePrevPtStart, PrevPtStart, PtsInPrevLoop, PrevSegs, CurrSegs);
+		}
+	}
+	else
+	{
+		int CurrSegs = TessFactor.w;
+		int PrevSegs = CurrSegs - 2;
+		int PrevPtStart = CalcTessedPtCountInside(PrevSegs);
+		int CurrPtStart = CalcTessedPtCountInside(CurrSegs);
+		int PtsInCurrLoop = TessFactor.x + TessFactor.y + TessFactor.z;
+		int PtsInPrevLoop = PrevSegs * 3;
+
+		int TriStartInSide[3] = {NumInsideTris, NumInsideTris + PrevSegs + TessFactor.x, NumInsideTris + PrevSegs * 2 + TessFactor.x + TessFactor.y};
+		int SideSegs[3] = {TessFactor.x, TessFactor.y, TessFactor.z};
+		int SidePtsOffset[3] = {0, TessFactor.x, TessFactor.x + TessFactor.y};
+
+		int Side;
+		if (index < TriStartInSide[1])
+		{
+			Side = 0;
+		}
+		else if (index < TriStartInSide[2])
+		{
+			Side = 1;
+		}
+		else
+		{
+			Side = 2;
+		}
+		int IndexInSide = index - TriStartInSide[Side];
+		
+		int SideCurrPtStart = CurrPtStart + SidePtsOffset[Side];
+		int SidePrevPtStart = PrevPtStart + PrevSegs * Side;
+
+		if (IndexInSide < SideSegs[Side])
+		{
+			Triangle = CreateSideTriangle0(IndexInSide, SideCurrPtStart, SidePrevPtStart, CurrPtStart, PtsInCurrLoop, PrevPtStart, PtsInPrevLoop, PrevSegs, SideSegs[Side]);
+		}
+		else
+		{
+			Triangle = CreateSideTriangle1(IndexInSide - SideSegs[Side], SideCurrPtStart, SidePrevPtStart, PrevPtStart, PtsInPrevLoop, PrevSegs, SideSegs[Side]);
+		}
+	}
+	return Triangle;
 }
 
 [RootSignature(HWRasterizeRS)]
@@ -737,13 +932,12 @@ PrimitiveAttributes GetPrimAttribDebug(uint3 TriangleIndices, uint GroupID, uint
 void HWRasterizeMS(
 	uint GroupThreadID : SV_GroupThreadID,
 	uint GroupID : SV_GroupID,
-    in payload Payload _payload,
+    in payload FPayload _payload,
 	out vertices VSOut OutVertices[96],
 	out indices uint3 OutTriangles[32],
 	out primitives PrimitiveAttributes OutPrimitives[32]
 )
 {
-
 	uint3 RasterBin;
 
 	uint VisibleIndex = _payload.VisibleClusterIndex;
@@ -774,180 +968,58 @@ void HWRasterizeMS(
 	uint TriangleIndex = TriangleIndexInAS + TriangleOffset;
 	uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 
- 	uint TessTemplateGroupIndex = Info.y;
- 	uint IndexInGroup = GroupThreadID;
-	uint3 GroupOffAndCount = ReadTemplateGroupOffAndCount(TF.w);
-	uint GroupOff = GroupOffAndCount.x;
-	uint GroupCount = GroupOffAndCount.y;
-	uint InsideTrisAfterGroup = GroupOffAndCount.z;
-
- 	uint3 TemplateGroupInfo = ReadTemplateGroupInfo(GroupOff, TessTemplateGroupIndex);
- 	uint TemplateOffset = TemplateGroupInfo.x;
- 	uint NumInsideVerts = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.y;
- 	uint NumInsideTris = TessTemplateGroupIndex >= GroupCount ? 0 : TemplateGroupInfo.z;
-
-	uint InsideSegs = TF.w - 2;
-	uint TotalTessCount = InsideTrisAfterGroup + InsideSegs * 3 + TF.x + TF.y + TF.z;
-
-	uint TessCount = (uint)max((int)0, min((int)TotalTessCount - (int)TessOffset, 32));
-#if DEBUG_INFO
-	int ii = GroupID;
-	DebugTable[ii].TF = TF;
-	DebugTable[ii].TessTemplateGroupIndex = TessTemplateGroupIndex;	
-	DebugTable[ii].TriangleIndex = TriangleIndex;
-	DebugTable[ii].NumInsideVerts = NumInsideVerts;// NumInsideVerts;
-	DebugTable[ii].NumInsideTris = NumInsideTris;// NumInsideTris;
-	DebugTable[ii].GroupCount = GroupCount;
-	DebugTable[ii].TrisAfterGroup = InsideTrisAfterGroup;
-	DebugTable[ii].TessCount = TessCount;
-#endif
-
-#if DEBUG_INFO
-	// debug 3 points
-	if (GroupID >= 3 && GroupID <= MaxTesselator)
-	{
-		int ii = GroupID;
-		uint FakeTF = ii;
-		
-		//float SegLen = EdgeLen / FakeTF;
-		float3 v0 = GetTemplateInsideCorner(FakeTF, 0);
-		float3 v1 = GetTemplateInsideCorner(FakeTF, 1);
-		float3 v2 = GetTemplateInsideCorner(FakeTF, 2);
-		DebugTable[ii].TessIndex = FakeTF;
-		DebugTable[ii].uvw0 = v0;
-		DebugTable[ii].uvw1 = v1;
-		DebugTable[ii].uvw2 = v2;
-		DebugTable[ii].uvwi0 = asuint(v0);
-		DebugTable[ii].uvwi1 = asuint(v1);
-		DebugTable[ii].uvwi2 = asuint(v2);
-	}
-#endif
-	
-	int TessTriVertOffset = min(0, int(NumInsideTris) - int(NumInsideVerts));
-
-	uint TotalTris = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount + TessTriVertOffset : NumInsideTris;
-	uint TotalVerts = TessTemplateGroupIndex >= (GroupCount - 1) ? TessCount * 3 : NumInsideVerts;
-
-	SetMeshOutputCounts(TotalVerts, TotalTris);
-
-	float3 uvw[3];
-	int OutputIndex[3] = { -1, -1, -1 };
-
-	// Triangles
+	// Create point each thread and save it to TessedData
+	uint TotalTessedPts = CalcTessedPtCount(TF);
 	[branch]
-	if (TessIndex < InsideTrisAfterGroup)
+	if (TessIndex < TotalTessedPts)
 	{
-		// Output 1 tri and 1 vert per thread
-
-		// Inside tess triangles
-		[branch]
-		if (GroupThreadID < NumInsideTris)
-		{
-			uint3 tri = ReadTemplateTri(TemplateOffset, NumInsideVerts, GroupThreadID);
-			OutTriangles[GroupThreadID] = tri;
-			OutPrimitives[GroupThreadID] = GetPrimAttrib(VisibleIndex, TessIndex, Cluster);
-			//OutPrimitives[GroupThreadID] = GetPrimAttribDebug(uint3(0, 0, 0), uint(-1), 0);
-		}
-		
-		// Inside Verts
-		[branch]  
-		if (GroupThreadID < NumInsideVerts)
-		{
-			uvw[0] = ReadTemplateBaryCoord(TemplateOffset, GroupThreadID);
-			OutputIndex[0] = GroupThreadID;
-		}
+		uint TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
+		float3 BaryCoord = GetTessedBaryCoord(TF, int(TessIndex));
+		OutTessedData[TessedDataOffset + TessIndex].UVW = BaryCoord;
 	}
-	else if (TessIndex >= InsideTrisAfterGroup && GroupThreadID < TessCount)
+// #if DEBUG_INFO
+// 	int diii = GroupID * 32 + GroupThreadID;
+// 	DebugTable[diii].TF = TF;
+// 	DebugTable[diii].TriIndexInAS = TriangleIndexInAS;
+// 	DebugTable[diii].TessTemplateGroupIndex = Info.y;
+// 	DebugTable[diii].TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
+// 	DebugTable[diii].TessIndex = TessIndex;
+// #endif
+
+	// Calc Tris and Verts
+	uint TotalTessedTris = CalcTessedTriCount(TF);
+	uint TrisInGroup = min(TotalTessedTris - TessOffset, 32);
+	uint VertsInGroup = TrisInGroup * 3;
+
+	SetMeshOutputCounts(VertsInGroup, TrisInGroup);
+
+	[branch]
+	if (TessIndex < TotalTessedTris)
 	{
-		// Output 1 tri and 3 verts per thread
+		uint3 TessedTriangle = GetTessedTriangle(TF, TessIndex);
+		float3 uvw[3];
+		uvw[0] = GetTessedBaryCoord(TF, int(TessedTriangle.x));
+		uvw[1] = GetTessedBaryCoord(TF, int(TessedTriangle.y));
+		uvw[2] = GetTessedBaryCoord(TF, int(TessedTriangle.z));
 
-		// outside tess triangles
-		uint OutsideTriIndex = TessIndex - InsideTrisAfterGroup;
-		uint EndTris0 = TF.x + InsideSegs;
-		uint EndTris1 = EndTris0 + TF.y + InsideSegs;
-		uint EndTris2 = EndTris1 + TF.z + InsideSegs;
-		uint SideOffsets[3] = {0, EndTris0, EndTris1};
+		uint3 OutputTri = uint3(GroupThreadID * 3 + 0, GroupThreadID * 3 + 1, GroupThreadID * 3 + 2);
+		OutTriangles[GroupThreadID] = OutputTri;
+		OutPrimitives[GroupThreadID] = GetTessedPrimAttrib(TessIndex);
 
-		uint OutsideVertIndex = min(OutsideTriIndex, GroupThreadID) * 3 + NumInsideVerts;
-		uint3 TriIndices = uint3(OutsideVertIndex, OutsideVertIndex + 1, OutsideVertIndex + 2);
-		OutTriangles[GroupThreadID + TessTriVertOffset] = TriIndices;
-		
-		OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttrib(VisibleIndex, TessIndex, Cluster);
-		//OutPrimitives[GroupThreadID + TessTriVertOffset] = GetPrimAttribDebug(TriIndices, GroupID, GroupThreadID);
+		// Calc tessed attributes by uvw
+		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
+		float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
+		float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
 
-		// outside 3 verts for this triangle
-		int side = -1;
-		if (OutsideTriIndex < EndTris0)
-		{
-			side = 0;
-		}
-		else if (OutsideTriIndex < EndTris1)
-		{
-			side = 1;
-		}
-		else
-		{
-			side = 2;
-		}
-		// create 3 verts for each tri
-		int i0 = SideOrder[side].x;
-		int i1 = SideOrder[side].y;
-		float3 l00 = Pts[i0];
-		float3 l01 = Pts[i1];
-		int SideFactor = TF[side];
-		float3 dir0 = (l01 - l00) / SideFactor;
-		float3 l10 = GetTemplateInsideCorner(TF.w, i0);
-		float3 l11 = GetTemplateInsideCorner(TF.w, i1);
-		float3 dir1 = (l11 - l10) / InsideSegs;
-		int SideIndex = OutsideTriIndex - SideOffsets[side];
-
-		[branch]
-		if (SideIndex < SideFactor)
-		{
-			int LocalIndex = SideIndex;
-			float3 v0 = l00 + dir0 * LocalIndex;
-			float3 v1 = v0 + dir0;
-			float v2_factor = float(InsideSegs) / (SideFactor - 1);
-			int v2_index = (int)round(v2_factor * LocalIndex + 0.01);
-			float3 v2 = l10 + dir1 * v2_index;
-			uvw[0] = v0;
-			uvw[1] = v1;
-			uvw[2] = v2;
-		}
-		else
-		{
-			int LocalIndex = SideIndex - SideFactor;
-			float3 v0 = l10 + dir1 * LocalIndex;
-			float3 v1 = v0 + dir1;
-			float v2_factor_inv = float(SideFactor - 1) / InsideSegs;
-			int start = floor((0.49 + LocalIndex) * v2_factor_inv) + 1;
-			float3 v2 = l00 + dir0 * start;
-			uvw[0] = v0;
-			uvw[1] = v1;
-			uvw[2] = v2;
-		}
-		OutputIndex[0] = OutsideVertIndex;
-		OutputIndex[1] = OutsideVertIndex + 1;
-		OutputIndex[2] = OutsideVertIndex + 2;
-	}
-
-	// Calc tessed attributes by uvw
-	float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
-	float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
-	float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
-
-	FNaniteRawAttributeData AttrData[3];
-	GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+		FNaniteRawAttributeData AttrData[3];
+		GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
 	
-	[unroll]
-	for (int i = 0; i < 3; i ++)
-	{
-		[branch]
-		if (OutputIndex[i] >= 0)
+		[unroll]
+		for (int i = 0; i < 3; i ++)
 		{
 			VSOut V = CalcTessedAttributes(_payload, NaniteView, VisibleCluster, Cluster,
 				p0, p1, p2, AttrData, TriangleIndexInAS, uvw[i]);
-			OutVertices[OutputIndex[i]] = V;
+			OutVertices[OutputTri[i]] = V;
 		}
 	}
 }

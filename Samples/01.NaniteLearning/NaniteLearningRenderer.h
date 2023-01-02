@@ -13,6 +13,11 @@
 #include "ClearCandidateBufferCS.h"
 #include "ClearVisBufferCS.h"
 
+struct FTessedDataStruct
+{
+	FFloat3 UVW;
+};
+
 class FNaniteLearningRenderer : public FDefaultRenderer
 {
 public:
@@ -25,7 +30,7 @@ public:
 	static void FreezeCulling();
 
 private:
-	void CreateTessellationTemplates(FRHICmdList* RHICmdList);
+	void CalcLoopIndexData();
 
 private:
 	FArgumentBufferPtr AB_Result;
@@ -42,7 +47,7 @@ private:
 	FUniformBufferPtr VisibleClustersSWHW;
 	FUniformBufferPtr VisibleClustersArgsSWHW;
 
-	FUniformBufferPtr TessTemplateData;
+	FUniformBufferPtr TessedData;
 
 	FUniformBufferPtr CullingDebugInfo;
 	FUniformBufferPtr TessDebugInfo;
@@ -71,9 +76,9 @@ private:
 		SRV_HierarchyBuffer,
 		SRV_VisibleClusterSWHW,
 		SRV_Views,
-		SRV_TessTemplates,
 		SRV_TexHeight,
 
+		UAV_TessedData,
 		UAV_VisBuffer,
 		UAV_TessDebugInfo,
 		UAV_TessDebugTable,

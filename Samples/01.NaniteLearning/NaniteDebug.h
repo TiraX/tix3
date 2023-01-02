@@ -71,34 +71,37 @@ struct FNaniteTessDebug
 {
 	static const int32 MaxDebugInfo = 128;
 	FUInt4 TessFactor;
-	uint32 TessedCount;
+	uint32 TessedTrisCount;
 	uint32 TotalGroups;
+	uint32 Offset;
 
 	FNaniteTessDebug()
-		: TessedCount(0)
+		: TessedTrisCount(0)
 		, TotalGroups(0)
 	{
 		//memset(bShouldVisitChild, 0, sizeof(bShouldVisitChild));
 	}
 };
+
 struct FNaniteTessDebugTable
 {
 	static const int32 MaxDebugInfo = 2400;
 	FUInt4 TF;
-	uint32 GroupCount;
+	uint32 TriIndexInAS;
 	uint32 TessTemplateGroupIndex;
-	uint32 TriangleIndex;
-	uint32 NumInsideVerts;
-	uint32 NumInsideTris;
-	uint32 TrisAfterGroup;
-	uint32 TessCount;
+	uint32 TessedDataOffset;
 	uint32 TessIndex;
-	FFloat3 uvw0;
-	FFloat3 uvw1;
-	FFloat3 uvw2;
-	FUInt3 uvwi0;
-	FUInt3 uvwi1;
-	FUInt3 uvwi2;
+	int32 Loop;
+	int32 CurrSegs;
+	int32 PrevSegs;
+	int32 PrevPtStart;
+	int32 CurrPtStart;
+	int32 TriStartInLoop;
+	int32 IndexInLoop;
+	int32 TrisPerSide;
+	int32 Side;
+	int32 IndexInSide;
+	FUInt3 Tri;
 };
 FUniformBufferPtr CreateTessDebugInfoUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);
 FUniformBufferPtr CreateTessDebugTableUniform(FRHICmdList* RHICmdList, int32 Capcity = 128);
