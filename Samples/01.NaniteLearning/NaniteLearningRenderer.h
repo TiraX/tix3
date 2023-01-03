@@ -15,7 +15,9 @@
 
 struct FTessedDataStruct
 {
-	FFloat3 UVW;
+	FFloat3 P;
+	uint32 N;
+	uint32 UV;
 };
 
 class FNaniteLearningRenderer : public FDefaultRenderer

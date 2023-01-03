@@ -52,19 +52,8 @@ struct FNaniteTessDebugTable
 {
 	uint4 TF;
 	uint TriIndexInAS;
-	uint TessTemplateGroupIndex;
-	uint TessedDataOffset;
 	uint TessIndex;
 
-	int Loop;
-	int CurrSegs;
-	int PrevSegs;
-	int PrevPtStart;
-	int CurrPtStart;
-	int TriStartInLoop;
-	int IndexInLoop;
-	int TrisPerSide;
-	int Side;
-	int IndexInSide;
-	uint3 Tri;
+	float3 UnpackedN;
+	float2 UnpackedUV;
 };

@@ -49,7 +49,9 @@ Texture2D<float> TexHeight : register(t4);
 
 struct FTessedDataStruct
 {
-	float3 UVW;
+	float3 P;
+	uint N;
+	uint UV;
 };
 
 RWStructuredBuffer<FTessedDataStruct> OutTessedData : register(u0);
@@ -517,20 +519,18 @@ void HWRasterizeAS(
 	DispatchMesh(s_TotalTessedTris, 1, 1, s_Payload);
 }
 
-VSOut CalcTessedAttributes(
+void CalcTessedAttributes(
 	in FPayload payload,
-	in FNaniteView NaniteView, 
-	in FVisibleCluster VisibleCluster,
-	in FCluster Cluster,
 	in float3 p0, 
 	in float3 p1, 
 	in float3 p2, 
 	in FNaniteRawAttributeData AttrData[3],
 	in int TriangleIndexInAS,
-	in float3 uvw)
+	in float3 uvw,
+	out float3 P,
+	out float3 N,
+	out float2 UV)
 {
-	VSOut Result;
-	
 	float3 n0 = AttrData[0].TangentZ;
 	float3 n1 = AttrData[1].TangentZ;
 	float3 n2 = AttrData[2].TangentZ;
@@ -571,7 +571,7 @@ VSOut CalcTessedAttributes(
 	b111.z = payload.CT[TriangleIndexInAS].P[6 * 3 + 2];
 
 	// update Position
-	float3 P =
+	P =
 		p0 * WW * W +
 		p1 * UU * U +
 		p2 * VV * V +
@@ -595,28 +595,24 @@ VSOut CalcTessedAttributes(
 	n101.z = payload.CT[TriangleIndexInAS].P[9 * 3 + 2];
 
 	// update Normal
-	float3 Normal =
+	N =
 		n0 * WW +
 		n1 * UU +
 		n2 * VV +
 		n110 * W * U +
 		n011 * U * V +
 		n101 * W * V;
-	Normal = normalize(Normal);
+	N = normalize(N);
 
-	float2 UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+	UV = AttrData[1].TexCoords[0] * uvw.x + AttrData[2].TexCoords[0] * uvw.y + AttrData[0].TexCoords[0] * uvw.z;
+}
+
+void DoDisplacement(inout float3 P, in float3 N, in float2 UV)
+{
 	// DO DISPLACEMENT
 	float H = TexHeight.SampleLevel(LinearSampler, UV, 0).x;
 	float DisScale = 15.0;
-	P = P + Normal * H * DisScale;
-
-	Result = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
-	Result.Normal = Normal;
-
-	// update uv
-	Result.UV = UV;
-
-	return Result;
+	P = P + N * H * DisScale;
 }
 
 PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FCluster Cluster)
@@ -631,11 +627,11 @@ PrimitiveAttributes GetPrimAttrib(uint VisibleIndex, uint TriangleIndex, in FClu
 	return Attributes;
 }
 
-PrimitiveAttributes GetTessedPrimAttrib(uint TessIndex)
+PrimitiveAttributes GetTessedPrimAttrib(uint TessedDataOffset, uint TessedTriIndex)
 {
 	PrimitiveAttributes Attributes;
-	Attributes.PackedData.x = 0;
-	Attributes.PackedData.y = 0;
+	Attributes.PackedData.x = TessedDataOffset;
+	Attributes.PackedData.y = TessedTriIndex;
 	uint3 color = Rand3DPCG16(TessIndex.xxx);
 	uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
 	Attributes.PackedData.z = PackedColor;
@@ -685,6 +681,13 @@ void HWRasterizeMS(
 	uint TriangleIndex = TriangleIndexInAS + TriangleOffset;
 	uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 
+	float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
+	float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
+	float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
+
+	FNaniteRawAttributeData AttrData[3];
+	GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
+
 	// Create point each thread and save it to TessedData
 	uint TotalTessedPts = CalcTessedPtCount(TF);
 	[branch]
@@ -692,16 +695,26 @@ void HWRasterizeMS(
 	{
 		uint TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
 		float3 BaryCoord = GetTessedBaryCoord(TF, int(TessIndex));
-		OutTessedData[TessedDataOffset + TessIndex].UVW = BaryCoord;
+		float3 P, N;
+		float2 UV;
+		CalcTessedAttributes(_payload, p0, p1, p2, AttrData, TriangleIndexInAS, BaryCoord, P, N, UV);
+		OutTessedData[TessedDataOffset + TessIndex].P = P;
+		OutTessedData[TessedDataOffset + TessIndex].N = EncodeNormalOctahedron(N);
+		OutTessedData[TessedDataOffset + TessIndex].UV = EncodeUV(UV);
+
+#if DEBUG_INFO
+		uint iii = TessedDataOffset + TessIndex;
+		if (iii < 2400)
+		{
+			DebugTable[iii].TF = TF;
+			DebugTable[iii].TriIndexInAS = TriangleIndexInAS;
+			DebugTable[iii].TessIndex = TessIndex;
+
+			DebugTable[iii].UnpackedN = DecodeNormalOctahedron(OutTessedData[TessedDataOffset + TessIndex].N);
+			DebugTable[iii].UnpackedUV = DecodeUV(OutTessedData[TessedDataOffset + TessIndex].UV);
+		}
+#endif
 	}
-// #if DEBUG_INFO
-// 	int diii = GroupID * 32 + GroupThreadID;
-// 	DebugTable[diii].TF = TF;
-// 	DebugTable[diii].TriIndexInAS = TriangleIndexInAS;
-// 	DebugTable[diii].TessTemplateGroupIndex = Info.y;
-// 	DebugTable[diii].TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
-// 	DebugTable[diii].TessIndex = TessIndex;
-// #endif
 
 	// Calc Tris and Verts
 	uint TotalTessedTris = CalcTessedTriCount(TF);
@@ -721,21 +734,23 @@ void HWRasterizeMS(
 
 		uint3 OutputTri = uint3(GroupThreadID * 3 + 0, GroupThreadID * 3 + 1, GroupThreadID * 3 + 2);
 		OutTriangles[GroupThreadID] = OutputTri;
-		OutPrimitives[GroupThreadID] = GetTessedPrimAttrib(TessIndex);
+		OutPrimitives[GroupThreadID] = GetTessedPrimAttrib(TessedDataOffset, TessIndex);
 
 		// Calc tessed attributes by uvw
-		float3 p0 = DecodePosition(TriangleIndices.x, Cluster);
-		float3 p1 = DecodePosition(TriangleIndices.y, Cluster);
-		float3 p2 = DecodePosition(TriangleIndices.z, Cluster);
-
-		FNaniteRawAttributeData AttrData[3];
-		GetRawAttributeDataN(AttrData, Cluster, TriangleIndices, 3, 1);
 	
 		[unroll]
 		for (int i = 0; i < 3; i ++)
 		{
-			VSOut V = CalcTessedAttributes(_payload, NaniteView, VisibleCluster, Cluster,
-				p0, p1, p2, AttrData, TriangleIndexInAS, uvw[i]);
+			float3 P, N;
+			float2 UV;
+			CalcTessedAttributes(_payload, p0, p1, p2, AttrData, TriangleIndexInAS, uvw[i], P, N, UV);
+
+			DoDisplacement(P, N, UV);
+
+			VSOut V = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, P, 0);
+			V.Normal = N;
+			V.UV = UV;
+
 			OutVertices[OutputTri[i]] = V;
 		}
 	}
