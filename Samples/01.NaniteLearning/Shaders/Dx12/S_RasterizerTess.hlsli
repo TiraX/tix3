@@ -632,7 +632,7 @@ PrimitiveAttributes GetTessedPrimAttrib(uint TessedDataOffset, uint TessedTriInd
 	PrimitiveAttributes Attributes;
 	Attributes.PackedData.x = TessedDataOffset;
 	Attributes.PackedData.y = TessedTriIndex;
-	uint3 color = Rand3DPCG16(TessIndex.xxx);
+	uint3 color = Rand3DPCG16(TessedTriIndex.xxx);
 	uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
 	Attributes.PackedData.z = PackedColor;
 	Attributes.PackedData.w = 0;
@@ -690,10 +690,10 @@ void HWRasterizeMS(
 
 	// Create point each thread and save it to TessedData
 	uint TotalTessedPts = CalcTessedPtCount(TF);
+	uint TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
 	[branch]
 	if (TessIndex < TotalTessedPts)
 	{
-		uint TessedDataOffset = _payload.TessedDataOffsets[TriangleIndexInAS];
 		float3 BaryCoord = GetTessedBaryCoord(TF, int(TessIndex));
 		float3 P, N;
 		float2 UV;
