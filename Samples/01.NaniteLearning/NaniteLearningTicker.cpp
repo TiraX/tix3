@@ -6,6 +6,7 @@
 #include "stdafx.h"
 #include "NaniteLearningTicker.h"
 #include "NaniteLearningRenderer.h"
+#include "Shaders/Dx12/NaniteEnableMeshShader.h"
 
 TNaniteLearningTicker::TNaniteLearningTicker()
 {
@@ -43,29 +44,34 @@ void TNaniteLearningTicker::SetupScene()
 
 	// Setup camera
 	TNodeCamera* Cam = TEngine::Get()->GetScene()->GetActiveCamera();
+	Cam->SetNearValue(1.f);
+#if NANITE_DEMO == NANITE_TREE_NO_TESS
 	const float CamScale = 100.f;
 	Cam->SetPosition(FFloat3(7.42432976f, 2.80526447f, 4.27628517f) * CamScale);
 	Cam->SetTarget(FFloat3(-1.16132188f, -0.711122870f, 6.25598240f) * CamScale);
 	Cam->SetNearValue(10.f);
 	Cam->SetFarValue(10000.f);
-
+#elif NANITE_DEMO == NANITE_GRID_WITH_TESS
 	// Camera for SM_NaniteTess
-	Cam->SetPosition(FFloat3(90.5831604f, -99.6057205f, 208.611404f));
-	Cam->SetTarget(FFloat3(-61.1573257f, 31.3225346f, 94.3450317f));
+	//Cam->SetPosition(FFloat3(90.5831604f, -99.6057205f, 208.611404f));
+	//Cam->SetTarget(FFloat3(-61.1573257f, 31.3225346f, 94.3450317f));
 
 	// Camera for SM_NaniteTessGrid
 	Cam->SetPosition(FFloat3(17.9838886f, -47.2413940f, 111.341827f));
 	Cam->SetTarget(FFloat3(-14.9610243f, -13.4057360f, -15.2703915f));
+#endif
+
 
 
 	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
 	TI_ASSERT(NavCam);
-	//NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
+#if NANITE_DEMO == NANITE_TREE_NO_TESS
+	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
+#endif
 
 	// For mesh shader tess topology debug
 	//Cam->SetPosition(FFloat3(4.32689857f, -4.29783916f, 4.67585325f));
 	//Cam->SetTarget(FFloat3(2.74339199f, -2.67151904f, -15.4096231f));
-	Cam->SetNearValue(1.f);
 	//NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.02f);
 
 	//Cam->SetPosition(FFloat3(48.2126007f, -46.6343880f, 7.32477570f));

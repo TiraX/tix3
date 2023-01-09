@@ -589,6 +589,6 @@ float4 HWRasterizePS(VSOut In
 		//C = Normal * 0.5 + 0.5;
 	}
 	// Debug uv
-	C = float3(In.UV, 0.0);
+	//C = float3(In.UV, 0.0);
 	return float4(C.xyz, 1.0);
 }

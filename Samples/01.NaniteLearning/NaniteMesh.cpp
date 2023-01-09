@@ -7,17 +7,21 @@
 #include "NaniteMesh.h"
 #include "Cluster.h"
 #include "NaniteEncode.h"
+#include "Shaders/Dx12/NaniteEnableMeshShader.h"
 
 TNaniteMesh::TNaniteMesh()
 {
 }
 
-//static const TString MeshFilename = "SM_NaniteMesh";
-//const int32 NumLODs = 5;
+#if NANITE_DEMO == NANITE_TREE_NO_TESS
+static const TString MeshFilename = "SM_NaniteMesh";
+const int32 NumLODs = 5;
+#elif NANITE_DEMO == NANITE_GRID_WITH_TESS
 //static const TString MeshFilename = "SM_NaniteTess";
 //const int32 NumLODs = 3;
 static const TString MeshFilename = "SM_NaniteTessGrid";
 const int32 NumLODs = 2;
+#endif
 
 struct FNaniteAssetHeader
 {
