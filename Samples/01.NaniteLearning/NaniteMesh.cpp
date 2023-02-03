@@ -377,17 +377,17 @@ void ClusterTrianglesLOD0(
 			FFloat3 Scale = Trans.GetScale();
 			float MaxScale = TMath::Max3(Scale.X, Scale.Y, Scale.Z);
 
-			CI.Transform.TransformVect(CI.LODBounds.Center, Cluster.LODBounds.Center);
-			CI.LODBounds.W = MaxScale * Cluster.LODBounds.W;
-			CI.Transform.TransformVect(CI.SphereBounds.Center, Cluster.SphereBounds.Center);
-			CI.SphereBounds.W = MaxScale * Cluster.SphereBounds.W;
-			CI.EdgeLength = MaxScale * Cluster.EdgeLength;
+			CI.Transform.TransformVect(CI.TransformedLODBounds.Center, Cluster.LODBounds.Center);
+			CI.TransformedLODBounds.W = MaxScale * Cluster.LODBounds.W;
+			CI.Transform.TransformVect(CI.TransformedSphereBounds.Center, Cluster.SphereBounds.Center);
+			CI.TransformedSphereBounds.W = MaxScale * Cluster.SphereBounds.W;
+			CI.TransformedEdgeLength = MaxScale * Cluster.EdgeLength;
 		}
 		else
 		{
-			CI.LODBounds = Cluster.LODBounds;
-			CI.SphereBounds = Cluster.SphereBounds;
-			CI.EdgeLength = Cluster.EdgeLength;
+			CI.TransformedLODBounds = Cluster.LODBounds;
+			CI.TransformedSphereBounds = Cluster.SphereBounds;
+			CI.TransformedEdgeLength = Cluster.EdgeLength;
 		}
 	}
 }
@@ -458,17 +458,17 @@ void BuildDAGFromLODs(
 				FFloat3 Scale = Trans.GetScale();
 				float MaxScale = TMath::Max3(Scale.X, Scale.Y, Scale.Z);
 
-				CI.Transform.TransformVect(CI.LODBounds.Center, Cluster.LODBounds.Center);
-				CI.LODBounds.W = MaxScale * Cluster.LODBounds.W;
-				CI.Transform.TransformVect(CI.SphereBounds.Center, Cluster.SphereBounds.Center);
-				CI.SphereBounds.W = MaxScale * Cluster.SphereBounds.W;
-				CI.EdgeLength = MaxScale * Cluster.EdgeLength;
+				CI.Transform.TransformVect(CI.TransformedLODBounds.Center, Cluster.LODBounds.Center);
+				CI.TransformedLODBounds.W = MaxScale * Cluster.LODBounds.W;
+				CI.Transform.TransformVect(CI.TransformedSphereBounds.Center, Cluster.SphereBounds.Center);
+				CI.TransformedSphereBounds.W = MaxScale * Cluster.SphereBounds.W;
+				CI.TransformedEdgeLength = MaxScale * Cluster.EdgeLength;
 			}
 			else
 			{
-				CI.LODBounds = Cluster.LODBounds;
-				CI.SphereBounds = Cluster.SphereBounds;
-				CI.EdgeLength = Cluster.EdgeLength;
+				CI.TransformedLODBounds = Cluster.LODBounds;
+				CI.TransformedSphereBounds = Cluster.SphereBounds;
+				CI.TransformedEdgeLength = Cluster.EdgeLength;
 			}
 		}
 
@@ -515,8 +515,8 @@ void BuildDAGFromLODs(
 				float LODError = CI.LODError;
 
 				// Bounds on cluster instance already transformed by instance_transform
-				Children_LODBounds.push_back(CI.LODBounds);
-				Children_SphereBounds.push_back(CI.SphereBounds);
+				Children_LODBounds.push_back(CI.TransformedLODBounds);
+				Children_SphereBounds.push_back(CI.TransformedSphereBounds);
 				ChildMinLODError = TMath::Min(ChildMinLODError, bLeaf ? -1.0f : LODError);
 				ParentMaxLODError = TMath::Max(ParentMaxLODError, LODError);
 
@@ -526,7 +526,7 @@ void BuildDAGFromLODs(
 			FSpheref ParentLODBounds(Children_LODBounds.data(), (int32)Children_LODBounds.size());
 			FSpheref ParentBounds(Children_SphereBounds.data(), (int32)Children_SphereBounds.size());
 
-			// Set cluster's parent's LODError, LODBounds, G eneratingGroup Index
+			// Set cluster's parent's LODError, LODBounds, GeneratingGroup Index
 			// In this case, all clusters in this group have the same ONE cluster parent
 			int32 ParentClusterInstance = -1;
 			for (int32 ClusterInstanceIndex : ClusterInstancesInGroup)
@@ -539,7 +539,7 @@ void BuildDAGFromLODs(
 				TI_ASSERT(ParentClusterInstance == ClusterInsParents[ClusterInstanceIndex]);
 			}
 			// Set parent cluster instance's info
-			ClusterInstances[ParentClusterInstance].LODBounds = ParentLODBounds;
+			ClusterInstances[ParentClusterInstance].TransformedLODBounds = ParentLODBounds;
 			ClusterInstances[ParentClusterInstance].LODError = ParentMaxLODError;
 			ClusterInstances[ParentClusterInstance].GeneratingGroupIndex = GroupIndex;
 

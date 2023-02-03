@@ -403,6 +403,8 @@ void FNaniteLearningRenderer::FreezeCulling()
 
 void FNaniteLearningRenderer::Render(FRHICmdList * RHICmdList)
 {
+	TI_ASSERT(0);	// Stop rendering, or else will crash GPU
+
 	FDecodeInfo DecodeInfo;
 	DecodeInfo.StartPageIndex = 0;
 	DecodeInfo.PageConstants.Y = GetMaxStreamingPages();

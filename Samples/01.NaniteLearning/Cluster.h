@@ -100,7 +100,7 @@ public:
 	FSpheref LODBounds;
 
 	uint32 GroupIndex = TNumLimit<uint32>::max();
-	uint32 GroupPartIndex = TNumLimit<uint32>::max();
+	//uint32 GroupPartIndex = TNumLimit<uint32>::max();	// Seems not used after remove test
 	uint32 GeneratingGroupIndex = TNumLimit<uint32>::max();
 
 	TVector<FMaterialRange> MaterialRanges;
@@ -166,10 +166,11 @@ struct FClusterInstance
 	int32 ClusterId;
 	bool IsInstanced;
 	FMat4 Transform;
-	float EdgeLength = 0.0f;
+	float TransformedEdgeLength = 0.0f;
 	float LODError = 0.0f;
-	FSpheref LODBounds;
-	FSpheref SphereBounds;
+	FBox TransformedBounds;
+	FSpheref TransformedLODBounds;
+	FSpheref TransformedSphereBounds;
 	uint32 GroupIndex = TNumLimit<uint32>::max();
 	uint32 GeneratingGroupIndex = TNumLimit<uint32>::max();
 

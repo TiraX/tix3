@@ -78,15 +78,15 @@ struct FPackedCluster
 	FInt3 PosStart;
 	uint32 BitsPerIndex_PosPrecision_PosBits;			// BitsPerIndex:4, PosPrecision: 5, PosBits:5.5.5
 
-	// Members needed for culling
-	FFloat4 LODBounds;									// LWC_TODO: Was FSphere, but that's now twice as big and won't work on GPU.
+	// Members needed for culling, moved to cluster Instance
+	//FFloat4 LODBounds;									// LWC_TODO: Was FSphere, but that's now twice as big and won't work on GPU.
 
-	FUInt2 BoxBoundsCenter16_MipLevel;
-	uint32 Reserved;
-	uint32 LODErrorAndEdgeLength;
+	//FUInt2 BoxBoundsCenter16_MipLevel;
+	//uint32 Reserved;
+	//uint32 LODErrorAndEdgeLength;
 
-	FFloat3 BoxBoundsExtent;
-	uint32 Flags;
+	//FFloat3 BoxBoundsExtent;
+	//uint32 Flags;
 
 	// Members needed by materials
 	uint32 AttributeOffset_BitsPerAttribute;			// AttributeOffset: 22, BitsPerAttribute: 10
@@ -134,6 +134,21 @@ struct FPackedCluster
 	void SetColorBitsA(uint32 NumBits) { SetBits(ColorBits_GroupIndex, NumBits, 4, 12); }
 		 
 	void SetGroupIndex(uint32 GroupIndex) { SetBits(ColorBits_GroupIndex, GroupIndex & 0xFFFFu, 16, 16); }
+};
+
+struct FPackedClusterInstance
+{
+	// Members needed for culling
+	FFloat4 LODBounds;									// LWC_TODO: Was FSphere, but that's now twice as big and won't work on GPU.
+
+	FUInt2 BoxBoundsCenter16_MipLevel;
+	uint32 ClusterIndex;
+	uint32 LODErrorAndEdgeLength;
+
+	FFloat3 BoxBoundsExtent;
+	uint32 Flags;
+
+	FMat34 Transform;
 };
 
 struct FPageStreamingState

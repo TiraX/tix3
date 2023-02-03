@@ -450,13 +450,14 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 		}
 
 		//if (TargetGPUPageIndex != INVALID_PAGE_INDEX)
-		{
-			uint32 ClusterIndex = Fixup.GetClusterIndex();
-			uint32 FlagsOffset = offsetof(FPackedCluster, Flags);
-			uint32 Offset = GPUPageIndexToGPUOffset(TargetGPUPageIndex) + NANITE_GPU_PAGE_HEADER_SIZE + ((FlagsOffset >> 4) * NumTargetPageClusters + ClusterIndex) * 16 + (FlagsOffset & 15);
-			// TIX: todo: fixup here
-			ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
-		}
+		TI_ASSERT(0);
+		//{
+		//	uint32 ClusterIndex = Fixup.GetClusterIndex();
+		//	uint32 FlagsOffset = offsetof(FPackedCluster, Flags);
+		//	uint32 Offset = GPUPageIndexToGPUOffset(TargetGPUPageIndex) + NANITE_GPU_PAGE_HEADER_SIZE + ((FlagsOffset >> 4) * NumTargetPageClusters + ClusterIndex) * 16 + (FlagsOffset & 15);
+		//	// TIX: todo: fixup here
+		//	ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
+		//}
 	}
 
 

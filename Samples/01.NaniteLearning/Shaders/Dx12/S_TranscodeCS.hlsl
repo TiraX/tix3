@@ -34,6 +34,7 @@ struct FPageDiskHeader
 {
 	uint GpuSize;
 	uint NumClusters;
+	uint NumClusterInstances;
 	uint NumRawFloat4s;
 	uint NumTexCoords;
 	uint NumVertexRefs;
@@ -51,7 +52,8 @@ FPageDiskHeader GetPageDiskHeader(uint PageBaseOffset)
 
 	FPageDiskHeader DiskHeader;
 	DiskHeader.GpuSize					= Data[0].x;
-	DiskHeader.NumClusters				= Data[0].y;
+	DiskHeader.NumClusters				= Data[0].y >> 16;
+	DiskHeader.NumClusterInstances		= Data[0].y & 0xffff;
 	DiskHeader.NumRawFloat4s			= Data[0].z;
 	DiskHeader.NumTexCoords				= Data[0].w;
 	DiskHeader.NumVertexRefs			= Data[1].x;
@@ -384,7 +386,7 @@ void TranscodePageToGPU(uint2 GroupID : SV_GroupID, uint GroupIndex : SV_GroupIn
 	uint NumRawFloat4s = PageDiskHeader.NumRawFloat4s;
 	uint PageThread = (GroupID.x << TRANSCODE_THREADS_PER_GROUP_BITS) | GroupIndex;
 
-	// Raw copy: FPackedClusters, Material Dwords and DecodeInfo.
+	// Raw copy: FPackedClusters, FPackedClusterInstances, Material Dwords and DecodeInfo.
 	for(uint i = PageThread; i < NumRawFloat4s; i += TRANSCODE_THREADS_PER_PAGE)
 	{
 		uint4 Data = SrcPageBuffer.Load4(SrcPackedClusterOffset + i * 16);
