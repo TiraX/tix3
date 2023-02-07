@@ -21,6 +21,7 @@ public:
 	static FUniformBufferPtr AllocateHierarchyBuffer(FRHICmdList* RHICmdList, const TVector<FPackedHierarchyNode>& HierarchyNodes);
 private:
 	void ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh);
+	void RedirectClusterIdForClusterInstances(TNaniteMesh* NaniteMesh);
 
 private:
 	FUniformBufferPtr InstallInfoUploadBuffer;

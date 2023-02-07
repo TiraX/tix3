@@ -142,7 +142,7 @@ struct FPackedClusterInstance
 	FFloat4 LODBounds;									// LWC_TODO: Was FSphere, but that's now twice as big and won't work on GPU.
 
 	FUInt2 BoxBoundsCenter16_MipLevel;
-	uint32 ClusterIndex;
+	uint32 PageAndCluster;
 	uint32 LODErrorAndEdgeLength;
 
 	FFloat3 BoxBoundsExtent;

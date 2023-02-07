@@ -20,156 +20,6 @@ const float FLT_INT_MAX = (float)TNumLimit<int32>::max();
 const float MAX_flt = TNumLimit<float>::max();
 const uint32 MAX_uint32 = TNumLimit<uint32>::max();
 
-struct FClusterGroupPart					// Whole group or a part of a group that has been split.
-{
-	TVector<uint32> Clusters;				// Can be reordered during page allocation, so we need to store a list here.
-	TVector<uint32> ClusterInstances;
-	FBox GroupPartBounds;
-	uint32 PageIndex;
-	uint32 GroupIndex;				// Index of group this is a part of.
-	uint32 HierarchyNodeIndex;
-	uint32 HierarchyChildIndex;
-	uint32 PageClusterOffset;
-	uint32 PageClusterInstanceOffset;
-};
-
-struct FPageSections
-{
-	uint32 Cluster = 0;
-	uint32 MaterialTable = 0;
-	uint32 DecodeInfo = 0;
-	uint32 Index = 0;
-	uint32 Position = 0;
-	uint32 Attribute = 0;
-	uint32 ClusterInstance = 0;
-
-	uint32 GetMaterialTableSize() const { return TMath::Align(MaterialTable, 16); }
-	uint32 GetClusterOffset() const { return NANITE_GPU_PAGE_HEADER_SIZE; }
-	uint32 GetMaterialTableOffset() const { return GetClusterOffset() + Cluster; }
-	uint32 GetDecodeInfoOffset() const { return GetMaterialTableOffset() + GetMaterialTableSize(); }
-	uint32 GetIndexOffset() const { return GetDecodeInfoOffset() + DecodeInfo; }
-	uint32 GetPositionOffset() const { return GetIndexOffset() + Index; }
-	uint32 GetAttributeOffset() const { return GetPositionOffset() + Position; }
-	uint32 GetClusterInstanceOffset() const { return GetAttributeOffset() + Attribute; }
-	uint32 GetTotal() const { return GetClusterInstanceOffset() + ClusterInstance; }
-
-	FPageSections GetOffsets() const
-	{
-		return FPageSections{ GetClusterOffset(), GetMaterialTableOffset(), GetDecodeInfoOffset(), GetIndexOffset(), GetPositionOffset(), GetAttributeOffset(), GetClusterInstanceOffset()};
-	}
-
-	void operator+=(const FPageSections& Other)
-	{
-		Cluster += Other.Cluster;
-		MaterialTable += Other.MaterialTable;
-		DecodeInfo += Other.DecodeInfo;
-		Index += Other.Index;
-		Position += Other.Position;
-		Attribute += Other.Attribute;
-		ClusterInstance += Other.ClusterInstance;
-	}
-};
-
-struct FPageGPUHeader
-{
-	uint32 NumClusters = 0;
-	uint32 NumClusterInstances = 0;
-	uint32 Pad[2] = { 0 };
-};
-
-struct FPageDiskHeader
-{
-	// only 8 uint32, since GetPageDiskHeader in hlsl read uint4 x 2.
-	uint32 GpuSize;
-	uint32 NumClustersAndInstances;
-	uint32 NumRawFloat4s;
-	uint32 NumTexCoords;
-	uint32 NumVertexRefs;
-	uint32 DecodeInfoOffset;
-	uint32 StripBitmaskOffset;
-	uint32 VertexRefBitmaskOffset;
-};
-
-struct FClusterDiskHeader
-{
-	uint32 IndexDataOffset;
-	uint32 PageClusterMapOffset;
-	uint32 VertexRefDataOffset;
-	uint32 PositionDataOffset;
-	uint32 AttributeDataOffset;
-	uint32 NumVertexRefs;
-	uint32 NumPrevRefVerticesBeforeDwords;
-	uint32 NumPrevNewVerticesBeforeDwords;
-};
-
-struct FPage
-{
-	uint32	PartsStartIndex = 0;
-	uint32	PartsNum = 0;
-	uint32	NumClusters = 0;
-	uint32	NumClusterInstances = 0;
-	bool	bRelativeEncoding = false;
-
-	FPageSections	GpuSizes;
-};
-
-// TODO: optimize me
-struct FUVRange
-{
-	FInt2 Min;
-	FInt2 GapStart;
-	FInt2 GapLength;
-	int32 Precision = 0;
-	int32 Pad = 0;
-};
-
-struct FEncodingInfo
-{
-	uint32 BitsPerIndex;
-	uint32 BitsPerAttribute;
-	uint32 UVPrec;
-
-	uint32 ColorMode;
-	FInt4 ColorMin;
-	FInt4 ColorBits;
-
-	FPageSections GpuSizes;
-
-	FUVRange UVRanges[NANITE_MAX_UVS];
-
-	FEncodingInfo& operator = (const FEncodingInfo& Other)
-	{
-		BitsPerIndex = Other.BitsPerIndex;
-		BitsPerAttribute = Other.BitsPerAttribute;
-		UVPrec = Other.UVPrec;
-		ColorMode = Other.ColorMode;
-		ColorMin = Other.ColorMin;
-		ColorBits = Other.ColorBits;
-		GpuSizes = Other.GpuSizes;
-		for (int32 i = 0; i < NANITE_MAX_UVS; i++)
-		{
-			UVRanges[i] = Other.UVRanges[i];
-		}
-		return *this;
-	}
-};
-
-// Wasteful to store size for every vert but easier this way.
-struct FVariableVertex
-{
-	const float* Data;
-	uint32 SizeInBytes;
-
-	bool operator==(const FVariableVertex& Other) const
-	{
-		return 0 == memcmp(Data, Other.Data, SizeInBytes);
-	}
-
-	bool operator<(const FVariableVertex& Other) const
-	{
-		return memcmp(Data, Other.Data, SizeInBytes) < 0;
-	}
-};
 
 inline uint32 GetTypeHash(FVariableVertex Vert)
 {
@@ -911,13 +761,33 @@ static void PackClusterInstance(FPackedClusterInstance& OutClusterInstance, cons
 	U2Data.X = (float16(BoxBoundsCenter.X).data() << 16) | float16(BoxBoundsCenter.Y).data();
 	U2Data.Y = (float16(BoxBoundsCenter.Z).data() << 16) | (Cluster.MipLevel & 0xffff);
 	OutClusterInstance.BoxBoundsCenter16_MipLevel = U2Data;
-	//OutClusterInstance.Reserved = 0;
-	OutClusterInstance.ClusterIndex = InClusterInstance.ClusterId;
+	// Cluster Page Index and Index in this page
+	TI_ASSERT(Cluster.ClusterPageIndex < (1 << 16));
+	TI_ASSERT(Cluster.ClusterIndexInPage < NANITE_MAX_CLUSTERS_PER_PAGE);
+	OutClusterInstance.PageAndCluster = (Cluster.ClusterPageIndex << 16) | Cluster.ClusterIndexInPage;
 
 	// 4
 	OutClusterInstance.BoxBoundsExtent = ClusterBounds.GetExtent() * 0.5f;
 	OutClusterInstance.Flags = NANITE_CLUSTER_FLAG_LEAF;
 	OutClusterInstance.Flags |= Cluster.Flags;
+
+	// 5 transform matrix
+	OutClusterInstance.Transform[0] = InClusterInstance.Transform[0];
+	OutClusterInstance.Transform[1] = InClusterInstance.Transform[1];
+	OutClusterInstance.Transform[2] = InClusterInstance.Transform[2];
+
+	OutClusterInstance.Transform[4] = InClusterInstance.Transform[4];
+	OutClusterInstance.Transform[5] = InClusterInstance.Transform[5];
+	OutClusterInstance.Transform[6] = InClusterInstance.Transform[6];
+
+	OutClusterInstance.Transform[8] = InClusterInstance.Transform[8];
+	OutClusterInstance.Transform[9] = InClusterInstance.Transform[9];
+	OutClusterInstance.Transform[10] = InClusterInstance.Transform[10];
+
+	OutClusterInstance.Transform[3] = InClusterInstance.Transform[12];
+	OutClusterInstance.Transform[7] = InClusterInstance.Transform[13];
+	OutClusterInstance.Transform[11] = InClusterInstance.Transform[14];
+
 }
 
 void CalculateEncodingInfo(FEncodingInfo& Info, const FCluster& Cluster, bool bHasColors, uint32 NumTexCoords)
@@ -1518,6 +1388,7 @@ void AssignClusterToPages(
 		AssignedClusters.clear();
 		// Assign clusters first
 		uint32 FirstGroupToStoreAllClusters = INVALID_GROUP_INDEX;
+		uint32 AllClustersPageStart = INVALID_PAGE_INDEX;
 		for (uint32 i = 0; i < NumClusterGroups; i++)
 		{
 			uint32 GroupIndex = ClusterGroupPermutation[i];
@@ -1581,8 +1452,16 @@ void AssignClusterToPages(
 				Part.Clusters.push_back(ClusterIndex);
 				TI_ASSERT(Part.Clusters.size() <= NANITE_MAX_CLUSTERS_PER_GROUP);
 
+				if (AllClustersPageStart == INVALID_PAGE_INDEX)
+				{
+					if (GroupIndex == FirstGroupToStoreAllClusters)
+						AllClustersPageStart = PageIndex;
+				}
+
 				// GroupPartIndex seems NOT used after remove test
 				// Cluster.GroupPartIndex = PartIndex;
+				Cluster.ClusterPageIndex = PageIndex;
+				Cluster.ClusterIndexInPage = Page->NumClusters;
 
 				Page->GpuSizes += EncodingInfo.GpuSizes;
 				Page->NumClusters++;
@@ -1643,12 +1522,18 @@ void AssignClusterToPages(
 				Part.ClusterInstances.push_back(ClusterInstanceIndex);
 				//TI_ASSERT(Part.ClusterInstances.size() <= NANITE_MAX_CLUSTER_INSTANCES_PER_GROUP);
 
-				// GroupPartIndex seems NOT used after remove test
-				// Cluster.GroupPartIndex = PartIndex;
-
 				if (GroupStartPage == INVALID_PAGE_INDEX)
 				{
-					GroupStartPage = PageIndex;
+					TI_ASSERT(FirstGroupToStoreAllClusters != INVALID_GROUP_INDEX &&
+						AllClustersPageStart != INVALID_PAGE_INDEX);
+					if (GroupIndex == FirstGroupToStoreAllClusters)
+					{
+						GroupStartPage = AllClustersPageStart;
+					}
+					else
+					{
+						GroupStartPage = PageIndex;
+					}
 				}
 
 				Page->GpuSizes.ClusterInstance += ClusterInstanceSize;
@@ -1658,7 +1543,7 @@ void AssignClusterToPages(
 			TI_ASSERT((uint32)Pages.size() >= GroupStartPage);
 			Group.PageIndexStart = GroupStartPage;
 			Group.PageIndexNum = (uint32)Pages.size() - GroupStartPage;
-			TI_ASSERT(Group.PageIndexNum >= 1 && Group.PageIndexNum <= 2);
+			TI_ASSERT(Group.PageIndexNum >= 1);
 			TI_ASSERT(Group.PageIndexNum <= NANITE_MAX_GROUP_PARTS_MASK);
 		}
 	}
@@ -2311,6 +2196,9 @@ void WritePages(
 
 	// Add external fixups to pages
 	// TiX: cluster fixup now apply to cluster instances
+	TVector<TSet<FUInt4>> UniqueClusterFixups;
+	UniqueClusterFixups.resize(NumPages);
+
 	for (const FClusterGroupPart& Part : Parts)
 	{
 		TI_ASSERT(Part.PageIndex < NumPages);
@@ -2334,11 +2222,19 @@ void WritePages(
 					continue;	// Dependencies already met by current page and/or root pages
 
 				const FClusterFixup ClusterFixup = FClusterFixup(Part.PageIndex, Part.PageClusterOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
+				const FUInt4 D = FUInt4(Part.PageIndex, Part.PageClusterOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
 				for (uint32 i = 0; i < GeneratingGroup.PageIndexNum; i++)
 				{
 					//TODO: Implement some sort of FFixupPart to not redundantly store PageIndexStart/PageIndexNum?
 					FFixupChunk& FixupChunk = FixupChunks[GeneratingGroup.PageIndexStart + i];
-					FixupChunk.GetClusterFixup(FixupChunk.Header.NumClusterFixups++) = ClusterFixup;
+
+					int32 _PageIndex = GeneratingGroup.PageIndexStart + i;
+					if (UniqueClusterFixups[_PageIndex].count(D) == 0)
+					{
+						FixupChunk.GetClusterFixup(FixupChunk.Header.NumClusterFixups++) = ClusterFixup;
+						TI_ASSERT(FixupChunk.Header.NumClusterFixups <= NANITE_MAX_CLUSTERS_PER_PAGE);
+						UniqueClusterFixups[_PageIndex].insert(D);
+					}
 				}
 			}
 		}
@@ -2416,7 +2312,15 @@ void WritePages(
 						if (Part2.GroupIndex == Part.GroupIndex)
 						{
 							const uint32 GlobalHierarchyNodeIndex = HierarchyRootOffset + Part2.HierarchyNodeIndex;
-							FixupChunk.GetHierarchyFixup(NumHierarchyFixups++) = FHierarchyFixup(Part2.PageIndex, GlobalHierarchyNodeIndex, Part2.HierarchyChildIndex, Part2.PageClusterOffset, PageDependencyStart, PageDependencyNum);
+							FixupChunk.GetHierarchyFixup(NumHierarchyFixups++) = 
+								FHierarchyFixup(
+									Part2.PageIndex, 
+									GlobalHierarchyNodeIndex, 
+									Part2.HierarchyChildIndex, 
+									Part2.PageClusterOffset, 
+									PageDependencyStart, 
+									PageDependencyNum
+								);
 							break;
 						}
 					}
@@ -2837,6 +2741,9 @@ static uint32 CalculateMaxRootPages(uint32 TargetResidencyInKB)
 	const uint64 SizeInBytes = uint64(TargetResidencyInKB) << 10;
 	return (uint32)TMath::Clamp((SizeInBytes + NANITE_ROOT_PAGE_GPU_SIZE - 1u) >> NANITE_ROOT_PAGE_GPU_SIZE_BITS, 1llu, (uint64)MAX_uint32);
 }
+
+static_assert(sizeof(FPackedCluster) == NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_FLOAT4S out of sync with sizeof(FPackedCluster)");
+static_assert(sizeof(FPackedClusterInstance) == NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S out of sync with sizeof(FPackedClusterInstance)");
 
 void Encode(
 	TNaniteMesh& Mesh,

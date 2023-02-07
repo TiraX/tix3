@@ -6,6 +6,7 @@
 #include "stdafx.h"
 #include "StreamingPageUploader.h"
 #include "NaniteMesh.h"
+#include "NaniteEncode.h"
 
 const int32 MaxPageInstallsPerUpdate = 128;
 
@@ -149,6 +150,8 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	ClusterFixupUploadCS = ti_new FScatterUploadCS;
 	ClusterFixupUploadCS->Finalize();
 	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTERS_PER_PAGE, DstBuffer);
+
+	RedirectClusterIdForClusterInstances(NaniteMesh);
 
 	// Fill Src Buffer
 	uint8* PageUploadBufferPtr = PageUploadBuffer->GetGPUBuffer()->Lock();
@@ -501,5 +504,59 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 		//uint32 Offset = (size_t) & (((FPackedHierarchyNode*)0)[0/*HierarchyOffset*/ + HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference);
 		//Hierarchy.UploadBuffer.Add(Offset / sizeof(uint32), &ChildStartReference);
 		NaniteMesh->HierarchyNodes[HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference = ChildStartReference;
+	}
+}
+
+void FStreamingPageUploader::RedirectClusterIdForClusterInstances(TNaniteMesh* NaniteMesh)
+{
+	const uint32 NumReadyPages = (uint32)NaniteMesh->PageStreamingStates.size();
+	TVector<uint32> GPUPages;
+	GPUPages.resize(NumReadyPages);
+
+	for (uint32 PageIndex = 0; PageIndex < NumReadyPages; PageIndex++)
+	{
+		if (NaniteMesh->IsRootPage(PageIndex))
+		{
+			// Tix:NaniteMesh->RootPageIndex always = ZERO in this case
+			GPUPages[PageIndex] = GetMaxStreamingPages() + 0/*NaniteMesh->RootPageIndex*/ + PageIndex;
+		}
+		else
+		{
+			GPUPages[PageIndex] = PageIndex - 1;
+		}
+	}
+
+	for (uint32 PageIndex = 0; PageIndex < NumReadyPages; PageIndex++)
+	{
+		const TVector< FPageStreamingState >& PageStreamingStates = NaniteMesh->PageStreamingStates;
+		const FPageStreamingState& PageStreamingState = PageStreamingStates[PageIndex];
+
+		bool bIsRootPage = NaniteMesh->IsRootPage(PageIndex);
+		const TVector<uint8>& BulkData = bIsRootPage ? NaniteMesh->RootData : NaniteMesh->StreamablePages;
+		TI_ASSERT(BulkData.size() > 0);
+		const uint8* PageDataPtr = BulkData.data() + PageStreamingState.BulkOffset;
+		const uint32 FixupChunkSize = ((const FFixupChunk*)PageDataPtr)->GetSize();
+		FPageDiskHeader* Header = (FPageDiskHeader*)(PageDataPtr + FixupChunkSize);
+		const uint32 NumClusters = Header->NumClustersAndInstances >> 16;
+		const uint32 NumClusterInstances = Header->NumClustersAndInstances & 0xffff;
+		const uint32 PackedClusterInstanceOffset = 
+			FixupChunkSize + 
+			sizeof(FPageDiskHeader) +
+			sizeof(FClusterDiskHeader) * NumClusters +
+			sizeof(FPageGPUHeader) +
+			sizeof(FPackedCluster) * NumClusters +
+			16 * NumClusterInstances;	// in SOA layout
+
+		for (uint32 CIIndex = 0; CIIndex < NumClusterInstances; CIIndex++)
+		{
+			TI_ASSERT(PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2) < BulkData.size());
+			uint32& PageAndCluster = *(uint32*)(PageDataPtr + PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2));
+
+			uint32 Page = PageAndCluster >> 16;
+			uint32 Cluster = PageAndCluster & 0xffff;
+			Page = GPUPages[Page];
+
+			PageAndCluster = (Page << 16) | Cluster;
+		}
 	}
 }
