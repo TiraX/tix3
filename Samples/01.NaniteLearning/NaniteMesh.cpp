@@ -33,6 +33,7 @@ struct FNaniteAssetHeader
 
 	uint32 NumRootPages;
 	uint32 NumRootPageClusters;
+	uint32 NumRootPageClusterInstances;
 	uint32 PositionPrecision;
 
 	uint32 GetDataSize() const
@@ -63,6 +64,7 @@ TNaniteMesh* TNaniteMesh::LoadMesh()
 
 		Mesh->NumRootPages = Header.NumRootPages;
 		Mesh->NumRootPageClusters = Header.NumRootPageClusters;
+		Mesh->NumRootPageClusterInstances = Header.NumRootPageClusterInstances;
 		Mesh->PositionPrecision = Header.PositionPrecision;
 
 		int32 Aligned = 0;
@@ -586,6 +588,7 @@ void SaveToDisk(TNaniteMesh& Mesh)
 	Header.NumPageDependencies = (uint32)Mesh.PageDependencies.size();
 	Header.NumRootPages = Mesh.NumRootPages;
 	Header.NumRootPageClusters = Mesh.NumRootPageClusters;
+	Header.NumRootPageClusterInstances = Mesh.NumRootPageClusterInstances;
 	Header.PositionPrecision = Mesh.PositionPrecision;
 
 	TStream S(sizeof(Header) + Header.GetDataSize() + 16);

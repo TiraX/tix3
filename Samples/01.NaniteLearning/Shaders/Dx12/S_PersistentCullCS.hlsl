@@ -402,25 +402,25 @@ struct FNaniteTraversalClusterCullCallback
 		StoreCandidateNodeCoherent(MainAndPostNodesAndClusterBatches, StoreIndex, Node, bIsPostPass);
 	}
 
-	void StoreCluster(uint StoreIndex, FHierarchyNodeSlice HierarchyNodeSlice, uint ClusterIndex)
+	void StoreClusterInstance(uint StoreIndex, FHierarchyNodeSlice HierarchyNodeSlice, uint ClusterInstanceIndex)
 	{
 		StoreIndex = bIsPostPass ? (DecodeInfo.MaxCandidateClusters - 1 - StoreIndex) : StoreIndex;
 
-		FVisibleCluster CandidateCluster;
-		CandidateCluster.Flags = CandidateNode.Flags | NANITE_CULLING_FLAG_TEST_LOD;
-		CandidateCluster.ViewId = CandidateNode.ViewId;
-		CandidateCluster.InstanceId = CandidateNode.InstanceId;
-		CandidateCluster.PageIndex = HierarchyNodeSlice.ChildStartReference >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS;
-		CandidateCluster.ClusterIndex = ClusterIndex;
+		FVisibleClusterInstance CandidateClusterInstance;
+		CandidateClusterInstance.Flags = CandidateNode.Flags | NANITE_CULLING_FLAG_TEST_LOD;
+		CandidateClusterInstance.ViewId = CandidateNode.ViewId;
+		CandidateClusterInstance.InstanceId = CandidateNode.InstanceId;
+		CandidateClusterInstance.PageIndex = HierarchyNodeSlice.ChildStartReference >> NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS;
+		CandidateClusterInstance.ClusterInstanceIndex = ClusterInstanceIndex;
 
-		uint4 PackedCluster = PackVisibleCluster(CandidateCluster, false);
-		MainAndPostCandididateClusters.Store2(GetCandidateClusterOffset() + StoreIndex * GetCandidateClusterSize(), PackedCluster.xy);
+		uint4 PackedClusterInstance = PackVisibleClusterInstance(CandidateClusterInstance, false);
+		MainAndPostCandididateClusters.Store3(GetCandidateClusterInstanceOffset() + StoreIndex * GetCandidateClusterInstanceSize(), PackedClusterInstance.xyz);
 	}
 
-	uint4 LoadPackedCluster(uint CandidateIndex)
+	uint4 LoadPackedClusterInstance(uint CandidateIndex)
 	{
 		const uint LoadIndex = bIsPostPass ? (DecodeInfo.MaxCandidateClusters - 1 - CandidateIndex) : CandidateIndex;
-		return uint4(MainAndPostCandididateClusters.Load2(GetCandidateClusterOffset() + LoadIndex * GetCandidateClusterSize()), 0u, 0u);
+		return uint4(MainAndPostCandididateClusters.Load3(GetCandidateClusterInstanceOffset() + LoadIndex * GetCandidateClusterInstanceSize()), 0u);
 	}
 
 	bool IsNodeDataReady(uint4 RawData)
@@ -461,15 +461,15 @@ struct FNaniteTraversalClusterCullCallback
 		return LoadClusterBatchCoherent(MainAndPostNodesAndClusterBatches, BatchIndex, bIsPostPass);
 	}
 
-	void ProcessCluster(uint4 PackedCluster, uint GroupIndex, uint LoopIndex)
+	void ProcessClusterInstance(uint4 PackedClusterInstance, uint GroupIndex, uint LoopIndex)
 	{
-		FVisibleCluster VisibleCluster = UnpackVisibleCluster(PackedCluster, false);
+		FVisibleClusterInstance VisibleClusterInstance = UnpackVisibleClusterInstance(PackedClusterInstance, false);
 
-		//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
-		FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
+		//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleClusterInstance.InstanceId, false);
+		FNaniteView NaniteView = GetNaniteView(VisibleClusterInstance.ViewId);
 
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
-		if (VisibleCluster.Flags & NANITE_CULLING_FLAG_FROM_DISOCCLUDED_INSTANCE)
+		if (VisibleClusterInstance.Flags & NANITE_CULLING_FLAG_FROM_DISOCCLUDED_INSTANCE)
 			NaniteView.LODScale *= DisocclusionLodScaleFactor;
 #endif
 
@@ -491,7 +491,9 @@ struct FNaniteTraversalClusterCullCallback
 		const bool bSkipBoxCullHZB = false;
 #endif
 
-		FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+		FClusterInstance ClusterInstance = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+		//FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+		//FCluster Cluster = GetCluster(ClusterInstance.PageIndex, ClusterInstance.ClusterIndex); // Do not need cluster data for culling
 
 		bool bWasOccluded = false;
 		bool bUseHWRaster = false;
@@ -499,8 +501,8 @@ struct FNaniteTraversalClusterCullCallback
 		bool bVisible = true;
 
 		//FPrimitiveSceneData PrimitiveData = GetPrimitiveData(InstanceData.PrimitiveId);
-		const float3 ClusterBoxBoundsCenter = Cluster.BoxBoundsCenter;
-		const float3 ClusterBoxBoundsExtent = Cluster.BoxBoundsExtent;// *PrimitiveData.BoundsScale;
+		const float3 ClusterBoxBoundsCenter = ClusterInstance.BoxBoundsCenter;
+		const float3 ClusterBoxBoundsExtent = ClusterInstance.BoxBoundsExtent;// *PrimitiveData.BoundsScale;
 
 //#if VIRTUAL_TEXTURE_TARGET
 //		const bool bMaterialInvalidates = (PrimitiveData.Flags & PRIMITIVE_SCENE_DATA_FLAG_EVALUATE_WORLD_POSITION_OFFSET) != 0u;
@@ -529,16 +531,16 @@ struct FNaniteTraversalClusterCullCallback
 			{
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
 				[branch]
-				if ((VisibleCluster.Flags & NANITE_CULLING_FLAG_TEST_LOD) != 0)
+				if ((VisibleClusterInstance.Flags & NANITE_CULLING_FLAG_TEST_LOD) != 0)
 #endif
 				{
-					bVisible = SmallEnoughToDraw(NaniteView, Cluster.LODBounds, Cluster.LODError, Cluster.EdgeLength, bUseHWRaster) || (Cluster.Flags & NANITE_CLUSTER_FLAG_LEAF);
+					bVisible = SmallEnoughToDraw(NaniteView, ClusterInstance.LODBounds, ClusterInstance.LODError, ClusterInstance.EdgeLength, bUseHWRaster) || (ClusterInstance.Flags & NANITE_CLUSTER_FLAG_LEAF);
 						//SmallEnoughToDraw(NaniteView, InstanceData, DynamicData, Cluster.LODBounds, Cluster.LODError, Cluster.EdgeLength, bUseHWRaster) || (Cluster.Flags & NANITE_CLUSTER_FLAG_LEAF);
 				}
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
 				else
 				{
-					bUseHWRaster = (VisibleCluster.Flags & NANITE_CULLING_FLAG_USE_HW) != 0;
+					bUseHWRaster = (VisibleClusterInstance.Flags & NANITE_CULLING_FLAG_USE_HW) != 0;
 				}
 #endif
 			}
@@ -595,7 +597,7 @@ struct FNaniteTraversalClusterCullCallback
 #endif
 					if (VisibleClusterOffsetHW < DecodeInfo.MaxVisibleClusters)
 					{
-						StoreVisibleCluster(OutVisibleClustersSWHW, (DecodeInfo.MaxVisibleClusters - 1) - VisibleClusterOffsetHW, VisibleCluster, 0);	// HW clusters written from the top
+						StoreVisibleClusterInstance(OutVisibleClustersSWHW, (DecodeInfo.MaxVisibleClusters - 1) - VisibleClusterOffsetHW, VisibleClusterInstance, 0);	// HW clusters written from the top
 					}
 				}
 				else
@@ -607,7 +609,7 @@ struct FNaniteTraversalClusterCullCallback
 #endif
 					if (VisibleClusterOffsetSW < DecodeInfo.MaxVisibleClusters)
 					{
-						StoreVisibleCluster(OutVisibleClustersSWHW, VisibleClusterOffsetSW, VisibleCluster, 0);	// SW clusters written from the bottom
+						StoreVisibleClusterInstance(OutVisibleClustersSWHW, VisibleClusterOffsetSW, VisibleClusterInstance, 0);	// SW clusters written from the bottom
 					}
 				}
 			}
@@ -620,9 +622,9 @@ struct FNaniteTraversalClusterCullCallback
 				{
 					uint OccludedClusterOffset = 0;
 					WaveInterlockedAddScalar_(QueueState[0].PassState[1].ClusterWriteOffset, 1, OccludedClusterOffset);
-					VisibleCluster.Flags = (bUseHWRaster ? NANITE_CULLING_FLAG_USE_HW : 0u);
+					VisibleClusterInstance.Flags = (bUseHWRaster ? NANITE_CULLING_FLAG_USE_HW : 0u);
 
-					StoreCandidateClusterCoherent(MainAndPostCandididateClusters, (DecodeInfo.MaxCandidateClusters - 1) - OccludedClusterOffset, VisibleCluster);
+					StoreCandidateClusterInstanceCoherent(MainAndPostCandididateClusters, (DecodeInfo.MaxCandidateClusters - 1) - OccludedClusterOffset, VisibleClusterInstance);
 
 					DeviceMemoryBarrier();
 					const uint BatchIndex = OccludedClusterOffset / NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE;
@@ -743,27 +745,27 @@ void ProcessNodeBatch(uint BatchSize, uint GroupIndex, uint QueueStateIndex, uin
 	// Continue with remaining independent work
 	if (bOutputChild && HierarchyNodeSlice.bLeaf)
 	{
-		uint NumClusters = HierarchyNodeSlice.NumChildren;
+		uint NumClusterInstances = HierarchyNodeSlice.NumChildren;
 
 #if CHECK_AND_TRIM_CLUSTER_COUNT
 		uint ClusterIndex = 0;
-		WaveInterlockedAdd_(QueueState[0].TotalClusters, NumClusters, ClusterIndex);
+		WaveInterlockedAdd_(QueueState[0].TotalClusters, NumClusterInstances, ClusterIndex);
 
 		// Trim any clusters above MaxCandidateClusters
-		const uint ClusterIndexEnd = min(ClusterIndex + NumClusters, DecodeInfo.MaxCandidateClusters);
-		NumClusters = (uint)max((int)ClusterIndexEnd - (int)ClusterIndex, 0);
+		const uint ClusterIndexEnd = min(ClusterIndex + NumClusterInstances, DecodeInfo.MaxCandidateClusters);
+		NumClusterInstances = (uint)max((int)ClusterIndexEnd - (int)ClusterIndex, 0);
 #endif
 
 		uint CandidateClustersOffset = 0;
-		WaveInterlockedAdd_(QueueState[0].PassState[QueueStateIndex].ClusterWriteOffset, NumClusters, CandidateClustersOffset);
+		WaveInterlockedAdd_(QueueState[0].PassState[QueueStateIndex].ClusterWriteOffset, NumClusterInstances, CandidateClustersOffset);
 
-		const uint BaseClusterIndex = HierarchyNodeSlice.ChildStartReference & NANITE_MAX_CLUSTERS_PER_PAGE_MASK;
+		const uint BaseClusterIndexIndex = HierarchyNodeSlice.ChildStartReference & NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_MASK;
 		const uint StartIndex = CandidateClustersOffset;
-		const uint EndIndex = min(CandidateClustersOffset + NumClusters, DecodeInfo.MaxCandidateClusters);
+		const uint EndIndex = min(CandidateClustersOffset + NumClusterInstances, DecodeInfo.MaxCandidateClusters);
 
 		for (uint Index = StartIndex; Index < EndIndex; Index++)
 		{
-			TraversalCallback.StoreCluster(Index, HierarchyNodeSlice, BaseClusterIndex + (Index - StartIndex));
+			TraversalCallback.StoreClusterInstance(Index, HierarchyNodeSlice, BaseClusterIndexIndex + (Index - StartIndex));
 		}
 
 		DeviceMemoryBarrier();
@@ -802,9 +804,9 @@ void ProcessClusterBatch(uint BatchStartIndex, uint BatchSize, uint GroupIndex, 
 	if (GroupIndex < BatchSize)
 	{
 		const uint CandidateIndex = BatchStartIndex * NANITE_PERSISTENT_CLUSTER_CULLING_GROUP_SIZE + GroupIndex;
-		const uint4 PackedCluster = TraversalCallback.LoadPackedCluster(CandidateIndex);
+		const uint4 PackedClusterInstance = TraversalCallback.LoadPackedClusterInstance(CandidateIndex);
 
-		TraversalCallback.ProcessCluster(PackedCluster, GroupIndex, LoopIndex);
+		TraversalCallback.ProcessClusterInstance(PackedClusterInstance, GroupIndex, LoopIndex);
 	}
 
 	// Clear batch so the buffer is cleared for next pass.

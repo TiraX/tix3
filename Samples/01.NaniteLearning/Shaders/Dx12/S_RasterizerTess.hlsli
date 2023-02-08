@@ -399,11 +399,13 @@ void HWRasterizeAS(
 	s_Payload.VisibleClusterIndex = VisibleIndex;
 	s_Payload.TriangleOffset = TriangleOffset;
 
-	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);	
-	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+	FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance(VisibleIndex, 0);	
+
+	FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+	FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
 	FTriRange TriRange = GetTriangleRange(Cluster, false, uint3(0,0,0));
 
-	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
+	FNaniteView NaniteView = GetNaniteView(VisibleClusterInstance.ViewId);
 
 	uint VisibleTriangles = 0;
 	[branch]
@@ -668,16 +670,18 @@ void HWRasterizeMS(
 	TF[2] = _payload.TF[TriangleIndexInAS].Factor[2];
 	TF[3] = _payload.TF[TriangleIndexInAS].Factor[3];
 
-	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
+	FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance(VisibleIndex, 0);
 	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
 
-	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
+	FNaniteView NaniteView = GetNaniteView(VisibleClusterInstance.ViewId);
 
 //#if NANITE_VERTEX_PROGRAMMABLE
 //	ResolvedView = ResolveView(NaniteView);
 //#endif
 
-	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+	FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+	FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
+
 	uint TriangleIndex = TriangleIndexInAS + TriangleOffset;
 	uint3 TriangleIndices = ReadTriangleIndices(Cluster, TriangleIndex);
 
@@ -882,9 +886,10 @@ float4 HWRasterizePS(VSOut In
 
 	if (VisibleClusterIndex != 0xFFFFFFFF)
 	{
-		FVisibleCluster VisibleCluster = GetVisibleCluster( VisibleClusterIndex );
+		FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance( VisibleClusterIndex );
 
-		FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+		FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+		FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
 
 		uint3 TriIndices = uint3(0, 0, 0);
 		const bool bCalcTriIndices = true;

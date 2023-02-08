@@ -200,23 +200,23 @@ class FClusterFixup
 public:
 	FClusterFixup() {}
 
-	FClusterFixup(uint32 PageIndex, uint32 ClusterIndex, uint32 PageDependencyStart, uint32 PageDependencyNum)
+	FClusterFixup(uint32 PageIndex, uint32 ClusterInstanceIndex, uint32 PageDependencyStart, uint32 PageDependencyNum)
 	{
 		TI_ASSERT(PageIndex < (1 << (32 - NANITE_MAX_CLUSTERS_PER_GROUP_BITS)));
-		TI_ASSERT(ClusterIndex < NANITE_MAX_CLUSTERS_PER_PAGE);
-		PageAndClusterIndex = (PageIndex << NANITE_MAX_CLUSTERS_PER_PAGE_BITS) | ClusterIndex;
+		TI_ASSERT(ClusterInstanceIndex < NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE);
+		PageAndClusterInstanceIndex = (PageIndex << NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS) | ClusterInstanceIndex;
 
 		TI_ASSERT(PageDependencyStart < NANITE_MAX_RESOURCE_PAGES);
 		TI_ASSERT(PageDependencyNum <= NANITE_MAX_GROUP_PARTS_MASK);
 		PageDependencyStartAndNum = (PageDependencyStart << NANITE_MAX_GROUP_PARTS_BITS) | PageDependencyNum;
 	}
 
-	uint32 GetPageIndex() const { return PageAndClusterIndex >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS; }
-	uint32 GetClusterIndex() const { return PageAndClusterIndex & (NANITE_MAX_CLUSTERS_PER_PAGE - 1u); }
+	uint32 GetPageIndex() const { return PageAndClusterInstanceIndex >> NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS; }
+	uint32 GetClusterInstanceIndex() const { return PageAndClusterInstanceIndex & (NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE - 1u); }
 	uint32 GetPageDependencyStart() const { return PageDependencyStartAndNum >> NANITE_MAX_GROUP_PARTS_BITS; }
 	uint32 GetPageDependencyNum() const { return PageDependencyStartAndNum & NANITE_MAX_GROUP_PARTS_MASK; }
 
-	uint32 PageAndClusterIndex;
+	uint32 PageAndClusterInstanceIndex;
 	uint32 PageDependencyStartAndNum;
 };
 
@@ -227,12 +227,12 @@ public:
 	struct FHeader
 	{
 		uint16 NumClusters = 0;
+		uint16 NumClusterInstances = 0;
 		uint16 NumHierachyFixups = 0;
 		uint16 NumClusterFixups = 0;
-		uint16 Pad = 0;
 	} Header;
 
-	uint8 Data[sizeof(FHierarchyFixup) * NANITE_MAX_CLUSTERS_PER_PAGE + sizeof(FClusterFixup) * NANITE_MAX_CLUSTERS_PER_PAGE];	// One hierarchy fixup per cluster and at most one cluster fixup per cluster.
+	uint8 Data[sizeof(FHierarchyFixup) * NANITE_MAX_CLUSTERS_PER_PAGE + sizeof(FClusterFixup) * NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE];	// One hierarchy fixup per cluster and at most one cluster fixup per cluster.
 
 	FClusterFixup& GetClusterFixup(uint32 Index) const { TI_ASSERT(Index < Header.NumClusterFixups);  return ((FClusterFixup*)(Data + Header.NumHierachyFixups * sizeof(FHierarchyFixup)))[Index]; }
 	FHierarchyFixup& GetHierarchyFixup(uint32 Index) const { TI_ASSERT(Index < Header.NumHierachyFixups); return ((FHierarchyFixup*)Data)[Index]; }
@@ -259,6 +259,7 @@ public:
 	TVector<uint32> PageDependencies;
 	uint32 NumRootPages = 0;
 	uint32 NumRootPageClusters = 0;
+	uint32 NumRootPageClusterInstances = 0;
 	int32 PositionPrecision = 0;
 };
 

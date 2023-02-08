@@ -149,7 +149,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	const int32 MaxInstallPages = 32;
 	ClusterFixupUploadCS = ti_new FScatterUploadCS;
 	ClusterFixupUploadCS->Finalize();
-	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTERS_PER_PAGE, DstBuffer);
+	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE, DstBuffer);
 
 	RedirectClusterIdForClusterInstances(NaniteMesh);
 
@@ -420,12 +420,12 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 
 		uint32 TargetPageIndex = Fixup.GetPageIndex();
 		uint32 TargetGPUPageIndex = 0xffffffffu;
-		uint32 NumTargetPageClusters = 0;
+		uint32 NumTargetPageClusterInstances = 0;
 
 		if (NaniteMesh->IsRootPage(TargetPageIndex))
 		{
 			TargetGPUPageIndex = GetMaxStreamingPages() + 0/*Resources.RootPageIndex*/ + TargetPageIndex;
-			NumTargetPageClusters = NaniteMesh->NumRootPageClusters;
+			NumTargetPageClusterInstances = NaniteMesh->NumRootPageClusterInstances;
 				//RootPageInfos[Resources.RootPageIndex + TargetPageIndex].NumClusters;
 		}
 		else
@@ -445,22 +445,25 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 				//FFixupChunk& TargetFixupChunk = *StreamingPageFixupChunks[TargetPage->GPUPageIndex];
 				//check(StreamingPageInfos[TargetPage->GPUPageIndex].ResidentKey == TargetKey);
 
-				NumTargetPageClusters = TargetFixupChunk->Header.NumClusters;
-				TI_ASSERT(Fixup.GetClusterIndex() < NumTargetPageClusters);
+				NumTargetPageClusterInstances = TargetFixupChunk->Header.NumClusterInstances;
+				TI_ASSERT(Fixup.GetClusterInstanceIndex() < NumTargetPageClusterInstances);
 
 				TargetGPUPageIndex = TargetGPUIndex;
 			//}
 		}
 
 		//if (TargetGPUPageIndex != INVALID_PAGE_INDEX)
-		TI_ASSERT(0);
-		//{
-		//	uint32 ClusterIndex = Fixup.GetClusterIndex();
-		//	uint32 FlagsOffset = offsetof(FPackedCluster, Flags);
-		//	uint32 Offset = GPUPageIndexToGPUOffset(TargetGPUPageIndex) + NANITE_GPU_PAGE_HEADER_SIZE + ((FlagsOffset >> 4) * NumTargetPageClusters + ClusterIndex) * 16 + (FlagsOffset & 15);
-		//	// TIX: todo: fixup here
-		//	ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
-		//}
+		{
+			uint32 ClusterInstanceIndex = Fixup.GetClusterInstanceIndex();
+			uint32 FlagsOffset = offsetof(FPackedClusterInstance, Flags);
+			uint32 Offset = 
+				GPUPageIndexToGPUOffset(TargetGPUPageIndex) + 
+				NANITE_GPU_PAGE_HEADER_SIZE + 
+				FixupChunk.Header.NumClusters * NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16 +
+				((FlagsOffset >> 4) * NumTargetPageClusterInstances + ClusterInstanceIndex) * 16 + (FlagsOffset & 15);
+			// TIX: todo: fixup here
+			ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
+		}
 	}
 
 
@@ -500,7 +503,7 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 		uint32 HierarchyNodeIndex = Fixup.GetNodeIndex();
 		TI_ASSERT(HierarchyNodeIndex < (uint32)NaniteMesh->HierarchyNodes.size());
 		uint32 ChildIndex = Fixup.GetChildIndex();
-		uint32 ChildStartReference = false ? 0xFFFFFFFFu : ((TargetGPUPageIndex << NANITE_MAX_CLUSTERS_PER_PAGE_BITS) | Fixup.GetClusterGroupPartStartIndex());
+		uint32 ChildStartReference = false ? 0xFFFFFFFFu : ((TargetGPUPageIndex << NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS) | Fixup.GetClusterGroupPartStartIndex());
 		//uint32 Offset = (size_t) & (((FPackedHierarchyNode*)0)[0/*HierarchyOffset*/ + HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference);
 		//Hierarchy.UploadBuffer.Add(Offset / sizeof(uint32), &ChildStartReference);
 		NaniteMesh->HierarchyNodes[HierarchyNodeIndex].Misc1[ChildIndex].ChildStartReference = ChildStartReference;
@@ -552,11 +555,11 @@ void FStreamingPageUploader::RedirectClusterIdForClusterInstances(TNaniteMesh* N
 			TI_ASSERT(PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2) < BulkData.size());
 			uint32& PageAndCluster = *(uint32*)(PageDataPtr + PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2));
 
-			uint32 Page = PageAndCluster >> 16;
-			uint32 Cluster = PageAndCluster & 0xffff;
+			uint32 Page = PageAndCluster >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS;
+			uint32 Cluster = PageAndCluster & NANITE_MAX_CLUSTERS_PER_PAGE_MASK;
 			Page = GPUPages[Page];
 
-			PageAndCluster = (Page << 16) | Cluster;
+			PageAndCluster = (Page << NANITE_MAX_CLUSTERS_PER_PAGE_BITS) | Cluster;
 		}
 	}
 }

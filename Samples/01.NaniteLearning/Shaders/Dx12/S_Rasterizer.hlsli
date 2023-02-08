@@ -64,7 +64,7 @@ struct VSOut
 
 RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
 
-VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleCluster VisibleCluster, FCluster Cluster, uint VertIndex, uint PixelValue)
+VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleClusterInstance VisibleClusterInstance, FCluster Cluster, uint VertIndex, uint PixelValue)
 {
 	VSOut Out;
 
@@ -210,16 +210,17 @@ VSOut HWRasterizeVS(
 	VSOut Out;
 	Out.Position = float4(0,0,0,1);
 
-	FVisibleCluster VisibleCluster = GetVisibleCluster( VisibleIndex, 0 );
+	FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance( VisibleIndex, 0 );
 	//FInstanceSceneData InstanceData = GetInstanceSceneData( VisibleCluster.InstanceId, false );
 
-	FNaniteView NaniteView = GetNaniteView( VisibleCluster.ViewId );
+	FNaniteView NaniteView = GetNaniteView( VisibleClusterInstance.ViewId );
 
 //#if NANITE_VERTEX_PROGRAMMABLE
 //	ResolvedView = ResolveView(NaniteView);
 //#endif
 
-	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+	FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+	FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
 	FTriRange TriRange = GetTriangleRange(Cluster, false, RasterBin);
 
 	[branch]
@@ -233,7 +234,7 @@ VSOut HWRasterizeVS(
 		//}
 
 		const uint PixelValue = ((VisibleIndex + 1) << 7) | TriIndex;
-		Out = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, TriangleIndices[VertexID], PixelValue);
+		Out = CommonRasterizerVS(NaniteView, VisibleClusterInstance, Cluster, TriangleIndices[VertexID], PixelValue);
 // #if BARYCENTRIC_MODE_EXPORT
 // 		Out.BarycentricsUV = float2(
 // 			VertexID == 0 ? 1 : 0,
@@ -310,7 +311,7 @@ void HWRasterizeMS(
 #endif
 	VisibleIndex = (DecodeInfo.MaxVisibleClusters - 1) - VisibleIndex;
 
-	FVisibleCluster VisibleCluster = GetVisibleCluster(VisibleIndex, 0);
+	FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance(VisibleIndex, 0);
 	//FInstanceSceneData InstanceData = GetInstanceSceneData(VisibleCluster.InstanceId, false);
 
 	FNaniteView NaniteView = GetNaniteView(VisibleCluster.ViewId);
@@ -319,7 +320,8 @@ void HWRasterizeMS(
 //	ResolvedView = ResolveView(NaniteView);
 //#endif
 
-	FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+	FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+	FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
 	FTriRange TriRange = GetTriangleRange(Cluster, false, RasterBin);
 
 	SetMeshOutputCounts(Cluster.NumVerts, TriRange.Num);
@@ -570,9 +572,10 @@ float4 HWRasterizePS(VSOut In
 
 	if (VisibleClusterIndex != 0xFFFFFFFF)
 	{
-		FVisibleCluster VisibleCluster = GetVisibleCluster( VisibleClusterIndex );
+		FVisibleClusterInstance VisibleClusterInstance = GetVisibleClusterInstance( VisibleClusterIndex );
 
-		FCluster Cluster = GetCluster(VisibleCluster.PageIndex, VisibleCluster.ClusterIndex);
+		FClusterInstance CI = GetClusterInstance(VisibleClusterInstance.PageIndex, VisibleClusterInstance.ClusterInstanceIndex);
+		FCluster Cluster = GetCluster(CI.PageIndex, CI.ClusterIndex);
 
 		uint3 TriIndices = uint3(0, 0, 0);
 		const bool bCalcTriIndices = true;

@@ -31,13 +31,13 @@ uint GetHWClusterCounterIndex(uint InRenderFlags)
 //#endif
 }
 
-struct FVisibleCluster
+struct FVisibleClusterInstance
 {
 	uint	Flags;
 	uint	ViewId;
 	uint	InstanceId;
 	uint	PageIndex;
-	uint	ClusterIndex;
+	uint	ClusterInstanceIndex;
 	uint2	vPage;
 	uint2	vPageEnd;		// Last page to render (inclusive). Only used during SW rasterization currently
 };
@@ -45,6 +45,7 @@ struct FVisibleCluster
 struct FPageHeader
 {
 	uint	NumClusters;
+	uint	NumClusterInstances;
 };
 
 struct FCluster
@@ -62,15 +63,16 @@ struct FCluster
 	int		PosPrecision;
 	uint3	PosBits;
 
-	float4	LODBounds;
+	// moved to cluster instance below
+	//float4	LODBounds;
 
-	float3	BoxBoundsCenter;
-	uint	MipLevel;
-	float	LODError;
-	float	EdgeLength;
+	//float3	BoxBoundsCenter;
+	//uint	MipLevel;
+	//float	LODError;
+	//float	EdgeLength;
 
-	float3	BoxBoundsExtent;
-	uint	Flags;
+	//float3	BoxBoundsExtent;
+	//uint	Flags;
 
 	uint	AttributeOffset;
 	uint	BitsPerAttribute;
@@ -98,6 +100,23 @@ struct FCluster
 	uint	Material2Index;
 
 	uint4	VertReuseBatchInfo;
+};
+
+struct FClusterInstance
+{
+	float4	LODBounds;
+
+	float3	BoxBoundsCenter;
+	uint	MipLevel;
+	uint	PageIndex;
+	uint	ClusterIndex;
+	float	LODError;
+	float	EdgeLength;
+
+	float3	BoxBoundsExtent;
+	uint	Flags;
+	
+	float4x4 Transform;
 };
 
 struct FHierarchyNodeSlice
@@ -249,68 +268,73 @@ uint GetMaxClusterBatches() { return DecodeInfo.MaxCandidateClusters / NANITE_PE
 
 
 
-uint4 PackVisibleCluster(FVisibleCluster VisibleCluster, bool bHasPageData)
+uint4 PackVisibleClusterInstance(FVisibleClusterInstance VisibleClusterInstance, bool bHasPageData)
 {
+	// Since cluster instance bit is 32 (will be 11 in future), use a byte more
 	uint4 RawData = 0;
 	uint BitPos = 0;
-	WriteBits(RawData, BitPos, VisibleCluster.Flags,		NANITE_NUM_CULLING_FLAG_BITS);
-	WriteBits(RawData, BitPos, VisibleCluster.ViewId,		NANITE_MAX_VIEWS_PER_CULL_RASTERIZE_PASS_BITS);
-	WriteBits(RawData, BitPos, VisibleCluster.PageIndex,	NANITE_MAX_GPU_PAGES_BITS);
-	WriteBits(RawData, BitPos, VisibleCluster.InstanceId,	NANITE_MAX_INSTANCES_BITS);
-	WriteBits(RawData, BitPos, VisibleCluster.ClusterIndex, NANITE_MAX_CLUSTERS_PER_PAGE_BITS);
+	WriteBits(RawData, BitPos, VisibleClusterInstance.Flags,		NANITE_NUM_CULLING_FLAG_BITS);
+	WriteBits(RawData, BitPos, VisibleClusterInstance.ViewId,		NANITE_MAX_VIEWS_PER_CULL_RASTERIZE_PASS_BITS);
+	WriteBits(RawData, BitPos, VisibleClusterInstance.PageIndex,	NANITE_MAX_GPU_PAGES_BITS);
+	WriteBits(RawData, BitPos, VisibleClusterInstance.InstanceId,	NANITE_MAX_INSTANCES_BITS);
+	WriteBits(RawData, BitPos, 0, 32 - NANITE_MAX_INSTANCES_BITS);	// Store 8 bit 0 for alignment
+	WriteBits(RawData, BitPos, VisibleClusterInstance.ClusterInstanceIndex, NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS);
+	WriteBits(RawData, BitPos, 0, 32 - NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS); // Store 21 bit 0 for alignment
 	if (bHasPageData)
 	{
-		WriteBits(RawData, BitPos, VisibleCluster.vPage.x, 13);
-		WriteBits(RawData, BitPos, VisibleCluster.vPage.y, 13);
-		uint2 Delta = (VisibleCluster.vPageEnd - VisibleCluster.vPage) & 0x7;
+		WriteBits(RawData, BitPos, VisibleClusterInstance.vPage.x, 13);
+		WriteBits(RawData, BitPos, VisibleClusterInstance.vPage.y, 13);
+		uint2 Delta = (VisibleClusterInstance.vPageEnd - VisibleClusterInstance.vPage) & 0x7;
 		WriteBits(RawData, BitPos, Delta.x, 3);
 		WriteBits(RawData, BitPos, Delta.y, 3);
 	}
 	return RawData;
 }
 
-FVisibleCluster UnpackVisibleCluster(uint4 RawData, bool bHasPageData = false)
+FVisibleClusterInstance UnpackVisibleClusterInstance(uint4 RawData, bool bHasPageData = false)
 {
 	uint BitPos = 0;
-	FVisibleCluster VisibleCluster;
-	VisibleCluster.Flags		= ReadBits( RawData, BitPos, NANITE_NUM_CULLING_FLAG_BITS );
-	VisibleCluster.ViewId		= ReadBits( RawData, BitPos, NANITE_MAX_VIEWS_PER_CULL_RASTERIZE_PASS_BITS );
-	VisibleCluster.PageIndex	= ReadBits( RawData, BitPos, NANITE_MAX_GPU_PAGES_BITS );
-	VisibleCluster.InstanceId	= ReadBits( RawData, BitPos, NANITE_MAX_INSTANCES_BITS );
-	VisibleCluster.ClusterIndex	= ReadBits( RawData, BitPos, NANITE_MAX_CLUSTERS_PER_PAGE_BITS );
+	FVisibleClusterInstance VisibleClusterInstance;
+	VisibleClusterInstance.Flags		= ReadBits( RawData, BitPos, NANITE_NUM_CULLING_FLAG_BITS );
+	VisibleClusterInstance.ViewId		= ReadBits( RawData, BitPos, NANITE_MAX_VIEWS_PER_CULL_RASTERIZE_PASS_BITS );
+	VisibleClusterInstance.PageIndex	= ReadBits( RawData, BitPos, NANITE_MAX_GPU_PAGES_BITS );
+	VisibleClusterInstance.InstanceId	= ReadBits( RawData, BitPos, NANITE_MAX_INSTANCES_BITS );
+	uint temp 							= ReadBits( RawData, BitPos, 32 - NANITE_MAX_INSTANCES_BITS );
+	VisibleClusterInstance.ClusterInstanceIndex	= ReadBits( RawData, BitPos, NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS );
+	temp 								= ReadBits( RawData, BitPos, 32 - NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE_BITS );
 	if( bHasPageData )
 	{
-		VisibleCluster.vPage.x	= ReadBits( RawData, BitPos, 13 );
-		VisibleCluster.vPage.y	= ReadBits( RawData, BitPos, 13 );
-		VisibleCluster.vPageEnd.x	= ReadBits( RawData, BitPos, 3 );
-		VisibleCluster.vPageEnd.y	= ReadBits( RawData, BitPos, 3 );
-		VisibleCluster.vPageEnd += VisibleCluster.vPage;
+		VisibleClusterInstance.vPage.x	= ReadBits( RawData, BitPos, 13 );
+		VisibleClusterInstance.vPage.y	= ReadBits( RawData, BitPos, 13 );
+		VisibleClusterInstance.vPageEnd.x	= ReadBits( RawData, BitPos, 3 );
+		VisibleClusterInstance.vPageEnd.y	= ReadBits( RawData, BitPos, 3 );
+		VisibleClusterInstance.vPageEnd += VisibleClusterInstance.vPage;
 	}
 	else
 	{
-		VisibleCluster.vPage = 0;
+		VisibleClusterInstance.vPage = 0;
 	}
 
-	return VisibleCluster;
+	return VisibleClusterInstance;
 }
 
-FVisibleCluster GetVisibleCluster( ByteAddressBuffer VisibleClusters, uint ClusterIdx, bool bHasPageData = false )
+FVisibleClusterInstance GetVisibleClusterInstance( ByteAddressBuffer VisibleClusters, uint ClusterInstanceIdx, bool bHasPageData = false )
 {
 	uint4 RawData;
 	if( bHasPageData )
-		RawData = uint4( VisibleClusters.Load3( ClusterIdx * 12 ), 0 );
+		RawData = VisibleClusters.Load4( ClusterInstanceIdx * 16 );
 	else
-		RawData = uint4( VisibleClusters.Load2( ClusterIdx * 8 ), 0, 0 );
+		RawData = uint4( VisibleClusters.Load3( ClusterInstanceIdx * 12 ), 0 );
 
-	return UnpackVisibleCluster(RawData, bHasPageData);
+	return UnpackVisibleClusterInstance(RawData, bHasPageData);
 }
 
-FVisibleCluster GetVisibleCluster( uint ClusterIdx, bool bHasPageData )
+FVisibleClusterInstance GetVisibleClusterInstance( uint ClusterInstanceIdx, bool bHasPageData )
 {
 #if NANITE_USE_RAYTRACING_UNIFORM_BUFFER
-	return (FVisibleCluster)0;
+	return (FVisibleClusterInstance)0;
 #else
-	return GetVisibleCluster( VisibleClustersSWHW, ClusterIdx, bHasPageData );
+	return GetVisibleClusterInstance( VisibleClustersSWHW, ClusterInstanceIdx, bHasPageData );
 #endif
 }
 
@@ -319,25 +343,25 @@ bool IsVisibleClusterIndexImposter(uint ClusterIndex)
 	return ClusterIndex >= (1 << 24);
 }
 
-FVisibleCluster GetVisibleCluster( uint ClusterIndex )
+FVisibleClusterInstance GetVisibleClusterInstance( uint ClusterInstanceIndex )
 {
-	FVisibleCluster VisibleCluster;
+	FVisibleClusterInstance VisibleClusterInstance;
 
-	if( IsVisibleClusterIndexImposter(ClusterIndex) )
+	if( IsVisibleClusterIndexImposter(ClusterInstanceIndex) )
 	{
 		// Couldn't have been stored so signals this is an imposter
-		VisibleCluster.Flags = 1 << NANITE_NUM_CULLING_FLAG_BITS;
-		VisibleCluster.ViewId = 0;	// TODO
-		VisibleCluster.InstanceId = BitFieldExtractU32( ClusterIndex, NANITE_MAX_INSTANCES_BITS - 1, 1 );
-		VisibleCluster.PageIndex = 0;
-		VisibleCluster.ClusterIndex = ClusterIndex & 1;
+		VisibleClusterInstance.Flags = 1 << NANITE_NUM_CULLING_FLAG_BITS;
+		VisibleClusterInstance.ViewId = 0;	// TODO
+		VisibleClusterInstance.InstanceId = BitFieldExtractU32( ClusterInstanceIndex, NANITE_MAX_INSTANCES_BITS - 1, 1 );
+		VisibleClusterInstance.PageIndex = 0;
+		VisibleClusterInstance.ClusterInstanceIndex = ClusterInstanceIndex & 1;
 	}
 	else
 	{
-		VisibleCluster = GetVisibleCluster( ClusterIndex, false );
+		VisibleClusterInstance = GetVisibleClusterInstance( ClusterInstanceIndex, false );
 	}
 
-	return VisibleCluster;
+	return VisibleClusterInstance;
 }
 
 //FInstanceSceneData GetInstanceSceneData( inout FVisibleCluster VisibleCluster, bool bCheckValid = true )
@@ -393,28 +417,29 @@ FCluster UnpackCluster(uint4 ClusterData[NANITE_NUM_PACKED_CLUSTER_FLOAT4S])
 	Cluster.PosBits.y			= BitFieldExtractU32(ClusterData[1].w, 5, 14);
 	Cluster.PosBits.z			= BitFieldExtractU32(ClusterData[1].w, 5, 19);
 
-	Cluster.LODBounds			= asfloat(ClusterData[2]);
+	// TiX: moved to Cluster Isntance
+	//Cluster.LODBounds			= asfloat(ClusterData[2]);
 
-	//Cluster.BoxBoundsCenter		= asfloat(ClusterData[3].xyz);
-	// tix : BoxBoundsCenter is BoxBoundsCenter16_MipLevel; decode it
-	Cluster.BoxBoundsCenter.x 	= f16tof32(ClusterData[3].x >> 16);
-	Cluster.BoxBoundsCenter.y 	= f16tof32(ClusterData[3].x & 0xffffu);
-	Cluster.BoxBoundsCenter.z 	= f16tof32(ClusterData[3].y >> 16);
-	Cluster.MipLevel			= ClusterData[3].y & 0xffffu;
+	////Cluster.BoxBoundsCenter		= asfloat(ClusterData[3].xyz);
+	//// tix : BoxBoundsCenter is BoxBoundsCenter16_MipLevel; decode it
+	// Cluster.BoxBoundsCenter.x 	= f16tof32(ClusterData[3].x >> 16);
+	// Cluster.BoxBoundsCenter.y 	= f16tof32(ClusterData[3].x & 0xffffu);
+	// Cluster.BoxBoundsCenter.z 	= f16tof32(ClusterData[3].y >> 16);
+	// Cluster.MipLevel			= ClusterData[3].y & 0xffffu;
 	
-	Cluster.LODError			= f16tof32(ClusterData[3].w);
-	Cluster.EdgeLength			= f16tof32(ClusterData[3].w >> 16);
+	// Cluster.LODError			= f16tof32(ClusterData[3].w);
+	// Cluster.EdgeLength			= f16tof32(ClusterData[3].w >> 16);
 
-	Cluster.BoxBoundsExtent		= asfloat(ClusterData[4].xyz);
-	Cluster.Flags				= ClusterData[4].w;
+	// Cluster.BoxBoundsExtent		= asfloat(ClusterData[4].xyz);
+	// Cluster.Flags				= ClusterData[4].w;
 
-	Cluster.AttributeOffset		= BitFieldExtractU32(ClusterData[5].x, 22,  0);
-	Cluster.BitsPerAttribute	= BitFieldExtractU32(ClusterData[5].x, 10, 22);
-	Cluster.DecodeInfoOffset	= BitFieldExtractU32(ClusterData[5].y, 22,  0);
-	Cluster.NumUVs				= BitFieldExtractU32(ClusterData[5].y,  3, 22);
-	Cluster.ColorMode			= BitFieldExtractU32(ClusterData[5].y,  2, 22+3);
-	Cluster.UV_Prec				= ClusterData[5].z;
-	const uint MaterialEncoding = ClusterData[5].w;
+	Cluster.AttributeOffset		= BitFieldExtractU32(ClusterData[2].x, 22,  0);
+	Cluster.BitsPerAttribute	= BitFieldExtractU32(ClusterData[2].x, 10, 22);
+	Cluster.DecodeInfoOffset	= BitFieldExtractU32(ClusterData[2].y, 22,  0);
+	Cluster.NumUVs				= BitFieldExtractU32(ClusterData[2].y,  3, 22);
+	Cluster.ColorMode			= BitFieldExtractU32(ClusterData[2].y,  2, 22+3);
+	Cluster.UV_Prec				= ClusterData[2].z;
+	const uint MaterialEncoding = ClusterData[2].w;
 
 	// Material Table Range Encoding (32 bits)
 	// uint TriStart        :  8;  // max 128 triangles
@@ -434,39 +459,71 @@ FCluster UnpackCluster(uint4 ClusterData[NANITE_NUM_PACKED_CLUSTER_FLOAT4S])
 	// uint BufferLength    : 6;  // max 64 ranges (num minus one)
 	// uint Padding         : 7;  // always 127 for slow path. corresponds to Material1Length=127 in fast path
 
-	[branch]
-	if (MaterialEncoding < 0xFE000000u)
-	{
-		// Fast inline path
-		Cluster.MaterialTableOffset	= 0;
-		Cluster.MaterialTableLength	= 0;		
-		Cluster.Material0Index		= BitFieldExtractU32(MaterialEncoding, 6, 0);
-		Cluster.Material1Index		= BitFieldExtractU32(MaterialEncoding, 6, 6);
-		Cluster.Material2Index		= BitFieldExtractU32(MaterialEncoding, 6, 12);
-		Cluster.Material0Length		= BitFieldExtractU32(MaterialEncoding, 7, 18) + 1;
-		Cluster.Material1Length		= BitFieldExtractU32(MaterialEncoding, 7, 25);
+	// TiX: Ignore Material for now.
+	// [branch]
+	// if (MaterialEncoding < 0xFE000000u)
+	// {
+	// 	// Fast inline path
+	// 	Cluster.MaterialTableOffset	= 0;
+	// 	Cluster.MaterialTableLength	= 0;		
+	// 	Cluster.Material0Index		= BitFieldExtractU32(MaterialEncoding, 6, 0);
+	// 	Cluster.Material1Index		= BitFieldExtractU32(MaterialEncoding, 6, 6);
+	// 	Cluster.Material2Index		= BitFieldExtractU32(MaterialEncoding, 6, 12);
+	// 	Cluster.Material0Length		= BitFieldExtractU32(MaterialEncoding, 7, 18) + 1;
+	// 	Cluster.Material1Length		= BitFieldExtractU32(MaterialEncoding, 7, 25);
 
-		Cluster.VertReuseBatchCountTableOffset = 0;
-		Cluster.VertReuseBatchCountTableSize = 0;
-		Cluster.VertReuseBatchInfo	= ClusterData[6];
-	}
-	else
-	{
-		// Slow global search path
-		Cluster.MaterialTableOffset = BitFieldExtractU32(MaterialEncoding, 19, 0);
-		Cluster.MaterialTableLength	= BitFieldExtractU32(MaterialEncoding, 6, 19) + 1;
-		Cluster.Material0Index		= 0;
-		Cluster.Material1Index		= 0;
-		Cluster.Material2Index		= 0;
-		Cluster.Material0Length		= 0;
-		Cluster.Material1Length		= 0;
+	// 	Cluster.VertReuseBatchCountTableOffset = 0;
+	// 	Cluster.VertReuseBatchCountTableSize = 0;
+	// 	Cluster.VertReuseBatchInfo	= ClusterData[6];
+	// }
+	// else
+	// {
+	// 	// Slow global search path
+	// 	Cluster.MaterialTableOffset = BitFieldExtractU32(MaterialEncoding, 19, 0);
+	// 	Cluster.MaterialTableLength	= BitFieldExtractU32(MaterialEncoding, 6, 19) + 1;
+	// 	Cluster.Material0Index		= 0;
+	// 	Cluster.Material1Index		= 0;
+	// 	Cluster.Material2Index		= 0;
+	// 	Cluster.Material0Length		= 0;
+	// 	Cluster.Material1Length		= 0;
 
-		Cluster.VertReuseBatchCountTableOffset = ClusterData[6].x;
-		Cluster.VertReuseBatchCountTableSize = ClusterData[6].y;
-		Cluster.VertReuseBatchInfo = 0;
-	}
+	// 	Cluster.VertReuseBatchCountTableOffset = ClusterData[6].x;
+	// 	Cluster.VertReuseBatchCountTableSize = ClusterData[6].y;
+	// 	Cluster.VertReuseBatchInfo = 0;
+	// }
 
 	return Cluster;
+}
+
+FClusterInstance UnpackClusterInstance(uint4 ClusterInstanceData[NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S])
+{
+	FClusterInstance ClusterInstance;
+
+	ClusterInstance.LODBounds			= asfloat(ClusterInstanceData[0]);
+
+	//ClusterInstance.BoxBoundsCenter		= asfloat(ClusterInstanceData[3].xyz);
+	// tix : BoxBoundsCenter is BoxBoundsCenter16_MipLevel; decode it
+	ClusterInstance.BoxBoundsCenter.x 	= f16tof32(ClusterInstanceData[1].x >> 16);
+	ClusterInstance.BoxBoundsCenter.y 	= f16tof32(ClusterInstanceData[1].x & 0xffffu);
+	ClusterInstance.BoxBoundsCenter.z 	= f16tof32(ClusterInstanceData[1].y >> 16);
+	ClusterInstance.MipLevel			= ClusterInstanceData[1].y & 0xffffu;
+
+	ClusterInstance.PageIndex			= ClusterInstanceData[1].z >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS;
+	ClusterInstance.ClusterIndex		= ClusterInstanceData[1].z & NANITE_MAX_CLUSTERS_PER_PAGE_MASK;
+	
+	ClusterInstance.LODError			= f16tof32(ClusterInstanceData[1].w);
+	ClusterInstance.EdgeLength			= f16tof32(ClusterInstanceData[1].w >> 16);
+
+	ClusterInstance.BoxBoundsExtent		= asfloat(ClusterInstanceData[2].xyz);
+	ClusterInstance.Flags				= ClusterInstanceData[2].w;
+
+	// tix TODO : load transform
+	ClusterInstance.Transform[0] = float4(1, 0, 0, 0);
+	ClusterInstance.Transform[1] = float4(0, 1, 0, 0);
+	ClusterInstance.Transform[2] = float4(0, 0, 1, 0);
+	ClusterInstance.Transform[3] = float4(0, 0, 0, 1);
+
+	return ClusterInstance;
 }
 
 uint GPUPageIndexToGPUOffset(uint PageIndex)
@@ -479,6 +536,7 @@ FPageHeader UnpackPageHeader(uint4 Data)
 {
 	FPageHeader Header;
 	Header.NumClusters = Data.x;
+	Header.NumClusterInstances = Data.y;
 	return Header;
 }
 
@@ -528,6 +586,43 @@ FCluster GetCluster(uint PageIndex, uint ClusterIndex)
 	FCluster Cluster = GetCluster(ClusterPageData, PageBaseAddress, ClusterIndex, Header.NumClusters);
 	Cluster.PageBaseAddress = PageBaseAddress;
 	return Cluster;
+}
+
+FClusterInstance GetClusterInstance(ByteAddressBuffer InputBuffer, uint SrcBaseOffset, uint ClusterInstanceIndex, uint NumPageClusterInstances, uint NumPageClusters)
+{
+	const uint ClusterInstanceSOAStride = (NumPageClusterInstances << 4);
+	const uint ClusterInstanceBaseAddress = SrcBaseOffset + (ClusterInstanceIndex << 4) + NumPageClusters * NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16;
+
+	uint4 ClusterInstanceData[NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S];
+	[unroll]
+	for (int i = 0; i < NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S; i++)
+	{
+		ClusterInstanceData[i] = InputBuffer.Load4( ClusterInstanceBaseAddress + i * ClusterInstanceSOAStride + NANITE_GPU_PAGE_HEADER_SIZE );  // Adding NANITE_GPU_PAGE_HEADER_SIZE inside the loop prevents compiler confusion about offset modifier and generates better code
+	}
+	return UnpackClusterInstance(ClusterInstanceData);
+}
+
+FClusterInstance GetClusterInstance(RWByteAddressBuffer InputBuffer, uint SrcBaseOffset, uint ClusterInstanceIndex, uint NumPageClusterInstances, uint NumPageClusters)
+{
+	const uint ClusterInstanceSOAStride = (NumPageClusterInstances << 4);
+	const uint ClusterInstanceBaseAddress = SrcBaseOffset + (ClusterInstanceIndex << 4) + NumPageClusters * NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16;
+
+	uint4 ClusterInstanceData[NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S];
+	[unroll]
+	for (int i = 0; i < NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S; i++)
+	{
+		ClusterInstanceData[i] = InputBuffer.Load4( ClusterInstanceBaseAddress + i * ClusterInstanceSOAStride + NANITE_GPU_PAGE_HEADER_SIZE );  // Adding NANITE_GPU_PAGE_HEADER_SIZE inside the loop prevents compiler confusion about offset modifier and generates better code
+	}
+	return UnpackClusterInstance(ClusterInstanceData);
+}
+
+FClusterInstance GetClusterInstance(uint PageIndex, uint ClusterInstanceIndex)
+{
+	uint PageBaseAddress = GPUPageIndexToGPUOffset(PageIndex);
+	FPageHeader Header = GetPageHeader(ClusterPageData, PageBaseAddress);
+	FClusterInstance ClusterInstance = GetClusterInstance(ClusterPageData, PageBaseAddress, ClusterInstanceIndex, Header.NumClusterInstances, Header.NumClusters);
+	//ClusterInstance.PageBaseAddress = PageBaseAddress;
+	return ClusterInstance;
 }
 
 FHierarchyNodeSlice GetHierarchyNodeSlice(uint NodeIndex, uint ChildIndex)

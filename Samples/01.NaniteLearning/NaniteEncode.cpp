@@ -762,9 +762,9 @@ static void PackClusterInstance(FPackedClusterInstance& OutClusterInstance, cons
 	U2Data.Y = (float16(BoxBoundsCenter.Z).data() << 16) | (Cluster.MipLevel & 0xffff);
 	OutClusterInstance.BoxBoundsCenter16_MipLevel = U2Data;
 	// Cluster Page Index and Index in this page
-	TI_ASSERT(Cluster.ClusterPageIndex < (1 << 16));
+	TI_ASSERT(Cluster.ClusterPageIndex < (1 << (32-NANITE_MAX_CLUSTERS_PER_PAGE_BITS)));
 	TI_ASSERT(Cluster.ClusterIndexInPage < NANITE_MAX_CLUSTERS_PER_PAGE);
-	OutClusterInstance.PageAndCluster = (Cluster.ClusterPageIndex << 16) | Cluster.ClusterIndexInPage;
+	OutClusterInstance.PageAndCluster = (Cluster.ClusterPageIndex << NANITE_MAX_CLUSTERS_PER_PAGE_BITS) | Cluster.ClusterIndexInPage;
 
 	// 4
 	OutClusterInstance.BoxBoundsExtent = ClusterBounds.GetExtent() * 0.5f;
@@ -2165,6 +2165,7 @@ void WritePages(
 )
 { 
 	Mesh.NumRootPageClusters = Pages[0].NumClusters;
+	Mesh.NumRootPageClusterInstances = Pages[0].NumClusterInstances;
 
 	TI_ASSERT(Mesh.PageStreamingStates.size() == 0);
 
@@ -2182,6 +2183,7 @@ void WritePages(
 		const FPage& Page = Pages[PageIndex];
 		FFixupChunk& FixupChunk = FixupChunks[PageIndex];
 		FixupChunk.Header.NumClusters = Page.NumClusters;
+		FixupChunk.Header.NumClusterInstances = Page.NumClusterInstances;
 		TotalClusters += Page.NumClusters;
 
 		uint32 NumHierarchyFixups = 0;
@@ -2221,8 +2223,8 @@ void WritePages(
 				if (PageDependencyNum == 0)
 					continue;	// Dependencies already met by current page and/or root pages
 
-				const FClusterFixup ClusterFixup = FClusterFixup(Part.PageIndex, Part.PageClusterOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
-				const FUInt4 D = FUInt4(Part.PageIndex, Part.PageClusterOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
+				const FClusterFixup ClusterFixup = FClusterFixup(Part.PageIndex, Part.PageClusterInstanceOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
+				const FUInt4 D = FUInt4(Part.PageIndex, Part.PageClusterInstanceOffset + ClusterPositionInPart, PageDependencyStart, PageDependencyNum);
 				for (uint32 i = 0; i < GeneratingGroup.PageIndexNum; i++)
 				{
 					//TODO: Implement some sort of FFixupPart to not redundantly store PageIndexStart/PageIndexNum?
@@ -2232,7 +2234,7 @@ void WritePages(
 					if (UniqueClusterFixups[_PageIndex].count(D) == 0)
 					{
 						FixupChunk.GetClusterFixup(FixupChunk.Header.NumClusterFixups++) = ClusterFixup;
-						TI_ASSERT(FixupChunk.Header.NumClusterFixups <= NANITE_MAX_CLUSTERS_PER_PAGE);
+						TI_ASSERT(FixupChunk.Header.NumClusterFixups < NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE);
 						UniqueClusterFixups[_PageIndex].insert(D);
 					}
 				}
@@ -2317,7 +2319,7 @@ void WritePages(
 									Part2.PageIndex, 
 									GlobalHierarchyNodeIndex, 
 									Part2.HierarchyChildIndex, 
-									Part2.PageClusterOffset, 
+									Part2.PageClusterInstanceOffset, 
 									PageDependencyStart, 
 									PageDependencyNum
 								);
@@ -2692,7 +2694,7 @@ void WritePages(
 		// Write fixup chunk
 		uint32 FixupChunkSize = FixupChunk.GetSize();
 		TI_ASSERT(FixupChunk.Header.NumHierachyFixups < NANITE_MAX_CLUSTERS_PER_PAGE);
-		TI_ASSERT(FixupChunk.Header.NumClusterFixups < NANITE_MAX_CLUSTERS_PER_PAGE);
+		TI_ASSERT(FixupChunk.Header.NumClusterFixups < NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE);
 		AppendToBulkData((uint8*)&FixupChunk, FixupChunkSize);
 		TotalFixupSize += FixupChunkSize;
 
@@ -2741,6 +2743,9 @@ static uint32 CalculateMaxRootPages(uint32 TargetResidencyInKB)
 	const uint64 SizeInBytes = uint64(TargetResidencyInKB) << 10;
 	return (uint32)TMath::Clamp((SizeInBytes + NANITE_ROOT_PAGE_GPU_SIZE - 1u) >> NANITE_ROOT_PAGE_GPU_SIZE_BITS, 1llu, (uint64)MAX_uint32);
 }
+
+static_assert(sizeof(FPackedCluster) == NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_FLOAT4S out of sync with sizeof(FPackedCluster)");
+static_assert(sizeof(FPackedClusterInstance) == NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S out of sync with sizeof(FPackedClusterInstance)");
 
 void Encode(
 	TNaniteMesh& Mesh,

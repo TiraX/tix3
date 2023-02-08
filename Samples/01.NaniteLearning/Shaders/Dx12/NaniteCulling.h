@@ -20,38 +20,38 @@ struct FCandidateNode
 };
 
 uint GetCandidateNodeSize(bool bPostPass)		{ return bPostPass ? 12u : 8u; }
-uint GetCandidateClusterSize()					{ return 8u; }
+uint GetCandidateClusterInstanceSize()			{ return 12u; }
 
 // NodesAndClusterBatches layout: Main Cluster Batches, Main Candidate Nodes, Post Cluster Batches, Post Candidate Nodes
 uint GetClusterBatchesOffset()					{ return 0u; }
 uint GetCandidateNodesOffset()					{ return GetMaxClusterBatches() * 4u; }
 uint GetNodesAndBatchesOffset(bool bPostPass)	{ return bPostPass ? (GetCandidateNodesOffset() + DecodeInfo.MaxNodes * GetCandidateNodeSize(false)) : 0u; }
-uint GetCandidateClusterOffset()				{ return 0u; }
+uint GetCandidateClusterInstanceOffset()		{ return 0u; }
 
 // CandidateClusters must be globallycoherent here, otherwise DXC will make buffer access non-globallycoherent when targeting SM6.6.
-void StoreCandidateClusterCoherentNoCheck(RWCoherentByteAddressBuffer CandidateClusters, uint ClusterIndex, FVisibleCluster VisibleCluster)
+void StoreCandidateClusterInstanceCoherentNoCheck(RWCoherentByteAddressBuffer CandidateClusters, uint ClusterInstanceIndex, FVisibleClusterInstance VisibleClusterInstance)
 {
-	uint4 RawData = PackVisibleCluster(VisibleCluster, false);
-	CandidateClusters.Store2(GetCandidateClusterOffset() + ClusterIndex * GetCandidateClusterSize(), RawData.xy);
+	uint4 RawData = PackVisibleClusterInstance(VisibleClusterInstance, false);
+	CandidateClusters.Store3(GetCandidateClusterInstanceOffset() + ClusterInstanceIndex * GetCandidateClusterInstanceSize(), RawData.xyz);
 }
 
 // CandidateClusters must be globallycoherent here, otherwise DXC will make buffer access non-globallycoherent when targeting SM6.6.
-void StoreCandidateClusterCoherent(RWCoherentByteAddressBuffer CandidateClusters, uint ClusterIndex, FVisibleCluster VisibleCluster)
+void StoreCandidateClusterInstanceCoherent(RWCoherentByteAddressBuffer CandidateClusters, uint ClusterInstanceIndex, FVisibleClusterInstance VisibleClusterInstance)
 {
 	//checkSlow(ClusterIndex < MaxCandidateClusters);
-	StoreCandidateClusterCoherentNoCheck(CandidateClusters, ClusterIndex, VisibleCluster);
+	StoreCandidateClusterInstanceCoherentNoCheck(CandidateClusters, ClusterInstanceIndex, VisibleClusterInstance);
 }
 
-void StoreVisibleCluster(RWByteAddressBuffer VisibleClusters, uint ClusterIdx, FVisibleCluster VisibleCluster, bool bHasPageData = false)
+void StoreVisibleClusterInstance(RWByteAddressBuffer VisibleClusters, uint ClusterIdx, FVisibleClusterInstance VisibleClusterInstance, bool bHasPageData = false)
 {
-	uint4 RawData = PackVisibleCluster(VisibleCluster, bHasPageData);
+	uint4 RawData = PackVisibleClusterInstance(VisibleClusterInstance, bHasPageData);
 	if (bHasPageData)
 	{
-		VisibleClusters.Store3(ClusterIdx * 12, RawData.xyz);
+		VisibleClusters.Store4(ClusterIdx * 16, RawData);
 	}
 	else
 	{
-		VisibleClusters.Store2(ClusterIdx * 8, RawData.xy);
+		VisibleClusters.Store3(ClusterIdx * 12, RawData.xyz);
 	}
 }
 
