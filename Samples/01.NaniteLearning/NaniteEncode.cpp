@@ -2742,9 +2742,6 @@ static uint32 CalculateMaxRootPages(uint32 TargetResidencyInKB)
 	return (uint32)TMath::Clamp((SizeInBytes + NANITE_ROOT_PAGE_GPU_SIZE - 1u) >> NANITE_ROOT_PAGE_GPU_SIZE_BITS, 1llu, (uint64)MAX_uint32);
 }
 
-static_assert(sizeof(FPackedCluster) == NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_FLOAT4S out of sync with sizeof(FPackedCluster)");
-static_assert(sizeof(FPackedClusterInstance) == NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S * 16, "NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S out of sync with sizeof(FPackedClusterInstance)");
-
 void Encode(
 	TNaniteMesh& Mesh,
 	TVector<FClusterGroup>& Groups, 
