@@ -571,13 +571,14 @@ void BuildDAGFromLODs(
 	RootClusterGroup.MipLevel = RootCluster.MipLevel + 1;
 	RootClusterGroup.MeshIndex = MeshIndex;
 	RootClusterGroup.bTrimmed = false;
-	RootCluster.GroupIndex = (uint32)ClusterGroups.size();
+	//RootCluster.GroupIndex = (uint32)ClusterGroups.size();
 	RootCI.GroupIndex = (uint32)ClusterGroups.size();
 	ClusterGroups.push_back(RootClusterGroup);
 }
 
 void SaveToDisk(TNaniteMesh& Mesh)
 {
+	return;
 	const TString DestFilename = MeshFilename + ".tasset";
 
 	FNaniteAssetHeader Header;

@@ -20,7 +20,7 @@ public:
 	static FUniformBufferPtr AllocateClusterPageBuffer(FRHICmdList* RHICmdList);
 	static FUniformBufferPtr AllocateHierarchyBuffer(FRHICmdList* RHICmdList, const TVector<FPackedHierarchyNode>& HierarchyNodes);
 private:
-	void ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh);
+	void ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh, const TVector<uint8>& BulkData);
 	void RedirectClusterIdForClusterInstances(TNaniteMesh* NaniteMesh);
 
 private:

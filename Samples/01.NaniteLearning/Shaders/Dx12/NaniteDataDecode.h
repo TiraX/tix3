@@ -83,7 +83,7 @@ struct FCluster
 
 	uint	ColorMin;
 	uint	ColorBits;
-	uint	GroupIndex;		// Debug only
+	//uint	GroupIndex;		// Debug only
 
 	// Material Slow path
 	uint	MaterialTableOffset;
@@ -115,6 +115,7 @@ struct FClusterInstance
 
 	float3	BoxBoundsExtent;
 	uint	Flags;
+	uint	GroupIndex;		// Debug only
 	
 	float4x4 Transform;
 };
@@ -408,7 +409,7 @@ FCluster UnpackCluster(uint4 ClusterData[NANITE_NUM_PACKED_CLUSTER_FLOAT4S])
 
 	Cluster.ColorMin			= ClusterData[0].z;
 	Cluster.ColorBits			= BitFieldExtractU32(ClusterData[0].w, 16, 0);
-	Cluster.GroupIndex			= BitFieldExtractU32(ClusterData[0].w, 16, 16);			// Debug only
+	//Cluster.GroupIndex			= BitFieldExtractU32(ClusterData[0].w, 16, 16);			// Debug only
 
 	Cluster.PosStart			= ClusterData[1].xyz;
 	Cluster.BitsPerIndex		= BitFieldExtractU32(ClusterData[1].w, 4, 0);
@@ -515,7 +516,8 @@ FClusterInstance UnpackClusterInstance(uint4 ClusterInstanceData[NANITE_NUM_PACK
 	ClusterInstance.EdgeLength			= f16tof32(ClusterInstanceData[1].w >> 16);
 
 	ClusterInstance.BoxBoundsExtent		= asfloat(ClusterInstanceData[2].xyz);
-	ClusterInstance.Flags				= ClusterInstanceData[2].w;
+	ClusterInstance.Flags				= ClusterInstanceData[2].w & 0xffffu;
+	ClusterInstance.GroupIndex			= ClusterInstanceData[2].w >> 16;			// Debug only
 
 	// tix TODO : load transform
 	ClusterInstance.Transform[0] = float4(1, 0, 0, 0);

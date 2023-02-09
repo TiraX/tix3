@@ -258,8 +258,8 @@ void ExpandClusters(
 		oCluster.LODError = CI.LODError;
 		oCluster.LODBounds = CI.TransformedLODBounds;
 		oCluster.SphereBounds = CI.TransformedSphereBounds;
-		oCluster.GroupIndex = CI.GroupIndex;
-		oCluster.GeneratingGroupIndex = CI.GeneratingGroupIndex;
+		//oCluster.GroupIndex = CI.GroupIndex;
+		//oCluster.GeneratingGroupIndex = CI.GeneratingGroupIndex;
 		oCluster.EdgeLength = CI.TransformedEdgeLength;
 	}
 }
@@ -703,7 +703,7 @@ static void PackCluster(FPackedCluster& OutCluster, const FCluster& InCluster, c
 	OutCluster.SetColorBitsG(EncodingInfo.ColorBits.Y);
 	OutCluster.SetColorBitsB(EncodingInfo.ColorBits.Z);
 	OutCluster.SetColorBitsA(EncodingInfo.ColorBits.W);
-	OutCluster.SetGroupIndex(InCluster.GroupIndex);
+	//OutCluster.SetGroupIndex(InCluster.GroupIndex);
 
 	// 1
 	OutCluster.PosStart = InCluster.QuantizedPosStart;
@@ -768,8 +768,11 @@ static void PackClusterInstance(FPackedClusterInstance& OutClusterInstance, cons
 
 	// 4
 	OutClusterInstance.BoxBoundsExtent = ClusterBounds.GetExtent() * 0.5f;
-	OutClusterInstance.Flags = NANITE_CLUSTER_FLAG_LEAF;
-	OutClusterInstance.Flags |= Cluster.Flags;
+	OutClusterInstance.Flags_GroupIndex = NANITE_CLUSTER_FLAG_LEAF;
+	OutClusterInstance.Flags_GroupIndex |= Cluster.Flags;
+	TI_ASSERT(OutClusterInstance.Flags_GroupIndex < (1 << 16));
+	TI_ASSERT(InClusterInstance.GroupIndex < (1 << 16));
+	OutClusterInstance.Flags_GroupIndex |= (InClusterInstance.GroupIndex << 16);
 
 	// 5 transform matrix
 	OutClusterInstance.Transform[0] = InClusterInstance.Transform[0];
@@ -830,7 +833,7 @@ void CalculateEncodingInfo(FEncodingInfo& Info, const FCluster& Cluster, bool bH
 	Info.BitsPerAttribute = 2 * NANITE_NORMAL_QUANTIZATION_BITS;
 
 	TI_ASSERT(NumClusterVerts > 0);
-	const bool bIsLeaf = (Cluster.GeneratingGroupIndex == INVALID_GROUP_INDEX);
+	//const bool bIsLeaf = (Cluster.GeneratingGroupIndex == INVALID_GROUP_INDEX);
 
 	// Vertex colors
 	Info.ColorMode = NANITE_VERTEX_COLOR_MODE_WHITE;
@@ -2453,7 +2456,7 @@ void WritePages(
 					if (PageDependencyNum == 0)
 					{
 						// Dependencies already met by current page and/or root pages. Fixup directly.
-						PackedClusterInstances[Part.PageClusterInstanceOffset + ClusterPositionInPart].Flags &= ~NANITE_CLUSTER_FLAG_LEAF;	// Mark parent as no longer leaf
+						PackedClusterInstances[Part.PageClusterInstanceOffset + ClusterPositionInPart].Flags_GroupIndex &= ~NANITE_CLUSTER_FLAG_LEAF;	// Mark parent as no longer leaf
 					}
 				}
 			}

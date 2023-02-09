@@ -62,7 +62,7 @@ struct VSOut
 };
 
 
-RWTexture2D<UlongType>	OutVisBuffer64 : register(u0);
+RWTexture2D<UlongType>	OutVisBuffer64 : register(u1);
 
 VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleClusterInstance VisibleClusterInstance, FCluster Cluster, uint VertIndex, uint PixelValue)
 {
@@ -192,7 +192,7 @@ uint3 Rand3DPCG16(int3 p)
 #define HWRasterizeRS \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
 	"RootConstants(num32BitConstants=10, b0)," \
-	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u0)) "
+	"DescriptorTable(SRV(t0, numDescriptors=4), UAV(u1)) "
 
 [RootSignature(HWRasterizeRS)]
 VSOut HWRasterizeVS(
@@ -246,7 +246,7 @@ VSOut HWRasterizeVS(
 		Out.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.y = TriIndex;
 
 		// Calc a color value by GroupIndex for debug
-		uint3 color = Rand3DPCG16(Cluster.GroupIndex.xxx);
+		uint3 color = Rand3DPCG16(CI.GroupIndex.xxx);
 		uint PackedColor = (color.x & 0xff) | ((color.y & 0xff) << 8) | ((color.z & 0xff) << 16);
 		Out.PixelValue_ViewId_Mip_ArrayIndex_LevelOffset.z = PackedColor;
 	}
@@ -558,7 +558,7 @@ float4 HWRasterizePS(VSOut In
 	//[branch]
 	//if (MaterialMask >= 0)
 	{
-		WriteToVisBuffer(WriteParams);
+		// WriteToVisBuffer(WriteParams);
 	}
 #if NANITE_MESH_SHADER
  	// In.PixelValue will be 0 here because mesh shaders will pass down the following indices through per-primitive attributes.

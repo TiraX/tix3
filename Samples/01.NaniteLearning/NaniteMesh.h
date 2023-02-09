@@ -73,7 +73,7 @@ struct FPackedCluster
 	uint32 NumVerts_PositionOffset;					// NumVerts:9, PositionOffset:23
 	uint32 NumTris_IndexOffset;						// NumTris:8, IndexOffset: 24
 	uint32 ColorMin;
-	uint32 ColorBits_GroupIndex;						// R:4, G:4, B:4, A:4. (GroupIndex&0xFFFF) is for debug visualization only.
+	uint32 ColorBits;						// R:4, G:4, B:4, A:4. (GroupIndex&0xFFFF) is for debug visualization only.
 
 	FInt3 PosStart;
 	uint32 BitsPerIndex_PosPrecision_PosBits;			// BitsPerIndex:4, PosPrecision: 5, PosBits:5.5.5
@@ -128,12 +128,12 @@ struct FPackedCluster
 	void SetNumUVs(uint32 Num) { SetBits(DecodeInfoOffset_NumUVs_ColorMode, Num, 3, 22); }
 	void SetColorMode(uint32 Mode) { SetBits(DecodeInfoOffset_NumUVs_ColorMode, Mode, 2, 22 + 3); }
 		 
-	void SetColorBitsR(uint32 NumBits) { SetBits(ColorBits_GroupIndex, NumBits, 4, 0); }
-	void SetColorBitsG(uint32 NumBits) { SetBits(ColorBits_GroupIndex, NumBits, 4, 4); }
-	void SetColorBitsB(uint32 NumBits) { SetBits(ColorBits_GroupIndex, NumBits, 4, 8); }
-	void SetColorBitsA(uint32 NumBits) { SetBits(ColorBits_GroupIndex, NumBits, 4, 12); }
+	void SetColorBitsR(uint32 NumBits) { SetBits(ColorBits, NumBits, 4, 0); }
+	void SetColorBitsG(uint32 NumBits) { SetBits(ColorBits, NumBits, 4, 4); }
+	void SetColorBitsB(uint32 NumBits) { SetBits(ColorBits, NumBits, 4, 8); }
+	void SetColorBitsA(uint32 NumBits) { SetBits(ColorBits, NumBits, 4, 12); }
 		 
-	void SetGroupIndex(uint32 GroupIndex) { SetBits(ColorBits_GroupIndex, GroupIndex & 0xFFFFu, 16, 16); }
+	//void SetGroupIndex(uint32 GroupIndex) { SetBits(ColorBits_GroupIndex, GroupIndex & 0xFFFFu, 16, 16); }
 };
 
 struct FPackedClusterInstance
@@ -146,7 +146,7 @@ struct FPackedClusterInstance
 	uint32 LODErrorAndEdgeLength;
 
 	FFloat3 BoxBoundsExtent;
-	uint32 Flags;
+	uint32 Flags_GroupIndex;
 
 	FMat34 Transform;
 };

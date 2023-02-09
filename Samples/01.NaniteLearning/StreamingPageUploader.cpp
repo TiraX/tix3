@@ -293,7 +293,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 
 			// Apply fixups to install page
 			//StreamingPage->ResidentKey = PendingPage.InstallKey;
-			ApplyFixups(*FixupChunkPtr, NaniteMesh);
+			ApplyFixups(*FixupChunkPtr, NaniteMesh, BulkData);
 
 			//INC_DWORD_STAT(STAT_NaniteInstalledPages);
 			//INC_DWORD_STAT(STAT_NanitePageInstalls);
@@ -402,7 +402,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	ClusterFixupUploadCS->Run(RHICmdList);
 }
 
-void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh)
+void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh, const TVector<uint8>& BulkData)
 {
 	// tix : since we upload all pages at once. 
 	// we can apply Cluster and Hierarchy fixup here for easy case
@@ -454,15 +454,35 @@ void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteM
 
 		//if (TargetGPUPageIndex != INVALID_PAGE_INDEX)
 		{
+			const FPageStreamingState& PageStreamingState = NaniteMesh->PageStreamingStates[TargetPageIndex];
+			const uint8* PageDataPtr = BulkData.data() + PageStreamingState.BulkOffset;
+			const uint32 FixupChunkSize = ((const FFixupChunk*)PageDataPtr)->GetSize();
+			FPageDiskHeader* Header = (FPageDiskHeader*)(PageDataPtr + FixupChunkSize);
+			const uint32 NumClusters = Header->NumClustersAndInstances >> 16;
+			const uint32 NumClusterInstances = Header->NumClustersAndInstances & 0xffff;
+			const uint32 PackedClusterInstanceOffset =
+				FixupChunkSize +
+				sizeof(FPageDiskHeader) +
+				sizeof(FClusterDiskHeader) * NumClusters +
+				sizeof(FPageGPUHeader) +
+				sizeof(FPackedCluster) * NumClusters +
+				32 * NumClusterInstances;	// in SOA layout
+
 			uint32 ClusterInstanceIndex = Fixup.GetClusterInstanceIndex();
-			uint32 FlagsOffset = offsetof(FPackedClusterInstance, Flags);
-			uint32 Offset = 
+
+			TI_ASSERT(PackedClusterInstanceOffset + 16 * ClusterInstanceIndex + sizeof(FFloat3) < PageStreamingState.PageSize);
+			const uint32 Flags_GroupIndex = *(uint32*)(PageDataPtr + PackedClusterInstanceOffset + 16 * ClusterInstanceIndex + sizeof(FFloat3));
+			const uint32 GroupIndex = Flags_GroupIndex >> 16;
+
+			const uint32 FlagsOffset = offsetof(FPackedClusterInstance, Flags_GroupIndex);
+			const uint32 Offset = 
 				GPUPageIndexToGPUOffset(TargetGPUPageIndex) + 
 				NANITE_GPU_PAGE_HEADER_SIZE + 
 				FixupChunk.Header.NumClusters * NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16 +
 				((FlagsOffset >> 4) * NumTargetPageClusterInstances + ClusterInstanceIndex) * 16 + (FlagsOffset & 15);
 			// TIX: todo: fixup here
-			ClusterFixupUploadCS->Add(Offset / sizeof(uint32), Flags);
+			const uint32 FlagsFixup = (GroupIndex << 16) | Flags;
+			ClusterFixupUploadCS->Add(Offset / sizeof(uint32), FlagsFixup);
 		}
 	}
 
@@ -552,7 +572,7 @@ void FStreamingPageUploader::RedirectClusterIdForClusterInstances(TNaniteMesh* N
 
 		for (uint32 CIIndex = 0; CIIndex < NumClusterInstances; CIIndex++)
 		{
-			TI_ASSERT(PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2) < BulkData.size());
+			TI_ASSERT(PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2) < PageStreamingState.PageSize);
 			uint32& PageAndCluster = *(uint32*)(PageDataPtr + PackedClusterInstanceOffset + 16 * CIIndex + sizeof(FUInt2));
 
 			uint32 Page = PageAndCluster >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS;

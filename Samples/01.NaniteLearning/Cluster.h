@@ -99,9 +99,10 @@ public:
 	FSpheref SphereBounds;
 	FSpheref LODBounds;
 
-	uint32 GroupIndex = TNumLimit<uint32>::max();
+	// GroupIndex and GeneratingGroupIndex moved to cluster instance.
+	//uint32 GroupIndex = TNumLimit<uint32>::max();
 	//uint32 GroupPartIndex = TNumLimit<uint32>::max();	// Seems not used after remove test
-	uint32 GeneratingGroupIndex = TNumLimit<uint32>::max();
+	//uint32 GeneratingGroupIndex = TNumLimit<uint32>::max();
 
 	// this cluster stores in which page, used for cluster_instance to find source cluster
 	uint32 ClusterPageIndex = TNumLimit<uint32>::max();
