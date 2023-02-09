@@ -49,6 +49,10 @@ void TNaniteLearningTicker::SetupScene()
 	const float CamScale = 100.f;
 	Cam->SetPosition(FFloat3(7.42432976f, 2.80526447f, 4.27628517f) * CamScale);
 	Cam->SetTarget(FFloat3(-1.16132188f, -0.711122870f, 6.25598240f) * CamScale);
+
+	Cam->SetPosition(FFloat3(-229.362961f, -127.972183f, 1562.98779f));
+	Cam->SetTarget(FFloat3(-116.132187f, -71.1122894f, 625.598267f));
+
 	Cam->SetNearValue(10.f);
 	Cam->SetFarValue(10000.f);
 #elif NANITE_DEMO == NANITE_GRID_WITH_TESS
@@ -66,7 +70,7 @@ void TNaniteLearningTicker::SetupScene()
 	TNodeCameraNav* NavCam = dynamic_cast<TNodeCameraNav*>(Cam);
 	TI_ASSERT(NavCam);
 #if NANITE_DEMO == NANITE_TREE_NO_TESS
-	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.2f);
+	NavCam->SetDollySpeed(NavCam->GetDollySpeed() * CamScale * 0.4f);
 #endif
 
 	// For mesh shader tess topology debug

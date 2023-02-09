@@ -520,9 +520,18 @@ FClusterInstance UnpackClusterInstance(uint4 ClusterInstanceData[NANITE_NUM_PACK
 	ClusterInstance.GroupIndex			= ClusterInstanceData[2].w >> 16;			// Debug only
 
 	// tix TODO : load transform
+	float4 t0 = asfloat(ClusterInstanceData[3]);
+	float4 t1 = asfloat(ClusterInstanceData[4]);
+	float4 t2 = asfloat(ClusterInstanceData[5]);
+	ClusterInstance.Transform[0] = float4(t0.xyz, 0);
+	ClusterInstance.Transform[1] = float4(t1.xyz, 0);
+	ClusterInstance.Transform[2] = float4(t2.xyz, 0);
+	ClusterInstance.Transform[3] = float4(t0.w, t1.w, t2.w, 1);
+
 	ClusterInstance.Transform[0] = float4(1, 0, 0, 0);
 	ClusterInstance.Transform[1] = float4(0, 1, 0, 0);
 	ClusterInstance.Transform[2] = float4(0, 0, 1, 0);
+	ClusterInstance.Transform[3] = float4(t0.w, t1.w, t2.w, 1);
 	ClusterInstance.Transform[3] = float4(0, 0, 0, 1);
 
 	return ClusterInstance;

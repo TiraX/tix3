@@ -64,7 +64,7 @@ struct VSOut
 
 RWTexture2D<UlongType>	OutVisBuffer64 : register(u1);
 
-VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleClusterInstance VisibleClusterInstance, FCluster Cluster, uint VertIndex, uint PixelValue)
+VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleClusterInstance VisibleClusterInstance, FCluster Cluster, FClusterInstance CI, uint VertIndex, uint PixelValue)
 {
 	VSOut Out;
 
@@ -76,12 +76,13 @@ VSOut CommonRasterizerVS(FNaniteView NaniteView, FVisibleClusterInstance Visible
 //	WorldPositionOffset = EvaluateWorldPositionOffset(NaniteView, InstanceData, InstanceDynamicData, Cluster, VertIndex, PointLocal);
 //#endif
 
-	const float4x4 LocalToTranslatedWorld = {
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,0,1
-	};
+	const float4x4 LocalToTranslatedWorld = CI.Transform;
+	// {
+	// 	1,0,0,0,
+	// 	0,1,0,0,
+	// 	0,0,1,0,
+	// 	0,0,0,1
+	// };
 	//LWCMultiplyTranslation(InstanceData.LocalToWorld, NaniteView.PreViewTranslation);
 	const float3 PointRotated = LocalToTranslatedWorld[0].xyz * PointLocal.xxx + LocalToTranslatedWorld[1].xyz * PointLocal.yyy + LocalToTranslatedWorld[2].xyz * PointLocal.zzz;
 	const float3 PointTranslatedWorld = PointRotated + LocalToTranslatedWorld[3].xyz + WorldPositionOffset;
@@ -234,7 +235,7 @@ VSOut HWRasterizeVS(
 		//}
 
 		const uint PixelValue = ((VisibleIndex + 1) << 7) | TriIndex;
-		Out = CommonRasterizerVS(NaniteView, VisibleClusterInstance, Cluster, TriangleIndices[VertexID], PixelValue);
+		Out = CommonRasterizerVS(NaniteView, VisibleClusterInstance, Cluster, CI, TriangleIndices[VertexID], PixelValue);
 // #if BARYCENTRIC_MODE_EXPORT
 // 		Out.BarycentricsUV = float2(
 // 			VertexID == 0 ? 1 : 0,
@@ -355,7 +356,7 @@ void HWRasterizeMS(
 	if (Vertex0 < Cluster.NumVerts)
 	{
 		const uint PixelValue = 0;
-		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex0, PixelValue);
+		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, CI, Vertex0, PixelValue);
 		
 		FNaniteRawAttributeData AttrData;
 		AttrData = GetRawAttributeData(Cluster, Vertex0, 1);
@@ -369,7 +370,7 @@ void HWRasterizeMS(
 	if (Vertex1 < Cluster.NumVerts)
 	{
 		const uint PixelValue = 0;
-		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, Vertex1, PixelValue);
+		VSOut VertexOutput = CommonRasterizerVS(NaniteView, VisibleCluster, Cluster, CI, Vertex1, PixelValue);
 		FNaniteRawAttributeData AttrData;
 		AttrData = GetRawAttributeData(Cluster, Vertex1, 1);
 		VertexOutput.UV = AttrData.TexCoords[0];
