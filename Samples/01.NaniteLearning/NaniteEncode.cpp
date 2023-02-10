@@ -768,7 +768,8 @@ static void PackClusterInstance(FPackedClusterInstance& OutClusterInstance, cons
 
 	// 4
 	OutClusterInstance.BoxBoundsExtent = ClusterBounds.GetExtent() * 0.5f;
-	OutClusterInstance.Flags_GroupIndex = NANITE_CLUSTER_FLAG_LEAF;
+	// Ignore flag LEAF to avoid cluster fixup.
+	OutClusterInstance.Flags_GroupIndex = 0;// NANITE_CLUSTER_FLAG_LEAF;
 	OutClusterInstance.Flags_GroupIndex |= Cluster.Flags;
 	TI_ASSERT(OutClusterInstance.Flags_GroupIndex < (1 << 16));
 	TI_ASSERT(InClusterInstance.GroupIndex < (1 << 16));

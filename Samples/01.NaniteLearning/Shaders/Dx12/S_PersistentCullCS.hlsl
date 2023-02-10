@@ -534,7 +534,7 @@ struct FNaniteTraversalClusterCullCallback
 				if ((VisibleClusterInstance.Flags & NANITE_CULLING_FLAG_TEST_LOD) != 0)
 #endif
 				{
-					bVisible = SmallEnoughToDraw(NaniteView, ClusterInstance.LODBounds, ClusterInstance.LODError, ClusterInstance.EdgeLength, bUseHWRaster);// || (ClusterInstance.Flags & NANITE_CLUSTER_FLAG_LEAF);
+					bVisible = SmallEnoughToDraw(NaniteView, ClusterInstance.LODBounds, ClusterInstance.LODError, ClusterInstance.EdgeLength, bUseHWRaster) || (ClusterInstance.Flags & NANITE_CLUSTER_FLAG_LEAF);
 						//SmallEnoughToDraw(NaniteView, InstanceData, DynamicData, Cluster.LODBounds, Cluster.LODError, Cluster.EdgeLength, bUseHWRaster) || (Cluster.Flags & NANITE_CLUSTER_FLAG_LEAF);
 				}
 #if CULLING_PASS == CULLING_PASS_OCCLUSION_POST
