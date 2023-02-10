@@ -22,6 +22,7 @@ public:
 private:
 	void ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh, const TVector<uint8>& BulkData);
 	void RedirectClusterIdForClusterInstances(TNaniteMesh* NaniteMesh);
+	void DoLoadTest(TNaniteMesh* NaniteMesh);
 
 private:
 	FUniformBufferPtr InstallInfoUploadBuffer;

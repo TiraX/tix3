@@ -102,6 +102,126 @@ struct FAddedPageInfo
 	uint32				InstallPassIndex;
 };
 
+inline float asfloat(uint32 v)
+{
+	return *(float*)(&v);
+}
+
+inline FSpheref asfloat_sphere(const FUInt4& v)
+{
+	FSpheref S;
+	S.Center.X = asfloat(v.X);
+	S.Center.Y = asfloat(v.Y);
+	S.Center.Z = asfloat(v.Z);
+	S.W = asfloat(v.W);
+	return S;
+}
+
+inline FFloat4 asfloat_float4(const FUInt4& v)
+{
+	FFloat4 F;
+	F.X = asfloat(v.X);
+	F.Y = asfloat(v.Y);
+	F.Z = asfloat(v.Z);
+	F.W = asfloat(v.W);
+	return F;
+}
+
+inline float f16tof32(uint32 v)
+{
+	TI_ASSERT(v < (1 << 16));
+	uint16 u16 = (uint16)v;
+	half h = *(half*)(&u16);
+	return h.operator float();
+}
+
+void UnpackClusterInstance(const TVector<FUInt4>& ClusterInstanceData)
+{
+	TI_ASSERT(ClusterInstanceData.size() == NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S);
+
+	FClusterInstance ClusterInstance;
+
+	ClusterInstance.TransformedLODBounds = asfloat_sphere(ClusterInstanceData[0]);
+
+	//ClusterInstance.BoxBoundsCenter		= asfloat(ClusterInstanceData[3].xyz);
+	// tix : BoxBoundsCenter is BoxBoundsCenter16_MipLevel; decode it
+	FFloat3 BoxBoundsCenter;
+	uint32 MipLevel;
+	BoxBoundsCenter.X = f16tof32(ClusterInstanceData[1].X >> 16);
+	BoxBoundsCenter.Y = f16tof32(ClusterInstanceData[1].X & 0xffffu);
+	BoxBoundsCenter.Z = f16tof32(ClusterInstanceData[1].Y >> 16);
+	MipLevel = ClusterInstanceData[1].Y & 0xffffu;
+
+	uint32 PageIndex = ClusterInstanceData[1].Z >> NANITE_MAX_CLUSTERS_PER_PAGE_BITS;
+	uint32 ClusterIndex = ClusterInstanceData[1].Z & NANITE_MAX_CLUSTERS_PER_PAGE_MASK;
+
+	ClusterInstance.LODError = f16tof32(ClusterInstanceData[1].W & 0xffffu);
+	ClusterInstance.TransformedEdgeLength = f16tof32(ClusterInstanceData[1].W >> 16);
+
+	FFloat3 BoxBoundsExtent;
+	BoxBoundsExtent.X = asfloat(ClusterInstanceData[2].X);
+	BoxBoundsExtent.Y = asfloat(ClusterInstanceData[2].Y);
+	BoxBoundsExtent.Z = asfloat(ClusterInstanceData[2].Z);
+
+	uint32 Flags = ClusterInstanceData[2].W & 0xffffu;
+	uint32 GroupIndex = ClusterInstanceData[2].W >> 16;			// Debug only
+
+	// tix TODO : load transform
+	FFloat4 t0 = asfloat_float4(ClusterInstanceData[3]);
+	FFloat4 t1 = asfloat_float4(ClusterInstanceData[4]);
+	FFloat4 t2 = asfloat_float4(ClusterInstanceData[5]);
+
+	ClusterInstance.ClusterId = 0;
+
+}
+
+void FStreamingPageUploader::DoLoadTest(TNaniteMesh* NaniteMesh)
+{
+	const uint32 TargetPageIndex = 1;
+	const uint32 TargetCIIndex = 27;
+
+	const TVector< FPageStreamingState >& PageStreamingStates = NaniteMesh->PageStreamingStates;
+	const FPageStreamingState& PageStreamingState = PageStreamingStates[TargetPageIndex];
+
+	bool bIsRootPage = NaniteMesh->IsRootPage(TargetPageIndex);
+
+	const TVector<uint8>& BulkData = bIsRootPage ? NaniteMesh->RootData : NaniteMesh->StreamablePages;
+	TI_ASSERT(BulkData.size() > 0);
+	const uint8* SrcPtr = BulkData.data() + PageStreamingState.BulkOffset;
+
+	const uint32 FixupChunkSize = ((const FFixupChunk*)SrcPtr)->GetSize();
+	TI_ASSERT(PageStreamingState.PageSize == PageStreamingState.BulkSize - FixupChunkSize);
+
+	const uint8* PageData = SrcPtr + FixupChunkSize;
+	FPageDiskHeader* Header = (FPageDiskHeader*)PageData;
+	const uint32 NumPageClusters = Header->NumClustersAndInstances >> 16;
+	const uint32 NumPageClusterInstances = Header->NumClustersAndInstances & 0xffff;
+
+	PageData += sizeof(FPageDiskHeader);
+
+	FClusterDiskHeader* ClusterDiskHeaders = (FClusterDiskHeader*)PageData;
+	PageData += sizeof(FClusterDiskHeader) * NumPageClusters;
+
+	FPageGPUHeader* GPUHeader = (FPageGPUHeader*)PageData;
+	const uint8* GPUPageData = PageData;
+
+	const uint32 ClusterInstanceSOAStride = (NumPageClusterInstances << 4);
+	const uint32 ClusterInstanceBaseAddress = (TargetCIIndex << 4) + NumPageClusters * NANITE_NUM_PACKED_CLUSTER_FLOAT4S * 16;
+
+	TVector<FUInt4> ClusterInstanceData;
+	ClusterInstanceData.resize(NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S);
+	uint8* DstAddress = (uint8*)ClusterInstanceData.data();
+	const uint32 Float4Size = sizeof(FUInt4);
+
+	for (int i = 0; i < NANITE_NUM_PACKED_CLUSTER_INSTANCE_FLOAT4S; i++)
+	{
+		uint32 TargetAddress = ClusterInstanceBaseAddress + i * ClusterInstanceSOAStride + NANITE_GPU_PAGE_HEADER_SIZE;
+		memcpy(DstAddress + Float4Size * i, GPUPageData + TargetAddress, Float4Size);
+	}
+	
+	UnpackClusterInstance(ClusterInstanceData);
+}
+
 void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNaniteMesh* NaniteMesh, FUniformBufferPtr DstBuffer)
 {
 	// Tix:Process all pages in this case
@@ -152,6 +272,8 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	ClusterFixupUploadCS->Reset(MaxInstallPages * NANITE_MAX_CLUSTER_INSTANCES_PER_PAGE, DstBuffer);
 
 	RedirectClusterIdForClusterInstances(NaniteMesh);
+
+	//DoLoadTest(NaniteMesh);
 
 	// Fill Src Buffer
 	uint8* PageUploadBufferPtr = PageUploadBuffer->GetGPUBuffer()->Lock();
@@ -399,7 +521,7 @@ void FStreamingPageUploader::ProcessNewResources(FRHICmdList* RHICmdList, TNanit
 	}
 
 	// Copy fixups
-	ClusterFixupUploadCS->Run(RHICmdList);
+	//ClusterFixupUploadCS->Run(RHICmdList);
 }
 
 void FStreamingPageUploader::ApplyFixups(const FFixupChunk& FixupChunk, TNaniteMesh* NaniteMesh, const TVector<uint8>& BulkData)

@@ -813,7 +813,9 @@ void CalculateEncodingInfo(FEncodingInfo& Info, const FCluster& Cluster, bool bH
 	}
 
 	FPageSections& GpuSizes = Info.GpuSizes;
-	GpuSizes.Cluster = sizeof(FPackedCluster);
+	GpuSizes.Packed_Clusters = sizeof(FPackedCluster);
+	// Do not assign Packed_ClusterInstances here, assign when pack cluster_instances
+	//GpuSizes.Packed_ClusterInstances = sizeof(FPackedClusterInstance);
 	GpuSizes.MaterialTable = CalcMaterialTableSize(Cluster) * sizeof(uint32);
 	GpuSizes.DecodeInfo = NumTexCoords * sizeof(FUVRange);
 	GpuSizes.Index = (NumClusterTris * BitsPerTriangle + 31) / 32 * 4;
@@ -1539,7 +1541,7 @@ void AssignClusterToPages(
 					}
 				}
 
-				Page->GpuSizes.ClusterInstance += ClusterInstanceSize;
+				Page->GpuSizes.Packed_ClusterInstances += ClusterInstanceSize;
 				Page->NumClusterInstances++;
 			}
 
@@ -2231,9 +2233,9 @@ void WritePages(
 				for (uint32 i = 0; i < GeneratingGroup.PageIndexNum; i++)
 				{
 					//TODO: Implement some sort of FFixupPart to not redundantly store PageIndexStart/PageIndexNum?
-					FFixupChunk& FixupChunk = FixupChunks[GeneratingGroup.PageIndexStart + i];
-
 					int32 _PageIndex = GeneratingGroup.PageIndexStart + i;
+					FFixupChunk& FixupChunk = FixupChunks[_PageIndex];
+
 					if (UniqueClusterFixups[_PageIndex].count(D) == 0)
 					{
 						FixupChunk.GetClusterFixup(FixupChunk.Header.NumClusterFixups++) = ClusterFixup;
@@ -2384,7 +2386,7 @@ void WritePages(
 				PackedCluster.SetDecodeInfoOffset(GpuSectionOffsets.DecodeInfo);
 
 				GpuSectionOffsets += EncodingInfo.GpuSizes;
-				TI_ASSERT(EncodingInfo.GpuSizes.ClusterInstance == 0);
+				TI_ASSERT(EncodingInfo.GpuSizes.Packed_ClusterInstances == 0);
 
 				const FPageStreamingState& PageStreamingState = Mesh.PageStreamingStates[PageIndex];
 				const uint32 DependenciesNum = (PageStreamingState.Flags & NANITE_PAGE_FLAG_RELATIVE_ENCODING) ? PageStreamingState.DependenciesNum : 0u;
@@ -2412,18 +2414,16 @@ void WritePages(
 				FPackedClusterInstance& PackedClusterInstance = PackedClusterInstances[LocalClusterInstanceIndex];
 				PackClusterInstance(PackedClusterInstance, ClusterInstance, Clusters);
 
-				TI_ASSERT((GpuSectionOffsets.ClusterInstance & 3) == 0);
-
-				GpuSectionOffsets.ClusterInstance += sizeof(FPackedClusterInstance);
+				GpuSectionOffsets.Packed_ClusterInstances += sizeof(FPackedClusterInstance);
 			}
 		}
-		TI_ASSERT(GpuSectionOffsets.Cluster == Page.GpuSizes.GetMaterialTableOffset());
+		TI_ASSERT(GpuSectionOffsets.Packed_Clusters == Page.GpuSizes.GetClusterInstanceOffset());
+		TI_ASSERT(GpuSectionOffsets.Packed_ClusterInstances == Page.GpuSizes.GetMaterialTableOffset());
 		TI_ASSERT(TMath::Align(GpuSectionOffsets.MaterialTable, 16) == Page.GpuSizes.GetDecodeInfoOffset());
 		TI_ASSERT(GpuSectionOffsets.DecodeInfo == Page.GpuSizes.GetIndexOffset());
 		TI_ASSERT(GpuSectionOffsets.Index == Page.GpuSizes.GetPositionOffset());
 		TI_ASSERT(GpuSectionOffsets.Position == Page.GpuSizes.GetAttributeOffset());
-		TI_ASSERT(GpuSectionOffsets.Attribute == Page.GpuSizes.GetClusterInstanceOffset());
-		TI_ASSERT(GpuSectionOffsets.ClusterInstance == Page.GpuSizes.GetTotal());
+		TI_ASSERT(GpuSectionOffsets.Attribute == Page.GpuSizes.GetTotal());
 
 		// Dword align index data
 		//CombinedIndexData.SetNumZeroed((CombinedIndexData.size() + 3) & -4);

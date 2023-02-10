@@ -24,38 +24,38 @@ struct FClusterGroupPart					// Whole group or a part of a group that has been s
 
 struct FPageSections
 {
-	uint32 Cluster = 0;
+	uint32 Packed_Clusters = 0;
+	uint32 Packed_ClusterInstances = 0;
 	uint32 MaterialTable = 0;
 	uint32 DecodeInfo = 0;
 	uint32 Index = 0;
 	uint32 Position = 0;
 	uint32 Attribute = 0;
-	uint32 ClusterInstance = 0;
 
 	uint32 GetMaterialTableSize() const { return TMath::Align(MaterialTable, 16); }
 	uint32 GetClusterOffset() const { return NANITE_GPU_PAGE_HEADER_SIZE; }
-	uint32 GetMaterialTableOffset() const { return GetClusterOffset() + Cluster; }
+	uint32 GetClusterInstanceOffset() const { return GetClusterOffset() + Packed_Clusters; }
+	uint32 GetMaterialTableOffset() const { return GetClusterInstanceOffset() + Packed_ClusterInstances; }
 	uint32 GetDecodeInfoOffset() const { return GetMaterialTableOffset() + GetMaterialTableSize(); }
 	uint32 GetIndexOffset() const { return GetDecodeInfoOffset() + DecodeInfo; }
 	uint32 GetPositionOffset() const { return GetIndexOffset() + Index; }
 	uint32 GetAttributeOffset() const { return GetPositionOffset() + Position; }
-	uint32 GetClusterInstanceOffset() const { return GetAttributeOffset() + Attribute; }
-	uint32 GetTotal() const { return GetClusterInstanceOffset() + ClusterInstance; }
+	uint32 GetTotal() const { return GetAttributeOffset() + Attribute; }
 
 	FPageSections GetOffsets() const
 	{
-		return FPageSections{ GetClusterOffset(), GetMaterialTableOffset(), GetDecodeInfoOffset(), GetIndexOffset(), GetPositionOffset(), GetAttributeOffset(), GetClusterInstanceOffset() };
+		return FPageSections{ GetClusterOffset(), GetClusterInstanceOffset(), GetMaterialTableOffset(), GetDecodeInfoOffset(), GetIndexOffset(), GetPositionOffset(), GetAttributeOffset() };
 	}
 
 	void operator+=(const FPageSections& Other)
 	{
-		Cluster += Other.Cluster;
+		Packed_Clusters += Other.Packed_Clusters;
+		Packed_ClusterInstances += Other.Packed_ClusterInstances;
 		MaterialTable += Other.MaterialTable;
 		DecodeInfo += Other.DecodeInfo;
 		Index += Other.Index;
 		Position += Other.Position;
 		Attribute += Other.Attribute;
-		ClusterInstance += Other.ClusterInstance;
 	}
 };
 
