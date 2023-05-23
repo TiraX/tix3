@@ -87,12 +87,12 @@ namespace tix
 
 		void Invalidate()
 		{
-			Max = FVec3<T>(std::numeric_limits<T>::min(),
-				std::numeric_limits<T>::min(),
-				std::numeric_limits<T>::min());
-			Min = FVec3<T>(std::numeric_limits<T>::max(),
-				std::numeric_limits<T>::max(),
-				std::numeric_limits<T>::max());
+			Max = FVec3<T>(TNumLimit<T>::min(),
+				TNumLimit<T>::min(),
+				TNumLimit<T>::min());
+			Min = FVec3<T>(TNumLimit<T>::max(),
+				TNumLimit<T>::max(),
+				TNumLimit<T>::max());
 		}
 
 		void AddInternalPoint(T x, T y, T z)
