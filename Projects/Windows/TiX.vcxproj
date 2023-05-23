@@ -328,6 +328,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\winpixeventruntime.1.0.190604001\Include;..\..\Sources\Externals\libpng1.6.37;..\..\Sources\Externals\zlib-1.2.11;..\..\Sources\Externals\inih;..\..\Sources\Externals\rapidjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -348,6 +349,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\Sources\Engine;..\..\Sources\Externals\winpixeventruntime.1.0.190604001\Include;..\..\Sources\Externals\libpng1.6.37;..\..\Sources\Externals\zlib-1.2.11;..\..\Sources\Externals\inih;..\..\Sources\Externals\rapidjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
