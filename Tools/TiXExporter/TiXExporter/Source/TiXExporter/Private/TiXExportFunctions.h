@@ -40,7 +40,7 @@ private:
 
 	struct FTiXVertex
 	{
-		FVector Position;
+		FVector3f Position;
 		FVector4f Normal;
 		FVector4f TangentX;
 		FVector2f TexCoords[MAX_TIX_TEXTURE_COORDS];
