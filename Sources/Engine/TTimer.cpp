@@ -334,7 +334,7 @@ namespace tix
 	void TTimeRecorder::Start()
 	{
 		LogSpaceForStack();
-		Profiles << Name << " started." << endl;
+		Profiles << Name << " started." << std::endl;
 		++TimerRecorderStack;
 		if (High)
 		{
@@ -364,16 +364,16 @@ namespace tix
 		{
 			double Dt = double(EndTime - StartTime) / double(Freq);
 			if (Dt > 0.001)
-				Profiles << Name << " used : " << Dt * 1000 << " ms." << endl;
+				Profiles << Name << " used : " << Dt * 1000 << " ms." << std::endl;
 			else
-				Profiles << Name << " used : " << Dt * 1000000 << " us." << endl;
+				Profiles << Name << " used : " << Dt * 1000000 << " us." << std::endl;
 		}
 		else
 		{
 			uint32 ms = (uint32)(Diff % 1000);
 			uint32 s = (uint32)((Diff / 1000) % 60);
 			uint32 m = (uint32)((Diff / 1000) / 60);
-			Profiles << Name << " used : " << m << ", " << s << ", " << ms << endl;
+			Profiles << Name << " used : " << m << ", " << s << ", " << ms << std::endl;
 		}
 	}
 }

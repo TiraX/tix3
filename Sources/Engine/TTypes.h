@@ -45,6 +45,8 @@ template<typename T>
 using THSet = std::unordered_set<T>;
 template<typename T>
 using TNumLimit = std::numeric_limits<T>;
+template<typename T>
+using TUniqueLock = std::unique_lock<T>;
 
 #define TFunction std::function
 #define TForward std::forward
@@ -64,6 +66,7 @@ typedef std::stringstream TStringStream;
 
 typedef std::mutex TMutex;
 typedef std::condition_variable TCond;
+typedef std::thread TStdThread;
 typedef std::thread::id TThreadId;
 
 #include "TRegex.h"

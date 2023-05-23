@@ -121,7 +121,7 @@ namespace tix
 		IsRunning = true;
 
 		TI_ASSERT(Thread == nullptr);
-		Thread = ti_new thread(TThread::ThreadExecute, this);
+		Thread = ti_new TStdThread(TThread::ThreadExecute, this);
 	}
 
 	void TThread::Stop()

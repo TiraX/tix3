@@ -28,7 +28,7 @@ namespace tix
 
 //#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-	namespace boost
+	namespace __boost
 	{
 
 		namespace detail
@@ -189,22 +189,22 @@ namespace tix
 	}
 	
 //#if !defined( BOOST_NO_CXX11_NULLPTR )
-	template<class T> inline bool operator==(IInstrusivePtr<T> const & p, boost::detail::sp_nullptr_t)
+	template<class T> inline bool operator==(IInstrusivePtr<T> const & p, __boost::detail::sp_nullptr_t)
 	{
 		return p.get() == 0;
 	}
 
-	template<class T> inline bool operator==(boost::detail::sp_nullptr_t, IInstrusivePtr<T> const & p)
+	template<class T> inline bool operator==(__boost::detail::sp_nullptr_t, IInstrusivePtr<T> const & p)
 	{
 		return p.get() == 0;
 	}
 
-	template<class T> inline bool operator!=(IInstrusivePtr<T> const & p, boost::detail::sp_nullptr_t)
+	template<class T> inline bool operator!=(IInstrusivePtr<T> const & p, __boost::detail::sp_nullptr_t)
 	{
 		return p.get() != 0;
 	}
 
-	template<class T> inline bool operator!=(boost::detail::sp_nullptr_t, IInstrusivePtr<T> const & p)
+	template<class T> inline bool operator!=(__boost::detail::sp_nullptr_t, IInstrusivePtr<T> const & p)
 	{
 		return p.get() != 0;
 	}

@@ -22,7 +22,7 @@ namespace tix
 		TString::size_type SrcLen = StringSrc.size();
 		TString::size_type DesLen = StringDest.size();
 		Pos = String.find(StringSrc, Pos);
-		while ((Pos != string::npos))
+		while ((Pos != TString::npos))
 		{
 			String.replace(Pos, SrcLen, StringDest);
 			Pos = String.find(StringSrc, (Pos + DesLen));
@@ -62,7 +62,7 @@ namespace tix
 		TStringStream SS;
 		for (const auto& S : InStrings)
 		{
-			SS << S << endl;
+			SS << S << std::endl;
 		}
 		return SS.str();
 	}

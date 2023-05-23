@@ -30,7 +30,7 @@ namespace tix
 	void TTaskThread::Run()
 	{
 		{
-			unique_lock<TMutex> TaskLock(TaskMutex);
+			TUniqueLock<TMutex> TaskLock(TaskMutex);
 			TaskCond.wait(TaskLock);
 		}
 
@@ -42,7 +42,7 @@ namespace tix
 		if (Thread != nullptr)
 		{
 			{
-				unique_lock<TMutex> CLock(TaskMutex);
+				TUniqueLock<TMutex> CLock(TaskMutex);
 				IsRunning = false;
 				TaskCond.notify_one();
 			}
@@ -74,7 +74,7 @@ namespace tix
 
 	void TTaskThread::AddTask(TTask* Task)
 	{
-		unique_lock<TMutex> CLock(TaskMutex);
+		TUniqueLock<TMutex> CLock(TaskMutex);
 		Busy = true;
 		Tasks.PushBack(Task);
 		TaskCond.notify_one();

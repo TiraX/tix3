@@ -59,7 +59,7 @@ namespace tix
 		void SetThreadDescription();
 	protected:
 		bool IsRunning;
-		thread * Thread;
+		TStdThread* Thread;
 		TThreadId ThreadId;
 
 	private:

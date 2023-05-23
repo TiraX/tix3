@@ -222,7 +222,7 @@ namespace tix
 		if (FRenderThread::ThreadEnabled)
 		{
 			// Send a signal to trigger Run() in a single thread
-			unique_lock<TMutex> RenderLock(RenderMutex);
+			TUniqueLock<TMutex> RenderLock(RenderMutex);
 			// Add Trigger Number
 			++TriggerNum;
 			// Frame index move to next frame. Close current frame data
@@ -240,7 +240,7 @@ namespace tix
 	{
 		if (FRenderThread::ThreadEnabled)
 		{
-			unique_lock<TMutex> RenderLock(RenderMutex);
+			TUniqueLock<TMutex> RenderLock(RenderMutex);
 			// Add Trigger Number
 			++TriggerNum;
 			// Frame index move to next frame. Close current frame data
@@ -254,7 +254,7 @@ namespace tix
 	{
 		if (FRenderThread::ThreadEnabled)
 		{
-			unique_lock<TMutex> RenderLock(RenderMutex);
+			TUniqueLock<TMutex> RenderLock(RenderMutex);
 			--TriggerNum;
 			RenderCond.wait(RenderLock);
 		}
