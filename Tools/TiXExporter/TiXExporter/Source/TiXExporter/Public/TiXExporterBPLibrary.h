@@ -43,8 +43,21 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Export Path", Keywords = "TiX Set Export Path"), Category = "TiXExporter")
 	static void SetExportPath(const FString& ExportPath);
 
-
+	
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Current Level", Keywords = "TiX Export Current Scene"), Category = "TiXExporter")
 	static void ExportCurrentLevel(AActor* Actor);
+	
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Static Mesh", Keywords = "TiX Export Static Mesh"), Category = "TiXExporter")
+	static void ExportStaticMesh(UStaticMesh* InSM);
+	
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Texture", Keywords = "TiX Export Texture"), Category = "TiXExporter")
+	static void ExportTexture(UTexture* InTexture);
+	
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Material", Keywords = "TiX Export Material"), Category = "TiXExporter")
+	static void ExportMaterial(UMaterial* InMat);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Export Material Instance", Keywords = "TiX Export Material Instance"), Category = "TiXExporter")
+	static void ExportMaterialInstance(UMaterialInstance* InMI);
 };

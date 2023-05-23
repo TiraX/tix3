@@ -125,6 +125,7 @@ private:
 		}
 	};
 
+public:
 	static void ExportStaticMesh(UStaticMesh* SM);
 	static void ExportMaterial(UMaterial* M);
 	static void ExportMaterialInstance(UMaterialInstance* MI);

@@ -4,6 +4,7 @@
 #include "TiXExporter.h"
 #include "TiXDefines.h"
 #include "TiXScene.h"
+#include "TiXExportFunctions.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/SkeletalMesh.h"
@@ -125,3 +126,28 @@ void UTiXExporterBPLibrary::ExportCurrentLevel(AActor* Actor)
 	Scene.DoExport();
 }
 
+
+
+void UTiXExporterBPLibrary::ExportStaticMesh(UStaticMesh* InSM)
+{
+	FTiXExportFunctions::ExportStaticMesh(InSM);
+}
+
+
+void UTiXExporterBPLibrary::ExportTexture(UTexture* InTexture)
+{
+	checkNoEntry();
+	//FTiXExportFunctions::ExportTexture(InTexture);
+}
+
+
+void UTiXExporterBPLibrary::ExportMaterial(UMaterial* InMat)
+{
+	FTiXExportFunctions::ExportMaterial(InMat);
+}
+
+
+void UTiXExporterBPLibrary::ExportMaterialInstance(UMaterialInstance* InMI)
+{
+	FTiXExportFunctions::ExportMaterialInstance(InMI);
+}
