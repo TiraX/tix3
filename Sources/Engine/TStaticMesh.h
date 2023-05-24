@@ -21,11 +21,12 @@ namespace tix
 		uint32 Triangles;
 		TVector<uint32> BoneMap;
 	};
+
 	// TStaticMesh, hold static mesh components like mesh buffer, mesh sections, collisions, occluders
 	class TI_API TStaticMesh : public TResource
 	{
 	public:
-		TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB);
+		TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB, uint32 InFlags);
 		virtual ~TStaticMesh();
 
 		virtual void InitRenderThreadResource();
@@ -75,6 +76,7 @@ namespace tix
 		void CreateOccludeMeshFromCollision();
 
 	private:
+		uint32 Flags;
 		TVertexBufferPtr VertexBuffer;
 		TIndexBufferPtr IndexBuffer;
 		TVector<TMeshSection> MeshSections;

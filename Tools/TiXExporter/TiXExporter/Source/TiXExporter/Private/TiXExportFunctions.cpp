@@ -249,7 +249,8 @@ void FTiXExportFunctions::ExportStaticMesh(UStaticMesh* SM)
 	SMDesc.vertex_count_total = VertexData.Num();
 	SMDesc.index_count_total = IndexData.Num();
 	SMDesc.texcoord_count = TotalNumTexCoords;
-	SMDesc.total_lod = 1;	
+	SMDesc.total_lod = 1;
+	SMDesc.cpu_access = SM->bAllowCPUAccess;
 #define ADD_VS_FORMAT(Format) if ((VsFormat & Format) != 0) SMDesc.data.vs_format.Add(TEXT(#Format))
 	ADD_VS_FORMAT(EVSSEG_POSITION);
 	ADD_VS_FORMAT(EVSSEG_NORMAL);

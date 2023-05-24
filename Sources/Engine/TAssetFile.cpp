@@ -241,7 +241,7 @@ namespace tix
 		VB->SetResourceName(Filename + "-VB");
 		TIndexBufferPtr IB = ti_new TIndexBuffer();
 		IB->SetResourceName(Filename + "-IB");
-		TStaticMeshPtr StaticMesh = ti_new TStaticMesh(VB, IB);
+		TStaticMeshPtr StaticMesh = ti_new TStaticMesh(VB, IB, Header->Flags);
 
 		// Load vertex data and index data
 		const int32 IndexStride = (Header->IndexType == EIT_16BIT) ? sizeof(uint16) : sizeof(uint32);
@@ -278,8 +278,11 @@ namespace tix
 			{
 				_LOG(ELog::Error, "Failed to load default material instance [%s] for mesh [%s].\n", MaterialResName.c_str(), Filename.c_str());
 			}
-			TMaterialInstancePtr MaterialInstance = static_cast<TMaterialInstance*>(MIRes->GetResourcePtr());
-			MeshSection.DefaultMaterial = MaterialInstance;
+			else
+			{
+				TMaterialInstancePtr MaterialInstance = static_cast<TMaterialInstance*>(MIRes->GetResourcePtr());
+				MeshSection.DefaultMaterial = MaterialInstance;
+			}
 
 			StaticMesh->AddMeshSection(MeshSection);
 		}

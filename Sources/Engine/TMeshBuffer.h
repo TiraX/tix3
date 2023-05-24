@@ -16,11 +16,14 @@ namespace tix
 		uint32 VsFormat;
 		uint32 Stride;
 
+		uint32 Flags;
+
 		TVertexBufferDesc()
 			: PrimitiveType(EPrimitiveType::TriangleList)
 			, VertexCount(0)
 			, VsFormat(0)
 			, Stride(0)
+			, Flags(0)
 		{}
 	};
 	struct TIndexBufferDesc
@@ -28,9 +31,12 @@ namespace tix
 		E_INDEX_TYPE IndexType;
 		uint32 IndexCount;
 
+		uint32 Flags;
+
 		TIndexBufferDesc()
 			: IndexType(EIT_16BIT)
 			, IndexCount(0)
+			, Flags(0)
 		{}
 	};
 	struct TInstanceBufferDesc
@@ -39,10 +45,13 @@ namespace tix
 		int32 InstanceCount;
 		uint32 Stride;
 
+		uint32 Flags;
+
 		TInstanceBufferDesc()
 			: InsFormat(0)
 			, InstanceCount(0)
 			, Stride(0)
+			, Flags(0)
 		{}
 	};
 
@@ -135,6 +144,11 @@ namespace tix
 		{
 			return Data;
 		}
+
+		void SetFlag(EResourceFlags InFlag)
+		{
+			Desc.Flags |= InFlag;
+		}
 	protected:
 
 	protected:
@@ -167,6 +181,11 @@ namespace tix
 		const TStreamPtr GetIndexBufferData() const
 		{
 			return Data;
+		}
+
+		void SetFlag(EResourceFlags InFlag)
+		{
+			Desc.Flags |= InFlag;
 		}
 	protected:
 
@@ -212,6 +231,11 @@ namespace tix
 		const TStreamPtr GetInstanceData() const
 		{
 			return Data;
+		}
+
+		void SetFlag(EResourceFlags InFlag)
+		{
+			Desc.Flags |= InFlag;
 		}
 	protected:
 

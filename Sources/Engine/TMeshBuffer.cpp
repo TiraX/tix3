@@ -59,7 +59,8 @@ namespace tix
 				VertexBuffer->CreateGPUBuffer(FRHI::Get()->GetDefaultCmdList(), InData);
 			});
 		// release CPU memory after create render resource
-		Data = nullptr;
+		if ((Desc.Flags & CpuAccess) == 0)
+			Data = nullptr;
 	}
 
 	void TVertexBuffer::DestroyRenderThreadResource()
@@ -120,7 +121,8 @@ namespace tix
 			});
 
 		// release CPU memory after create render resource
-		Data = nullptr;
+		if ((Desc.Flags & CpuAccess) == 0)
+			Data = nullptr;
 	}
 
 	void TIndexBuffer::DestroyRenderThreadResource()

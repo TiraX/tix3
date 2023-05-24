@@ -28,6 +28,12 @@ namespace tix
 
 		ERES_COUNT,
 	};
+
+	enum EResourceFlags
+	{
+		CpuAccess = 1,
+	};
+
 	class TI_API TResource : public IReferenceCounted
 	{
 	public:

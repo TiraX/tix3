@@ -73,7 +73,7 @@ namespace tix
 			VB->SetVertexData(EVSSEG_POSITION, Positions.data(), (uint32)Positions.size(), Box);
 			IB->SetIndexData(EIT_32BIT, Indices.data(), (uint32)Indices.size());
 
-			TStaticMeshPtr SM = ti_new TStaticMesh(VB, IB);
+			TStaticMeshPtr SM = ti_new TStaticMesh(VB, IB, 0);
 			return SM;
 		}
 		else

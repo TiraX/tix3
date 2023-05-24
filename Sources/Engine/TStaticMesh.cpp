@@ -9,11 +9,17 @@
 
 namespace tix
 {
-	TStaticMesh::TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB)
+	TStaticMesh::TStaticMesh(TVertexBufferPtr InVB, TIndexBufferPtr InIB, uint32 InFlags)
 		: TResource(ERES_STATIC_MESH)
+		, Flags(InFlags)
 		, VertexBuffer(InVB)
 		, IndexBuffer(InIB)
 	{
+		if ((Flags & CpuAccess) != 0)
+		{
+			VertexBuffer->SetFlag(CpuAccess);
+			IndexBuffer->SetFlag(CpuAccess);
+		}
 	}
 
 	TStaticMesh::~TStaticMesh()

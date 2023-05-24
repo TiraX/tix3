@@ -21,7 +21,7 @@ namespace tix
 
 	void TResTaskThread::Run()
 	{
-		unique_lock<TMutex> TaskLock(TaskMutex);
+		TUniqueLock<TMutex> TaskLock(TaskMutex);
 		TaskCond.wait(TaskLock);
 
 		if (Tasks.size() > 0)
@@ -41,7 +41,7 @@ namespace tix
 		if (Thread != nullptr)
 		{
 			{
-				unique_lock<TMutex> CLock(TaskMutex);
+				TUniqueLock<TMutex> CLock(TaskMutex);
 				IsRunning = false;
 				TaskCond.notify_one();
 			}

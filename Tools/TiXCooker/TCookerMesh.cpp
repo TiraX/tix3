@@ -64,6 +64,11 @@ namespace tix
 		// Get ref skeleton if this is a skeletal mesh
 		Doc["skeleton"] << Mesh.RefSkeleton;
 
+		// Load flags
+		Mesh.Flags = 0;
+		if (!Doc["cpu_access"].IsNull())
+			Mesh.Flags |= CpuAccess;
+
 		// Load mesh data
 		{
 			TJSONNode JData = Doc["data"];
@@ -294,7 +299,7 @@ namespace tix
 			MeshHeader.IndexType = IndexType;
 			MeshHeader.Sections = (int32)Mesh.Sections.size();
 			TI_ASSERT(MeshHeader.Sections > 0);
-			MeshHeader.Flag = 0;
+			MeshHeader.Flags = Mesh.Flags;
 			FFloat3 FirstPosition(Mesh.Segments[ESSI_POSITION].Data[0], Mesh.Segments[ESSI_POSITION].Data[1], Mesh.Segments[ESSI_POSITION].Data[2]);
 			MeshHeader.BBox.Reset(FirstPosition);
 			if (Mesh.RefSkeleton != "")

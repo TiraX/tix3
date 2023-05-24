@@ -403,16 +403,19 @@ struct FTiXStaticMesh
 	FString desc;
 
 	UPROPERTY()
-	int32 vertex_count_total;
+	int32 vertex_count_total = 0;
 
 	UPROPERTY()
-	int32 index_count_total;
+	int32 index_count_total = 0;
 	
 	UPROPERTY()
-	int32 texcoord_count;
+	int32 texcoord_count = 0;
 	
 	UPROPERTY()
-	int32 total_lod;
+	int32 total_lod = 0;
+	
+	UPROPERTY()
+	int32 cpu_access = 0;
 
 	UPROPERTY()
 	FTiXStaticMeshData data;

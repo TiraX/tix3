@@ -61,7 +61,8 @@ namespace tix
 	struct TResMeshDefine
 	{
 		TResMeshDefine()
-			: NumVertices(0)
+			: Flags(0)
+			, NumVertices(0)
 			, NumTriangles(0)
 		{
 		}
@@ -91,6 +92,7 @@ namespace tix
 			return *this;
 		}
 
+		uint32 Flags;
 		int32 NumVertices;
 		int32 NumTriangles;
 		TString RefSkeleton;

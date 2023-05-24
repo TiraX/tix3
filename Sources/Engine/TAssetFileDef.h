@@ -143,7 +143,7 @@ namespace tix
 		int32 IndexType;
 		int32 Sections;
 		uint16 Clusters, ClusterSize;
-		uint32 Flag;
+		uint32 Flags;
 		FBox BBox;
 
 		int32 RefSkeletonStrIndex;
@@ -162,7 +162,7 @@ namespace tix
 			, Sections(0)
 			, Clusters(0)
 			, ClusterSize(0)
-			, Flag(0)
+			, Flags(0)
 			, RefSkeletonStrIndex(-1)
 		{
 		}
