@@ -46,9 +46,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\Binaries\Windows\$(Configuration)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\Binaries\Windows</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -91,17 +93,8 @@
       <AdditionalDependencies>ispc_texcomp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>if not exist $(SolutionDir)..\..\Binaries (
-  pushd $(SolutionDir)..\..\
-  mkdir Binaries
-  popd
-)
-if not exist $(SolutionDir)..\..\Binaries\Windows (
-  pushd $(SolutionDir)..\..\Binaries\
-  mkdir Windows
-  popd
-)
-copy $(OutDir)$(TargetName)$(TargetExt) $(SolutionDir)..\..\Binaries\Windows</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
