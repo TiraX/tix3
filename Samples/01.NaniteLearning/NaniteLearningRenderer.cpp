@@ -361,15 +361,15 @@ void FNaniteLearningRenderer::CalcLoopIndexData()
 	auto PrintFormated = [](const TVector<uint32>& Data, const TString& Name)
 	{
 		TStringStream SS;
-		SS << "static const uint " << Name << "[" << Data.size() << "] = {" << endl;
+		SS << "static const uint " << Name << "[" << Data.size() << "] = {" << std::endl;
 		SS << "\t";
 		for (int32 i = 0; i < (int32)Data.size(); i++)
 		{
 			SS << Data[i] << ",";
 			if ((i + 1) % 8 == 0)
-				SS << endl << "\t";
+				SS << std::endl << "\t";
 		}
-		SS << endl << "};" << endl;
+		SS << std::endl << "};" << std::endl;
 		_LOG(ELog::Log, SS.str().c_str());
 	};
 
